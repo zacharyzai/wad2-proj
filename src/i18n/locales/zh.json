@@ -1,0 +1,28 @@
+{
+  "app": { "name": "Ah Ma Ah Gong Can" },
+  "nav": { "scan": "扫描", "schedule": "服药时间表", "bill": "账单", "history": "记录", "login": "登录", "language": "语言" },
+  "pages": {
+    "home": "看懂您的药物和账单",
+    "scan": "扫描药物标签或账单",
+    "confirm": "核对资料",
+    "explain": "这是什么意思",
+    "schedule": "服药时间表",
+    "bill": "账单明细",
+    "login": "登录",
+    "signup": "创建账户",
+    "history": "扫描记录",
+    "shared": "共享摘要",
+    "notFound": "找不到页面"
+  },
+  "errors": {
+    "BAD_REQUEST": "请求有误，请再试一次。",
+    "NOT_FOUND": "找不到相关内容。",
+    "IMAGE_TOO_LARGE": "照片太大，请换一张较小的照片。",
+    "UNREADABLE_IMAGE": "无法读取这张照片，请在光线充足的地方重拍。",
+    "RATE_LIMITED": "扫描次数太多，请稍后再试。",
+    "AI_UNAVAILABLE": "目前无法扫描，请先试用示例。",
+    "NOT_IMPLEMENTED": "此功能即将推出。",
+    "SERVER_ERROR": "出了点问题，请再试一次。",
+    "NETWORK_ERROR": "无法连接，请检查网络。"
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "app": { "name": "Ah Ma Ah Gong Can" },
+  "nav": { "scan": "Imbas", "schedule": "Jadual", "bill": "Bil", "history": "Sejarah", "login": "Log masuk", "language": "Bahasa" },
+  "pages": {
+    "home": "Fahami ubat dan bil anda",
+    "scan": "Imbas label atau bil",
+    "confirm": "Semak butiran",
+    "explain": "Apa maksudnya",
+    "schedule": "Jadual ubat",
+    "bill": "Pecahan bil",
+    "login": "Log masuk",
+    "signup": "Cipta akaun",
+    "history": "Sejarah imbasan",
+    "shared": "Ringkasan dikongsi",
+    "notFound": "Halaman tidak dijumpai"
+  },
+  "errors": {
+    "BAD_REQUEST": "Permintaan tidak sah. Sila cuba lagi.",
+    "NOT_FOUND": "Kami tidak dapat menjumpainya.",
+    "IMAGE_TOO_LARGE": "Gambar terlalu besar. Sila cuba gambar yang lebih kecil.",
+    "UNREADABLE_IMAGE": "Gambar tidak dapat dibaca. Sila ambil semula di tempat yang terang.",
+    "RATE_LIMITED": "Terlalu banyak imbasan. Sila tunggu sebentar dan cuba lagi.",
+    "AI_UNAVAILABLE": "Imbasan tidak tersedia sekarang. Cuba contoh dahulu.",
+    "NOT_IMPLEMENTED": "Ciri ini akan datang.",
+    "SERVER_ERROR": "Ada masalah. Sila cuba lagi.",
+    "NETWORK_ERROR": "Tidak dapat disambungkan. Sila semak sambungan internet anda."
+  }
+}

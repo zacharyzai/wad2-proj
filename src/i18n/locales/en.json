@@ -1,0 +1,28 @@
+{
+  "app": { "name": "Ah Ma Ah Gong Can" },
+  "nav": { "scan": "Scan", "schedule": "Schedule", "bill": "Bill", "history": "History", "login": "Log in", "language": "Language" },
+  "pages": {
+    "home": "Understand your medicine and bills",
+    "scan": "Scan a label or bill",
+    "confirm": "Check the details",
+    "explain": "What this means",
+    "schedule": "Medicine schedule",
+    "bill": "Bill breakdown",
+    "login": "Log in",
+    "signup": "Create an account",
+    "history": "Scan history",
+    "shared": "Shared summary",
+    "notFound": "Page not found"
+  },
+  "errors": {
+    "BAD_REQUEST": "Something was wrong with that request. Please try again.",
+    "NOT_FOUND": "We could not find that.",
+    "IMAGE_TOO_LARGE": "The photo is too large. Please try a smaller photo.",
+    "UNREADABLE_IMAGE": "We could not read this photo. Please retake it in good light.",
+    "RATE_LIMITED": "Too many scans. Please wait a while and try again.",
+    "AI_UNAVAILABLE": "Scanning is not available right now. Try a sample instead.",
+    "NOT_IMPLEMENTED": "This feature is coming soon.",
+    "SERVER_ERROR": "Something went wrong. Please try again.",
+    "NETWORK_ERROR": "Cannot connect. Please check your internet connection."
+  }
+}

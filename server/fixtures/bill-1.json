@@ -1,0 +1,18 @@
+{
+  "type": "bill",
+  "source": "sample",
+  "unclear": [],
+  "bill": {
+    "clinic": "SingHealth Polyclinics - Bedok",
+    "visitDate": "2026-09-01",
+    "items": [
+      { "description": "Consultation", "category": "consultation", "amountCents": 1450 },
+      { "description": "Metformin 500mg x 60", "category": "medication", "amountCents": 820 }
+    ],
+    "subsidies": [
+      { "scheme": "government", "amountCents": 870 }
+    ],
+    "medisaveCents": 0,
+    "totalPayableCents": 1400
+  }
+}

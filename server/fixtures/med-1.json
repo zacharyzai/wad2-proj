@@ -1,0 +1,17 @@
+{
+  "type": "medication",
+  "source": "sample",
+  "unclear": [],
+  "medication": {
+    "name": "Metformin",
+    "strength": "500 mg",
+    "doseAmount": 1,
+    "doseUnit": "tablet",
+    "timesPerDay": 2,
+    "timing": ["morning", "evening"],
+    "withFood": "after",
+    "frequencyType": "daily",
+    "rawInstruction": "Take 1 tablet twice a day after food",
+    "warnings": ["Do not skip meals while taking this medicine"]
+  }
+}
