@@ -4,6 +4,9 @@
     "disclaimer": "Aplikasi ini membantu anda memahami — sentiasa sahkan dengan doktor atau ahli farmasi anda."
   },
   "nav": {
+    "home": "Utama",
+    "scanDoc": "Imbas dokumen",
+    "back": "Kembali",
     "scan": "Imbas",
     "schedule": "Jadual",
     "bill": "Bil",
@@ -11,7 +14,8 @@
     "login": "Log masuk",
     "language": "Bahasa",
     "account": "Akaun",
-    "main": "Menu utama"
+    "main": "Menu utama",
+    "night": "Mod malam"
   },
   "pages": {
     "home": "Fahami ubat dan bil anda",
@@ -130,6 +134,7 @@
       "bill": "Betulkan jumlah yang tidak sama dengan bil kertas."
     },
     "needsCheck": "{n} bahagian perlu disemak",
+    "allFilled": "✓ Semua bahagian sudah diisi. Jika sama dengan kertas anda, tekan {ok}.",
     "pleaseCheck": "Sila semak",
     "couldntRead": "Kami tidak dapat membaca bahagian ini, jadi ia dibiarkan kosong. Semak label atau tanya ahli farmasi.",
     "yourPhoto": "Gambar anda",

@@ -58,8 +58,10 @@ test('unclear fields block Confirm until filled', async ({ page }) => {
   await expect(page.getByText('1 field needs checking')).toBeVisible()
   const ok = page.getByRole('button', { name: 'Looks correct' })
   await expect(ok).toBeDisabled()
+  await expect(page.getByTestId('all-filled')).toBeHidden()
   await page.getByRole('button', { name: 'After food' }).click()
   await expect(ok).toBeEnabled()
+  await expect(page.getByTestId('all-filled')).toHaveText(/Everything is filled in.*press Looks correct/)
 })
 
 test('uploaded photo is compressed, sent and shown on Confirm', async ({ page }) => {

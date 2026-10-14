@@ -76,9 +76,12 @@ const scanAgain = () => router.push({ name: 'scan', query: { type: draft.type } 
 
 <template>
   <div v-if="scan" class="d-flex flex-column gap-4">
-    <div class="d-flex flex-column gap-2">
-      <h1 class="h-page">{{ t(`confirm.title.${draft.type}`) }}</h1>
-      <p class="lead-lg">{{ t(`confirm.lead.${draft.type}`) }}</p>
+    <div class="d-flex align-items-start gap-3">
+      <button type="button" class="back" :aria-label="t('nav.back')" @click="scanAgain">←</button>
+      <div class="d-flex flex-column gap-2">
+        <h1 class="h-page">{{ t(`confirm.title.${draft.type}`) }}</h1>
+        <p class="lead-lg">{{ t(`confirm.lead.${draft.type}`) }}</p>
+      </div>
     </div>
 
     <div class="row g-4">
@@ -97,7 +100,11 @@ const scanAgain = () => router.push({ name: 'scan', query: { type: draft.type } 
       </div>
 
       <div :class="photo ? 'col-lg-7' : 'col-lg-9'" class="d-flex flex-column gap-4">
-        <div v-if="flagged.length" class="banner-amber">{{ t('confirm.needsCheck', flagged.length) }}</div>
+        <!-- Always rendered so screen readers announce the switch to green when the last field is fixed. -->
+        <div role="status">
+          <div v-if="flagged.length" class="banner-amber">{{ t('confirm.needsCheck', flagged.length) }}</div>
+          <div v-else class="banner-green" data-testid="all-filled">{{ t('confirm.allFilled', { ok: t('confirm.ok') }) }}</div>
+        </div>
 
         <!-- Medication -->
         <div v-if="draft.type === 'medication'" class="fgrid">
@@ -189,7 +196,7 @@ const scanAgain = () => router.push({ name: 'scan', query: { type: draft.type } 
 </template>
 
 <style scoped>
-.thumb { width: 72px; height: 72px; object-fit: cover; border: 2px solid #c9cdd1; border-radius: 8px; flex: none; }
+.thumb { width: 72px; height: 72px; object-fit: cover; border: 2px solid var(--line); border-radius: 8px; flex: none; }
 .amount { max-width: 120px; }
 .fgrid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; }
 @media (min-width: 576px) { .fgrid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }

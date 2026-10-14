@@ -4,6 +4,9 @@
     "disclaimer": "This app helps you understand — always confirm with your doctor or pharmacist."
   },
   "nav": {
+    "home": "Home",
+    "scanDoc": "Scan a document",
+    "back": "Back",
     "scan": "Scan",
     "schedule": "Schedule",
     "bill": "Bill",
@@ -11,7 +14,8 @@
     "login": "Log in",
     "language": "Language",
     "account": "Account",
-    "main": "Main"
+    "main": "Main",
+    "night": "Night mode"
   },
   "pages": {
     "home": "Understand your medicine and bills",
@@ -130,6 +134,7 @@
       "bill": "Fix any amount that doesn’t match the paper bill."
     },
     "needsCheck": "{n} field needs checking | {n} fields need checking",
+    "allFilled": "✓ Everything is filled in. If it matches your paper, press {ok}.",
     "pleaseCheck": "Please check",
     "couldntRead": "We couldn’t read this, so nothing is filled in. Check the label or ask the pharmacist.",
     "yourPhoto": "Your photo",

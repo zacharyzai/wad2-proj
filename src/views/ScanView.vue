@@ -192,12 +192,15 @@ const photoError = computed(() => PHOTO_ERRORS.includes(errorCode.value))
   </div>
 
   <div v-else class="d-flex flex-column gap-4">
-    <div class="d-flex flex-column gap-2">
-      <h1 class="h-page">{{ t(`scan.title.${type}`) }}</h1>
-      <p class="lead-lg">
-        {{ t(`scan.switchQ.${type}`) }}
-        <RouterLink :to="{ query: { type: otherType } }" class="fw-bold">{{ t(`scan.switch.${type}`) }}</RouterLink>
-      </p>
+    <div class="d-flex align-items-start gap-3">
+      <RouterLink to="/" class="back" :aria-label="t('nav.back')">←</RouterLink>
+      <div class="d-flex flex-column gap-2">
+        <h1 class="h-page">{{ t(`scan.title.${type}`) }}</h1>
+        <p class="lead-lg">
+          {{ t(`scan.switchQ.${type}`) }}
+          <RouterLink :to="{ query: { type: otherType } }" class="fw-bold">{{ t(`scan.switch.${type}`) }}</RouterLink>
+        </p>
+      </div>
     </div>
 
     <div class="row g-4">
@@ -249,15 +252,15 @@ const photoError = computed(() => PHOTO_ERRORS.includes(errorCode.value))
 <style scoped>
 .flex-none { flex: none; }
 .scan-preview { max-height: 360px; }
-.frame-area { position: relative; aspect-ratio: 4 / 3; overflow: hidden; }
+.frame-area { position: relative; aspect-ratio: 4 / 3; overflow: hidden; background: var(--surface); }
 .example { position: absolute; inset: 14% 10%; width: 80%; height: 72%; padding: 8px; object-fit: contain; }
-.example-tag { position: absolute; top: 10px; left: 12px; background: #fff; font: 700 16px var(--bs-body-font-family); color: var(--ink); }
+.example-tag { position: absolute; top: 10px; left: 12px; background: var(--surface); font: 700 16px var(--bs-body-font-family); color: var(--ink); }
 .live { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .frame { position: absolute; inset: 14% 10%; display: flex; align-items: flex-end; justify-content: center; padding: 10px; border: 3px dashed var(--ink); border-radius: 10px; }
-.frame-label { background: #fff; padding: 2px 10px; border-radius: 6px; font: 700 18px var(--bs-body-font-family); color: var(--ink); text-align: center; }
+.frame-label { background: var(--surface); padding: 2px 10px; border-radius: 6px; font: 700 18px var(--bs-body-font-family); color: var(--ink); text-align: center; }
 .samples { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 @media (min-width: 768px) { .samples { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 .sample { display: flex; flex-direction: column; gap: 8px; padding: 0; border: 0; background: none; color: var(--ink); text-align: left; }
-.sample-thumb { width: 100%; aspect-ratio: 1; padding: 8px; object-fit: contain; border: 2px solid #c9cdd1; border-radius: 12px; background: var(--soft); }
+.sample-thumb { width: 100%; aspect-ratio: 1; padding: 8px; object-fit: contain; border: 1.5px solid var(--ink); border-radius: 20px; background: var(--surface); }
 .sample:hover .sample-thumb { border-color: var(--teal); }
 </style>

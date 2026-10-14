@@ -1,4 +1,4 @@
-<!-- Owner: Asher. First version from wireframe 1d. All text comes from the human-checked templates in i18n, never from the AI. -->
+<!-- Owner: Asher. First version from wireframe 1d, revamped after 1a/1b (big headline first, then cards). All text comes from the human-checked templates in i18n, never from the AI. -->
 <script setup>
 import { computed, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
@@ -52,6 +52,12 @@ function medication(m) {
     options: [m.doseAmount, wrongAmount].sort(byValue).map((n) => ({ label: `${n} ${unit(n)}`, right: n === m.doseAmount })),
     right: t('explain.check.medRight', dose),
     wrong: t('explain.check.medWrong', dose),
+    // Card chips (1a): orange = amount, teal = when, green = food. Always words, never colour alone.
+    chips: [
+      { text: `${m.doseAmount} ${unit(m.doseAmount)}`, cls: 'tag-amber' },
+      ...(m.timing ?? []).map((k) => ({ text: t(`timing.${k}`), cls: 'tag-teal' })),
+      m.withFood && { text: t(`food.${m.withFood}`), cls: 'tag-green' },
+    ].filter(Boolean),
     canSchedule: true,
   }
 }
@@ -95,13 +101,16 @@ watch(locale, () => (picked.value = null))
 
 <template>
   <div v-if="view" class="d-flex flex-column gap-4">
-    <div class="d-flex flex-column gap-2">
-      <div class="d-flex flex-wrap align-items-center gap-2">
-        <span class="tag">{{ view.tag }}</span>
-        <span v-if="view.kind" class="tag tag-amber">{{ view.kind }}</span>
-        <span class="lead-lg fw-bold">{{ view.name }}</span>
+    <div class="d-flex align-items-start gap-3">
+      <RouterLink :to="{ name: 'confirm' }" class="back" :aria-label="t('nav.back')">←</RouterLink>
+      <div class="d-flex flex-column gap-2 min-w-0">
+        <div class="d-flex flex-wrap align-items-center gap-2">
+          <span class="tag">{{ view.tag }}</span>
+          <span v-if="view.kind" class="tag tag-amber">{{ view.kind }}</span>
+          <span v-if="!view.chips" class="lead-lg fw-bold text-soft">{{ view.name }}</span>
+        </div>
+        <h1 class="h-explain">{{ view.title }}</h1>
       </div>
-      <h1 class="h-explain">{{ view.title }}</h1>
     </div>
 
     <div class="row g-4">
@@ -110,14 +119,27 @@ watch(locale, () => (picked.value = null))
       </div>
 
       <div class="col-lg-7 d-flex flex-column gap-4">
-        <dl v-if="view.lines" class="lines">
-          <template v-for="[label, amount] in view.lines" :key="label">
-            <dt>{{ label }}</dt>
-            <dd>{{ amount }}</dd>
-          </template>
-          <dt class="pay">{{ t('explain.bill.pay') }}</dt>
-          <dd class="pay">{{ money(scan.bill.totalPayableCents) }}</dd>
-        </dl>
+        <div v-if="view.chips" class="box d-flex align-items-center gap-3">
+          <span class="pill-icon" aria-hidden="true"></span>
+          <div class="d-flex flex-column gap-2 min-w-0">
+            <span class="med-name">{{ view.name }}</span>
+            <div class="d-flex flex-wrap gap-2">
+              <span v-for="chip in view.chips" :key="chip.text" class="tag" :class="chip.cls">{{ chip.text }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div v-if="view.lines" class="box d-flex flex-column gap-3">
+          <span class="eyebrow">{{ view.tag }}</span>
+          <dl class="lines">
+            <template v-for="[label, amount] in view.lines" :key="label">
+              <dt>{{ label }}</dt>
+              <dd>{{ amount }}</dd>
+            </template>
+            <dt class="pay">{{ t('explain.bill.pay') }}</dt>
+            <dd class="pay">{{ money(scan.bill.totalPayableCents) }}</dd>
+          </dl>
+        </div>
 
         <div class="body d-flex flex-column gap-3">
           <p v-for="p in view.paras" :key="p">{{ p }}</p>
@@ -163,20 +185,26 @@ watch(locale, () => (picked.value = null))
 </template>
 
 <style scoped>
-.h-explain { font-size: 28px; line-height: 1.3; font-weight: 700; }
+.h-explain { font-size: 28px; line-height: 1.25; font-weight: 800; letter-spacing: -0.01em; }
+.min-w-0 { min-width: 0; }
+.med-name { font-size: 24px; font-weight: 700; line-height: 1.25; }
+/* Stand-in pill drawing until each medicine has its own photo (1c note). */
+.pill-icon { flex: none; width: 56px; height: 56px; border: 2px solid var(--teal); border-radius: 14px; background: radial-gradient(circle, var(--teal) 0 9px, transparent 10px); }
 @media (min-width: 768px) { .h-explain { font-size: 34px; } }
 @media (min-width: 992px) { .h-explain { font-size: 38px; } }
 .body { font-size: 22px; line-height: 1.5; max-width: 38em; }
-.lines { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 16px; margin: 0; font-size: 20px; }
-.lines dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; }
-.lines .pay { padding-top: 8px; border-top: 2px solid var(--ink); font-weight: 700; font-size: 22px; }
+.lines { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 0; margin: 0; font-size: 20px; }
+.lines dd { margin: 0; padding-left: 16px; text-align: right; font-variant-numeric: tabular-nums; }
+.lines dt { color: var(--muted); font-weight: 400; }
+.lines .pay { padding-top: 10px; border-top: 2px dashed var(--line-strong); font-weight: 800; font-size: 26px; color: var(--ink); }
+dd.pay { color: var(--teal-dark); }
 .question { font-size: 24px; font-weight: 700; line-height: 1.3; }
 .answers { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
 @media (min-width: 576px) { .answers { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-.answer { min-height: 60px; padding: 8px 16px; border: 2px solid var(--line-strong); border-radius: 14px; background: #fff; color: var(--ink); font-size: 20px; font-weight: 700; line-height: 1.25; }
+.answer { min-height: 60px; padding: 8px 16px; border: 2px solid var(--line-strong); border-radius: 14px; background: var(--surface); color: var(--ink); font-size: 20px; font-weight: 700; line-height: 1.25; }
 .answer.right { border: 3px solid var(--green); background: var(--green-bg); color: var(--green-ink); }
 .answer.wrong { border: 3px solid var(--amber); background: var(--amber-soft); color: var(--amber-ink); }
-.feedback { padding: 12px 16px; border: 2px solid; border-radius: 10px; background: #fff; font-weight: 700; }
+.feedback { padding: 12px 16px; border: 2px solid; border-radius: 10px; background: var(--surface); font-weight: 700; }
 .feedback.right { border-color: var(--green); color: var(--green-ink); }
 .feedback.wrong { border-color: var(--amber); color: var(--amber-ink); }
 </style>
