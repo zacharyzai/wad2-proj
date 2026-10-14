@@ -41,7 +41,7 @@ function assertContract(data) {
 }
 
 test('sample scans return valid contract data', async () => {
-  for (const id of ['med-1', 'bill-1']) {
+  for (const id of ['med-1', 'med-2', 'med-3', 'bill-1']) {
     const res = await scan({ sampleId: id })
     assert.equal(res.status, 200)
     const { ok, data } = await res.json()

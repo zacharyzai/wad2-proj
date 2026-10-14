@@ -1,6 +1,18 @@
 {
-  "app": { "name": "Ah Ma Ah Gong Can" },
-  "nav": { "scan": "Scan", "schedule": "Schedule", "bill": "Bill", "history": "History", "login": "Log in", "language": "Language" },
+  "app": {
+    "name": "Ah Ma Ah Gong Can",
+    "disclaimer": "This app helps you understand — always confirm with your doctor or pharmacist."
+  },
+  "nav": {
+    "scan": "Scan",
+    "schedule": "Schedule",
+    "bill": "Bill",
+    "history": "History",
+    "login": "Log in",
+    "language": "Language",
+    "account": "Account",
+    "main": "Main"
+  },
   "pages": {
     "home": "Understand your medicine and bills",
     "scan": "Scan a label or bill",
@@ -23,6 +35,219 @@
     "AI_UNAVAILABLE": "Scanning is not available right now. Try a sample instead.",
     "NOT_IMPLEMENTED": "This feature is coming soon.",
     "SERVER_ERROR": "Something went wrong. Please try again.",
-    "NETWORK_ERROR": "Cannot connect. Please check your internet connection."
+    "NETWORK_ERROR": "Cannot connect. Please check your internet connection.",
+    "UNSUPPORTED_FILE": "This file can’t be used. Please choose a photo (JPG or PNG)."
+  },
+  "home": {
+    "title": "What would you like to understand?",
+    "lead": "Take a photo. We explain it in simple words and read it aloud.",
+    "med": {
+      "title": "Scan a medication label",
+      "text": "Tablets, syrups, creams. See the dose and when to take it."
+    },
+    "bill": {
+      "title": "Scan a polyclinic bill",
+      "text": "See what you pay and which subsidies may apply."
+    },
+    "sample": "Not sure? Try a sample first",
+    "keep": {
+      "title": "Keep a daily schedule",
+      "text": "Scanning works without an account. Log in to save your medicines and share them with family.",
+      "login": "Log in or sign up"
+    }
+  },
+  "scan": {
+    "title": {
+      "medication": "Scan a medication label",
+      "bill": "Scan a polyclinic bill"
+    },
+    "switchQ": {
+      "medication": "Scanning a bill?",
+      "bill": "Scanning a medicine label?"
+    },
+    "switch": {
+      "medication": "Switch to polyclinic bill",
+      "bill": "Switch to medication label"
+    },
+    "frame": {
+      "medication": "Fit the whole label inside the box",
+      "bill": "Fit the whole bill inside the box"
+    },
+    "take": "Take photo",
+    "upload": "Upload photo",
+    "tips": {
+      "title": "Tips for a clear photo",
+      "light": {
+        "title": "Good light",
+        "text": "Near a window or under a lamp. No flash glare."
+      },
+      "flat": {
+        "title": "Lay it flat",
+        "text": "Smooth out folds. Hold bottles so the label faces you."
+      },
+      "whole": {
+        "title": "Everything in the frame",
+        "text": "Include all four edges, even the small print."
+      }
+    },
+    "samplesTitle": "Nothing to scan? Try a sample",
+    "samples": {
+      "med1": "Metformin label",
+      "med2": "Amlodipine label",
+      "med3": "Cough syrup label",
+      "bill1": "Polyclinic bill"
+    },
+    "reading": {
+      "medication": "Reading your label…",
+      "bill": "Reading your bill…"
+    },
+    "wait": "This usually takes about 10 seconds.",
+    "cancel": "Cancel",
+    "errorTag": "Error",
+    "photoHint": "Hold the phone steady in good light, with the whole page inside the box.",
+    "photoKept": "Your photo is still on this phone, so you won’t need to take it again.",
+    "yourPhoto": "Your photo",
+    "retake": "Retake photo",
+    "uploadOther": "Upload a different photo",
+    "tryAgain": "Try again",
+    "useSample": "Use a sample instead",
+    "capture": "Capture",
+    "preview": "Camera preview",
+    "cameraBlocked": "We can’t open the camera. Allow camera access in your browser, or use Upload photo.",
+    "example": "Example",
+    "exampleAlt": {
+      "medication": "Example of a medication label",
+      "bill": "Example of a polyclinic bill"
+    }
+  },
+  "confirm": {
+    "title": {
+      "medication": "Check what we read",
+      "bill": "Check your bill items"
+    },
+    "lead": {
+      "medication": "Change anything that is wrong. Parts we couldn’t read are marked Please check.",
+      "bill": "Fix any amount that doesn’t match the paper bill."
+    },
+    "needsCheck": "{n} field needs checking | {n} fields need checking",
+    "pleaseCheck": "Please check",
+    "couldntRead": "We couldn’t read this, so nothing is filled in. Check the label or ask the pharmacist.",
+    "yourPhoto": "Your photo",
+    "showPhoto": "Show photo",
+    "hidePhoto": "Hide photo",
+    "ok": "Looks correct",
+    "okDisabled": "Fill in the parts marked Please check to continue.",
+    "retake": "Retake photo",
+    "scanOther": "Scan something else",
+    "med": {
+      "name": "Medicine name",
+      "strength": "Strength",
+      "amount": "Amount each time",
+      "unit": "Unit",
+      "howOften": "How to take it",
+      "times": "Times a day",
+      "when": "When",
+      "food": "Before or after food",
+      "other": "Other instructions on the label (one per line)"
+    },
+    "bill": {
+      "item": "Item",
+      "amount": "Amount (dollars)",
+      "itemN": "Item {n}",
+      "amountOf": "Amount for {item}",
+      "smudged": "Please check: this part is hard to read on the photo.",
+      "medisave": "Paid by MediSave",
+      "total": "Total you pay",
+      "mismatch": "Please check: the amounts don’t add up to this total."
+    }
+  },
+  "unit": {
+    "tablet": "tablet | tablets",
+    "capsule": "capsule | capsules",
+    "ml": "ml",
+    "puff": "puff | puffs",
+    "drop": "drop | drops",
+    "other": "dose | doses"
+  },
+  "timing": {
+    "morning": "Morning",
+    "afternoon": "Afternoon",
+    "evening": "Evening",
+    "bedtime": "Bedtime"
+  },
+  "food": {
+    "before": "Before food",
+    "after": "After food",
+    "with": "With food",
+    "any": "Either is fine"
+  },
+  "freq": {
+    "daily": "Every day",
+    "as_needed": "Only when needed",
+    "weekly": "Once a week",
+    "tapering": "Reducing dose",
+    "other": "Something else"
+  },
+  "scheme": {
+    "government": "Government subsidy",
+    "chas": "CHAS subsidy",
+    "pioneer": "Pioneer Generation",
+    "merdeka": "Merdeka Generation",
+    "other": "Other subsidy"
+  },
+  "explain": {
+    "sep": ", ",
+    "tag": {
+      "medication": "Medication",
+      "bill": "Bill"
+    },
+    "med": {
+      "title": "Take {amount} {unit}, once a day. | Take {amount} {unit}, {times} times a day.",
+      "when": "Take it at these times: {list}.",
+      "food": {
+        "before": "Take it before you eat, when your stomach is empty.",
+        "after": "Eat your meal first, then take the medicine. This is gentler on the stomach.",
+        "with": "Take it together with your meal.",
+        "any": "You can take it with or without food."
+      },
+      "daily": "Keep taking it every day, even when you feel well. Do not stop unless your doctor tells you to.",
+      "askTitle": "Ask your pharmacist how to take this medicine.",
+      "askText": "These instructions don’t fit a daily timetable, so we have not added this medicine to a schedule.",
+      "labelSays": "The label says: “{text}”",
+      "warnings": "From the label"
+    },
+    "bill": {
+      "title": "You pay {amount}.",
+      "charges": "Total charges",
+      "subsidies": "Subsidies taken off",
+      "medisave": "Paid by MediSave",
+      "pay": "You pay",
+      "p": "Subsidies are already taken off your bill. The MediSave amount is paid from your CPF MediSave account, not in cash."
+    },
+    "check": {
+      "title": "Quick check",
+      "notSure": "Not sure",
+      "yes": "Yes",
+      "no": "No",
+      "medQ": "How many {unit} each time?",
+      "medRight": "Yes, that’s right. {amount} {unit} each time.",
+      "medWrong": "Not quite. It is {amount} {unit} each time.",
+      "askQ": "Should this medicine go on a daily schedule?",
+      "askRight": "That’s right. Ask your pharmacist when to take it.",
+      "askWrong": "Not quite. It doesn’t follow a daily timetable, so ask your pharmacist.",
+      "billQ": "How much do you need to pay?",
+      "billRight": "Yes, that’s right. You pay {amount}.",
+      "billWrong": "Not quite. You pay {amount}."
+    },
+    "add": "Add to schedule",
+    "another": "Scan something else"
+  },
+  "player": {
+    "reading": "Reading in English",
+    "play": "Play",
+    "pause": "Pause",
+    "replay": "Replay",
+    "speed": "Speed",
+    "unavailable": "Read-aloud in this language is not available on this device yet."
   }
 }

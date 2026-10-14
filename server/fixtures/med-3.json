@@ -1,0 +1,17 @@
+{
+  "type": "medication",
+  "source": "sample",
+  "unclear": [],
+  "medication": {
+    "name": "Dextromethorphan cough syrup",
+    "strength": "15 mg/5 ml",
+    "doseAmount": 10,
+    "doseUnit": "ml",
+    "timesPerDay": null,
+    "timing": null,
+    "withFood": "any",
+    "frequencyType": "as_needed",
+    "rawInstruction": "Take 10 ml up to 3 times a day when needed for cough",
+    "warnings": ["May cause drowsiness"]
+  }
+}

@@ -3,10 +3,10 @@ import { test, expect } from '@playwright/test'
 
 test('home page loads and switches language', async ({ page }) => {
   await page.goto('/')
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Understand your medicine and bills')
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('What would you like to understand?')
 
-  await page.getByTestId('language-select').selectOption('zh')
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('看懂您的药物和账单')
+  await page.getByRole('button', { name: '中文' }).click()
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('您想了解什么？')
   await expect(page.locator('html')).toHaveAttribute('lang', 'zh')
 })
 

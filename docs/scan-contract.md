@@ -13,7 +13,7 @@ Owner: **Zachary**. Every feature reads scans in this shape. Changing it (or the
 
 - `image` must be a base64 **JPEG, PNG or WebP** data URL. Compress it on the client to about **1 MB or less**. The server rejects bodies over 4 MB.
 - The image is only sent to the AI for extraction and is **never stored**.
-- Samples available now: `med-1`, `bill-1`. Lokesh adds more in `server/fixtures/` and registers them in `server/routes/scan.js`.
+- Samples available now: `med-1` (Metformin), `med-2` (Amlodipine), `med-3` (cough syrup, when needed), `bill-1`. Lokesh adds more in `server/fixtures/` and registers them in `server/routes/scan.js`.
 - Sample scans are never rate limited. **E2E tests must use samples.**
 
 From the client, call `scanImage(type, image)` / `scanSample(id)` from `src/api/client.js`.

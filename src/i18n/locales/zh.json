@@ -1,6 +1,18 @@
 {
-  "app": { "name": "Ah Ma Ah Gong Can" },
-  "nav": { "scan": "扫描", "schedule": "服药时间表", "bill": "账单", "history": "记录", "login": "登录", "language": "语言" },
+  "app": {
+    "name": "Ah Ma Ah Gong Can",
+    "disclaimer": "本应用帮助您理解内容——请务必向医生或药剂师确认。"
+  },
+  "nav": {
+    "scan": "扫描",
+    "schedule": "服药时间表",
+    "bill": "账单",
+    "history": "记录",
+    "login": "登录",
+    "language": "语言",
+    "account": "我的账户",
+    "main": "主菜单"
+  },
   "pages": {
     "home": "看懂您的药物和账单",
     "scan": "扫描药物标签或账单",
@@ -23,6 +35,219 @@
     "AI_UNAVAILABLE": "目前无法扫描，请先试用示例。",
     "NOT_IMPLEMENTED": "此功能即将推出。",
     "SERVER_ERROR": "出了点问题，请再试一次。",
-    "NETWORK_ERROR": "无法连接，请检查网络。"
+    "NETWORK_ERROR": "无法连接，请检查网络。",
+    "UNSUPPORTED_FILE": "无法使用这个文件。请选择一张照片（JPG 或 PNG）。"
+  },
+  "home": {
+    "title": "您想了解什么？",
+    "lead": "拍一张照片，我们用简单的话解释，并读给您听。",
+    "med": {
+      "title": "扫描药物标签",
+      "text": "药片、药水、药膏。看清剂量和服用时间。"
+    },
+    "bill": {
+      "title": "扫描综合诊疗所账单",
+      "text": "看看您要付多少，以及可能适用哪些津贴。"
+    },
+    "sample": "不确定？先试用示例",
+    "keep": {
+      "title": "记录每天的服药时间",
+      "text": "不用账户也可以扫描。登录后可以保存您的药物，并与家人分享。",
+      "login": "登录或注册"
+    }
+  },
+  "scan": {
+    "title": {
+      "medication": "扫描药物标签",
+      "bill": "扫描综合诊疗所账单"
+    },
+    "switchQ": {
+      "medication": "要扫描账单？",
+      "bill": "要扫描药物标签？"
+    },
+    "switch": {
+      "medication": "改为扫描账单",
+      "bill": "改为扫描药物标签"
+    },
+    "frame": {
+      "medication": "把整张标签放进框内",
+      "bill": "把整张账单放进框内"
+    },
+    "take": "拍照",
+    "upload": "上传照片",
+    "tips": {
+      "title": "拍清楚的小贴士",
+      "light": {
+        "title": "光线充足",
+        "text": "靠近窗户或在灯下拍。不要让闪光灯反光。"
+      },
+      "flat": {
+        "title": "平放",
+        "text": "把折痕抚平。药瓶的标签要正对着您。"
+      },
+      "whole": {
+        "title": "全部拍进去",
+        "text": "四个边都要拍到，小字也要。"
+      }
+    },
+    "samplesTitle": "手边没有？试用示例",
+    "samples": {
+      "med1": "二甲双胍标签",
+      "med2": "氨氯地平标签",
+      "med3": "止咳药水标签",
+      "bill1": "综合诊疗所账单"
+    },
+    "reading": {
+      "medication": "正在读取您的标签…",
+      "bill": "正在读取您的账单…"
+    },
+    "wait": "通常需要大约 10 秒。",
+    "cancel": "取消",
+    "errorTag": "错误",
+    "photoHint": "在光线充足的地方拿稳手机，把整张纸放进框内。",
+    "photoKept": "您的照片还在手机上，不需要重拍。",
+    "yourPhoto": "您的照片",
+    "retake": "重新拍照",
+    "uploadOther": "上传另一张照片",
+    "tryAgain": "再试一次",
+    "useSample": "改用示例",
+    "capture": "拍下",
+    "preview": "相机画面",
+    "cameraBlocked": "无法打开相机。请在浏览器中允许使用相机，或改用“上传照片”。",
+    "example": "示例",
+    "exampleAlt": {
+      "medication": "药物标签示例",
+      "bill": "综合诊疗所账单示例"
+    }
+  },
+  "confirm": {
+    "title": {
+      "medication": "核对我们读到的内容",
+      "bill": "核对账单项目"
+    },
+    "lead": {
+      "medication": "有错的地方请改正。我们读不清楚的部分标有“请核对”。",
+      "bill": "如果金额和纸质账单不一样，请改正。"
+    },
+    "needsCheck": "有 {n} 项需要核对",
+    "pleaseCheck": "请核对",
+    "couldntRead": "这部分读不清楚，所以没有填写。请看标签或询问药剂师。",
+    "yourPhoto": "您的照片",
+    "showPhoto": "显示照片",
+    "hidePhoto": "隐藏照片",
+    "ok": "没有问题",
+    "okDisabled": "请先填写标有“请核对”的部分。",
+    "retake": "重新拍照",
+    "scanOther": "扫描其他内容",
+    "med": {
+      "name": "药名",
+      "strength": "规格",
+      "amount": "每次用量",
+      "unit": "单位",
+      "howOften": "服用方式",
+      "times": "每天几次",
+      "when": "什么时候",
+      "food": "饭前还是饭后",
+      "other": "标签上的其他说明（每行一条）"
+    },
+    "bill": {
+      "item": "项目",
+      "amount": "金额（新元）",
+      "itemN": "第 {n} 项",
+      "amountOf": "{item} 的金额",
+      "smudged": "请核对：照片上这部分看不清楚。",
+      "medisave": "保健储蓄支付",
+      "total": "您需要支付",
+      "mismatch": "请核对：各项金额加起来和这个总数不符。"
+    }
+  },
+  "unit": {
+    "tablet": "粒",
+    "capsule": "粒",
+    "ml": "毫升",
+    "puff": "喷",
+    "drop": "滴",
+    "other": "剂"
+  },
+  "timing": {
+    "morning": "早上",
+    "afternoon": "下午",
+    "evening": "晚上",
+    "bedtime": "睡前"
+  },
+  "food": {
+    "before": "饭前",
+    "after": "饭后",
+    "with": "随餐",
+    "any": "饭前饭后都可以"
+  },
+  "freq": {
+    "daily": "每天",
+    "as_needed": "需要时才用",
+    "weekly": "每周一次",
+    "tapering": "逐渐减量",
+    "other": "其他"
+  },
+  "scheme": {
+    "government": "政府津贴",
+    "chas": "社保援助计划（CHAS）津贴",
+    "pioneer": "建国一代",
+    "merdeka": "立国一代",
+    "other": "其他津贴"
+  },
+  "explain": {
+    "sep": "、",
+    "tag": {
+      "medication": "药物",
+      "bill": "账单"
+    },
+    "med": {
+      "title": "每次 {amount} {unit}，每天 {times} 次。",
+      "when": "服用时间：{list}。",
+      "food": {
+        "before": "饭前空腹服用。",
+        "after": "先吃饭，再吃药。这样对胃比较温和。",
+        "with": "吃饭时一起服用。",
+        "any": "饭前饭后都可以服用。"
+      },
+      "daily": "即使感觉良好，也要每天按时服用。除非医生告诉您，否则不要停药。",
+      "askTitle": "请向药剂师询问怎样服用这种药。",
+      "askText": "这些说明不是每天固定服用，所以我们没有把它加入服药时间表。",
+      "labelSays": "标签上写着：“{text}”",
+      "warnings": "标签上的说明"
+    },
+    "bill": {
+      "title": "您需要支付 {amount}。",
+      "charges": "总费用",
+      "subsidies": "已扣除的津贴",
+      "medisave": "保健储蓄支付",
+      "pay": "您需要支付",
+      "p": "津贴已经从账单中扣除。保健储蓄的部分是从您的公积金保健储蓄户头支付，不用付现金。"
+    },
+    "check": {
+      "title": "小测验",
+      "notSure": "不确定",
+      "yes": "是",
+      "no": "不是",
+      "medQ": "每次用多少{unit}？",
+      "medRight": "答对了！每次 {amount} {unit}。",
+      "medWrong": "不太对。每次是 {amount} {unit}。",
+      "askQ": "这种药应该加入每天的服药时间表吗？",
+      "askRight": "答对了。请向药剂师询问什么时候服用。",
+      "askWrong": "不太对。这种药不是每天固定服用，请询问药剂师。",
+      "billQ": "您需要支付多少？",
+      "billRight": "答对了！您需要支付 {amount}。",
+      "billWrong": "不太对。您需要支付 {amount}。"
+    },
+    "add": "加入服药时间表",
+    "another": "扫描其他内容"
+  },
+  "player": {
+    "reading": "正在用中文朗读",
+    "play": "播放",
+    "pause": "暂停",
+    "replay": "重播",
+    "speed": "语速",
+    "unavailable": "这台设备暂时不能用这种语言朗读。"
   }
 }

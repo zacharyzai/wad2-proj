@@ -1,6 +1,18 @@
 {
-  "app": { "name": "Ah Ma Ah Gong Can" },
-  "nav": { "scan": "Imbas", "schedule": "Jadual", "bill": "Bil", "history": "Sejarah", "login": "Log masuk", "language": "Bahasa" },
+  "app": {
+    "name": "Ah Ma Ah Gong Can",
+    "disclaimer": "Aplikasi ini membantu anda memahami — sentiasa sahkan dengan doktor atau ahli farmasi anda."
+  },
+  "nav": {
+    "scan": "Imbas",
+    "schedule": "Jadual",
+    "bill": "Bil",
+    "history": "Sejarah",
+    "login": "Log masuk",
+    "language": "Bahasa",
+    "account": "Akaun",
+    "main": "Menu utama"
+  },
   "pages": {
     "home": "Fahami ubat dan bil anda",
     "scan": "Imbas label atau bil",
@@ -23,6 +35,219 @@
     "AI_UNAVAILABLE": "Imbasan tidak tersedia sekarang. Cuba contoh dahulu.",
     "NOT_IMPLEMENTED": "Ciri ini akan datang.",
     "SERVER_ERROR": "Ada masalah. Sila cuba lagi.",
-    "NETWORK_ERROR": "Tidak dapat disambungkan. Sila semak sambungan internet anda."
+    "NETWORK_ERROR": "Tidak dapat disambungkan. Sila semak sambungan internet anda.",
+    "UNSUPPORTED_FILE": "Fail ini tidak boleh digunakan. Sila pilih gambar (JPG atau PNG)."
+  },
+  "home": {
+    "title": "Apa yang anda ingin fahami?",
+    "lead": "Ambil gambar. Kami terangkan dengan perkataan mudah dan bacakannya.",
+    "med": {
+      "title": "Imbas label ubat",
+      "text": "Tablet, sirap, krim. Lihat dos dan bila perlu diambil."
+    },
+    "bill": {
+      "title": "Imbas bil poliklinik",
+      "text": "Lihat jumlah yang anda bayar dan subsidi yang mungkin layak."
+    },
+    "sample": "Tidak pasti? Cuba contoh dahulu",
+    "keep": {
+      "title": "Simpan jadual harian",
+      "text": "Imbasan boleh digunakan tanpa akaun. Log masuk untuk menyimpan ubat anda dan berkongsi dengan keluarga.",
+      "login": "Log masuk atau daftar"
+    }
+  },
+  "scan": {
+    "title": {
+      "medication": "Imbas label ubat",
+      "bill": "Imbas bil poliklinik"
+    },
+    "switchQ": {
+      "medication": "Mahu imbas bil?",
+      "bill": "Mahu imbas label ubat?"
+    },
+    "switch": {
+      "medication": "Tukar ke bil poliklinik",
+      "bill": "Tukar ke label ubat"
+    },
+    "frame": {
+      "medication": "Masukkan seluruh label ke dalam kotak",
+      "bill": "Masukkan seluruh bil ke dalam kotak"
+    },
+    "take": "Ambil gambar",
+    "upload": "Muat naik gambar",
+    "tips": {
+      "title": "Petua untuk gambar yang jelas",
+      "light": {
+        "title": "Cahaya yang baik",
+        "text": "Dekat tingkap atau di bawah lampu. Elakkan silau lampu kilat."
+      },
+      "flat": {
+        "title": "Letak rata",
+        "text": "Licinkan lipatan. Pegang botol supaya label menghadap anda."
+      },
+      "whole": {
+        "title": "Semua dalam bingkai",
+        "text": "Masukkan keempat-empat tepi, termasuk tulisan kecil."
+      }
+    },
+    "samplesTitle": "Tiada apa untuk diimbas? Cuba contoh",
+    "samples": {
+      "med1": "Label Metformin",
+      "med2": "Label Amlodipine",
+      "med3": "Label sirap batuk",
+      "bill1": "Bil poliklinik"
+    },
+    "reading": {
+      "medication": "Sedang membaca label anda…",
+      "bill": "Sedang membaca bil anda…"
+    },
+    "wait": "Biasanya mengambil masa kira-kira 10 saat.",
+    "cancel": "Batal",
+    "errorTag": "Ralat",
+    "photoHint": "Pegang telefon dengan stabil di tempat yang terang, dengan seluruh kertas di dalam kotak.",
+    "photoKept": "Gambar anda masih ada dalam telefon ini, jadi anda tidak perlu mengambilnya semula.",
+    "yourPhoto": "Gambar anda",
+    "retake": "Ambil gambar semula",
+    "uploadOther": "Muat naik gambar lain",
+    "tryAgain": "Cuba lagi",
+    "useSample": "Guna contoh",
+    "capture": "Tangkap",
+    "preview": "Pratonton kamera",
+    "cameraBlocked": "Kamera tidak dapat dibuka. Benarkan akses kamera dalam pelayar anda, atau guna Muat naik gambar.",
+    "example": "Contoh",
+    "exampleAlt": {
+      "medication": "Contoh label ubat",
+      "bill": "Contoh bil poliklinik"
+    }
+  },
+  "confirm": {
+    "title": {
+      "medication": "Semak apa yang kami baca",
+      "bill": "Semak item bil anda"
+    },
+    "lead": {
+      "medication": "Betulkan apa-apa yang salah. Bahagian yang kami tidak dapat baca ditanda Sila semak.",
+      "bill": "Betulkan jumlah yang tidak sama dengan bil kertas."
+    },
+    "needsCheck": "{n} bahagian perlu disemak",
+    "pleaseCheck": "Sila semak",
+    "couldntRead": "Kami tidak dapat membaca bahagian ini, jadi ia dibiarkan kosong. Semak label atau tanya ahli farmasi.",
+    "yourPhoto": "Gambar anda",
+    "showPhoto": "Tunjuk gambar",
+    "hidePhoto": "Sembunyi gambar",
+    "ok": "Semuanya betul",
+    "okDisabled": "Isi bahagian yang ditanda Sila semak untuk teruskan.",
+    "retake": "Ambil gambar semula",
+    "scanOther": "Imbas yang lain",
+    "med": {
+      "name": "Nama ubat",
+      "strength": "Kekuatan",
+      "amount": "Jumlah setiap kali",
+      "unit": "Unit",
+      "howOften": "Cara mengambil",
+      "times": "Berapa kali sehari",
+      "when": "Bila",
+      "food": "Sebelum atau selepas makan",
+      "other": "Arahan lain pada label (satu setiap baris)"
+    },
+    "bill": {
+      "item": "Item",
+      "amount": "Jumlah (dolar)",
+      "itemN": "Item {n}",
+      "amountOf": "Jumlah untuk {item}",
+      "smudged": "Sila semak: bahagian ini sukar dibaca dalam gambar.",
+      "medisave": "Dibayar oleh MediSave",
+      "total": "Jumlah yang anda bayar",
+      "mismatch": "Sila semak: jumlah-jumlah ini tidak sama dengan jumlah keseluruhan."
+    }
+  },
+  "unit": {
+    "tablet": "biji",
+    "capsule": "kapsul",
+    "ml": "ml",
+    "puff": "sedutan",
+    "drop": "titis",
+    "other": "dos"
+  },
+  "timing": {
+    "morning": "Pagi",
+    "afternoon": "Tengah hari",
+    "evening": "Petang",
+    "bedtime": "Sebelum tidur"
+  },
+  "food": {
+    "before": "Sebelum makan",
+    "after": "Selepas makan",
+    "with": "Semasa makan",
+    "any": "Bila-bila pun boleh"
+  },
+  "freq": {
+    "daily": "Setiap hari",
+    "as_needed": "Hanya bila perlu",
+    "weekly": "Seminggu sekali",
+    "tapering": "Dos dikurangkan",
+    "other": "Lain-lain"
+  },
+  "scheme": {
+    "government": "Subsidi kerajaan",
+    "chas": "Subsidi CHAS",
+    "pioneer": "Generasi Perintis",
+    "merdeka": "Generasi Merdeka",
+    "other": "Subsidi lain"
+  },
+  "explain": {
+    "sep": ", ",
+    "tag": {
+      "medication": "Ubat",
+      "bill": "Bil"
+    },
+    "med": {
+      "title": "Ambil {amount} {unit}, sekali sehari. | Ambil {amount} {unit}, {times} kali sehari.",
+      "when": "Ambil pada waktu ini: {list}.",
+      "food": {
+        "before": "Ambil sebelum makan, semasa perut kosong.",
+        "after": "Makan dahulu, kemudian ambil ubat. Ini lebih lembut untuk perut.",
+        "with": "Ambil bersama makanan anda.",
+        "any": "Boleh diambil sebelum atau selepas makan."
+      },
+      "daily": "Teruskan mengambilnya setiap hari, walaupun anda berasa sihat. Jangan berhenti kecuali doktor menyuruh.",
+      "askTitle": "Tanya ahli farmasi cara mengambil ubat ini.",
+      "askText": "Arahan ini tidak sesuai dengan jadual harian, jadi kami tidak menambah ubat ini ke dalam jadual.",
+      "labelSays": "Label menyatakan: “{text}”",
+      "warnings": "Daripada label"
+    },
+    "bill": {
+      "title": "Anda bayar {amount}.",
+      "charges": "Jumlah caj",
+      "subsidies": "Subsidi yang ditolak",
+      "medisave": "Dibayar oleh MediSave",
+      "pay": "Anda bayar",
+      "p": "Subsidi sudah ditolak daripada bil anda. Jumlah MediSave dibayar daripada akaun MediSave CPF anda, bukan dengan wang tunai."
+    },
+    "check": {
+      "title": "Semakan ringkas",
+      "notSure": "Tidak pasti",
+      "yes": "Ya",
+      "no": "Tidak",
+      "medQ": "Berapa {unit} setiap kali?",
+      "medRight": "Ya, betul. {amount} {unit} setiap kali.",
+      "medWrong": "Kurang tepat. Ia {amount} {unit} setiap kali.",
+      "askQ": "Patutkah ubat ini dimasukkan ke dalam jadual harian?",
+      "askRight": "Betul. Tanya ahli farmasi bila perlu mengambilnya.",
+      "askWrong": "Kurang tepat. Ubat ini tidak mengikut jadual harian, jadi tanya ahli farmasi.",
+      "billQ": "Berapa yang anda perlu bayar?",
+      "billRight": "Ya, betul. Anda bayar {amount}.",
+      "billWrong": "Kurang tepat. Anda bayar {amount}."
+    },
+    "add": "Tambah ke jadual",
+    "another": "Imbas yang lain"
+  },
+  "player": {
+    "reading": "Dibaca dalam Bahasa Melayu",
+    "play": "Main",
+    "pause": "Jeda",
+    "replay": "Main semula",
+    "speed": "Kelajuan",
+    "unavailable": "Bacaan dalam bahasa ini belum tersedia pada peranti ini."
   }
 }
