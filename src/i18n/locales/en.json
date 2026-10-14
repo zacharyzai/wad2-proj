@@ -15,7 +15,8 @@
     "language": "Language",
     "account": "Account",
     "main": "Main",
-    "night": "Night mode"
+    "night": "Night mode",
+    "skip": "Skip to main content"
   },
   "pages": {
     "home": "Understand your medicine and bills",

@@ -1,6 +1,7 @@
 <!-- Owner: Isaac (app shell). Revamp from wireframes 1a (phone: header + bottom tabs) and 2a (desktop: sidebar); Isaac to refine. -->
 <script setup>
-import { useRoute } from 'vue-router'
+import { nextTick, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { setLocale } from './i18n'
 import { theme, toggleTheme } from './theme'
@@ -20,10 +21,28 @@ const NAV = [
 ]
 // Prefix match so /scan/confirm and /scan/explain keep Scan highlighted; Home only on '/'.
 const isOn = (to) => (to === '/' ? route.path === '/' : route.path.startsWith(to))
+
+// Tab title names the page, in the chosen language (route 'not-found' → key pages.notFound).
+watch(
+  [() => route.name, locale],
+  ([name]) => (document.title = name && name !== 'home' ? `${t(`pages.${name.replace(/-(\w)/g, (_, c) => c.toUpperCase())}`)} · ${t('app.name')}` : t('app.name')),
+  { immediate: true },
+)
+
+// After moving to another page, screen readers start at its heading instead of the top of the nav.
+const router = useRouter()
+router.afterEach(async (to, from) => {
+  if (!from.name || to.path === from.path) return // first load or only ?type= changed
+  await nextTick()
+  const h1 = document.querySelector('main h1')
+  h1?.setAttribute('tabindex', '-1')
+  h1?.focus({ preventScroll: true })
+})
 </script>
 
 <template>
   <div class="shell" :class="`lang-${locale}`">
+    <a href="#main" class="skip">{{ t('nav.skip') }}</a>
     <aside class="side">
       <div class="top">
         <RouterLink to="/" class="brand"><img src="/logo.svg" alt="" class="logo" />{{ t('app.name') }}</RouterLink>
@@ -66,7 +85,7 @@ const isOn = (to) => (to === '/' ? route.path === '/' : route.path.startsWith(to
     </aside>
 
     <div class="col-main">
-      <main class="main"><div class="wrap"><RouterView /></div></main>
+      <main id="main" class="main" tabindex="-1"><div class="wrap"><RouterView /></div></main>
       <footer class="ft">{{ t('app.disclaimer') }}</footer>
     </div>
   </div>
@@ -74,7 +93,7 @@ const isOn = (to) => (to === '/' ? route.path === '/' : route.path.startsWith(to
 
 <style scoped>
 /* Phones and tablets (<992): header, language row, fixed bottom tabs. Desktop (≥992): one white sidebar (2a). Content max 1100px. */
-.shell { min-height: 100vh; display: flex; flex-direction: column; padding-bottom: 84px; }
+.shell { min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; padding-bottom: calc(84px + env(safe-area-inset-bottom)); }
 .side { display: flex; flex-direction: column; gap: 12px; padding: 12px 16px; background: var(--surface); border-bottom: 1.5px solid var(--ink); }
 .top { display: flex; align-items: center; gap: 12px; }
 .brand { flex: 1 1 0; min-width: 0; display: flex; align-items: center; gap: 10px; font-size: 21px; font-weight: 800; line-height: 1.15; color: var(--ink); text-decoration: none; }
@@ -98,7 +117,9 @@ const isOn = (to) => (to === '/' ? route.path === '/' : route.path.startsWith(to
 .lng[aria-pressed='true'] { background: var(--teal); border-color: var(--teal); color: #fff; }
 
 /* Bottom tabs (1a): active tab is teal with a dot under the label. */
-.nav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 10; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; padding: 6px 6px 10px; border-top: 1.5px solid var(--ink); background: var(--surface); }
+.nav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 10; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; padding: 6px 6px calc(10px + env(safe-area-inset-bottom)); border-top: 1.5px solid var(--ink); background: var(--surface); }
+.navi:hover { color: var(--teal-dark); }
+.main:focus { outline: none; }
 .navi { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 64px; padding: 6px 2px 10px; border-radius: 14px; color: var(--muted); text-decoration: none; font-weight: 700; font-size: 16px; line-height: 1.2; text-align: center; }
 .navi.on { color: var(--teal-dark); }
 .navi.on::after { content: ''; position: absolute; bottom: 2px; width: 6px; height: 6px; border-radius: 50%; background: var(--teal); }
@@ -119,13 +140,14 @@ const isOn = (to) => (to === '/' ? route.path === '/' : route.path.startsWith(to
 
 @media (min-width: 992px) {
   .shell { flex-direction: row; padding-bottom: 0; }
-  .side { position: sticky; top: 0; align-self: flex-start; flex: 0 0 260px; flex-direction: column; flex-wrap: nowrap; align-items: stretch; gap: 16px; height: 100vh; padding: 24px 16px; border-bottom: 0; border-right: 1.5px solid var(--ink); overflow-y: auto; }
+  .side { position: sticky; top: 0; align-self: flex-start; flex: 0 0 260px; flex-direction: column; flex-wrap: nowrap; align-items: stretch; gap: 16px; height: 100vh; height: 100dvh; padding: 24px 16px; border-bottom: 0; border-right: 1.5px solid var(--ink); overflow-y: auto; }
   .top { flex: none; }
   .top .acct { display: none; }
   .scan-btn { display: flex; min-height: 60px; padding: 10px 16px; font-size: 20px; }
   .desk-only, .navi.desk-only { display: flex; }
   .nav { position: static; display: flex; flex-direction: column; gap: 6px; padding: 0; border: 0; }
   .navi { flex-direction: row; justify-content: flex-start; gap: 12px; min-height: 56px; padding: 12px 16px; color: var(--ink); font-size: 18px; text-align: left; }
+  .navi:hover { background: var(--soft); }
   .navi.on { background: var(--teal-soft); color: var(--teal-dark); }
   .navi.on::after { display: none; }
   .lang-box { margin: auto 0 0; flex-direction: column; gap: 8px; }

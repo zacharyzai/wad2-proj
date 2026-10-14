@@ -102,7 +102,7 @@ watch(locale, () => (picked.value = null))
 <template>
   <div v-if="view" class="d-flex flex-column gap-4">
     <div class="d-flex align-items-start gap-3">
-      <RouterLink :to="{ name: 'confirm' }" class="back" :aria-label="t('nav.back')">←</RouterLink>
+      <RouterLink :to="{ name: 'confirm' }" class="back" :aria-label="t('nav.back')"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5 M11 6l-6 6 6 6" /></svg></RouterLink>
       <div class="d-flex flex-column gap-2 min-w-0">
         <div class="d-flex flex-wrap align-items-center gap-2">
           <span class="tag">{{ view.tag }}</span>

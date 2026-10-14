@@ -1,6 +1,6 @@
 /* Owner: Isaac. Design tokens and global styles go here. */
 /* Theme from the revamp wireframes (1a–1c): Plus Jakarta Sans, deep teal, rounded cards. Senior-friendly: 18px base, 48px+ targets, colour always paired with words. */
-/* Wireframe orange #F77F00 and green #06A77D are too light for text on white, so they're used for borders only; text uses the -ink shades. */
+/* Wireframe orange #F77F00 is darkened to #CC6600 so "Please check" borders reach 3:1 on white; text always uses the -ink shades. */
 :root {
   --ink: #222;
   --muted: #555;
@@ -14,7 +14,7 @@
   --teal-press: #135555;
   --teal-soft: #e0f7f5;
   --blue: #1a5490;
-  --amber: #f77f00;
+  --amber: #cc6600;
   --amber-bg: #fff3e6;
   --amber-soft: #fff9f2;
   --amber-ink: #8a4500;
@@ -66,6 +66,22 @@
 
 h1, h2, h3, p { margin: 0; }
 button { cursor: pointer; }
+a, button, input, select, textarea, label { touch-action: manipulation; }
+:where(.btn-main, .btn-alt, .btn-small, .opt, .back, .lng, .navi, .night, .choice, .sample, .answer, .play) {
+  transition: background-color 0.15s ease-out, border-color 0.15s ease-out, color 0.15s ease-out, transform 0.1s ease-out;
+}
+:where(.btn-main, .btn-alt, .btn-small, .opt, .back, .choice, .answer, .play):active:not(:disabled) { transform: scale(0.98); }
+.btn-alt:hover, .btn-small:hover { background: var(--teal-soft); }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+  :where(.btn-main, .btn-alt, .btn-small, .opt, .back, .choice, .answer, .play):active { transform: none; }
+}
+
+/* Skip link: hidden until focused with the keyboard. */
+.skip { position: absolute; left: 12px; top: -100px; z-index: 100; padding: 12px 20px; border-radius: 14px; background: var(--ink); color: var(--surface); font-weight: 700; text-decoration: none; }
+.skip:focus { top: 12px; color: var(--surface); }
+/* Page heading gets focus after navigation (for screen readers), without a ring on mouse use. */
+h1[tabindex='-1']:focus { outline: none; }
 :focus-visible { outline: 3px solid var(--teal); outline-offset: 2px; }
 
 /* Type */

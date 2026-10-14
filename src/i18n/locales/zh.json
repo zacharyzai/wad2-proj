@@ -15,7 +15,8 @@
     "language": "语言",
     "account": "我的账户",
     "main": "主菜单",
-    "night": "夜间模式"
+    "night": "夜间模式",
+    "skip": "跳到主要内容"
   },
   "pages": {
     "home": "看懂您的药物和账单",

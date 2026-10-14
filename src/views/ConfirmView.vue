@@ -77,7 +77,7 @@ const scanAgain = () => router.push({ name: 'scan', query: { type: draft.type } 
 <template>
   <div v-if="scan" class="d-flex flex-column gap-4">
     <div class="d-flex align-items-start gap-3">
-      <button type="button" class="back" :aria-label="t('nav.back')" @click="scanAgain">←</button>
+      <button type="button" class="back" :aria-label="t('nav.back')" @click="scanAgain"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5 M11 6l-6 6 6 6" /></svg></button>
       <div class="d-flex flex-column gap-2">
         <h1 class="h-page">{{ t(`confirm.title.${draft.type}`) }}</h1>
         <p class="lead-lg">{{ t(`confirm.lead.${draft.type}`) }}</p>

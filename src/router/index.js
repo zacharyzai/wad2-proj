@@ -21,4 +21,6 @@ const routes = [
 export default createRouter({
   history: createWebHistory(),
   routes,
+  // Each page opens at the top; browser Back/Forward returns to where the user was.
+  scrollBehavior: (to, from, saved) => saved ?? (to.path === from.path ? false : { top: 0 }),
 })
