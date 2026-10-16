@@ -8,3 +8,9 @@ test('global daily cap stops after AI_DAILY_CAP scans', () => {
   assert.equal(takeDailyQuota(), true)
   assert.equal(takeDailyQuota(), false)
 })
+
+test('chat has its own daily cap', () => {
+  process.env.AI_CHAT_DAILY_CAP = '1'
+  assert.equal(takeDailyQuota('chat'), true)
+  assert.equal(takeDailyQuota('chat'), false)
+})

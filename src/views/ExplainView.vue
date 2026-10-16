@@ -102,7 +102,7 @@ watch(locale, () => (picked.value = null))
 <template>
   <div v-if="view" class="d-flex flex-column gap-4">
     <div class="d-flex align-items-start gap-3">
-      <RouterLink :to="{ name: 'confirm' }" class="back" :aria-label="t('nav.back')"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5 M11 6l-6 6 6 6" /></svg></RouterLink>
+      <RouterLink :to="{ name: 'confirm' }" class="back" :aria-label="t('nav.back')"></RouterLink>
       <div class="d-flex flex-column gap-2 min-w-0">
         <div class="d-flex flex-wrap align-items-center gap-2">
           <span class="tag">{{ view.tag }}</span>
@@ -177,6 +177,7 @@ watch(locale, () => (picked.value = null))
 
         <div class="acts">
           <RouterLink v-if="view.canSchedule" :to="{ name: 'schedule' }" class="btn-main">{{ t('explain.add') }}</RouterLink>
+          <RouterLink v-if="scan.type === 'medication'" :to="{ name: 'ask' }" class="btn-alt">{{ t('explain.ask') }}</RouterLink>
           <RouterLink :to="{ name: 'scan', query: { type: scan.type } }" :class="view.canSchedule ? 'btn-alt' : 'btn-main'">{{ t('explain.another') }}</RouterLink>
         </div>
       </div>

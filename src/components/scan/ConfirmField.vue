@@ -7,7 +7,6 @@ defineProps({
   // Set for a single input so the label is clickable; leave unset for button groups.
   for: { type: String, default: null },
   flagged: { type: Boolean, default: false },
-  note: { type: String, default: null },
 })
 
 const { t } = useI18n()
@@ -20,7 +19,7 @@ const { t } = useI18n()
       <span v-if="flagged" class="tag tag-amber">{{ t('confirm.pleaseCheck') }}</span>
     </component>
     <slot />
-    <span v-if="flagged" class="field-note">{{ note ?? t('confirm.couldntRead') }}</span>
+    <span v-if="flagged" class="field-note">{{ t('confirm.couldntRead') }}</span>
   </div>
 </template>
 

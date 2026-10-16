@@ -7,6 +7,8 @@ const routes = [
   { path: '/scan', name: 'scan', component: () => import('../views/ScanView.vue') },
   { path: '/scan/confirm', name: 'confirm', component: () => import('../views/ConfirmView.vue') },
   { path: '/scan/explain', name: 'explain', component: () => import('../views/ExplainView.vue') },
+  // Zachary: Ask about my medicine (feature 6)
+  { path: '/ask', name: 'ask', component: () => import('../views/AskView.vue') },
   // Lokesh
   { path: '/schedule', name: 'schedule', component: () => import('../views/ScheduleView.vue') },
   { path: '/bill', name: 'bill', component: () => import('../views/BillView.vue') },

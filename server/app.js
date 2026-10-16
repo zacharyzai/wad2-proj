@@ -1,5 +1,6 @@
 import express from 'express'
 import scanRouter from './routes/scan.js'
+import chatRouter from './routes/chat.js'
 import authRouter from './routes/auth.js'
 import historyRouter from './routes/history.js'
 import shareRouter from './routes/share.js'
@@ -15,6 +16,7 @@ app.use(express.json({ limit: '4mb' }))
 
 app.get('/api/health', (req, res) => res.json({ ok: true }))
 app.use('/api/scan', scanRouter)
+app.use('/api/chat', chatRouter)
 app.use('/api/auth', authRouter)
 app.use('/api/history', historyRouter)
 app.use('/api/share', shareRouter)

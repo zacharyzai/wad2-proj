@@ -16,7 +16,8 @@
     "account": "Akaun",
     "main": "Menu utama",
     "night": "Mod malam",
-    "skip": "Langkau ke kandungan utama"
+    "skip": "Langkau ke kandungan utama",
+    "ask": "Tanya"
   },
   "pages": {
     "home": "Fahami ubat dan bil anda",
@@ -29,7 +30,8 @@
     "signup": "Cipta akaun",
     "history": "Sejarah imbasan",
     "shared": "Ringkasan dikongsi",
-    "notFound": "Halaman tidak dijumpai"
+    "notFound": "Halaman tidak dijumpai",
+    "ask": "Tanya tentang ubat saya"
   },
   "errors": {
     "BAD_REQUEST": "Permintaan tidak sah. Sila cuba lagi.",
@@ -246,7 +248,8 @@
       "billWrong": "Kurang tepat. Anda bayar {amount}."
     },
     "add": "Tambah ke jadual",
-    "another": "Imbas yang lain"
+    "another": "Imbas yang lain",
+    "ask": "Tanya tentang ubat ini"
   },
   "player": {
     "reading": "Dibaca dalam Bahasa Melayu",
@@ -255,5 +258,76 @@
     "replay": "Main semula",
     "speed": "Kelajuan",
     "unavailable": "Bacaan dalam bahasa ini belum tersedia pada peranti ini."
+  },
+  "ask": {
+    "title": "Tanya tentang ubat anda",
+    "safety": "Bukan pengganti ahli farmasi. Kecemasan? Hubungi 995.",
+    "you": "Anda",
+    "bot": "Jawapan",
+    "thinking": "Sedang berfikir…",
+    "chipsLabel": "Ketik satu soalan",
+    "chips": {
+      "when": "Bila saya makan ubat saya?",
+      "food": "Boleh saya makan ubat bersama makanan?",
+      "missed": "Bagaimana jika terlupa satu dos?",
+      "store": "Bagaimana menyimpan ubat?",
+      "side": "Kesan sampingan yang perlu diperhatikan?",
+      "pharm": "Apa yang patut saya tanya ahli farmasi saya?"
+    },
+    "inputLabel": "Atau taip soalan anda sendiri",
+    "send": "Tanya",
+    "pharmacist": "Semak dengan ahli farmasi",
+    "noAnswer": "Tiada pada label. Tanya ahli farmasi.",
+    "retry": "Cuba lagi",
+    "urgent": {
+      "title": "Ini mungkin kecemasan",
+      "text": "Hubungi 995 sekarang, atau pergi ke Jabatan Kecemasan (A&E) terdekat. Jangan tunggu jawapan di sini.",
+      "call": "Hubungi 995"
+    },
+    "errors": {
+      "RATE_LIMITED": "Terlalu banyak soalan. Tunggu seminit, kemudian cuba lagi.",
+      "AI_UNAVAILABLE": "Tidak tersedia sekarang. Tanya ahli farmasi."
+    },
+    "meds": {
+      "title": "Ubat saya",
+      "note": "Disimpan pada peranti ini sahaja.",
+      "empty": "Tambah satu untuk jawapan tentang ubat anda sendiri.",
+      "sample": "Contoh",
+      "typed": "Ditaip",
+      "remove": "Buang",
+      "removeOne": "Buang {name}",
+      "photo": "Gambar label",
+      "type": "Taip sendiri",
+      "add": "Tambah ubat baharu",
+      "count": "Belum ada | {n} disimpan | {n} disimpan"
+    },
+    "form": {
+      "name": "Nama ubat",
+      "instructions": "Apa yang tertulis pada label (pilihan)",
+      "hint": "cth. 1 biji dua kali sehari selepas makan",
+      "add": "Tambah ubat",
+      "cancel": "Batal"
+    },
+    "need": {
+      "text": "Ubat yang mana? Tambahkannya, kemudian tanya lagi.",
+      "again": "Tanya lagi"
+    },
+    "followLabel": "Tanya seterusnya",
+    "read": {
+      "play": "Baca dengan kuat",
+      "stop": "Berhenti"
+    },
+    "from": "Daripada: {source}",
+    "mic": {
+      "start": "Cakap",
+      "stop": "Berhenti",
+      "listening": "Sedang mendengar…",
+      "error": "Tidak dapat mendengar. Cuba lagi atau taip."
+    },
+    "toast": {
+      "removed": "{name} dibuang",
+      "undo": "Batal buang"
+    },
+    "placeholder": "Tanya tentang ubat anda…"
   }
 }

@@ -17,3 +17,6 @@ export async function api(path, { method = 'GET', body } = {}) {
 // Contract: docs/scan-contract.md
 export const scanImage = (type, image) => api('/scan', { method: 'POST', body: { type, image } })
 export const scanSample = (sampleId) => api('/scan', { method: 'POST', body: { sampleId } })
+
+// Contract: docs/chat-contract.md
+export const askMedicine = (medicines, question, lang) => api('/chat', { method: 'POST', body: { medicines, question, lang } })

@@ -171,7 +171,7 @@ const photoError = computed(() => PHOTO_ERRORS.includes(errorCode.value))
 
   <div v-else-if="state === 'error'" class="d-flex flex-column gap-4">
     <div class="alert-red" role="alert">
-      <span class="tag tag-red flex-none">{{ t('scan.errorTag') }}</span>
+      <span class="tag tag-red flex-shrink-0">{{ t('scan.errorTag') }}</span>
       <div class="d-flex flex-column gap-1">
         <div class="title">{{ t(`errors.${errorCode}`) }}</div>
         <div v-if="photoError">{{ t('scan.photoHint') }}</div>
@@ -193,7 +193,7 @@ const photoError = computed(() => PHOTO_ERRORS.includes(errorCode.value))
 
   <div v-else class="d-flex flex-column gap-4">
     <div class="d-flex align-items-start gap-3">
-      <RouterLink to="/" class="back" :aria-label="t('nav.back')"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5 M11 6l-6 6 6 6" /></svg></RouterLink>
+      <RouterLink to="/" class="back" :aria-label="t('nav.back')"></RouterLink>
       <div class="d-flex flex-column gap-2">
         <h1 class="h-page">{{ t(`scan.title.${type}`) }}</h1>
         <p class="lead-lg">
@@ -250,7 +250,6 @@ const photoError = computed(() => PHOTO_ERRORS.includes(errorCode.value))
 </template>
 
 <style scoped>
-.flex-none { flex: none; }
 .scan-preview { max-height: 360px; }
 .frame-area { position: relative; aspect-ratio: 4 / 3; overflow: hidden; background: var(--surface); }
 .example { position: absolute; inset: 14% 10%; width: 80%; height: 72%; padding: 8px; object-fit: contain; }

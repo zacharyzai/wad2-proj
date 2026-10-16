@@ -4,6 +4,7 @@ import { computed, reactive, ref, toRaw } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { scanStore } from '../stores/scan'
+import { rememberMedicine } from '../stores/medicines'
 import ConfirmField from '../components/scan/ConfirmField.vue'
 import { DOSE_UNITS, TIMINGS, WITH_FOOD, FREQUENCY_TYPES } from '../../server/services/normalizeScan.js'
 
@@ -65,6 +66,8 @@ function confirm() {
   if (draft.type === 'medication') {
     // Number inputs give '' when cleared; the contract uses null.
     for (const key of Object.keys(draft.medication)) if (draft.medication[key] === '') draft.medication[key] = null
+    // Ask (the chatbot) answers about the medicines the user has checked.
+    rememberMedicine(draft.medication, 'label', draft.source === 'sample')
   }
   scanStore.current = draft
   scanStore.confirmed = true
@@ -77,7 +80,7 @@ const scanAgain = () => router.push({ name: 'scan', query: { type: draft.type } 
 <template>
   <div v-if="scan" class="d-flex flex-column gap-4">
     <div class="d-flex align-items-start gap-3">
-      <button type="button" class="back" :aria-label="t('nav.back')" @click="scanAgain"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5 M11 6l-6 6 6 6" /></svg></button>
+      <button type="button" class="back" :aria-label="t('nav.back')" @click="scanAgain"></button>
       <div class="d-flex flex-column gap-2">
         <h1 class="h-page">{{ t(`confirm.title.${draft.type}`) }}</h1>
         <p class="lead-lg">{{ t(`confirm.lead.${draft.type}`) }}</p>

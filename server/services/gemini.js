@@ -1,4 +1,4 @@
-// Owner: Zachary. Sends one photo to Gemini (Groq as last fallback) and returns a contract-shaped Scan.
+// Owner: Zachary. Calls Gemini (Groq as last fallback) with model fallback; extractScan turns one photo into a contract-shaped Scan.
 // The image only lives in memory for this request; it is never written anywhere.
 import {
   normalizeMedication,
@@ -88,116 +88,124 @@ Extract the bill.
 ${RULES}`,
 }
 
-const list = (value) => (value ?? '').split(',').map((m) => m.trim()).filter(Boolean)
+export const list = (value) => (value ?? '').split(',').map((m) => m.trim()).filter(Boolean)
 
-// Each attempt knows how to send the photo to one model and where that provider puts the reply text.
-function geminiAttempt(model, type, imageDataUrl) {
-  const [, mimeType, data] = imageDataUrl.match(/^data:(image\/[a-z]+);base64,(.+)$/)
+// One attempt per model: how to send the request and where that provider puts the reply text.
+// `body` is everything except the model name, so scan and chat share the same senders.
+function geminiAttempt(model, body) {
   return {
     name: model,
     send: (signal) =>
       fetch(`${API}/${model}:generateContent`, {
         method: 'POST',
         headers: { 'content-type': 'application/json', 'x-goog-api-key': process.env.GEMINI_API_KEY },
-        body: JSON.stringify({
-          contents: [{ parts: [{ inline_data: { mime_type: mimeType, data } }, { text: PROMPTS[type] }] }],
-          generationConfig: {
-            responseMimeType: 'application/json',
-            responseSchema: SCHEMAS[type],
-            temperature: 0,
-            // Copying text off a label needs no reasoning; low thinking is much faster.
-            thinkingConfig: { thinkingLevel: 'low' },
-          },
-        }),
+        body: JSON.stringify(body),
         signal,
       }),
     text: (json) => json.candidates?.[0]?.content?.parts?.[0]?.text,
   }
 }
 
-function groqAttempt(model, type, imageDataUrl) {
+function groqAttempt(model, body) {
   return {
     name: `groq:${model}`,
     send: (signal) =>
       fetch(GROQ_API, {
         method: 'POST',
         headers: { 'content-type': 'application/json', authorization: `Bearer ${process.env.GROQ_API_KEY}` },
-        body: JSON.stringify({
-          model,
-          temperature: 0,
-          // JSON mode only; the schema goes in the prompt. normalizeScan still checks every field.
-          response_format: { type: 'json_object' },
-          messages: [
-            {
-              role: 'user',
-              content: [
-                { type: 'text', text: `${PROMPTS[type]}\nReply with JSON only, matching this schema:\n${JSON.stringify(SCHEMAS[type])}` },
-                { type: 'image_url', image_url: { url: imageDataUrl } },
-              ],
-            },
-          ],
-        }),
+        body: JSON.stringify({ model, ...body }),
         signal,
       }),
     text: (json) => json.choices?.[0]?.message?.content,
   }
 }
 
-// GEMINI_MODEL, then GEMINI_FALLBACK_MODELS, then GROQ_MODELS; only providers with a key are used.
-function attempts(type, imageDataUrl) {
-  const gemini = process.env.GEMINI_API_KEY
-    ? [...new Set([process.env.GEMINI_MODEL || 'gemini-3.8-flash', ...list(process.env.GEMINI_FALLBACK_MODELS)])]
-    : []
-  const groq = process.env.GROQ_API_KEY ? list(process.env.GROQ_MODELS ?? 'qwen/qwen3.8-27b') : []
-  return [...gemini.map((m) => geminiAttempt(m, type, imageDataUrl)), ...groq.map((m) => groqAttempt(m, type, imageDataUrl))]
+// Gemini models first, then Groq; a provider is skipped when its key isn't set.
+export function attempts({ gemini, groq, geminiBody, groqBody }) {
+  return [
+    ...(process.env.GEMINI_API_KEY ? [...new Set(gemini)].map((m) => geminiAttempt(m, geminiBody)) : []),
+    ...(process.env.GROQ_API_KEY ? [...new Set(groq)].map((m) => groqAttempt(m, groqBody)) : []),
+  ]
 }
 
-export async function extractScan(type, imageDataUrl) {
-  const tries = attempts(type, imageDataUrl)
+// Tries each model in turn within one deadline. Resolves to the reply text, or null when the model sent none
+// (usually a refusal or safety block). Throws ScanError when no model answered at all.
+export async function firstReply(tries) {
   if (!tries.length) throw new ScanError(503, 'AI_UNAVAILABLE', 'No AI key is set (GEMINI_API_KEY or GROQ_API_KEY)')
 
   const deadline = Date.now() + TIMEOUT_MS
   const statuses = []
-  let res = null
-  let used = null
   for (const [i, attempt] of tries.entries()) {
     const left = deadline - Date.now()
     if (left <= 0) break
     const isLast = i === tries.length - 1
+    let res
     try {
       res = await attempt.send(AbortSignal.timeout(isLast ? left : Math.min(left, FIRST_TRY_MS)))
     } catch (err) {
       console.error(`AI ${attempt.name} request failed:`, err.name)
-      res = null
       continue
     }
     if (res.ok) {
-      used = attempt
       if (i > 0) console.log(`AI answered with fallback ${attempt.name}`)
-      break
+      return attempt.text(await res.json()) || null
     }
-    // Log the provider's error text (never the image) to debug prompt/schema/key/model problems.
+    // Log the provider's error text (never the image or question) to debug prompt/schema/key/model problems.
     console.error(`AI ${attempt.name} error`, res.status, (await res.text()).slice(0, 500))
     statuses.push(res.status)
-    res = null
-    if (!TRY_NEXT.has(statuses.at(-1))) break
+    if (!TRY_NEXT.has(res.status)) break
   }
 
-  if (!res) {
-    if (statuses.length && statuses.every((s) => s === 429)) throw new ScanError(429, 'RATE_LIMITED', 'AI quota reached, please try again later')
-    throw new ScanError(503, 'AI_UNAVAILABLE', statuses.length ? 'The AI service returned an error' : 'Could not reach the AI service')
-  }
+  if (statuses.length && statuses.every((s) => s === 429)) throw new ScanError(429, 'RATE_LIMITED', 'AI quota reached, please try again later')
+  throw new ScanError(503, 'AI_UNAVAILABLE', statuses.length ? 'The AI service returned an error' : 'Could not reach the AI service')
+}
 
-  const text = used.text(await res.json())
-  // No text usually means the model refused or was blocked (e.g. safety filter).
-  if (!text) throw new ScanError(422, 'UNREADABLE_IMAGE', 'The photo could not be read')
-
-  let raw
+// Parses the model's JSON reply; a reply that isn't JSON counts as an outage, not as data.
+export function parseJson(text) {
   try {
-    raw = JSON.parse(text)
+    return JSON.parse(text)
   } catch {
     throw new ScanError(503, 'AI_UNAVAILABLE', 'The AI returned an invalid response')
   }
+}
+
+// GEMINI_MODEL, then GEMINI_FALLBACK_MODELS, then GROQ_MODELS.
+export async function extractScan(type, imageDataUrl) {
+  const [, mimeType, data] = imageDataUrl.match(/^data:(image\/[a-z]+);base64,(.+)$/)
+  const text = await firstReply(
+    attempts({
+      gemini: [process.env.GEMINI_MODEL || 'gemini-3.8-flash', ...list(process.env.GEMINI_FALLBACK_MODELS)],
+      groq: list(process.env.GROQ_MODELS ?? 'qwen/qwen3.8-27b'),
+      geminiBody: {
+        contents: [{ parts: [{ inline_data: { mime_type: mimeType, data } }, { text: PROMPTS[type] }] }],
+        generationConfig: {
+          responseMimeType: 'application/json',
+          responseSchema: SCHEMAS[type],
+          temperature: 0,
+          // Copying text off a label needs no reasoning; low thinking is much faster.
+          thinkingConfig: { thinkingLevel: 'low' },
+        },
+      },
+      groqBody: {
+        temperature: 0,
+        // JSON mode only; the schema goes in the prompt. normalizeScan still checks every field.
+        response_format: { type: 'json_object' },
+        messages: [
+          {
+            role: 'user',
+            content: [
+              { type: 'text', text: `${PROMPTS[type]}\nReply with JSON only, matching this schema:\n${JSON.stringify(SCHEMAS[type])}` },
+              { type: 'image_url', image_url: { url: imageDataUrl } },
+            ],
+          },
+        ],
+      },
+    }),
+  )
+  // No text usually means the model refused or was blocked (e.g. safety filter).
+  if (!text) throw new ScanError(422, 'UNREADABLE_IMAGE', 'The photo could not be read')
+
+  const raw = parseJson(text)
   if (raw.readable === false) throw new ScanError(422, 'UNREADABLE_IMAGE', 'The photo could not be read')
 
   return type === 'medication' ? normalizeMedication(raw) : normalizeBill(raw)

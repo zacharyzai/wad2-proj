@@ -3,11 +3,11 @@
 <script setup>
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { SPEEDS, speechRate } from '../../stores/speech'
 
 const props = defineProps({ text: { type: String, required: true } })
 const { t, locale } = useI18n()
 
-const SPEEDS = [0.75, 1, 1.25]
 const supported = typeof window !== 'undefined' && 'speechSynthesis' in window
 const voices = ref(supported ? speechSynthesis.getVoices() : [])
 const loadVoices = () => (voices.value = speechSynthesis.getVoices())
@@ -15,7 +15,8 @@ if (supported) speechSynthesis.addEventListener('voiceschanged', loadVoices)
 
 const voice = computed(() => voices.value.find((v) => v.lang.toLowerCase().startsWith(locale.value)))
 const status = ref('idle') // idle | playing | paused
-const rate = ref(1)
+// Shared with every read-aloud button in the app (stores/speech.js).
+const rate = speechRate
 let current = null
 
 function speak() {

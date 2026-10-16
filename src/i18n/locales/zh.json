@@ -16,7 +16,8 @@
     "account": "我的账户",
     "main": "主菜单",
     "night": "夜间模式",
-    "skip": "跳到主要内容"
+    "skip": "跳到主要内容",
+    "ask": "提问"
   },
   "pages": {
     "home": "看懂您的药物和账单",
@@ -29,7 +30,8 @@
     "signup": "创建账户",
     "history": "扫描记录",
     "shared": "共享摘要",
-    "notFound": "找不到页面"
+    "notFound": "找不到页面",
+    "ask": "询问我的药物"
   },
   "errors": {
     "BAD_REQUEST": "请求有误，请再试一次。",
@@ -246,7 +248,8 @@
       "billWrong": "不太对。您需要支付 {amount}。"
     },
     "add": "加入服药时间表",
-    "another": "扫描其他内容"
+    "another": "扫描其他内容",
+    "ask": "询问这种药"
   },
   "player": {
     "reading": "正在用中文朗读",
@@ -255,5 +258,76 @@
     "replay": "重播",
     "speed": "语速",
     "unavailable": "这台设备暂时不能用这种语言朗读。"
+  },
+  "ask": {
+    "title": "询问您的药物",
+    "safety": "不能代替药剂师。紧急情况？请拨打 995。",
+    "you": "您",
+    "bot": "回答",
+    "thinking": "正在思考…",
+    "chipsLabel": "点一个问题",
+    "chips": {
+      "when": "我什么时候吃药？",
+      "food": "我的药可以和食物一起吃吗？",
+      "missed": "忘了吃药怎么办？",
+      "store": "药物怎样保存？",
+      "side": "要注意哪些副作用？",
+      "pharm": "我应该问药剂师什么？"
+    },
+    "inputLabel": "或输入您自己的问题",
+    "send": "提问",
+    "pharmacist": "请向药剂师确认",
+    "noAnswer": "标签上没有写。请问药剂师。",
+    "retry": "再试一次",
+    "urgent": {
+      "title": "这可能是紧急情况",
+      "text": "请立即拨打 995，或前往最近的急诊部。不要在这里等待回答。",
+      "call": "拨打 995"
+    },
+    "errors": {
+      "RATE_LIMITED": "问题太多。请等一分钟再试。",
+      "AI_UNAVAILABLE": "现在无法使用。请问药剂师。"
+    },
+    "meds": {
+      "title": "我的药物",
+      "note": "只保存在这部设备上。",
+      "empty": "添加药物，回答就能针对您自己的药。",
+      "sample": "示例",
+      "typed": "自己输入的",
+      "remove": "删除",
+      "removeOne": "删除 {name}",
+      "photo": "拍标签",
+      "type": "手动输入",
+      "add": "添加一种药物",
+      "count": "还没有 | 已保存 {n} 种 | 已保存 {n} 种"
+    },
+    "form": {
+      "name": "药物名称",
+      "instructions": "标签上的说明（可选）",
+      "hint": "例如：每天两次，每次 1 粒，饭后",
+      "add": "添加药物",
+      "cancel": "取消"
+    },
+    "need": {
+      "text": "这是哪种药？请先添加，再问一次。",
+      "again": "再问一次"
+    },
+    "followLabel": "接着问",
+    "read": {
+      "play": "朗读",
+      "stop": "停止"
+    },
+    "from": "来源：{source}",
+    "mic": {
+      "start": "说话",
+      "stop": "停止",
+      "listening": "正在听…",
+      "error": "没听清楚。请再试或输入。"
+    },
+    "toast": {
+      "removed": "已删除 {name}",
+      "undo": "撤销"
+    },
+    "placeholder": "询问您的药物…"
   }
 }

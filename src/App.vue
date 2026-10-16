@@ -11,11 +11,12 @@ const route = useRoute()
 
 // Each language button is written in its own script.
 const LANG_BUTTONS = { en: 'EN', zh: '中文', ms: 'BM', ta: 'தமிழ்' }
-// `phone: false` items live in the header on phones, so the bottom bar keeps 4 big tabs.
+// `phone: false` items stay off the phone tab bar so 4 tabs fit at 375px in Tamil; on phones the logo goes Home and Account sits in the header.
 const NAV = [
-  { to: '/', key: 'nav.home', icon: 'M3 11l9-7 9 7 M5 10v10h14V10 M10 20v-6h4v6' },
+  { to: '/', key: 'nav.home', icon: 'M3 11l9-7 9 7 M5 10v10h14V10 M10 20v-6h4v6', phone: false },
   { to: '/scan', key: 'nav.scan', icon: 'M3 8h4l2-3h6l2 3h4v12H3z M12 17a4 4 0 1 0 0-8a4 4 0 0 0 0 8z' },
   { to: '/schedule', key: 'nav.schedule', icon: 'M4 6h16v14H4z M4 10h16 M8 3v5 M16 3v5' },
+  { to: '/ask', key: 'nav.ask', icon: 'M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .8-1 1.5 M12 16v.5' },
   { to: '/history', key: 'nav.history', icon: 'M12 3a9 9 0 1 0 0 18a9 9 0 0 0 0-18z M12 7v5l3 2' },
   { to: '/login', key: 'nav.account', icon: 'M12 12a4 4 0 1 0 0-8a4 4 0 0 0 0 8z M4 21c0-4 4-6 8-6s8 2 8 6', phone: false },
 ]

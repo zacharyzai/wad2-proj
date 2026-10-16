@@ -16,7 +16,8 @@
     "account": "Account",
     "main": "Main",
     "night": "Night mode",
-    "skip": "Skip to main content"
+    "skip": "Skip to main content",
+    "ask": "Ask"
   },
   "pages": {
     "home": "Understand your medicine and bills",
@@ -29,7 +30,8 @@
     "signup": "Create an account",
     "history": "Scan history",
     "shared": "Shared summary",
-    "notFound": "Page not found"
+    "notFound": "Page not found",
+    "ask": "Ask about my medicine"
   },
   "errors": {
     "BAD_REQUEST": "Something was wrong with that request. Please try again.",
@@ -246,7 +248,8 @@
       "billWrong": "Not quite. You pay {amount}."
     },
     "add": "Add to schedule",
-    "another": "Scan something else"
+    "another": "Scan something else",
+    "ask": "Ask about this medicine"
   },
   "player": {
     "reading": "Reading in English",
@@ -255,5 +258,76 @@
     "replay": "Replay",
     "speed": "Speed",
     "unavailable": "Read-aloud in this language is not available on this device yet."
+  },
+  "ask": {
+    "title": "Ask about your medicine",
+    "safety": "Not a replacement for your pharmacist. Emergency? Call 995.",
+    "you": "You",
+    "bot": "Answer",
+    "thinking": "Thinking…",
+    "chipsLabel": "Tap a question",
+    "chips": {
+      "when": "When do I take my medicine?",
+      "food": "Can I take my medicine with food?",
+      "missed": "What if I miss a dose?",
+      "store": "How do I store medicines?",
+      "side": "What side effects to watch for?",
+      "pharm": "What should I ask my pharmacist?"
+    },
+    "inputLabel": "Or type your own question",
+    "send": "Ask",
+    "pharmacist": "Check with your pharmacist",
+    "noAnswer": "Not on your label. Ask your pharmacist.",
+    "retry": "Try again",
+    "urgent": {
+      "title": "This could be an emergency",
+      "text": "Call 995 now, or go to the nearest A&E. Do not wait for an answer here.",
+      "call": "Call 995"
+    },
+    "errors": {
+      "RATE_LIMITED": "Too many questions. Wait a minute, then try again.",
+      "AI_UNAVAILABLE": "Not available right now. Ask your pharmacist."
+    },
+    "meds": {
+      "title": "My medicines",
+      "note": "Saved on this device only.",
+      "empty": "Add one for answers about your own medicine.",
+      "sample": "Sample",
+      "typed": "Typed in",
+      "remove": "Remove",
+      "removeOne": "Remove {name}",
+      "photo": "Photo of label",
+      "type": "Type it in",
+      "add": "Add a medicine",
+      "count": "None yet | {n} saved | {n} saved"
+    },
+    "form": {
+      "name": "Medicine name",
+      "instructions": "What the label says (optional)",
+      "hint": "e.g. 1 tablet twice a day after food",
+      "add": "Add medicine",
+      "cancel": "Cancel"
+    },
+    "need": {
+      "text": "Which medicine is this? Add it, then ask again.",
+      "again": "Ask again"
+    },
+    "followLabel": "Ask next",
+    "read": {
+      "play": "Read aloud",
+      "stop": "Stop"
+    },
+    "from": "From: {source}",
+    "mic": {
+      "start": "Speak",
+      "stop": "Stop",
+      "listening": "Listening…",
+      "error": "Couldn’t hear you. Try again or type."
+    },
+    "toast": {
+      "removed": "{name} removed",
+      "undo": "Undo"
+    },
+    "placeholder": "Ask about your medicine…"
   }
 }
