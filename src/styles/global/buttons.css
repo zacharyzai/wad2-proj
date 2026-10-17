@@ -1,0 +1,26 @@
+/* Owner: Isaac. */
+/* Buttons: one primary per screen */
+.btn-main, .btn-alt, .btn-small {
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  border: 2px solid var(--teal); font-weight: 700; line-height: 1.25; text-align: center; text-decoration: none;
+}
+.btn-main { min-height: 64px; padding: 12px 28px; border-radius: 18px; background: var(--teal); color: #fff; font-size: 22px; }
+.btn-main:hover { background: var(--teal-press); border-color: var(--teal-press); color: #fff; }
+.btn-main:disabled { background: var(--line); color: var(--muted); border: 2px dashed var(--line-strong); cursor: not-allowed; }
+.btn-alt { min-height: 56px; padding: 12px 24px; border-radius: 18px; background: var(--surface); color: var(--teal-dark); font-size: 20px; }
+.btn-small { min-height: 48px; padding: 8px 16px; border-radius: 14px; border-color: var(--line-strong); background: var(--surface); color: var(--ink); font-size: 18px; }
+
+/* Round grey back button beside a page title (wireframes 1a/1b) */
+.back { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 52px; height: 52px; border: 0; border-radius: 50%; background: var(--line); color: var(--ink); text-decoration: none; }
+.back:hover { background: var(--line-strong); color: var(--ink); }
+/* Arrow drawn in CSS so every back button is the same; currentColor keeps it right in night mode. */
+.back::before { content: ''; width: 26px; height: 26px; background: currentColor; -webkit-mask: var(--arrow); mask: var(--arrow); --arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M19 12H5 M11 6l-6 6 6 6'/%3E%3C/svg%3E") center / contain no-repeat; }
+.btn-alt:hover, .btn-small:hover { background: var(--teal-soft); }
+
+/* Toggle buttons (chips, food, speed, answers): aria-pressed carries the state */
+.opt {
+  min-height: 48px; padding: 8px 16px; border: 2px solid var(--line-strong); border-radius: 14px;
+  background: var(--surface); color: var(--ink); font-size: 18px; font-weight: 700; line-height: 1.25;
+}
+.opt.pill { border-radius: 999px; }
+.opt[aria-pressed='true'] { background: var(--teal); border-color: var(--teal); color: #fff; }

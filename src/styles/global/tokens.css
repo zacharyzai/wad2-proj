@@ -1,0 +1,66 @@
+/* Owner: Isaac. */
+/* Colour and font tokens; night mode swaps the same names. */
+/* Theme from the revamp wireframes (1a–1c): Plus Jakarta Sans, deep teal, rounded cards. Senior-friendly: 18px base, 48px+ targets, colour always paired with words. */
+/* Wireframe orange #F77F00 is darkened to #CC6600 so "Please check" borders reach 3:1 on white; text always uses the -ink shades. */
+:root {
+  --ink: #222;
+  --muted: #555;
+  --line: #e4e4e4;
+  --line-strong: #888;
+  --soft: #f6f7f7;
+  --surface: #fff;
+  --teal: #1a7070;
+  --teal-dark: #135555;
+  /* Hover fill for teal buttons; stays dark in night mode, where --teal-dark becomes a light text colour. */
+  --teal-press: #135555;
+  --teal-soft: #e0f7f5;
+  --blue: #1a5490;
+  --amber: #cc6600;
+  --amber-bg: #fff3e6;
+  --amber-soft: #fff9f2;
+  --amber-ink: #8a4500;
+  --red: #b91c1c;
+  --red-bg: #fdecec;
+  --red-ink: #7f1d1d;
+  --green: #06a77d;
+  --green-bg: #e6f6f1;
+  --green-ink: #035c45;
+
+  --bs-body-font-family: 'Plus Jakarta Sans', 'Noto Sans SC', 'Noto Sans Tamil', system-ui, sans-serif;
+  --bs-body-font-size: 18px;
+  --bs-body-line-height: 1.5;
+  --bs-body-color: var(--ink);
+  --bs-link-color-rgb: 26, 112, 112;
+  --bs-link-hover-color-rgb: 19, 85, 85;
+  --bs-body-bg: var(--surface);
+  color-scheme: light;
+}
+
+/* Night mode: set on <html> by src/theme.js (and the inline script in index.html, so there's no white flash).
+   Same names, so every component follows. Text pairs keep at least 4.5:1 contrast. */
+:root[data-theme='dark'] {
+  --ink: #edf2f1;
+  --muted: #b3bdbb;
+  --line: #34403e;
+  --line-strong: #7f8c8a;
+  --soft: #121817;
+  --surface: #1b2322;
+  --teal: #1f8380;
+  --teal-dark: #8fdcd5;
+  --teal-soft: #163a37;
+  --teal-press: #135555;
+  --blue: #8db8ec;
+  --amber: #f79a3a;
+  --amber-bg: #3a2812;
+  --amber-soft: #2a1f12;
+  --amber-ink: #ffc98a;
+  --red: #c62828;
+  --red-bg: #3a1717;
+  --red-ink: #ffb4b4;
+  --green: #2bbf94;
+  --green-bg: #12302a;
+  --green-ink: #8be6c8;
+  --bs-link-color-rgb: 143, 220, 213;
+  --bs-link-hover-color-rgb: 190, 236, 231;
+  color-scheme: dark;
+}

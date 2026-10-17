@@ -1,0 +1,99 @@
+/* Scoped styles for AskView.vue. */
+/* One reading column, centred like a chat app. */
+.chat { display: flex; flex-direction: column; gap: 24px; max-width: 46rem; margin: 0 auto; }
+.min-w-0 { min-width: 0; }
+
+.intro { display: flex; flex-direction: column; gap: 10px; }
+.intro-logo { width: 56px; height: 56px; }
+.empty .intro { align-items: center; text-align: center; padding-top: 8px; }
+.safety { display: flex; gap: 10px; align-items: flex-start; padding: 12px 16px; border-radius: 14px; background: var(--teal-soft); color: var(--ink); font-size: 17px; text-align: left; }
+.safety svg { flex: none; margin-top: 2px; color: var(--teal-dark); }
+
+/* My medicines: one row, opens to manage. */
+.meds-panel { border: 1.5px solid var(--line-strong); border-radius: 20px; background: var(--surface); }
+.meds-toggle { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 60px; padding: 10px 18px; border: 0; border-radius: 20px; background: none; color: var(--ink); font-size: 19px; text-align: left; }
+.meds-toggle svg { flex: none; color: var(--teal-dark); }
+.meds-count { margin-left: auto; font-size: 17px; }
+.chev { flex: none; width: 10px; height: 10px; border-right: 2.5px solid currentColor; border-bottom: 2.5px solid currentColor; transform: translateY(-3px) rotate(45deg); transition: transform 0.15s; }
+.meds-toggle[aria-expanded='true'] .chev { transform: translateY(2px) rotate(-135deg); }
+.meds-body { display: flex; flex-direction: column; gap: 16px; padding: 0 18px 18px; }
+.meds { display: flex; flex-direction: column; gap: 12px; margin: 0; padding: 0; list-style: none; }
+.med { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding-bottom: 12px; border-bottom: 1.5px solid var(--line); }
+.med:last-child { padding-bottom: 0; border-bottom: 0; }
+.med-name { font-size: 21px; font-weight: 800; line-height: 1.25; overflow-wrap: anywhere; }
+.add-form { padding: 16px; border-radius: 14px; background: var(--soft); }
+
+/* Conversation: the user's words in a soft bubble on the right, answers as plain text beside the logo. */
+.thread { display: flex; flex-direction: column; gap: 28px; margin: 0; padding: 0; list-style: none; }
+.turn { display: flex; flex-direction: column; gap: 16px; }
+.you { align-self: flex-end; max-width: 85%; padding: 12px 18px; border-radius: 22px; background: var(--teal-soft); color: var(--ink); font-size: 20px; line-height: 1.45; overflow-wrap: anywhere; }
+.reply { display: flex; gap: 14px; align-items: flex-start; scroll-margin-top: 16px; }
+.avatar { flex: none; width: 34px; height: 34px; margin-top: 2px; }
+.reply-body { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 12px; }
+.answer p { font-size: 21px; line-height: 1.55; overflow-wrap: anywhere; }
+.actions { display: flex; gap: 4px; margin-top: 6px; margin-left: -10px; }
+.ghost { display: inline-flex; align-items: center; gap: 8px; min-height: 48px; padding: 6px 12px; border: 0; border-radius: 12px; background: none; color: var(--muted); font-size: 17px; font-weight: 700; }
+.ghost:hover, .ghost[aria-pressed='true'] { background: var(--line); color: var(--ink); }
+.play-icon { width: 0; height: 0; border-left: 11px solid currentColor; border-top: 7px solid transparent; border-bottom: 7px solid transparent; }
+.stop-icon { width: 12px; height: 12px; border-radius: 2px; background: currentColor; }
+.thinking { display: flex; align-items: center; min-height: 34px; color: var(--muted); font-size: 19px; }
+.card-note { display: flex; flex-direction: column; gap: 10px; padding: 14px 16px; border-radius: 16px; font-size: 19px; }
+.need { border: 1.5px solid var(--teal); background: var(--teal-soft); }
+.err { border: 2px solid var(--amber); background: var(--amber-soft); color: var(--amber-ink); font-weight: 700; }
+.from { color: var(--muted); font-size: 16px; }
+/* Its own card (icon + words), so "check with the pharmacist" never relies on colour. */
+.pharm { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border: 2px solid var(--amber); border-radius: 14px; background: var(--amber-bg); color: var(--amber-ink); font-size: 18px; font-weight: 700; }
+.pharm svg { flex: none; }
+.alert-red { gap: 8px; }
+.btn-call { display: inline-flex; align-items: center; align-self: flex-start; min-height: 56px; padding: 10px 24px; margin-top: 4px; border-radius: 18px; background: var(--red); color: #fff; font-size: 22px; font-weight: 800; text-decoration: none; }
+.btn-call:hover { color: #fff; }
+.follow { display: flex; flex-direction: column; gap: 8px; padding-top: 4px; }
+
+/* Suggestions: outlined pills, like a chat app's suggested prompts. */
+.starters { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
+.suggest { min-height: 52px; padding: 10px 18px; border: 1.5px solid var(--line-strong); border-radius: 16px; background: var(--surface); color: var(--ink); font-size: 18px; font-weight: 700; line-height: 1.3; text-align: left; }
+.suggest:hover:not(:disabled) { border-color: var(--teal); background: var(--teal-soft); }
+.suggest:disabled { opacity: 0.5; cursor: not-allowed; }
+.follow .suggest { align-self: flex-start; }
+
+/* Composer: one rounded box with its tools inside. Docks above the phone tab bar once the conversation starts. */
+.dock { display: flex; flex-direction: column; gap: 8px; }
+.chat:not(.empty) .dock { position: sticky; bottom: calc(82px + env(safe-area-inset-bottom)); z-index: 5; padding-top: 16px; background: linear-gradient(to bottom, transparent, var(--soft) 16px); }
+.composer { display: flex; flex-direction: column; gap: 6px; padding: 12px 12px 10px 18px; border: 1.5px solid var(--line-strong); border-radius: 26px; background: var(--surface); box-shadow: 0 2px 12px rgb(0 0 0 / 0.08); }
+.composer:focus-within { border-color: var(--teal); }
+.composer textarea { width: 100%; min-height: 2lh; max-height: 8lh; padding: 6px 0; border: 0; outline: none; resize: none; background: none; color: var(--ink); font: inherit; font-size: 20px; line-height: 1.45; field-sizing: content; }
+.composer textarea::placeholder { color: var(--muted); }
+.tools { display: flex; align-items: center; gap: 6px; }
+.tool { display: inline-flex; align-items: center; gap: 6px; min-height: 48px; padding: 6px 12px; border: 1.5px solid var(--line); border-radius: 999px; background: none; color: var(--ink); font-size: 17px; font-weight: 700; }
+.tool:hover:not(:disabled), .tool[aria-pressed='true'] { background: var(--teal-soft); border-color: var(--teal); }
+.send { display: inline-flex; align-items: center; gap: 6px; min-height: 52px; margin-left: auto; padding: 6px 18px; border: 0; border-radius: 999px; background: var(--teal); color: #fff; font-size: 19px; font-weight: 800; }
+.send:hover:not(:disabled) { background: var(--teal-press); }
+.send:disabled { background: var(--line); color: var(--muted); cursor: not-allowed; }
+.mic-status:empty { display: none; }
+.mic-status { padding-left: 18px; font-weight: 700; color: var(--teal-dark); }
+
+/* Dots while waiting; the global reduced-motion rule stops the animation. */
+.dots { display: inline-flex; gap: 5px; margin-right: 10px; }
+.dots i { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); animation: blink 1.2s infinite ease-in-out; }
+.dots i:nth-child(2) { animation-delay: 0.2s; }
+.dots i:nth-child(3) { animation-delay: 0.4s; }
+@keyframes blink { 0%, 80%, 100% { opacity: 0.3; } 40% { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .chev { transition: none; } }
+
+/* Above the phone tab bar and the composer; bottom corner on desktop. */
+.toast-undo { position: fixed; left: 16px; right: 16px; bottom: calc(96px + env(safe-area-inset-bottom)); z-index: 20; display: flex; align-items: center; justify-content: space-between; gap: 12px; max-width: 32em; margin: 0 auto; padding: 12px 12px 12px 18px; border-radius: 16px; background: var(--ink); color: var(--surface); font-weight: 700; }
+.toast-undo .btn-small { flex: none; }
+
+/* Phones: the docked composer stays short so the conversation keeps most of the screen. Tools become labelled icons. */
+@media (max-width: 575.98px) {
+  .tool { justify-content: center; width: 48px; padding: 0; }
+  .tool-label { display: none; }
+  .chat:not(.empty) .composer textarea { min-height: 1lh; }
+}
+@media (min-width: 576px) {
+  .starters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (min-width: 992px) {
+  .chat:not(.empty) .dock { bottom: 0; padding-bottom: 16px; }
+  .toast-undo { left: auto; right: 32px; bottom: 32px; }
+}

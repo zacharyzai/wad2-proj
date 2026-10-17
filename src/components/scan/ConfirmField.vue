@@ -23,9 +23,4 @@ const { t } = useI18n()
   </div>
 </template>
 
-<style scoped>
-.field { display: flex; flex-direction: column; gap: 8px; }
-.field.flagged { padding: 16px; border: 3px solid var(--amber); border-radius: 12px; background: var(--amber-soft); }
-.field-label { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-weight: 700; }
-.field-note { color: var(--amber-ink); }
-</style>
+<style scoped src="../../styles/components/ConfirmField.css"></style>

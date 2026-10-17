@@ -1,0 +1,6 @@
+/* Owner: Isaac. */
+/* Primary action sits nearest the thumb on phones */
+.acts { display: flex; flex-direction: column-reverse; gap: 12px; }
+@media (min-width: 576px) { .acts { flex-direction: row; flex-wrap: wrap; } }
+
+@media (min-width: 992px) { .stick { position: sticky; top: 24px; } }

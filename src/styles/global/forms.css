@@ -1,0 +1,4 @@
+/* Owner: Isaac. */
+/* Form fields: label always visible above */
+.inp { width: 100%; min-height: 56px; padding: 10px 16px; border: 2px solid var(--line-strong); border-radius: 14px; font-size: 20px; color: var(--ink); background: var(--surface); }
+.inp.flagged { border: 3px solid var(--amber); background: var(--amber-soft); }

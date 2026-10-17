@@ -198,15 +198,4 @@ const scanAgain = () => router.push({ name: 'scan', query: { type: draft.type } 
   </div>
 </template>
 
-<style scoped>
-.thumb { width: 72px; height: 72px; object-fit: cover; border: 2px solid var(--line); border-radius: 8px; flex: none; }
-.amount { max-width: 120px; }
-.fgrid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; }
-@media (min-width: 576px) { .fgrid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-.bill-grid { display: grid; grid-template-columns: minmax(0, 1fr) 140px; gap: 10px 8px; align-items: center; }
-.span2 { grid-column: 1 / -1; }
-.note { color: var(--amber-ink); font-weight: 700; }
-.row-label { padding-left: 4px; }
-.total { font-weight: 700; font-size: 20px; }
-label.total { padding-top: 8px; border-top: 2px solid var(--ink); }
-</style>
+<style scoped src="../styles/views/ConfirmView.css"></style>

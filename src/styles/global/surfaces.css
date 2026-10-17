@@ -1,0 +1,12 @@
+/* Owner: Isaac. */
+/* Boxes */
+.box { border: 1.5px solid var(--ink); border-radius: 20px; padding: 20px; background: var(--surface); }
+.box.soft { border-color: var(--teal); background: var(--teal-soft); }
+
+/* Striped stand-in for images we don't have yet */
+.ph {
+  display: flex; align-items: center; justify-content: center;
+  background: repeating-linear-gradient(135deg, var(--soft) 0 10px, var(--line) 10px 20px);
+  border: 2px solid var(--line); border-radius: 20px; color: var(--muted); font: 14px ui-monospace, Menlo, monospace;
+}
+.photo { width: 100%; border: 2px solid var(--line); border-radius: 20px; object-fit: contain; background: var(--soft); }

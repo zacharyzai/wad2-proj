@@ -1,0 +1,13 @@
+/* Owner: Isaac. */
+/* Tags: green = covered, amber = needs checking, red = error. Always with words. */
+.tag { display: inline-block; padding: 0 10px; border: 2px solid var(--line-strong); border-radius: 999px; font-weight: 700; line-height: 1.4; }
+.tag-teal { border-color: var(--teal); color: var(--teal-dark); }
+.tag-blue { border-color: var(--blue); color: var(--blue); }
+.tag-green { border-color: var(--green); background: var(--green-bg); color: var(--green-ink); }
+.tag-amber { border-color: var(--amber); background: var(--amber-bg); color: var(--amber-ink); }
+.tag-red { border-color: var(--red); background: var(--red); color: #fff; border-radius: 6px; }
+
+.banner-amber { padding: 12px 16px; border: 2px solid var(--amber); border-radius: 14px; background: var(--amber-bg); color: var(--amber-ink); font-weight: 700; }
+.banner-green { padding: 12px 16px; border: 2px solid var(--green); border-radius: 14px; background: var(--green-bg); color: var(--green-ink); font-weight: 700; }
+.alert-red { display: flex; gap: 12px; align-items: flex-start; padding: 16px; border: 3px solid var(--red); border-radius: 16px; background: var(--red-bg); }
+.alert-red .title { font-size: 22px; font-weight: 700; line-height: 1.25; color: var(--red-ink); }

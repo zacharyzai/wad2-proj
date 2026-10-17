@@ -1,0 +1,7 @@
+/* Scoped styles for ReadAloud.vue. */
+.player { border: 2px solid var(--ink); border-radius: 16px; padding: 20px; }
+/* Play is dark ink, not teal, so the screen's primary action stays unique. */
+.play { display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 12px 28px; border: 2px solid var(--ink); border-radius: 999px; background: var(--ink); color: var(--surface); font-size: 22px; font-weight: 700; line-height: 1.2; }
+.play-icon { width: 0; height: 0; border-left: 18px solid var(--surface); border-top: 11px solid transparent; border-bottom: 11px solid transparent; }
+.pause-icon { width: 16px; height: 20px; border-left: 5px solid var(--surface); border-right: 5px solid var(--surface); }
+.speeds { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }

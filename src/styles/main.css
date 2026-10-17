@@ -1,0 +1,9 @@
+/* Global styles, loaded once in src/main.js. Page styles live in App.css, views/ and components/, loaded by each .vue file. */
+@import './global/tokens.css';
+@import './global/base.css';
+@import './global/type.css';
+@import './global/buttons.css';
+@import './global/forms.css';
+@import './global/feedback.css';
+@import './global/surfaces.css';
+@import './global/layout.css';

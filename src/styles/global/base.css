@@ -1,0 +1,20 @@
+/* Owner: Isaac. */
+/* Resets, focus rings, skip link and motion rules shared by every page. */
+h1, h2, h3, p { margin: 0; }
+button { cursor: pointer; }
+a, button, input, select, textarea, label { touch-action: manipulation; }
+:where(.btn-main, .btn-alt, .btn-small, .opt, .back, .lng, .navi, .night, .choice, .sample, .answer, .play) {
+  transition: background-color 0.15s ease-out, border-color 0.15s ease-out, color 0.15s ease-out, transform 0.1s ease-out;
+}
+:where(.btn-main, .btn-alt, .btn-small, .opt, .back, .choice, .answer, .play):active:not(:disabled) { transform: scale(0.98); }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+  :where(.btn-main, .btn-alt, .btn-small, .opt, .back, .choice, .answer, .play):active { transform: none; }
+}
+
+/* Skip link: hidden until focused with the keyboard. */
+.skip { position: absolute; left: 12px; top: -100px; z-index: 100; padding: 12px 20px; border-radius: 14px; background: var(--ink); color: var(--surface); font-weight: 700; text-decoration: none; }
+.skip:focus { top: 12px; color: var(--surface); }
+/* Page heading gets focus after navigation (for screen readers), without a ring on mouse use. */
+h1[tabindex='-1']:focus { outline: none; }
+:focus-visible { outline: 3px solid var(--teal); outline-offset: 2px; }

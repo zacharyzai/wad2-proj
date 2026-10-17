@@ -25,5 +25,5 @@ Shared files, where you add to them but don't restructure: `src/router/index.js`
 ## Rules
 - Call the backend only through `src/api/client.js`. It always resolves to `{ ok, data }` or `{ ok: false, error }`.
 - Every piece of user-facing text goes through `t('...')`, with keys in **en, zh, ms and ta**.
-- Use Bootstrap utilities and components first. Isaac's tokens are in `src/assets/main.css`.
+- Use Bootstrap utilities and components first. Isaac's tokens are in `src/styles/` (tokens in `global/tokens.css`).
 - Use only sample data, never real patient data. Never commit `.env`.
