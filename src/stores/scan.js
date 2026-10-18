@@ -8,4 +8,6 @@ export const scanStore = reactive({
   photo: null,
   // Set by Confirm. Explain and Schedule only use a scan the user has checked.
   confirmed: false,
+  // A photo picked on Home; Scan reads it on arrival.
+  pendingFile: null,
 })

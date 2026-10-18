@@ -1,10 +1,19 @@
-<!-- Owner: Isaac -->
+<!-- Owner: Isaac. Placeholder in the new design until the feature is built; the full screen is in the Claude Design project (Shared.dc.html). -->
 <script setup>
 import { useI18n } from 'vue-i18n'
+import EmptyState from '../components/layout/EmptyState.vue'
+import AppIcon from '../components/layout/AppIcon.vue'
 
 const { t } = useI18n()
 </script>
 
 <template>
-  <h1>{{ t('pages.shared') }}</h1>
+  <div class="page">
+    <div class="page-head">
+      <h1>{{ t('pages.shared') }}</h1>
+    </div>
+    <EmptyState :title="t('soon.title')" :text="t('soon.shared')" icon="share">
+      <RouterLink :to="'/'" class="btn btn-primary"><AppIcon name="home" />{{ t('soon.home') }}</RouterLink>
+    </EmptyState>
+  </div>
 </template>

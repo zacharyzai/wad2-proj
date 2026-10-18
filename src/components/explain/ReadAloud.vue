@@ -1,9 +1,10 @@
-<!-- Owner: Asher. Read-aloud player from wireframe 1d, using the browser's own speech. -->
+<!-- Owner: Asher. Read-aloud player card from the Claude Design Explain screen, using the browser's own speech. -->
 <!-- shortcut: browser voices only; Tamil/Malay are missing on many devices. Add the cloud TTS fallback (/api/tts) for feature 2. -->
 <script setup>
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { SPEEDS, speechRate } from '../../stores/speech'
+import AppIcon from '../layout/AppIcon.vue'
 
 const props = defineProps({ text: { type: String, required: true } })
 const { t, locale } = useI18n()
@@ -61,27 +62,25 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="player d-flex flex-column gap-3">
-    <div class="fw-bold">{{ t('player.reading') }}</div>
+  <section class="card player" :aria-label="t('player.reading')">
+    <div class="player-label"><AppIcon name="volume" :size="20" /><span class="section-label">{{ t('player.reading') }}</span></div>
     <template v-if="voice">
-      <div class="d-flex flex-wrap gap-3 align-items-center">
-        <button type="button" class="play" @click="toggle">
-          <span :class="status === 'playing' ? 'pause-icon' : 'play-icon'" aria-hidden="true"></span>
-          {{ status === 'playing' ? t('player.pause') : t('player.play') }}
+      <div class="d-flex align-items-center gap-3">
+        <button type="button" class="play" :class="{ on: status === 'playing' }" @click="toggle">
+          <span class="play-btn"><AppIcon :name="status === 'playing' ? 'pause' : 'play'" :size="30" /></span>
+          <span>{{ status === 'playing' ? t('player.pause') : t('player.play') }}</span>
         </button>
-        <button type="button" class="opt pill" @click="speak">{{ t('player.replay') }}</button>
+        <button type="button" class="btn btn-outline btn-icon replay" :aria-label="t('player.replay')" :title="t('player.replay')" @click="speak"><AppIcon name="replay" :size="22" /></button>
       </div>
-      <div class="d-flex flex-column gap-2" role="group" :aria-label="t('player.speed')">
-        <span class="fw-bold">{{ t('player.speed') }}</span>
-        <div class="speeds">
-          <button v-for="speed in SPEEDS" :key="speed" type="button" class="opt" :aria-pressed="rate === speed" @click="rate = speed">
-            <span v-if="rate === speed" aria-hidden="true">✓ </span>{{ speed }}×
-          </button>
+      <div class="d-flex align-items-center gap-3 flex-wrap" role="group" :aria-label="t('player.speed')">
+        <span class="speed-label">{{ t('player.speed') }}</span>
+        <div class="segmented speeds">
+          <button v-for="speed in SPEEDS" :key="speed" type="button" :aria-pressed="rate === speed" @click="rate = speed">{{ speed }}×</button>
         </div>
       </div>
     </template>
-    <p v-else class="text-soft">{{ t('player.unavailable') }}</p>
-  </div>
+    <p v-else class="text-muted-a11y">{{ t('player.unavailable') }}</p>
+  </section>
 </template>
 
 <style scoped src="../../styles/components/ReadAloud.css"></style>

@@ -1,66 +1,103 @@
-/* Owner: Isaac. */
-/* Colour and font tokens; night mode swaps the same names. */
-/* Theme from the revamp wireframes (1a–1c): Plus Jakarta Sans, deep teal, rounded cards. Senior-friendly: 18px base, 48px+ targets, colour always paired with words. */
-/* Wireframe orange #F77F00 is darkened to #CC6600 so "Please check" borders reach 3:1 on white; text always uses the -ink shades. */
+/* Owner: Isaac. Design tokens from the Claude Design system ("Design system and screens built"). Night mode swaps the same names. */
 :root {
-  --ink: #222;
-  --muted: #555;
-  --line: #e4e4e4;
-  --line-strong: #888;
-  --soft: #f6f7f7;
-  --surface: #fff;
-  --teal: #1a7070;
-  --teal-dark: #135555;
-  /* Hover fill for teal buttons; stays dark in night mode, where --teal-dark becomes a light text colour. */
-  --teal-press: #135555;
-  --teal-soft: #e0f7f5;
-  --blue: #1a5490;
-  --amber: #cc6600;
-  --amber-bg: #fff3e6;
-  --amber-soft: #fff9f2;
-  --amber-ink: #8a4500;
-  --red: #b91c1c;
-  --red-bg: #fdecec;
-  --red-ink: #7f1d1d;
-  --green: #06a77d;
-  --green-bg: #e6f6f1;
-  --green-ink: #035c45;
+  /* Colour: light */
+  --color-page: #f8f9fa;
+  --color-card: #ffffff;
+  --color-surface-2: #f1f3f4;
+  --color-border: #e8eaed;
+  --color-border-strong: #dadce0;
+  --color-text: #1a1a1a;
+  --color-text-muted: #5f6368; /* AA on page and card (#80868b fails as text) */
+  --color-primary: #1a7070;
+  --color-primary-pressed: #135555;
+  --color-primary-text: #1a7070; /* teal words and digits */
+  --color-accent: #00b8a9; /* rings, progress, decoration */
+  --color-tint: #e0f7f5;
+  --color-tint-strong: #b2ebe6;
+  --color-tint-text: #135555;
+  --color-link: #1a5490;
+  --color-link-bg: #eaf1fa;
+  --color-link-border: #bcd2ec;
+  --color-warning: #f77f00; --color-warning-text: #9a4a00; --color-warning-bg: #fff4e8; --color-warning-border: #f8c48c;
+  --color-success: #06a77d; --color-success-text: #04785a; --color-success-bg: #e7f6f1; --color-success-border: #a6dccb;
+  --color-danger: #e63946; --color-danger-text: #c1272f; --color-danger-bg: #fdedee; --color-danger-border: #f4b8bc;
+  --color-sos: #c62b36; /* white text 5.6:1 */
+  --color-on-primary: #ffffff;
 
-  --bs-body-font-family: 'Plus Jakarta Sans', 'Noto Sans SC', 'Noto Sans Tamil', system-ui, sans-serif;
-  --bs-body-font-size: 18px;
-  --bs-body-line-height: 1.5;
-  --bs-body-color: var(--ink);
-  --bs-link-color-rgb: 26, 112, 112;
-  --bs-link-hover-color-rgb: 19, 85, 85;
-  --bs-body-bg: var(--surface);
+  --gradient-hero: linear-gradient(160deg, #135555 0%, #1a7070 55%, #00897b 100%);
+  --gradient-result: linear-gradient(160deg, #e0f7f5 0%, #ffffff 75%);
+
+  /* Elevation */
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.06);
+  --shadow-hover: 0 2px 6px rgba(0, 0, 0, 0.08), 0 14px 32px rgba(0, 0, 0, 0.1);
+  --shadow-glow: 0 4px 14px rgba(26, 112, 112, 0.35);
+  --shadow-sos: 0 6px 20px rgba(198, 43, 54, 0.35);
+  --focus-ring: 0 0 0 4px rgba(26, 112, 112, 0.25);
+
+  /* Radii */
+  --r-sm: 12px; --r-field: 14px; --r-btn: 18px; --r-card: 24px; --r-hero: 28px; --r-pill: 999px;
+
+  /* Spacing (4px base) */
+  --s-1: 4px; --s-2: 8px; --s-3: 12px; --s-4: 16px; --s-5: 20px; --s-6: 24px; --s-8: 32px; --s-10: 40px; --s-12: 48px;
+  --gutter: 20px;
+
+  /* Type: nothing below 16px */
+  --font-sans: 'Plus Jakarta Sans', 'Noto Sans SC', 'Noto Sans Tamil', system-ui, sans-serif;
+  --fs-hero: 52px; --fs-display: 30px; --fs-h1: 28px; --fs-h2: 22px; --fs-h3: 20px;
+  --fs-lead: 19px; --fs-body: 18px; --fs-small: 16px;
+  --lh-tight: 1.2; --lh-body: 1.55;
+
+  /* Sizes */
+  --h-btn: 64px; --h-btn-sm: 48px; --h-field: 56px; --hit: 48px; --tile: 40px; --tile-lg: 56px;
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --dur-fast: 120ms; --dur: 320ms; --stagger: 60ms;
+
   color-scheme: light;
 }
 
-/* Night mode: set on <html> by src/theme.js (and the inline script in index.html, so there's no white flash).
-   Same names, so every component follows. Text pairs keep at least 4.5:1 contrast. */
+@media (min-width: 992px) {
+  :root { --gutter: 48px; --fs-display: 46px; --fs-h1: 36px; }
+}
+
+/* Night mode: set on <html> by src/theme.js (and the inline script in index.html, so there's no white flash). */
 :root[data-theme='dark'] {
-  --ink: #edf2f1;
-  --muted: #b3bdbb;
-  --line: #34403e;
-  --line-strong: #7f8c8a;
-  --soft: #121817;
-  --surface: #1b2322;
-  --teal: #1f8380;
-  --teal-dark: #8fdcd5;
-  --teal-soft: #163a37;
-  --teal-press: #135555;
-  --blue: #8db8ec;
-  --amber: #f79a3a;
-  --amber-bg: #3a2812;
-  --amber-soft: #2a1f12;
-  --amber-ink: #ffc98a;
-  --red: #c62828;
-  --red-bg: #3a1717;
-  --red-ink: #ffb4b4;
-  --green: #2bbf94;
-  --green-bg: #12302a;
-  --green-ink: #8be6c8;
-  --bs-link-color-rgb: 143, 220, 213;
-  --bs-link-hover-color-rgb: 190, 236, 231;
+  --color-page: #121817;
+  --color-card: #1b2322;
+  --color-surface-2: #24302e;
+  --color-border: #2c3836;
+  --color-border-strong: #3b4947;
+  --color-text: #e8eeed;
+  --color-text-muted: #a3b0ae;
+  --color-primary-text: #8fdcd5;
+  --color-tint: #173431;
+  --color-tint-strong: #24524c;
+  --color-tint-text: #8fdcd5;
+  --color-link: #93bdeb; --color-link-bg: #16243a; --color-link-border: #2b4566;
+  --color-warning: #f78f1e; --color-warning-text: #ffb46b; --color-warning-bg: #2d2114; --color-warning-border: #6a4416;
+  --color-success: #2bc495; --color-success-text: #6bd9b4; --color-success-bg: #122a22; --color-success-border: #255544;
+  --color-danger: #f05a65; --color-danger-text: #ff9097; --color-danger-bg: #2f1618; --color-danger-border: #6b2b30;
+  --gradient-hero: linear-gradient(160deg, #0b3634 0%, #135555 55%, #0a6b61 100%);
+  --gradient-result: linear-gradient(160deg, #173431 0%, #1b2322 75%);
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.45), 0 4px 12px rgba(0, 0, 0, 0.35);
+  --shadow-hover: 0 2px 6px rgba(0, 0, 0, 0.5), 0 14px 32px rgba(0, 0, 0, 0.45);
+  --shadow-glow: 0 4px 16px rgba(0, 184, 169, 0.28);
+  --focus-ring: 0 0 0 4px rgba(143, 220, 213, 0.35);
   color-scheme: dark;
+}
+
+/* Bootstrap bridge: Bootstrap components pick up the same colours and font. */
+:root, :root[data-theme='dark'] {
+  --bs-body-bg: var(--color-page);
+  --bs-body-color: var(--color-text);
+  --bs-body-font-family: var(--font-sans);
+  --bs-body-font-size: var(--fs-body);
+  --bs-body-line-height: var(--lh-body);
+  --bs-border-color: var(--color-border);
+  --bs-emphasis-color: var(--color-text);
+  --bs-secondary-color: var(--color-text-muted);
+  --bs-link-color: var(--color-link);
+  --bs-link-hover-color: var(--color-primary-pressed);
 }

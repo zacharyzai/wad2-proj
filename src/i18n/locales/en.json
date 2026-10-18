@@ -57,25 +57,14 @@
       "text": "See what you pay and which subsidies may apply."
     },
     "sample": "Not sure? Try a sample first",
-    "keep": {
-      "title": "Keep a daily schedule",
-      "text": "Scanning works without an account. Log in to save your medicines and share them with family.",
-      "login": "Log in or sign up"
-    }
+    "greet": {
+      "morning": "Good morning",
+      "afternoon": "Good afternoon",
+      "evening": "Good evening"
+    },
+    "what": "What can I scan?"
   },
   "scan": {
-    "title": {
-      "medication": "Scan a medication label",
-      "bill": "Scan a polyclinic bill"
-    },
-    "switchQ": {
-      "medication": "Scanning a bill?",
-      "bill": "Scanning a medicine label?"
-    },
-    "switch": {
-      "medication": "Switch to polyclinic bill",
-      "bill": "Switch to medication label"
-    },
     "frame": {
       "medication": "Fit the whole label inside the box",
       "bill": "Fit the whole bill inside the box"
@@ -83,7 +72,6 @@
     "take": "Take photo",
     "upload": "Upload photo",
     "tips": {
-      "title": "Tips for a clear photo",
       "light": {
         "title": "Good light",
         "text": "Near a window or under a lamp. No flash glare."
@@ -125,6 +113,16 @@
     "exampleAlt": {
       "medication": "Example of a medication label",
       "bill": "Example of a polyclinic bill"
+    },
+    "choose": {
+      "title": "What are you scanning?",
+      "lead": "Pick one, then take a clear photo."
+    },
+    "privacy": "Your photo is read once and never stored.",
+    "neverStored": "Your photo is never stored",
+    "sampleOf": {
+      "medication": "Sample medicine label",
+      "bill": "Sample polyclinic bill"
     }
   },
   "confirm": {
@@ -137,7 +135,7 @@
       "bill": "Fix any amount that doesn’t match the paper bill."
     },
     "needsCheck": "{n} field needs checking | {n} fields need checking",
-    "allFilled": "✓ Everything is filled in. If it matches your paper, press {ok}.",
+    "allFilled": "Everything is filled in. If it matches your paper, press {ok}.",
     "pleaseCheck": "Please check",
     "couldntRead": "We couldn’t read this, so nothing is filled in. Check the label or ask the pharmacist.",
     "yourPhoto": "Your photo",
@@ -167,6 +165,12 @@
       "medisave": "Paid by MediSave",
       "total": "Total you pay",
       "mismatch": "Please check: the amounts don’t add up to this total."
+    },
+    "steps": {
+      "label": "Steps",
+      "photo": "Photo",
+      "check": "Check",
+      "explain": "Explain"
     }
   },
   "unit": {
@@ -249,7 +253,12 @@
     },
     "add": "Add to schedule",
     "another": "Scan something else",
-    "ask": "Ask about this medicine"
+    "ask": "Ask about this medicine",
+    "checked": "Checked by you",
+    "stat": {
+      "each": "each time",
+      "perDay": "times a day"
+    }
   },
   "player": {
     "reading": "Reading in English",
@@ -329,5 +338,28 @@
       "undo": "Undo"
     },
     "placeholder": "Ask about your medicine…"
+  },
+  "common": {
+    "retry": "Try again",
+    "loading": "Loading…"
+  },
+  "soon": {
+    "title": "Coming soon",
+    "schedule": "After you check a medicine label, its doses will show here as a daily timetable.",
+    "bill": "Scan a polyclinic bill to see what you pay, your subsidies and MediSave.",
+    "history": "Your saved scans will be listed here, newest first. Saving needs an account.",
+    "account": "Accounts are coming soon. Until then, scanning works without one and stays on this device.",
+    "shared": "Shared summaries will open here as a read-only page.",
+    "scanMed": "Scan a medicine label",
+    "scanBill": "Scan a bill",
+    "noAccount": "Continue without an account",
+    "home": "Go to home"
+  },
+  "notFound": {
+    "title": "We can’t find that page",
+    "text": "The link may be old or typed wrongly. Nothing you saved has been lost.",
+    "home": "Go to home",
+    "ask": "Ask a question instead",
+    "label": "Error 404"
   }
 }

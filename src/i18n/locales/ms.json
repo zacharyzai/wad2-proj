@@ -57,25 +57,14 @@
       "text": "Lihat jumlah yang anda bayar dan subsidi yang mungkin layak."
     },
     "sample": "Tidak pasti? Cuba contoh dahulu",
-    "keep": {
-      "title": "Simpan jadual harian",
-      "text": "Imbasan boleh digunakan tanpa akaun. Log masuk untuk menyimpan ubat anda dan berkongsi dengan keluarga.",
-      "login": "Log masuk atau daftar"
-    }
+    "greet": {
+      "morning": "Selamat pagi",
+      "afternoon": "Selamat petang",
+      "evening": "Selamat malam"
+    },
+    "what": "Apa yang boleh diimbas?"
   },
   "scan": {
-    "title": {
-      "medication": "Imbas label ubat",
-      "bill": "Imbas bil poliklinik"
-    },
-    "switchQ": {
-      "medication": "Mahu imbas bil?",
-      "bill": "Mahu imbas label ubat?"
-    },
-    "switch": {
-      "medication": "Tukar ke bil poliklinik",
-      "bill": "Tukar ke label ubat"
-    },
     "frame": {
       "medication": "Masukkan seluruh label ke dalam kotak",
       "bill": "Masukkan seluruh bil ke dalam kotak"
@@ -83,7 +72,6 @@
     "take": "Ambil gambar",
     "upload": "Muat naik gambar",
     "tips": {
-      "title": "Petua untuk gambar yang jelas",
       "light": {
         "title": "Cahaya yang baik",
         "text": "Dekat tingkap atau di bawah lampu. Elakkan silau lampu kilat."
@@ -125,6 +113,16 @@
     "exampleAlt": {
       "medication": "Contoh label ubat",
       "bill": "Contoh bil poliklinik"
+    },
+    "choose": {
+      "title": "Apa yang anda imbas?",
+      "lead": "Pilih satu, kemudian ambil gambar yang jelas."
+    },
+    "privacy": "Gambar anda dibaca sekali dan tidak disimpan.",
+    "neverStored": "Gambar anda tidak disimpan",
+    "sampleOf": {
+      "medication": "Contoh label ubat",
+      "bill": "Contoh bil poliklinik"
     }
   },
   "confirm": {
@@ -137,7 +135,7 @@
       "bill": "Betulkan jumlah yang tidak sama dengan bil kertas."
     },
     "needsCheck": "{n} bahagian perlu disemak",
-    "allFilled": "✓ Semua bahagian sudah diisi. Jika sama dengan kertas anda, tekan {ok}.",
+    "allFilled": "Semua bahagian sudah diisi. Jika sama dengan kertas anda, tekan {ok}.",
     "pleaseCheck": "Sila semak",
     "couldntRead": "Kami tidak dapat membaca bahagian ini, jadi ia dibiarkan kosong. Semak label atau tanya ahli farmasi.",
     "yourPhoto": "Gambar anda",
@@ -167,6 +165,12 @@
       "medisave": "Dibayar oleh MediSave",
       "total": "Jumlah yang anda bayar",
       "mismatch": "Sila semak: jumlah-jumlah ini tidak sama dengan jumlah keseluruhan."
+    },
+    "steps": {
+      "label": "Langkah",
+      "photo": "Gambar",
+      "check": "Semak",
+      "explain": "Terangkan"
     }
   },
   "unit": {
@@ -249,7 +253,12 @@
     },
     "add": "Tambah ke jadual",
     "another": "Imbas yang lain",
-    "ask": "Tanya tentang ubat ini"
+    "ask": "Tanya tentang ubat ini",
+    "checked": "Disemak oleh anda",
+    "stat": {
+      "each": "setiap kali",
+      "perDay": "kali sehari"
+    }
   },
   "player": {
     "reading": "Dibaca dalam Bahasa Melayu",
@@ -329,5 +338,28 @@
       "undo": "Batal buang"
     },
     "placeholder": "Tanya tentang ubat anda…"
+  },
+  "common": {
+    "retry": "Cuba lagi",
+    "loading": "Sedang dimuatkan…"
+  },
+  "soon": {
+    "title": "Akan datang",
+    "schedule": "Selepas anda menyemak label ubat, dosnya akan dipaparkan di sini sebagai jadual harian.",
+    "bill": "Imbas bil poliklinik untuk melihat jumlah bayaran, subsidi dan MediSave anda.",
+    "history": "Imbasan yang anda simpan akan disenaraikan di sini, yang terbaru dahulu. Menyimpan memerlukan akaun.",
+    "account": "Akaun akan datang tidak lama lagi. Sementara itu, imbasan boleh dibuat tanpa akaun dan kekal pada peranti ini.",
+    "shared": "Ringkasan yang dikongsi akan dibuka di sini sebagai halaman baca sahaja.",
+    "scanMed": "Imbas label ubat",
+    "scanBill": "Imbas bil",
+    "noAccount": "Teruskan tanpa akaun",
+    "home": "Ke halaman utama"
+  },
+  "notFound": {
+    "title": "Halaman itu tidak dijumpai",
+    "text": "Pautan mungkin lama atau salah taip. Tiada apa yang anda simpan hilang.",
+    "home": "Ke halaman utama",
+    "ask": "Tanya soalan",
+    "label": "Ralat 404"
   }
 }

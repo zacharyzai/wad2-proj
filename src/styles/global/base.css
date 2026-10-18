@@ -1,20 +1,29 @@
-/* Owner: Isaac. */
-/* Resets, focus rings, skip link and motion rules shared by every page. */
-h1, h2, h3, p { margin: 0; }
-button { cursor: pointer; }
+/* Owner: Isaac. Resets, type, links, focus, skip link. */
+body { margin: 0; background: var(--color-page); color: var(--color-text); font: 400 var(--fs-body) / var(--lh-body) var(--font-sans); -webkit-font-smoothing: antialiased; }
+h1, h2, h3, p, ul, ol, dl, figure { margin: 0; }
+h1, .h1 { font-size: var(--fs-h1); font-weight: 800; line-height: var(--lh-tight); letter-spacing: -0.01em; }
+h2, .h2 { font-size: var(--fs-h2); font-weight: 800; line-height: 1.35; }
+h3, .h3 { font-size: var(--fs-h3); font-weight: 700; line-height: 1.35; }
+a { color: var(--color-link); text-underline-offset: 3px; }
+a:hover { color: var(--color-primary-pressed); }
+:root[data-theme='dark'] a:hover { color: var(--color-primary-text); }
+button { cursor: pointer; font-family: inherit; }
 a, button, input, select, textarea, label { touch-action: manipulation; }
-:where(.btn-main, .btn-alt, .btn-small, .opt, .back, .lng, .navi, .night, .choice, .sample, .answer, .play) {
-  transition: background-color 0.15s ease-out, border-color 0.15s ease-out, color 0.15s ease-out, transform 0.1s ease-out;
-}
-:where(.btn-main, .btn-alt, .btn-small, .opt, .back, .choice, .answer, .play):active:not(:disabled) { transform: scale(0.98); }
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
-  :where(.btn-main, .btn-alt, .btn-small, .opt, .back, .choice, .answer, .play):active { transform: none; }
-}
+:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+/* Page heading gets focus after navigation (for screen readers), without a ring on mouse use. */
+h1[tabindex='-1']:focus { box-shadow: none; }
+
+.text-muted-a11y { color: var(--color-text-muted); }
+.lead-text { font-size: var(--fs-lead); line-height: 1.55; color: var(--color-text-muted); text-wrap: pretty; }
+/* Small caps label above a card or group */
+.section-label { font-size: var(--fs-small); font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--color-text-muted); margin: 0; }
+.display { font-size: var(--fs-display); font-weight: 800; line-height: 1.15; letter-spacing: -0.02em; text-wrap: balance; }
+.hero-number { font-size: var(--fs-hero); font-weight: 800; line-height: 1; color: var(--color-primary-text); letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
 
 /* Skip link: hidden until focused with the keyboard. */
-.skip { position: absolute; left: 12px; top: -100px; z-index: 100; padding: 12px 20px; border-radius: 14px; background: var(--ink); color: var(--surface); font-weight: 700; text-decoration: none; }
-.skip:focus { top: 12px; color: var(--surface); }
-/* Page heading gets focus after navigation (for screen readers), without a ring on mouse use. */
-h1[tabindex='-1']:focus { outline: none; }
-:focus-visible { outline: 3px solid var(--teal); outline-offset: 2px; }
+.skip { position: absolute; left: 12px; top: -100px; z-index: 100; padding: 12px 20px; border-radius: var(--r-field); background: var(--color-text); color: var(--color-card); font-weight: 700; text-decoration: none; }
+.skip:focus { top: 12px; color: var(--color-card); }
+
+/* Long-string languages */
+:lang(ta), :lang(ms) { --lh-tight: 1.3; }
+:lang(ta) .display { font-size: calc(var(--fs-display) * 0.85); }

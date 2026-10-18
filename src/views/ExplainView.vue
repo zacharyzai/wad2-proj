@@ -1,10 +1,11 @@
-<!-- Owner: Asher. First version from wireframe 1d, revamped after 1a/1b (big headline first, then cards). All text comes from the human-checked templates in i18n, never from the AI. -->
+<!-- Owner: Asher. From the Claude Design Explain screen (medicine card with big digits, read-aloud, quick check). All text comes from the human-checked templates in i18n, never from the AI. -->
 <script setup>
 import { computed, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { scanStore } from '../stores/scan'
 import ReadAloud from '../components/explain/ReadAloud.vue'
+import AppIcon from '../components/layout/AppIcon.vue'
 
 const { t, locale } = useI18n()
 const router = useRouter()
@@ -17,11 +18,12 @@ const money = (cents) => '$' + (cents / 100).toFixed(2)
 const sum = (xs) => xs.reduce((total, x) => total + x.amountCents, 0)
 // Dose numbers always stay as digits, in every language.
 const byValue = (a, b) => a - b
+const TIME_ICONS = { morning: 'sunrise', afternoon: 'sun', evening: 'sunset', bedtime: 'bed' }
 
 function medication(m) {
   const unit = (n) => t(`unit.${m.doseUnit ?? 'other'}`, n)
   const dose = { amount: m.doseAmount, unit: unit(m.doseAmount) }
-  const base = { tag: t('explain.tag.medication'), name: [m.name, m.strength].filter(Boolean).join(' '), warnings: m.warnings }
+  const base = { tag: t('explain.tag.medication'), icon: 'pill', name: m.name, sub: m.strength, warnings: m.warnings }
 
   if (m.frequencyType !== 'daily') {
     return {
@@ -52,12 +54,13 @@ function medication(m) {
     options: [m.doseAmount, wrongAmount].sort(byValue).map((n) => ({ label: `${n} ${unit(n)}`, right: n === m.doseAmount })),
     right: t('explain.check.medRight', dose),
     wrong: t('explain.check.medWrong', dose),
-    // Card chips (1a): orange = amount, teal = when, green = food. Always words, never colour alone.
-    chips: [
-      { text: `${m.doseAmount} ${unit(m.doseAmount)}`, cls: 'tag-amber' },
-      ...(m.timing ?? []).map((k) => ({ text: t(`timing.${k}`), cls: 'tag-teal' })),
-      m.withFood && { text: t(`food.${m.withFood}`), cls: 'tag-green' },
+    // Big digits for the dose, then when and food. Always words beside the numbers and icons.
+    stats: [
+      { big: m.doseAmount, text: `${unit(m.doseAmount)} ${t('explain.stat.each')}` },
+      { big: `${m.timesPerDay}×`, text: t('explain.stat.perDay') },
+      m.withFood && { icon: 'food', text: t(`food.${m.withFood}`) },
     ].filter(Boolean),
+    times: (m.timing ?? []).map((k) => ({ key: k, icon: TIME_ICONS[k], text: t(`timing.${k}`) })),
     canSchedule: true,
   }
 }
@@ -69,7 +72,9 @@ function bill(b) {
   const date = b.visitDate && new Date(`${b.visitDate}T00:00`).toLocaleDateString(locale.value, { day: 'numeric', month: 'short', year: 'numeric' })
   return {
     tag: t('explain.tag.bill'),
-    name: [b.clinic, date].filter(Boolean).join(' · '),
+    icon: 'receipt',
+    name: b.clinic || t('explain.tag.bill'),
+    sub: date,
     title: t('explain.bill.title', { amount: money(pay) }),
     lines: [
       [t('explain.bill.charges'), money(charges)],
@@ -100,61 +105,71 @@ watch(locale, () => (picked.value = null))
 </script>
 
 <template>
-  <div v-if="view" class="d-flex flex-column gap-4">
-    <div class="d-flex align-items-start gap-3">
+  <div v-if="view" class="page">
+    <div class="d-flex align-items-center gap-3 flex-wrap">
       <RouterLink :to="{ name: 'confirm' }" class="back" :aria-label="t('nav.back')"></RouterLink>
-      <div class="d-flex flex-column gap-2 min-w-0">
-        <div class="d-flex flex-wrap align-items-center gap-2">
-          <span class="tag">{{ view.tag }}</span>
-          <span v-if="view.kind" class="tag tag-amber">{{ view.kind }}</span>
-          <span v-if="!view.chips" class="lead-lg fw-bold text-soft">{{ view.name }}</span>
-        </div>
-        <h1 class="h-explain">{{ view.title }}</h1>
-      </div>
+      <span class="badge badge-success"><AppIcon name="checkCircle" :size="18" />{{ t('explain.checked') }}</span>
+      <span v-if="view.kind" class="badge badge-warning"><AppIcon name="alert" :size="18" />{{ view.kind }}</span>
     </div>
 
-    <div class="row g-4">
-      <div class="col-lg-5 order-lg-last">
-        <div class="stick"><ReadAloud :text="speech" /></div>
-      </div>
-
-      <div class="col-lg-7 d-flex flex-column gap-4">
-        <div v-if="view.chips" class="box d-flex align-items-center gap-3">
-          <span class="pill-icon" aria-hidden="true"></span>
-          <div class="d-flex flex-column gap-2 min-w-0">
-            <span class="med-name">{{ view.name }}</span>
-            <div class="d-flex flex-wrap gap-2">
-              <span v-for="chip in view.chips" :key="chip.text" class="tag" :class="chip.cls">{{ chip.text }}</span>
+    <div class="cols">
+      <div>
+        <section class="card card-result main-card rise">
+          <span class="ring" aria-hidden="true"></span>
+          <div class="d-flex align-items-center gap-3">
+            <span class="tile tile-lg glow"><AppIcon :name="view.icon" :size="28" /></span>
+            <div class="d-flex flex-column min-w-0">
+              <span class="med-name" :class="{ long: view.lines }">{{ view.name }}</span>
+              <span v-if="view.sub" class="text-muted-a11y">{{ view.sub }}</span>
             </div>
           </div>
-        </div>
 
-        <div v-if="view.lines" class="box d-flex flex-column gap-3">
-          <span class="eyebrow">{{ view.tag }}</span>
-          <dl class="lines">
-            <template v-for="[label, amount] in view.lines" :key="label">
+          <!-- Bill: the amount inside the sentence is the big hero number. -->
+          <i18n-t v-if="view.lines" keypath="explain.bill.title" tag="h1" class="explain-title">
+            <template #amount><span class="hero-number">{{ money(scan.bill.totalPayableCents) }}</span></template>
+          </i18n-t>
+          <h1 v-else class="explain-title">{{ view.title }}</h1>
+
+          <dl v-if="view.lines" class="summary-row">
+            <div v-for="[label, amount] in view.lines" :key="label">
               <dt>{{ label }}</dt>
               <dd>{{ amount }}</dd>
-            </template>
-            <dt class="pay">{{ t('explain.bill.pay') }}</dt>
-            <dd class="pay">{{ money(scan.bill.totalPayableCents) }}</dd>
+            </div>
           </dl>
-        </div>
 
-        <div class="body d-flex flex-column gap-3">
-          <p v-for="p in view.paras" :key="p">{{ p }}</p>
-        </div>
+          <div v-if="view.stats" class="stats stagger">
+            <div v-for="stat in view.stats" :key="stat.text" class="stat">
+              <span v-if="stat.icon" class="stat-icon"><AppIcon :name="stat.icon" :size="44" /></span>
+              <span v-else class="stat-big">{{ stat.big }}</span>
+              <span class="stat-text">{{ stat.text }}</span>
+            </div>
+          </div>
+          <div v-if="view.times?.length" class="d-flex flex-wrap gap-2">
+            <span v-for="time in view.times" :key="time.key" class="badge badge-teal time"><AppIcon :name="time.icon" :size="20" />{{ time.text }}</span>
+          </div>
 
-        <div v-if="view.warnings?.length" class="box">
-          <h2 class="h-sec mb-2">{{ t('explain.med.warnings') }}</h2>
-          <ul class="mb-0" lang="en">
-            <li v-for="w in view.warnings" :key="w">{{ w }}</li>
-          </ul>
-        </div>
+          <div class="body">
+            <p v-for="p in view.paras" :key="p">{{ p }}</p>
+          </div>
+        </section>
 
-        <section class="box soft d-flex flex-column gap-3" :aria-label="t('explain.check.title')">
-          <span class="fw-bold text-soft">{{ t('explain.check.title') }}</span>
-          <div class="question">{{ view.q }}</div>
+        <div v-if="view.warnings?.length" class="alert alert-warning">
+          <AppIcon name="info" />
+          <div class="d-flex flex-column gap-1">
+            <strong>{{ t('explain.med.warnings') }}</strong>
+            <ul class="mb-0 ps-3" lang="en">
+              <li v-for="w in view.warnings" :key="w">{{ w }}</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <ReadAloud :text="speech" />
+
+        <section class="card d-flex flex-column gap-3" :aria-label="t('explain.check.title')">
+          <span class="section-label">{{ t('explain.check.title') }}</span>
+          <h2 class="question">{{ view.q }}</h2>
           <div class="answers">
             <button
               v-for="(option, i) in view.options"
@@ -165,20 +180,25 @@ watch(locale, () => (picked.value = null))
               :aria-pressed="picked === i"
               @click="picked = i"
             >
-              <span v-if="picked === i && option.right" aria-hidden="true">✓ </span>{{ option.label }}
+              <span class="letter" aria-hidden="true">
+                <AppIcon v-if="picked === i && option.right" name="check" :size="20" :stroke="3" />
+                <template v-else>{{ 'ABC'[i] }}</template>
+              </span>
+              <span class="flex-grow-1">{{ option.label }}</span>
             </button>
           </div>
           <div role="status">
-            <div v-if="picked !== null" class="feedback" :class="view.options[picked].right ? 'right' : 'wrong'">
+            <p v-if="picked !== null" class="feedback" :class="view.options[picked].right ? 'right' : 'wrong'">
+              <AppIcon :name="view.options[picked].right ? 'checkCircle' : 'info'" :size="20" />
               {{ view.options[picked].right ? view.right : view.wrong }}
-            </div>
+            </p>
           </div>
         </section>
 
-        <div class="acts">
-          <RouterLink v-if="view.canSchedule" :to="{ name: 'schedule' }" class="btn-main">{{ t('explain.add') }}</RouterLink>
-          <RouterLink v-if="scan.type === 'medication'" :to="{ name: 'ask' }" class="btn-alt">{{ t('explain.ask') }}</RouterLink>
-          <RouterLink :to="{ name: 'scan', query: { type: scan.type } }" :class="view.canSchedule ? 'btn-alt' : 'btn-main'">{{ t('explain.another') }}</RouterLink>
+        <div class="d-flex flex-column gap-3">
+          <RouterLink v-if="view.canSchedule" :to="{ name: 'schedule' }" class="btn btn-primary"><AppIcon name="calendar" />{{ t('explain.add') }}</RouterLink>
+          <RouterLink v-if="scan.type === 'medication'" :to="{ name: 'ask' }" class="btn btn-secondary"><AppIcon name="chat" />{{ t('explain.ask') }}</RouterLink>
+          <RouterLink :to="{ name: 'scan', query: { type: scan.type } }" :class="view.canSchedule ? 'btn btn-ghost' : 'btn btn-primary'"><AppIcon name="scan" />{{ t('explain.another') }}</RouterLink>
         </div>
       </div>
     </div>

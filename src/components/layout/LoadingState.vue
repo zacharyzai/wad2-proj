@@ -7,7 +7,7 @@ const { t } = useI18n()
 
 <template>
   <div class="d-flex align-items-center gap-3" role="status">
-    <div class="spinner-border" style="color: var(--teal)" aria-hidden="true"></div>
-    <span class="lead-lg">{{ t('common.loading') }}</span>
+    <div class="spinner-border" style="color: var(--color-primary)" aria-hidden="true"></div>
+    <span class="lead-text">{{ t('common.loading') }}</span>
   </div>
 </template>

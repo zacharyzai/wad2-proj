@@ -13,6 +13,7 @@ import { useI18n } from 'vue-i18n'
 import { askMedicine } from '../api/client'
 import { medicines, rememberMedicine, forgetMedicine, restoreMedicine } from '../stores/medicines'
 import { speechRate } from '../stores/speech'
+import AppIcon from '../components/layout/AppIcon.vue'
 
 const CHIPS = ['when', 'food', 'missed', 'store']
 // Follow-ups offered under an answer, by the chip that was asked (typed questions use `typed`).
@@ -184,70 +185,68 @@ onBeforeUnmount(() => {
 
 
 <template>
-  <!-- Chat layout: one centred column, plain answers beside the app logo, a rounded composer that docks at the bottom. -->
+  <!-- Chat layout from the Claude Design Ask screen: one centred column, answers beside the app logo, a composer that docks at the bottom. -->
   <div class="chat" :class="{ empty: !messages.length }">
-    <header class="intro">
-      <img src="/logo.svg" alt="" class="intro-logo" />
-      <h1 class="h-page">{{ t('ask.title') }}</h1>
+    <header class="intro rise">
+      <img src="/logo-192.png" alt="" class="logo-tile intro-logo" />
+      <h1>{{ t('ask.title') }}</h1>
       <!-- The disclaimer, once for the whole page. -->
-      <p class="safety">
-        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6z M12 8v5 M12 16.5v.5" /></svg>
-        <span>{{ t('ask.safety') }}</span>
-      </p>
+      <p class="safety"><AppIcon name="shield" :size="20" /><span>{{ t('ask.safety') }}</span></p>
     </header>
 
-    <section class="meds-panel" data-testid="my-medicines">
+    <section class="card meds-panel" data-testid="my-medicines">
       <button type="button" class="meds-toggle" :aria-expanded="medsOpen" aria-controls="meds-body" @click="medsOpen = !medsOpen">
-        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.5 4.5a4.95 4.95 0 0 1 7 7l-6 6a4.95 4.95 0 0 1-7-7z M5 9l7 7" /></svg>
-        <span class="fw-bold">{{ t('ask.meds.title') }}</span>
-        <span class="text-soft meds-count">{{ t('ask.meds.count', medicines.length) }}</span>
-        <span class="chev" aria-hidden="true"></span>
+        <span class="tile tile-soft"><AppIcon name="pill" :size="22" /></span>
+        <span class="meds-title">{{ t('ask.meds.title') }}</span>
+        <span class="badge badge-teal meds-count">{{ t('ask.meds.count', medicines.length) }}</span>
+        <AppIcon :name="medsOpen ? 'up' : 'down'" :size="22" class="text-muted-a11y" />
       </button>
 
       <!-- No Bootstrap d-flex here: its !important display would beat v-show. -->
       <div v-show="medsOpen" id="meds-body" class="meds-body">
-        <p class="text-soft">{{ t(medicines.length ? 'ask.meds.note' : 'ask.meds.empty') }}</p>
+        <p class="text-muted-a11y">{{ t(medicines.length ? 'ask.meds.note' : 'ask.meds.empty') }}</p>
         <ul v-if="medicines.length" class="meds">
           <li v-for="m in medicines" :key="m.id" class="med">
-            <div class="d-flex flex-column gap-1 min-w-0">
+            <span class="tile"><AppIcon name="pill" :size="20" /></span>
+            <div class="d-flex flex-column gap-1 min-w-0 flex-grow-1">
               <span class="med-name">{{ medName(m.medication) }}</span>
-              <span v-if="m.medication.rawInstruction" class="text-soft" :lang="m.source === 'label' ? 'en' : null">“{{ m.medication.rawInstruction }}”</span>
-              <span v-if="m.sample || m.source === 'typed'" class="tag align-self-start">{{ t(m.sample ? 'ask.meds.sample' : 'ask.meds.typed') }}</span>
+              <span v-if="m.medication.rawInstruction" class="text-muted-a11y" :lang="m.source === 'label' ? 'en' : null">“{{ m.medication.rawInstruction }}”</span>
+              <span v-if="m.sample || m.source === 'typed'" class="badge align-self-start">{{ t(m.sample ? 'ask.meds.sample' : 'ask.meds.typed') }}</span>
             </div>
-            <button type="button" class="btn-small" :aria-label="t('ask.meds.removeOne', { name: medName(m.medication) })" @click="remove(m)">
+            <button type="button" class="btn btn-outline btn-sm" :aria-label="t('ask.meds.removeOne', { name: medName(m.medication) })" @click="remove(m)">
               {{ t('ask.meds.remove') }}
             </button>
           </li>
         </ul>
 
-        <form v-if="adding" class="d-flex flex-column gap-3 add-form" @submit.prevent="addTyped">
-          <div class="d-flex flex-column gap-2">
-            <label for="new-name" class="fw-bold">{{ t('ask.form.name') }}</label>
-            <input id="new-name" ref="nameInput" v-model="newName" class="inp" maxlength="80" autocomplete="off" />
+        <form v-if="adding" class="add-form" @submit.prevent="addTyped">
+          <div class="field">
+            <label for="new-name" class="field-label">{{ t('ask.form.name') }}</label>
+            <input id="new-name" ref="nameInput" v-model="newName" class="field-input" maxlength="80" autocomplete="off" />
           </div>
-          <div class="d-flex flex-column gap-2">
-            <label for="new-text" class="fw-bold">{{ t('ask.form.instructions') }}</label>
-            <input id="new-text" v-model="newText" class="inp" maxlength="200" autocomplete="off" aria-describedby="new-text-hint" />
-            <span id="new-text-hint" class="text-soft">{{ t('ask.form.hint') }}</span>
+          <div class="field">
+            <label for="new-text" class="field-label">{{ t('ask.form.instructions') }}</label>
+            <input id="new-text" v-model="newText" class="field-input" maxlength="200" autocomplete="off" aria-describedby="new-text-hint" />
+            <span id="new-text-hint" class="field-help">{{ t('ask.form.hint') }}</span>
           </div>
           <div class="d-flex flex-wrap gap-2">
-            <button type="submit" class="btn-alt">{{ t('ask.form.add') }}</button>
-            <button type="button" class="btn-small" @click="adding = false">{{ t('ask.form.cancel') }}</button>
+            <button type="submit" class="btn btn-primary btn-sm"><AppIcon name="plus" :size="20" />{{ t('ask.form.add') }}</button>
+            <button type="button" class="btn btn-ghost btn-sm" @click="adding = false">{{ t('ask.form.cancel') }}</button>
           </div>
         </form>
         <div v-else class="d-flex flex-wrap gap-2">
-          <RouterLink :to="{ name: 'scan', query: { type: 'medication' } }" class="btn-small">{{ t('ask.meds.photo') }}</RouterLink>
-          <button type="button" class="btn-small" @click="openForm">{{ t('ask.meds.type') }}</button>
+          <RouterLink :to="{ name: 'scan', query: { type: 'medication' } }" class="btn btn-secondary btn-sm"><AppIcon name="camera" :size="20" />{{ t('ask.meds.photo') }}</RouterLink>
+          <button type="button" class="btn btn-secondary btn-sm" @click="openForm"><AppIcon name="pencil" :size="20" />{{ t('ask.meds.type') }}</button>
         </div>
       </div>
     </section>
 
     <ol v-if="messages.length" ref="thread" class="thread" role="log" aria-live="polite" :aria-label="t('ask.title')" data-testid="ask-thread">
       <li v-for="m in messages" :key="m.id" class="turn">
-        <div class="you" :lang="m.lang"><span class="visually-hidden">{{ t('ask.you') }}: </span>{{ m.q }}</div>
+        <div class="you rise" :lang="m.lang"><span class="visually-hidden">{{ t('ask.you') }}: </span>{{ m.q }}</div>
 
         <div class="reply" :data-reply="m.id">
-          <img src="/logo.svg" alt="" class="avatar" />
+          <img src="/logo-192.png" alt="" class="avatar" />
           <div class="reply-body">
             <span class="visually-hidden">{{ t('ask.bot') }}: </span>
 
@@ -255,47 +254,52 @@ onBeforeUnmount(() => {
               <span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>{{ t('ask.thinking') }}
             </div>
 
-            <div v-else-if="m.state === 'error'" class="card-note err" role="alert">
-              <span>{{ errorText(m.error) }}</span>
-              <button type="button" class="btn-small align-self-start" :disabled="loading" @click="ask(m.q, m.chip, m)">{{ t('ask.retry') }}</button>
+            <div v-else-if="m.state === 'error'" class="alert alert-warning flex-column rise" role="alert">
+              <span class="d-flex gap-2"><AppIcon name="alert" />{{ errorText(m.error) }}</span>
+              <button type="button" class="btn btn-outline btn-sm align-self-start" :disabled="loading" @click="ask(m.q, m.chip, m)"><AppIcon name="replay" :size="20" />{{ t('ask.retry') }}</button>
             </div>
 
-            <div v-else-if="m.reply.type === 'URGENT'" class="alert-red flex-column" data-testid="ask-urgent">
-              <span class="title">{{ t('ask.urgent.title') }}</span>
-              <span>{{ t('ask.urgent.text') }}</span>
-              <a href="tel:995" class="btn-call">{{ t('ask.urgent.call') }}</a>
+            <div v-else-if="m.reply.type === 'URGENT'" class="alert-sos rise" data-testid="ask-urgent">
+              <div class="d-flex gap-3 align-items-start">
+                <span class="tile sos-tile"><AppIcon name="alert" :size="22" /></span>
+                <div class="d-flex flex-column gap-1">
+                  <span class="title">{{ t('ask.urgent.title') }}</span>
+                  <span>{{ t('ask.urgent.text') }}</span>
+                </div>
+              </div>
+              <a href="tel:995" class="btn btn-block"><AppIcon name="phone" />{{ t('ask.urgent.call') }}</a>
             </div>
 
             <!-- We don't know which medicine this is about: ask for its label, or its name and instructions. -->
-            <div v-else-if="m.reply.type === 'NEED_MEDICINE'" class="card-note need" data-testid="ask-need">
-              <span>{{ t('ask.need.text') }}</span>
+            <div v-else-if="m.reply.type === 'NEED_MEDICINE'" class="alert alert-info flex-column rise" data-testid="ask-need">
+              <span class="d-flex gap-2"><AppIcon name="info" />{{ t('ask.need.text') }}</span>
               <div class="d-flex flex-wrap gap-2">
-                <RouterLink :to="{ name: 'scan', query: { type: 'medication' } }" class="btn-small">{{ t('ask.meds.photo') }}</RouterLink>
-                <button type="button" class="btn-small" @click="openForm">{{ t('ask.meds.type') }}</button>
-                <button type="button" class="btn-small" :disabled="loading || !medicines.length" @click="ask(m.q, m.chip, m)">{{ t('ask.need.again') }}</button>
+                <RouterLink :to="{ name: 'scan', query: { type: 'medication' } }" class="btn btn-outline btn-sm"><AppIcon name="camera" :size="20" />{{ t('ask.meds.photo') }}</RouterLink>
+                <button type="button" class="btn btn-outline btn-sm" @click="openForm"><AppIcon name="pencil" :size="20" />{{ t('ask.meds.type') }}</button>
+                <button type="button" class="btn btn-outline btn-sm" :disabled="loading || !medicines.length" @click="ask(m.q, m.chip, m)"><AppIcon name="replay" :size="20" />{{ t('ask.need.again') }}</button>
               </div>
             </div>
 
             <template v-else>
-              <div class="answer" :lang="m.reply.answer ? m.lang : null" data-testid="ask-answer">
+              <div class="answer rise" :lang="m.reply.answer ? m.lang : null" data-testid="ask-answer">
                 <p>{{ answerText(m) }}</p>
-                <div class="actions">
-                  <button v-if="canSpeak && voiceFor(m.lang)" type="button" class="ghost" :aria-pressed="speaking === m.id" @click="speaking === m.id ? stopReading() : play(m)">
-                    <span :class="speaking === m.id ? 'stop-icon' : 'play-icon'" aria-hidden="true"></span>
+                <div v-if="canSpeak && voiceFor(m.lang)" class="actions">
+                  <button type="button" class="btn btn-outline btn-sm listen" :aria-pressed="speaking === m.id" @click="speaking === m.id ? stopReading() : play(m)">
+                    <AppIcon :name="speaking === m.id ? 'pause' : 'volume'" :size="20" />
                     {{ speaking === m.id ? t('ask.read.stop') : t('ask.read.play') }}
                   </button>
                 </div>
               </div>
               <p v-if="m.reply.sources?.length" class="from" data-testid="ask-from">{{ t('ask.from', { source: m.reply.sources.map(sourceText).join(', ') }) }}</p>
-              <div v-if="m.reply.askPharmacist" class="pharm" data-testid="ask-pharmacist">
-                <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 12a4 4 0 1 0 0-8a4 4 0 0 0 0 8z M4 21c0-4 4-6 8-6s8 2 8 6 M12 15v4 M10 17h4" /></svg>
+              <div v-if="m.reply.askPharmacist" class="alert alert-note pharm" data-testid="ask-pharmacist">
+                <AppIcon name="users" />
                 <span>{{ t('ask.pharmacist') }}</span>
               </div>
               <!-- Follow-ups under the newest answer only, so the next question is one tap away. -->
               <div v-if="m === latest" class="follow" role="group" :aria-label="t('ask.followLabel')" data-testid="ask-follow">
-                <span class="fw-bold text-soft">{{ t('ask.followLabel') }}</span>
-                <div class="d-flex flex-column gap-2">
-                  <button v-for="c in FOLLOW_UPS[m.chip]" :key="c" type="button" class="suggest" :disabled="loading" @click="ask(t(`ask.chips.${c}`), c)">
+                <span class="section-label">{{ t('ask.followLabel') }}</span>
+                <div class="d-flex flex-wrap gap-2">
+                  <button v-for="c in FOLLOW_UPS[m.chip]" :key="c" type="button" class="chip" :disabled="loading" @click="ask(t(`ask.chips.${c}`), c)">
                     {{ t(`ask.chips.${c}`) }}
                   </button>
                 </div>
@@ -308,7 +312,7 @@ onBeforeUnmount(() => {
 
     <!-- Starter questions until there is an answer with its own follow-ups (under the composer on the empty page). -->
     <div v-if="messages.length && !isAnswer(latest)" class="starters" role="group" :aria-label="t('ask.chipsLabel')">
-      <button v-for="c in CHIPS" :key="c" type="button" class="suggest" :disabled="loading" @click="ask(t(`ask.chips.${c}`), c)">{{ t(`ask.chips.${c}`) }}</button>
+      <button v-for="c in CHIPS" :key="c" type="button" class="chip" :disabled="loading" @click="ask(t(`ask.chips.${c}`), c)">{{ t(`ask.chips.${c}`) }}</button>
     </div>
 
     <div class="dock">
@@ -326,33 +330,26 @@ onBeforeUnmount(() => {
           @keydown.enter.exact="onEnter"
         ></textarea>
         <div class="tools">
-          <button type="button" class="tool" :aria-label="t('ask.meds.add')" :title="t('ask.meds.add')" @click="openForm">
-            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14 M5 12h14" /></svg>
-            <span class="tool-label">{{ t('ask.meds.add') }}</span>
+          <button type="button" class="btn btn-outline btn-icon" :aria-label="t('ask.meds.add')" :title="t('ask.meds.add')" @click="openForm"><AppIcon name="plus" :size="22" /></button>
+          <button v-if="Recognition" type="button" class="btn btn-outline btn-icon mic" :aria-pressed="listening" :aria-label="listening ? t('ask.mic.stop') : t('ask.mic.start')" :title="listening ? t('ask.mic.stop') : t('ask.mic.start')" :disabled="loading" data-testid="ask-mic" @click="toggleMic">
+            <AppIcon :name="listening ? 'pause' : 'mic'" :size="22" />
           </button>
-          <button v-if="Recognition" type="button" class="tool" :aria-pressed="listening" :aria-label="listening ? t('ask.mic.stop') : t('ask.mic.start')" :disabled="loading" data-testid="ask-mic" @click="toggleMic">
-            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3z M5 11a7 7 0 0 0 14 0 M12 18v3" /></svg>
-            <span class="tool-label">{{ listening ? t('ask.mic.stop') : t('ask.mic.start') }}</span>
-          </button>
-          <button type="submit" class="send" :disabled="loading || !question.trim()">
-            <span>{{ t('ask.send') }}</span>
-            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5 M6 11l6-6 6 6" /></svg>
-          </button>
+          <button type="submit" class="btn btn-primary btn-icon send" :aria-label="t('ask.send')" :title="t('ask.send')" :disabled="loading || !question.trim()"><AppIcon name="send" :size="22" :stroke="2.5" /></button>
         </div>
       </form>
       <span role="status" class="mic-status">
         <template v-if="listening">{{ t('ask.mic.listening') }}</template>
         <template v-else-if="micError">{{ t('ask.mic.error') }}</template>
       </span>
-      <div v-if="!messages.length" class="starters" role="group" :aria-label="t('ask.chipsLabel')">
-        <button v-for="c in CHIPS" :key="c" type="button" class="suggest" :disabled="loading" @click="ask(t(`ask.chips.${c}`), c)">{{ t(`ask.chips.${c}`) }}</button>
+      <div v-if="!messages.length" class="starters stagger" role="group" :aria-label="t('ask.chipsLabel')">
+        <button v-for="c in CHIPS" :key="c" type="button" class="chip" :disabled="loading" @click="ask(t(`ask.chips.${c}`), c)">{{ t(`ask.chips.${c}`) }}</button>
       </div>
     </div>
 
     <!-- Undo for Remove. Polite, so screen readers hear it without being interrupted. -->
-    <div v-if="removed" class="toast-undo" role="status" data-testid="ask-undo">
+    <div v-if="removed" class="toast-ahma toast-undo rise" role="status" data-testid="ask-undo">
       <span>{{ t('ask.toast.removed', { name: medName(removed.entry.medication) }) }}</span>
-      <button ref="undoButton" type="button" class="btn-small" @click="undo">{{ t('ask.toast.undo') }}</button>
+      <button ref="undoButton" type="button" class="btn btn-on-hero btn-sm" @click="undo">{{ t('ask.toast.undo') }}</button>
     </div>
   </div>
 </template>

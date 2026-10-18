@@ -1,6 +1,11 @@
-/* Owner: Isaac. */
+/* Owner: Isaac. Page layout helpers. */
+.page { display: flex; flex-direction: column; gap: 28px; }
+.page-head { display: flex; flex-direction: column; gap: 6px; }
+/* Two columns from 992px; each column stacks its cards. */
+.cols { display: grid; gap: 24px; align-items: start; }
+.cols > * { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+@media (min-width: 992px) { .cols { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 /* Primary action sits nearest the thumb on phones */
 .acts { display: flex; flex-direction: column-reverse; gap: 12px; }
-@media (min-width: 576px) { .acts { flex-direction: row; flex-wrap: wrap; } }
-
+@media (min-width: 576px) { .acts { flex-direction: row; flex-wrap: wrap; } .acts > .btn { flex: 1 1 220px; } }
 @media (min-width: 992px) { .stick { position: sticky; top: 24px; } }

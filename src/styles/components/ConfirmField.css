@@ -1,5 +1,5 @@
-/* Scoped styles for ConfirmField.vue. */
-.field { display: flex; flex-direction: column; gap: 8px; }
-.field.flagged { padding: 16px; border: 3px solid var(--amber); border-radius: 12px; background: var(--amber-soft); }
-.field-label { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-weight: 700; }
-.field-note { color: var(--amber-ink); }
+/* Scoped styles for ConfirmField.vue. A flagged field becomes an amber box with a "Please check" badge. */
+.field-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+.field.flagged { padding: 16px; border: 2px solid var(--color-warning); border-radius: 18px; background: var(--color-warning-bg); }
+.check { background: var(--color-card); }
+.field-note { color: var(--color-warning-text); font-size: 16px; line-height: 1.5; }

@@ -1,6 +1,7 @@
 <!-- Owner: Asher. One labelled field on Confirm. Flagged = amber, left empty and marked "Please check"; never guessed. -->
 <script setup>
 import { useI18n } from 'vue-i18n'
+import AppIcon from '../layout/AppIcon.vue'
 
 defineProps({
   label: { type: String, required: true },
@@ -14,10 +15,10 @@ const { t } = useI18n()
 
 <template>
   <div class="field" :class="{ flagged }" :role="$props.for ? null : 'group'" :aria-label="$props.for ? null : label">
-    <component :is="$props.for ? 'label' : 'span'" :for="$props.for" class="field-label">
-      {{ label }}
-      <span v-if="flagged" class="tag tag-amber">{{ t('confirm.pleaseCheck') }}</span>
-    </component>
+    <div class="field-row">
+      <component :is="$props.for ? 'label' : 'span'" :for="$props.for" class="field-label">{{ label }}</component>
+      <span v-if="flagged" class="badge badge-warning check"><AppIcon name="alert" :size="16" />{{ t('confirm.pleaseCheck') }}</span>
+    </div>
     <slot />
     <span v-if="flagged" class="field-note">{{ t('confirm.couldntRead') }}</span>
   </div>

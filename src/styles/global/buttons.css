@@ -1,26 +1,92 @@
-/* Owner: Isaac. */
-/* Buttons: one primary per screen */
-.btn-main, .btn-alt, .btn-small {
-  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
-  border: 2px solid var(--teal); font-weight: 700; line-height: 1.25; text-align: center; text-decoration: none;
+/* Owner: Isaac. Buttons use Bootstrap's own .btn variables, so hover, press, focus and disabled all follow the design. Labels wrap; never fixed width. */
+.btn {
+  --bs-btn-padding-x: 24px; --bs-btn-padding-y: 14px;
+  --bs-btn-font-family: var(--font-sans); --bs-btn-font-size: 20px; --bs-btn-font-weight: 600; --bs-btn-line-height: 1.3;
+  --bs-btn-border-width: 0; --bs-btn-border-color: transparent; --bs-btn-border-radius: var(--r-btn);
+  --bs-btn-focus-box-shadow: var(--focus-ring);
+  --bs-btn-disabled-opacity: 1; --bs-btn-disabled-bg: var(--color-surface-2); --bs-btn-disabled-color: var(--color-text-muted); --bs-btn-disabled-border-color: transparent;
+  display: inline-flex; align-items: center; justify-content: center; gap: 12px; min-height: var(--h-btn);
+  white-space: normal; text-decoration: none;
+  transition: transform var(--dur-fast) ease, box-shadow var(--dur) var(--ease-out), background-color var(--dur) var(--ease-out), color var(--dur) var(--ease-out);
 }
-.btn-main { min-height: 64px; padding: 12px 28px; border-radius: 18px; background: var(--teal); color: #fff; font-size: 22px; }
-.btn-main:hover { background: var(--teal-press); border-color: var(--teal-press); color: #fff; }
-.btn-main:disabled { background: var(--line); color: var(--muted); border: 2px dashed var(--line-strong); cursor: not-allowed; }
-.btn-alt { min-height: 56px; padding: 12px 24px; border-radius: 18px; background: var(--surface); color: var(--teal-dark); font-size: 20px; }
-.btn-small { min-height: 48px; padding: 8px 16px; border-radius: 14px; border-color: var(--line-strong); background: var(--surface); color: var(--ink); font-size: 18px; }
-
-/* Round grey back button beside a page title (wireframes 1a/1b) */
-.back { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 52px; height: 52px; border: 0; border-radius: 50%; background: var(--line); color: var(--ink); text-decoration: none; }
-.back:hover { background: var(--line-strong); color: var(--ink); }
-/* Arrow drawn in CSS so every back button is the same; currentColor keeps it right in night mode. */
-.back::before { content: ''; width: 26px; height: 26px; background: currentColor; -webkit-mask: var(--arrow); mask: var(--arrow); --arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M19 12H5 M11 6l-6 6 6 6'/%3E%3C/svg%3E") center / contain no-repeat; }
-.btn-alt:hover, .btn-small:hover { background: var(--teal-soft); }
-
-/* Toggle buttons (chips, food, speed, answers): aria-pressed carries the state */
-.opt {
-  min-height: 48px; padding: 8px 16px; border: 2px solid var(--line-strong); border-radius: 14px;
-  background: var(--surface); color: var(--ink); font-size: 18px; font-weight: 700; line-height: 1.25;
+.btn:active:not(:disabled) { transform: scale(0.97); }
+.btn:disabled { box-shadow: none; cursor: not-allowed; pointer-events: auto; }
+.btn-primary {
+  --bs-btn-font-weight: 700;
+  --bs-btn-color: var(--color-on-primary); --bs-btn-bg: var(--color-primary);
+  --bs-btn-hover-color: var(--color-on-primary); --bs-btn-hover-bg: var(--color-primary-pressed); --bs-btn-hover-border-color: transparent;
+  --bs-btn-active-color: var(--color-on-primary); --bs-btn-active-bg: var(--color-primary-pressed); --bs-btn-active-border-color: transparent;
+  box-shadow: var(--shadow-glow);
 }
-.opt.pill { border-radius: 999px; }
-.opt[aria-pressed='true'] { background: var(--teal); border-color: var(--teal); color: #fff; }
+.btn-secondary {
+  --bs-btn-color: var(--color-tint-text); --bs-btn-bg: var(--color-tint);
+  --bs-btn-hover-color: var(--color-tint-text); --bs-btn-hover-bg: var(--color-tint-strong); --bs-btn-hover-border-color: transparent;
+  --bs-btn-active-color: var(--color-tint-text); --bs-btn-active-bg: var(--color-tint-strong); --bs-btn-active-border-color: transparent;
+}
+.btn-ghost {
+  --bs-btn-color: var(--color-link); --bs-btn-bg: transparent;
+  --bs-btn-hover-color: var(--color-link); --bs-btn-hover-bg: var(--color-link-bg);
+  --bs-btn-active-color: var(--color-link); --bs-btn-active-bg: var(--color-link-bg); --bs-btn-active-border-color: transparent;
+  min-height: 56px;
+}
+.btn-outline {
+  --bs-btn-border-width: 1px; --bs-btn-border-color: var(--color-border-strong); --bs-btn-hover-border-color: var(--color-primary); --bs-btn-active-border-color: var(--color-primary);
+  --bs-btn-color: var(--color-text); --bs-btn-bg: var(--color-card);
+  --bs-btn-hover-color: var(--color-tint-text); --bs-btn-hover-bg: var(--color-tint);
+  --bs-btn-active-color: var(--color-tint-text); --bs-btn-active-bg: var(--color-tint);
+}
+.btn-danger {
+  --bs-btn-font-weight: 700;
+  --bs-btn-color: #fff; --bs-btn-bg: var(--color-sos); --bs-btn-hover-color: #fff; --bs-btn-hover-bg: #a31f2a; --bs-btn-active-color: #fff; --bs-btn-active-bg: #a31f2a; --bs-btn-active-border-color: transparent;
+}
+.btn-on-hero {
+  --bs-btn-font-weight: 700;
+  --bs-btn-color: #135555; --bs-btn-bg: #fff; --bs-btn-hover-color: #135555; --bs-btn-hover-bg: #e0f7f5; --bs-btn-active-color: #135555; --bs-btn-active-bg: #e0f7f5; --bs-btn-active-border-color: transparent;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+}
+.btn-on-hero-outline {
+  --bs-btn-border-width: 1px; --bs-btn-border-color: rgba(255, 255, 255, 0.4); --bs-btn-hover-border-color: rgba(255, 255, 255, 0.6); --bs-btn-active-border-color: rgba(255, 255, 255, 0.6);
+  --bs-btn-color: #fff; --bs-btn-bg: rgba(255, 255, 255, 0.12); --bs-btn-hover-color: #fff; --bs-btn-hover-bg: rgba(255, 255, 255, 0.22); --bs-btn-active-color: #fff; --bs-btn-active-bg: rgba(255, 255, 255, 0.22);
+}
+.btn-sm { --bs-btn-padding-y: 6px; --bs-btn-padding-x: 16px; --bs-btn-border-radius: var(--r-field); --bs-btn-font-size: 17px; min-height: var(--h-btn-sm); gap: 8px; }
+.btn-icon { --bs-btn-padding-x: 0; --bs-btn-padding-y: 0; --bs-btn-border-radius: var(--r-pill); width: var(--hit); height: var(--hit); min-height: 0; flex: none; }
+.btn-block { width: 100%; }
+
+/* Round back button beside a page title */
+.back {
+  flex: none; display: grid; place-items: center; width: var(--hit); height: var(--hit);
+  border: 1px solid var(--color-border); border-radius: var(--r-pill); background: var(--color-card); color: var(--color-text);
+  box-shadow: var(--shadow-card); text-decoration: none; transition: background-color var(--dur) var(--ease-out);
+}
+.back:hover { background: var(--color-surface-2); color: var(--color-text); }
+.back::before {
+  content: ''; width: 24px; height: 24px; background: currentColor; -webkit-mask: var(--chev) center / contain no-repeat; mask: var(--chev) center / contain no-repeat;
+  --chev: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m15 18-6-6 6-6'/%3E%3C/svg%3E");
+}
+
+/* Toggle buttons (answers, food, timings): aria-pressed or aria-checked carries the state */
+.choice {
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 56px; padding: 10px 16px;
+  border: 1px solid var(--color-border-strong); border-radius: 16px; background: var(--color-card); color: var(--color-text);
+  font: 600 18px / 1.3 var(--font-sans); text-align: center;
+  transition: background-color var(--dur) var(--ease-out), border-color var(--dur) var(--ease-out), transform var(--dur-fast) ease;
+}
+.choice:hover { border-color: var(--color-primary); }
+.choice:active { transform: scale(0.97); }
+.choice[aria-pressed='true'], .choice[aria-checked='true'] { border: 2px solid var(--color-primary); padding: 9px 15px; background: var(--color-tint); color: var(--color-tint-text); font-weight: 700; }
+
+/* Segmented control (language row, speed) */
+.segmented { display: flex; gap: 4px; padding: 4px; background: var(--color-surface-2); border-radius: 16px; }
+.segmented > button { flex: 1 1 auto; min-height: var(--hit); padding: 6px 10px; border: 0; border-radius: 12px; background: transparent; color: var(--color-text-muted); font: 600 17px var(--font-sans); transition: background-color var(--dur) var(--ease-out), color var(--dur) var(--ease-out); }
+.segmented > button:hover { color: var(--color-text); }
+.segmented > [aria-pressed='true'], .segmented > [aria-checked='true'] { background: var(--color-card); color: var(--color-tint-text); font-weight: 700; box-shadow: var(--shadow-card); }
+
+/* Pill suggestion chip */
+.chip { display: inline-flex; align-items: center; gap: 8px; min-height: var(--hit); padding: 6px 16px; border-radius: var(--r-pill); border: 1px solid var(--color-tint-strong); background: var(--color-card); color: var(--color-tint-text); font: 600 17px / 1.3 var(--font-sans); text-align: left; transition: background-color var(--dur) var(--ease-out); }
+.chip:hover { background: var(--color-tint); }
+
+/* On/off switch drawn inside a button (48px hit area) */
+.switch { position: relative; flex: none; width: 52px; height: 32px; border-radius: var(--r-pill); background: var(--color-border-strong); transition: background-color var(--dur) var(--ease-out); }
+.switch::after { content: ''; position: absolute; top: 4px; left: 4px; width: 24px; height: 24px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3); transition: transform var(--dur) var(--ease-spring); }
+[aria-pressed='true'] > .switch { background: var(--color-primary); }
+[aria-pressed='true'] > .switch::after { transform: translateX(20px); }

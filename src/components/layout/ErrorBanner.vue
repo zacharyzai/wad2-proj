@@ -2,6 +2,7 @@
 <script setup>
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import AppIcon from './AppIcon.vue'
 
 const props = defineProps({
   code: { type: String, required: true }, // e.g. 'WRONG_LOGIN', from res.error.code
@@ -14,10 +15,11 @@ const message = computed(() => (te(`errors.${props.code}`) ? t(`errors.${props.c
 </script>
 
 <template>
-  <div class="alert-red" role="alert">
+  <div class="alert alert-warning" role="alert">
+    <AppIcon name="alert" />
     <div class="d-flex flex-column gap-3">
-      <div class="title">{{ message }}</div>
-      <button v-if="retryable" type="button" class="btn-small" @click="$emit('retry')">{{ t('common.retry') }}</button>
+      <div>{{ message }}</div>
+      <button v-if="retryable" type="button" class="btn btn-outline btn-sm align-self-start" @click="$emit('retry')">{{ t('common.retry') }}</button>
     </div>
   </div>
 </template>

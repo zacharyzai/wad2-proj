@@ -1,10 +1,11 @@
-<!-- Owner: Asher. First version from wireframe 1b (camera/upload, samples, loading and error states). -->
+<!-- Owner: Asher. From the Claude Design Scan screens: choose, camera/upload, samples, processing and unclear-photo states. -->
 <script setup>
-import { computed, nextTick, onBeforeUnmount, ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { scanImage, scanSample } from '../api/client'
 import { scanStore } from '../stores/scan'
+import AppIcon from '../components/layout/AppIcon.vue'
 
 const SAMPLES = [
   { id: 'med-1', type: 'medication', key: 'med1' },
@@ -20,7 +21,6 @@ const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const type = computed(() => (route.query.type === 'bill' ? 'bill' : 'medication'))
-const otherType = computed(() => (type.value === 'bill' ? 'medication' : 'bill'))
 
 const state = ref('idle') // idle | loading | error
 const readingType = ref(type.value)
@@ -118,10 +118,13 @@ async function send(docType, request) {
   router.push({ name: 'confirm' })
 }
 
-async function onFile(event) {
+function onFile(event) {
   const file = event.target.files[0]
   event.target.value = '' // lets the same file be picked again
-  if (!file) return
+  if (file) useFile(file)
+}
+
+async function useFile(file) {
   try {
     photo.value = await compress(file)
   } catch {
@@ -150,6 +153,22 @@ function cancel() {
 }
 
 const photoError = computed(() => PHOTO_ERRORS.includes(errorCode.value))
+const TIPS = [
+  { key: 'light', icon: 'sun' },
+  { key: 'flat', icon: 'scan' },
+  { key: 'whole', icon: 'zoom' },
+]
+
+// Home can hand over a picked photo or ask for a sample (/scan?sample=med-1).
+onMounted(() => {
+  const file = scanStore.pendingFile
+  scanStore.pendingFile = null
+  if (file) return useFile(file)
+  const sample = SAMPLES.find((s) => s.id === route.query.sample)
+  if (!sample) return
+  router.replace({ query: { type: sample.type } }) // so Back from Confirm doesn't run the sample again
+  trySample(sample)
+})
 </script>
 
 <template>
@@ -157,93 +176,117 @@ const photoError = computed(() => PHOTO_ERRORS.includes(errorCode.value))
   <input ref="camera" type="file" accept="image/*" capture="environment" class="d-none" data-testid="camera-input" @change="onFile" />
   <input ref="upload" type="file" accept="image/*" class="d-none" data-testid="upload-input" @change="onFile" />
 
-  <div v-if="state === 'loading'" class="d-flex flex-column gap-4" role="status">
-    <img v-if="photo" :src="photo" alt="" class="photo scan-preview" />
+  <div v-if="state === 'loading'" class="busy rise" role="status">
+    <div class="progress-ring" aria-hidden="true">
+      <svg width="216" height="216" viewBox="0 0 216 216">
+        <circle cx="108" cy="108" r="96" fill="none" stroke="var(--color-surface-2)" stroke-width="12" />
+        <circle cx="108" cy="108" r="96" fill="none" stroke="var(--color-primary)" stroke-width="12" stroke-linecap="round" stroke-dasharray="603" stroke-dashoffset="400" />
+      </svg>
+      <span class="progress-ring__pulse" style="inset: 26px"></span>
+      <span class="progress-ring__pulse" style="inset: 42px"></span>
+      <span class="progress-ring__core"><AppIcon :name="readingType === 'bill' ? 'receipt' : 'pill'" :size="40" /></span>
+    </div>
     <div class="d-flex flex-column gap-2">
-      <h1 class="h-page">{{ t(`scan.reading.${readingType}`) }}</h1>
-      <p class="lead-lg">{{ t('scan.wait') }}</p>
+      <h1 class="busy-title">{{ t(`scan.reading.${readingType}`) }}</h1>
+      <p class="lead-text">{{ t('scan.wait') }}</p>
     </div>
-    <div class="progress" style="height: 14px">
-      <div class="progress-bar progress-bar-striped progress-bar-animated w-100" style="background-color: var(--teal)"></div>
-    </div>
-    <button type="button" class="btn-alt" @click="cancel">{{ t('scan.cancel') }}</button>
+    <div class="step-dots" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+    <span class="reassure-pill"><AppIcon name="shield" :size="20" class="text-teal" />{{ t('scan.neverStored') }}</span>
+    <button type="button" class="btn btn-ghost" @click="cancel">{{ t('scan.cancel') }}</button>
   </div>
 
-  <div v-else-if="state === 'error'" class="d-flex flex-column gap-4">
-    <div class="alert-red" role="alert">
-      <span class="tag tag-red flex-shrink-0">{{ t('scan.errorTag') }}</span>
-      <div class="d-flex flex-column gap-1">
-        <div class="title">{{ t(`errors.${errorCode}`) }}</div>
-        <div v-if="photoError">{{ t('scan.photoHint') }}</div>
-        <div v-else-if="photo">{{ t('scan.photoKept') }}</div>
+  <div v-else-if="state === 'error'" class="cols rise">
+    <div>
+      <span class="tile tile-warning err-tile"><AppIcon name="camera" :size="42" /></span>
+      <span class="badge badge-warning align-self-start"><AppIcon name="alert" :size="18" />{{ t('scan.errorTag') }}</span>
+      <div role="alert" class="d-flex flex-column gap-3">
+        <h1>{{ t(`errors.${errorCode}`) }}</h1>
+        <p v-if="photoError" class="lead-text">{{ t('scan.photoHint') }}</p>
+        <p v-else-if="photo" class="lead-text">{{ t('scan.photoKept') }}</p>
       </div>
     </div>
-    <img v-if="photo" :src="photo" :alt="t('scan.yourPhoto')" class="photo scan-preview" />
-    <div class="acts">
+    <div>
+      <ul v-if="photoError" class="card tips">
+        <li v-for="tip in TIPS" :key="tip.key">
+          <span class="tile tile-soft"><AppIcon :name="tip.icon" :size="22" /></span>
+          <span><strong>{{ t(`scan.tips.${tip.key}.title`) }}.</strong> {{ t(`scan.tips.${tip.key}.text`) }}</span>
+        </li>
+      </ul>
+      <img v-else-if="photo" :src="photo" :alt="t('scan.yourPhoto')" class="photo scan-preview" />
       <template v-if="photoError">
-        <button type="button" class="btn-main" @click="retake">{{ t('scan.retake') }}</button>
-        <button type="button" class="btn-alt" @click="upload.click()">{{ t('scan.uploadOther') }}</button>
+        <button type="button" class="btn btn-primary" @click="retake"><AppIcon name="camera" />{{ t('scan.retake') }}</button>
+        <button type="button" class="btn btn-secondary" @click="upload.click()"><AppIcon name="upload" />{{ t('scan.uploadOther') }}</button>
       </template>
       <template v-else>
-        <button type="button" class="btn-main" @click="retry">{{ t('scan.tryAgain') }}</button>
-        <button type="button" class="btn-alt" @click="state = 'idle'">{{ t('scan.useSample') }}</button>
+        <button type="button" class="btn btn-primary" @click="retry"><AppIcon name="replay" />{{ t('scan.tryAgain') }}</button>
+        <button type="button" class="btn btn-secondary" @click="state = 'idle'"><AppIcon name="sparkles" />{{ t('scan.useSample') }}</button>
       </template>
     </div>
   </div>
 
-  <div v-else class="d-flex flex-column gap-4">
-    <div class="d-flex align-items-start gap-3">
-      <RouterLink to="/" class="back" :aria-label="t('nav.back')"></RouterLink>
-      <div class="d-flex flex-column gap-2">
-        <h1 class="h-page">{{ t(`scan.title.${type}`) }}</h1>
-        <p class="lead-lg">
-          {{ t(`scan.switchQ.${type}`) }}
-          <RouterLink :to="{ query: { type: otherType } }" class="fw-bold">{{ t(`scan.switch.${type}`) }}</RouterLink>
-        </p>
-      </div>
+  <div v-else class="page">
+    <div class="page-head">
+      <h1>{{ t('scan.choose.title') }}</h1>
+      <p class="lead-text">{{ t('scan.choose.lead') }}</p>
     </div>
 
-    <div class="row g-4">
-      <div class="col-lg-7 d-flex flex-column gap-3">
-        <div class="ph frame-area">
+    <div class="types" role="radiogroup" :aria-label="t('scan.choose.title')">
+      <button
+        v-for="opt in [{ type: 'medication', icon: 'pill', key: 'med' }, { type: 'bill', icon: 'receipt', key: 'bill' }]"
+        :key="opt.type"
+        type="button"
+        role="radio"
+        class="type"
+        :aria-checked="type === opt.type"
+        @click="router.replace({ query: { type: opt.type } })"
+      >
+        <span class="tile tile-lg type-tile"><AppIcon :name="opt.icon" :size="26" /></span>
+        <span class="type-name">{{ t(`home.${opt.key}.title`) }}</span>
+        <span v-if="type === opt.type" class="type-check"><AppIcon name="check" :size="18" :stroke="3" /></span>
+      </button>
+    </div>
+
+    <div class="cols">
+      <div>
+        <div class="frame-area">
           <video v-show="stream" ref="video" class="live" autoplay playsinline muted @playing="cameraReady = true" :aria-label="t('scan.preview')"></video>
           <!-- Example shown while the camera is off, so people know what to photograph. -->
           <template v-if="!stream">
-            <span class="tag example-tag">{{ t('scan.example') }}</span>
+            <span class="badge example-tag">{{ t('scan.example') }}</span>
             <img :src="`/samples/${type === 'bill' ? 'bill-1' : 'med-1'}.svg`" :alt="t(`scan.exampleAlt.${type}`)" class="example" />
           </template>
-          <span class="frame" aria-hidden="true"><span v-if="stream" class="frame-label">{{ t(`scan.frame.${type}`) }}</span></span>
+          <span class="frame" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+          <span class="frame-hint"><AppIcon name="sun" :size="18" />{{ t(`scan.frame.${type}`) }}</span>
         </div>
-        <p v-if="cameraBlocked" class="banner-amber" role="alert">{{ t('scan.cameraBlocked') }}</p>
-        <div class="acts">
+        <p v-if="cameraBlocked" class="alert alert-warning" role="alert"><AppIcon name="alert" />{{ t('scan.cameraBlocked') }}</p>
+      </div>
+
+      <div>
+        <div class="d-flex flex-column gap-3">
           <template v-if="stream">
-            <button type="button" class="btn-main" :disabled="!cameraReady" @click="capture">{{ t('scan.capture') }}</button>
-            <button type="button" class="btn-alt" @click="stopCamera">{{ t('scan.cancel') }}</button>
+            <button type="button" class="btn btn-primary" :disabled="!cameraReady" @click="capture"><AppIcon name="camera" />{{ t('scan.capture') }}</button>
+            <button type="button" class="btn btn-secondary" @click="stopCamera"><AppIcon name="x" />{{ t('scan.cancel') }}</button>
           </template>
           <template v-else>
-            <button type="button" class="btn-main" @click="startCamera">{{ t('scan.take') }}</button>
-            <button type="button" class="btn-alt" @click="upload.click()">{{ t('scan.upload') }}</button>
+            <button type="button" class="btn btn-primary" @click="startCamera"><AppIcon name="camera" />{{ t('scan.take') }}</button>
+            <button type="button" class="btn btn-secondary" @click="upload.click()"><AppIcon name="upload" />{{ t('scan.upload') }}</button>
           </template>
+          <p class="privacy"><AppIcon name="shield" :size="20" />{{ t('scan.privacy') }}</p>
         </div>
-      </div>
-      <div class="col-lg-5">
-        <div class="box d-flex flex-column gap-3">
-          <h2 class="h-sec">{{ t('scan.tips.title') }}</h2>
-          <div v-for="tip in ['light', 'flat', 'whole']" :key="tip">
-            <div class="fw-bold lead-lg">{{ t(`scan.tips.${tip}.title`) }}</div>
-            <div>{{ t(`scan.tips.${tip}.text`) }}</div>
+
+        <div class="d-flex flex-column gap-3">
+          <h2 class="section-label">{{ t('scan.samplesTitle') }}</h2>
+          <div class="d-flex flex-column gap-3 stagger">
+            <button v-for="sample in SAMPLES" :key="sample.id" type="button" class="card card-interactive sample" @click="trySample(sample)">
+              <img :src="`/samples/${sample.id}.svg`" alt="" class="sample-thumb" />
+              <span class="d-flex flex-column flex-grow-1">
+                <span class="sample-name">{{ t(`scan.samples.${sample.key}`) }}</span>
+                <span class="text-muted-a11y sample-kind">{{ t(`scan.sampleOf.${sample.type}`) }}</span>
+              </span>
+              <AppIcon name="right" :size="22" class="text-teal" />
+            </button>
           </div>
         </div>
-      </div>
-    </div>
-
-    <div class="d-flex flex-column gap-3">
-      <h2 class="h-sec">{{ t('scan.samplesTitle') }}</h2>
-      <div class="samples">
-        <button v-for="sample in SAMPLES" :key="sample.id" type="button" class="sample" @click="trySample(sample)">
-          <img :src="`/samples/${sample.id}.svg`" alt="" class="sample-thumb" />
-          <span class="fw-bold">{{ t(`scan.samples.${sample.key}`) }}</span>
-        </button>
       </div>
     </div>
   </div>

@@ -1,12 +1,24 @@
-/* Owner: Isaac. */
-/* Boxes */
-.box { border: 1.5px solid var(--ink); border-radius: 20px; padding: 20px; background: var(--surface); }
-.box.soft { border-color: var(--teal); background: var(--teal-soft); }
+/* Owner: Isaac. Cards, hero, icon tiles and photo frames. Depth comes from soft shadows, not outlines. */
+.card { --bs-card-bg: var(--color-card); --bs-card-border-color: var(--color-border); --bs-card-border-radius: var(--r-card); --bs-card-color: var(--color-text); padding: var(--s-5); box-shadow: var(--shadow-card); }
+.card-interactive { transition: transform var(--dur) var(--ease-out), box-shadow var(--dur) var(--ease-out); cursor: pointer; text-decoration: none; }
+.card-interactive:hover { transform: translateY(-2px); box-shadow: var(--shadow-hover); color: var(--color-text); }
+.card-result { position: relative; overflow: hidden; background: var(--gradient-result); }
+.card-tint { background: var(--color-tint); border-color: var(--color-tint-strong); }
+.card-warning { background: var(--color-warning-bg); border-color: var(--color-warning-border); }
 
-/* Striped stand-in for images we don't have yet */
-.ph {
-  display: flex; align-items: center; justify-content: center;
-  background: repeating-linear-gradient(135deg, var(--soft) 0 10px, var(--line) 10px 20px);
-  border: 2px solid var(--line); border-radius: 20px; color: var(--muted); font: 14px ui-monospace, Menlo, monospace;
-}
-.photo { width: 100%; border: 2px solid var(--line); border-radius: 20px; object-fit: contain; background: var(--soft); }
+.hero { position: relative; overflow: hidden; isolation: isolate; border-radius: var(--r-hero); background: var(--gradient-hero); color: #fff; padding: var(--s-6); box-shadow: var(--shadow-hover); }
+@media (min-width: 992px) { .hero { padding: var(--s-12); } }
+/* Soft decorative circles behind hero content */
+.blob { position: absolute; z-index: -1; border-radius: 50%; background: rgba(255, 255, 255, 0.08); pointer-events: none; }
+
+.summary-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); background: var(--color-card); border: 1px solid var(--color-border); border-radius: 20px; padding: 14px 6px; text-align: center; }
+.summary-row > * + * { border-left: 1px solid var(--color-border); }
+
+.tile { width: var(--tile); height: var(--tile); border-radius: var(--r-sm); display: grid; place-items: center; flex: none; background: var(--color-primary); color: #fff; }
+.tile-soft { background: var(--color-tint); color: var(--color-tint-text); }
+.tile-muted { background: var(--color-surface-2); color: var(--color-text-muted); }
+.tile-warning { background: var(--color-warning-bg); color: var(--color-warning); border: 1px solid var(--color-warning-border); }
+.tile-lg { width: var(--tile-lg); height: var(--tile-lg); border-radius: 16px; }
+
+.logo-tile { flex: none; display: block; border-radius: 14px; box-shadow: var(--shadow-card); }
+.photo { width: 100%; border: 1px solid var(--color-border); border-radius: 22px; object-fit: contain; background: var(--color-surface-2); box-shadow: var(--shadow-card); }

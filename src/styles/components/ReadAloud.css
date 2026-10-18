@@ -1,7 +1,11 @@
 /* Scoped styles for ReadAloud.vue. */
-.player { border: 2px solid var(--ink); border-radius: 16px; padding: 20px; }
-/* Play is dark ink, not teal, so the screen's primary action stays unique. */
-.play { display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 12px 28px; border: 2px solid var(--ink); border-radius: 999px; background: var(--ink); color: var(--surface); font-size: 22px; font-weight: 700; line-height: 1.2; }
-.play-icon { width: 0; height: 0; border-left: 18px solid var(--surface); border-top: 11px solid transparent; border-bottom: 11px solid transparent; }
-.pause-icon { width: 16px; height: 20px; border-left: 5px solid var(--surface); border-right: 5px solid var(--surface); }
-.speeds { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.player { gap: 16px; }
+.player-label { display: flex; align-items: center; gap: 10px; color: var(--color-text-muted); }
+.play { flex: 1; display: flex; align-items: center; gap: 14px; padding: 0; border: 0; background: none; color: var(--color-text); font-size: 20px; font-weight: 700; text-align: left; }
+.play-btn { width: 72px; height: 72px; flex: none; display: grid; place-items: center; border-radius: 50%; background: var(--color-primary); color: #fff; box-shadow: var(--shadow-glow); transition: transform var(--dur-fast) ease, background-color var(--dur) var(--ease-out); }
+.play:hover .play-btn { background: var(--color-primary-pressed); }
+.play:active .play-btn { transform: scale(0.95); }
+.play.on .play-btn { box-shadow: 0 0 0 6px var(--color-tint), var(--shadow-glow); }
+.replay { width: 52px; height: 52px; --bs-btn-bg: var(--color-surface-2); --bs-btn-border-color: var(--color-border); }
+.speed-label { font-size: 17px; font-weight: 600; color: var(--color-text-muted); }
+.speeds { flex: 1; min-width: 220px; }

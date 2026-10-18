@@ -1,4 +1,4 @@
-<!-- Owner: Asher. First version from wireframe 1c: the user checks and corrects what was read before anything uses it. -->
+<!-- Owner: Asher. From the Claude Design Confirm screen: the user checks and corrects what was read before anything uses it. -->
 <script setup>
 import { computed, reactive, ref, toRaw } from 'vue'
 import { useRouter } from 'vue-router'
@@ -6,6 +6,7 @@ import { useI18n } from 'vue-i18n'
 import { scanStore } from '../stores/scan'
 import { rememberMedicine } from '../stores/medicines'
 import ConfirmField from '../components/scan/ConfirmField.vue'
+import AppIcon from '../components/layout/AppIcon.vue'
 import { DOSE_UNITS, TIMINGS, WITH_FOOD, FREQUENCY_TYPES } from '../../server/services/normalizeScan.js'
 
 const { t } = useI18n()
@@ -78,22 +79,27 @@ const scanAgain = () => router.push({ name: 'scan', query: { type: draft.type } 
 </script>
 
 <template>
-  <div v-if="scan" class="d-flex flex-column gap-4">
+  <div v-if="scan" class="page">
+    <ol class="steps" :aria-label="t('confirm.steps.label')">
+      <li class="done"><AppIcon name="checkCircle" :size="18" />{{ t('confirm.steps.photo') }}</li>
+      <li class="now" aria-current="step">{{ t('confirm.steps.check') }}</li>
+      <li>{{ t('confirm.steps.explain') }}</li>
+    </ol>
     <div class="d-flex align-items-start gap-3">
       <button type="button" class="back" :aria-label="t('nav.back')" @click="scanAgain"></button>
-      <div class="d-flex flex-column gap-2">
-        <h1 class="h-page">{{ t(`confirm.title.${draft.type}`) }}</h1>
-        <p class="lead-lg">{{ t(`confirm.lead.${draft.type}`) }}</p>
+      <div class="page-head">
+        <h1>{{ t(`confirm.title.${draft.type}`) }}</h1>
+        <p class="lead-text">{{ t(`confirm.lead.${draft.type}`) }}</p>
       </div>
     </div>
 
     <div class="row g-4">
       <div v-if="photo" class="col-lg-5">
-        <div class="d-lg-none box d-flex flex-column gap-3">
+        <div class="d-lg-none card d-flex flex-column gap-3">
           <div class="d-flex align-items-center gap-3">
             <img :src="photo" alt="" class="thumb" />
             <span class="fw-bold flex-grow-1">{{ t('confirm.yourPhoto') }}</span>
-            <button type="button" class="btn-small" :aria-expanded="showPhoto" @click="showPhoto = !showPhoto">
+            <button type="button" class="btn btn-outline btn-sm" :aria-expanded="showPhoto" @click="showPhoto = !showPhoto">
               {{ showPhoto ? t('confirm.hidePhoto') : t('confirm.showPhoto') }}
             </button>
           </div>
@@ -105,30 +111,30 @@ const scanAgain = () => router.push({ name: 'scan', query: { type: draft.type } 
       <div :class="photo ? 'col-lg-7' : 'col-lg-9'" class="d-flex flex-column gap-4">
         <!-- Always rendered so screen readers announce the switch to green when the last field is fixed. -->
         <div role="status">
-          <div v-if="flagged.length" class="banner-amber">{{ t('confirm.needsCheck', flagged.length) }}</div>
-          <div v-else class="banner-green" data-testid="all-filled">{{ t('confirm.allFilled', { ok: t('confirm.ok') }) }}</div>
+          <div v-if="flagged.length" class="alert alert-warning"><AppIcon name="alert" />{{ t('confirm.needsCheck', flagged.length) }}</div>
+          <div v-else class="alert alert-success" data-testid="all-filled"><AppIcon name="checkCircle" />{{ t('confirm.allFilled', { ok: t('confirm.ok') }) }}</div>
         </div>
 
         <!-- Medication -->
-        <div v-if="draft.type === 'medication'" class="fgrid">
+        <div v-if="draft.type === 'medication'" class="card fgrid">
           <ConfirmField :label="t('confirm.med.name')" for="f-name" :flagged="needs('medication.name')">
-            <input id="f-name" v-model.trim="draft.medication.name" class="inp" :class="{ flagged: needs('medication.name') }" />
+            <input id="f-name" v-model.trim="draft.medication.name" class="field-input" :class="{ 'is-flagged': needs('medication.name') }" />
           </ConfirmField>
           <ConfirmField :label="t('confirm.med.strength')" for="f-strength">
-            <input id="f-strength" v-model.trim="draft.medication.strength" class="inp" />
+            <input id="f-strength" v-model.trim="draft.medication.strength" class="field-input" />
           </ConfirmField>
 
           <ConfirmField :label="t('confirm.med.amount')" for="f-amount" :flagged="needs('medication.doseAmount')">
             <div class="d-flex gap-2">
-              <input id="f-amount" v-model.number="draft.medication.doseAmount" type="number" inputmode="decimal" min="0" step="0.5" class="inp amount" :class="{ flagged: needs('medication.doseAmount') }" />
-              <select v-model="draft.medication.doseUnit" class="inp" :aria-label="t('confirm.med.unit')">
+              <input id="f-amount" v-model.number="draft.medication.doseAmount" type="number" inputmode="decimal" min="0" step="0.5" class="field-input amount" :class="{ 'is-flagged': needs('medication.doseAmount') }" />
+              <select v-model="draft.medication.doseUnit" class="field-input" :aria-label="t('confirm.med.unit')">
                 <option :value="null">–</option>
                 <option v-for="unit in DOSE_UNITS" :key="unit" :value="unit">{{ t(`unit.${unit}`, 2) }}</option>
               </select>
             </div>
           </ConfirmField>
           <ConfirmField :label="t('confirm.med.howOften')" for="f-freq" :flagged="needs('medication.frequencyType')">
-            <select id="f-freq" v-model="draft.medication.frequencyType" class="inp" :class="{ flagged: needs('medication.frequencyType') }">
+            <select id="f-freq" v-model="draft.medication.frequencyType" class="field-input" :class="{ 'is-flagged': needs('medication.frequencyType') }">
               <option :value="null">–</option>
               <option v-for="freq in FREQUENCY_TYPES" :key="freq" :value="freq">{{ t(`freq.${freq}`) }}</option>
             </select>
@@ -136,12 +142,12 @@ const scanAgain = () => router.push({ name: 'scan', query: { type: draft.type } 
 
           <template v-if="draft.medication.frequencyType === 'daily'">
             <ConfirmField class="span2" :label="t('confirm.med.times')" for="f-times" :flagged="needs('medication.timesPerDay')">
-              <input id="f-times" v-model.number="draft.medication.timesPerDay" type="number" inputmode="numeric" min="1" max="6" class="inp amount" :class="{ flagged: needs('medication.timesPerDay') }" />
+              <input id="f-times" v-model.number="draft.medication.timesPerDay" type="number" inputmode="numeric" min="1" max="6" class="field-input amount" :class="{ 'is-flagged': needs('medication.timesPerDay') }" />
             </ConfirmField>
             <ConfirmField class="span2" :label="t('confirm.med.when')" :flagged="needs('medication.timing')">
               <div class="d-flex flex-wrap gap-2">
-                <button v-for="key in TIMINGS" :key="key" type="button" class="opt pill" :aria-pressed="draft.medication.timing?.includes(key) ?? false" @click="toggleTiming(key)">
-                  <span v-if="draft.medication.timing?.includes(key)" aria-hidden="true">✓ </span>{{ t(`timing.${key}`) }}
+                <button v-for="key in TIMINGS" :key="key" type="button" class="choice" :aria-pressed="draft.medication.timing?.includes(key) ?? false" @click="toggleTiming(key)">
+                  <AppIcon v-if="draft.medication.timing?.includes(key)" name="check" :size="18" :stroke="2.5" />{{ t(`timing.${key}`) }}
                 </button>
               </div>
             </ConfirmField>
@@ -149,49 +155,49 @@ const scanAgain = () => router.push({ name: 'scan', query: { type: draft.type } 
 
           <ConfirmField class="span2" :label="t('confirm.med.food')" :flagged="needs('medication.withFood')">
             <div class="d-flex flex-wrap gap-2">
-              <button v-for="key in WITH_FOOD" :key="key" type="button" class="opt" :aria-pressed="draft.medication.withFood === key" @click="draft.medication.withFood = key">
+              <button v-for="key in WITH_FOOD" :key="key" type="button" class="choice" :aria-pressed="draft.medication.withFood === key" @click="draft.medication.withFood = key">
                 {{ t(`food.${key}`) }}
               </button>
             </div>
           </ConfirmField>
 
           <ConfirmField class="span2" :label="t('confirm.med.other')" for="f-other">
-            <textarea id="f-other" v-model.lazy="warnings" rows="2" class="inp"></textarea>
+            <textarea id="f-other" v-model.lazy="warnings" rows="2" class="field-input"></textarea>
           </ConfirmField>
         </div>
 
         <!-- Bill -->
-        <div v-else class="d-flex flex-column gap-3">
-          <div v-if="draft.bill.clinic" class="fw-bold">{{ draft.bill.clinic }}</div>
+        <div v-else class="card d-flex flex-column gap-3">
+          <div v-if="draft.bill.clinic" class="d-flex align-items-center gap-3"><span class="tile tile-soft"><AppIcon name="receipt" :size="22" /></span><strong>{{ draft.bill.clinic }}</strong></div>
           <div class="bill-grid">
             <span class="fw-bold">{{ t('confirm.bill.item') }}</span>
             <span class="fw-bold">{{ t('confirm.bill.amount') }}</span>
             <template v-for="(item, i) in draft.bill.items" :key="`i${i}`">
-              <input v-model.trim="item.description" class="inp" :class="{ flagged: needs(`bill.items.${i}.description`) }" :aria-label="t('confirm.bill.itemN', { n: i + 1 })" />
-              <input type="number" inputmode="decimal" min="0" step="0.01" class="inp" :class="{ flagged: needs(`bill.items.${i}.amountCents`) }" :value="dollars(item.amountCents)" :aria-label="t('confirm.bill.amountOf', { item: item.description ?? i + 1 })" @change="item.amountCents = toCents($event.target.value)" />
+              <input v-model.trim="item.description" class="field-input" :class="{ 'is-flagged': needs(`bill.items.${i}.description`) }" :aria-label="t('confirm.bill.itemN', { n: i + 1 })" />
+              <input type="number" inputmode="decimal" min="0" step="0.01" class="field-input" :class="{ 'is-flagged': needs(`bill.items.${i}.amountCents`) }" :value="dollars(item.amountCents)" :aria-label="t('confirm.bill.amountOf', { item: item.description ?? i + 1 })" @change="item.amountCents = toCents($event.target.value)" />
               <span v-if="needs(`bill.items.${i}.description`) || needs(`bill.items.${i}.amountCents`)" class="span2 note">{{ t('confirm.bill.smudged') }}</span>
             </template>
 
             <template v-for="(subsidy, i) in draft.bill.subsidies" :key="`s${i}`">
               <span class="row-label">{{ t(`scheme.${subsidy.scheme}`) }}</span>
-              <input type="number" inputmode="decimal" min="0" step="0.01" class="inp" :class="{ flagged: needs(`bill.subsidies.${i}.amountCents`) }" :value="dollars(subsidy.amountCents)" :aria-label="t(`scheme.${subsidy.scheme}`)" @change="subsidy.amountCents = toCents($event.target.value)" />
+              <input type="number" inputmode="decimal" min="0" step="0.01" class="field-input" :class="{ 'is-flagged': needs(`bill.subsidies.${i}.amountCents`) }" :value="dollars(subsidy.amountCents)" :aria-label="t(`scheme.${subsidy.scheme}`)" @change="subsidy.amountCents = toCents($event.target.value)" />
             </template>
 
             <span class="row-label">{{ t('confirm.bill.medisave') }}</span>
-            <input type="number" inputmode="decimal" min="0" step="0.01" class="inp" :class="{ flagged: needs('bill.medisaveCents') }" :value="dollars(draft.bill.medisaveCents)" :aria-label="t('confirm.bill.medisave')" @change="draft.bill.medisaveCents = toCents($event.target.value)" />
+            <input type="number" inputmode="decimal" min="0" step="0.01" class="field-input" :class="{ 'is-flagged': needs('bill.medisaveCents') }" :value="dollars(draft.bill.medisaveCents)" :aria-label="t('confirm.bill.medisave')" @change="draft.bill.medisaveCents = toCents($event.target.value)" />
 
             <label for="f-total" class="row-label total">{{ t('confirm.bill.total') }}</label>
-            <input id="f-total" type="number" inputmode="decimal" min="0" step="0.01" class="inp total" :class="{ flagged: needs('bill.totalPayableCents') }" :value="dollars(draft.bill.totalPayableCents)" @change="draft.bill.totalPayableCents = toCents($event.target.value)" />
+            <input id="f-total" type="number" inputmode="decimal" min="0" step="0.01" class="field-input total" :class="{ 'is-flagged': needs('bill.totalPayableCents') }" :value="dollars(draft.bill.totalPayableCents)" @change="draft.bill.totalPayableCents = toCents($event.target.value)" />
             <span v-if="needs('bill.totalPayableCents')" class="span2 note">{{ totalMismatch ? t('confirm.bill.mismatch') : t('confirm.bill.smudged') }}</span>
           </div>
         </div>
 
         <div class="d-flex flex-column gap-2">
           <div class="acts">
-            <button type="button" class="btn-main" :disabled="flagged.length > 0" :aria-describedby="flagged.length ? 'ok-reason' : null" @click="confirm">{{ t('confirm.ok') }}</button>
-            <button type="button" class="btn-alt" @click="scanAgain">{{ photo ? t('confirm.retake') : t('confirm.scanOther') }}</button>
+            <button type="button" class="btn btn-primary ok" :disabled="flagged.length > 0" :aria-describedby="flagged.length ? 'ok-reason' : null" @click="confirm">{{ t('confirm.ok') }}<AppIcon name="right" /></button>
+            <button type="button" class="btn btn-ghost" @click="scanAgain"><AppIcon name="camera" :size="22" />{{ photo ? t('confirm.retake') : t('confirm.scanOther') }}</button>
           </div>
-          <span v-if="flagged.length" id="ok-reason" class="text-soft">{{ t('confirm.okDisabled') }}</span>
+          <span v-if="flagged.length" id="ok-reason" class="text-muted-a11y">{{ t('confirm.okDisabled') }}</span>
         </div>
       </div>
     </div>
