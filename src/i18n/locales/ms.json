@@ -255,5 +255,18 @@
     "replay": "Main semula",
     "speed": "Kelajuan",
     "unavailable": "Bacaan dalam bahasa ini belum tersedia pada peranti ini."
+  },
+  "auth": {
+    "email": "E-mel",
+    "password": "Kata laluan",
+    "passwordHint": "Sekurang-kurangnya 8 aksara",
+    "passwordShort": "Kata laluan anda perlu sekurang-kurangnya 8 aksara.",
+    "loginLead": "Log masuk untuk menyimpan ubat anda dan berkongsi dengan keluarga.",
+    "signupLead": "Percuma. Kami tidak akan meminta nombor NRIC anda.",
+    "login": "Log masuk",
+    "signup": "Cipta akaun",
+    "working": "Sila tunggu…",
+    "noAccount": "Belum ada akaun?",
+    "haveAccount": "Sudah ada akaun?"
   }
 }
