@@ -142,15 +142,20 @@ const adding = ref(false)
 const newName = ref('')
 const newText = ref('')
 const nameInput = ref(null)
+const nameMissing = ref(false)
 async function openForm() {
   medsOpen.value = true
   adding.value = true
+  nameMissing.value = false
   await nextTick()
   nameInput.value.focus()
   nameInput.value.scrollIntoView({ block: 'center' })
 }
 function addTyped() {
-  if (!newName.value.trim()) return nameInput.value.focus()
+  if (!newName.value.trim()) {
+    nameMissing.value = true
+    return nameInput.value.focus()
+  }
   rememberMedicine({ name: newName.value.trim(), rawInstruction: newText.value.trim() || null }, 'typed')
   newName.value = newText.value = ''
   adding.value = false
@@ -222,7 +227,19 @@ onBeforeUnmount(() => {
         <form v-if="adding" class="add-form" @submit.prevent="addTyped">
           <div class="field">
             <label for="new-name" class="field-label">{{ t('ask.form.name') }}</label>
-            <input id="new-name" ref="nameInput" v-model="newName" class="field-input" maxlength="80" autocomplete="off" />
+            <input
+              id="new-name"
+              ref="nameInput"
+              v-model="newName"
+              class="field-input"
+              :class="{ 'is-error': nameMissing }"
+              maxlength="80"
+              autocomplete="off"
+              :aria-invalid="nameMissing"
+              :aria-describedby="nameMissing ? 'new-name-error' : null"
+              @input="nameMissing = false"
+            />
+            <span v-if="nameMissing" id="new-name-error" class="field-help name-error" role="alert">{{ t('ask.form.nameMissing') }}</span>
           </div>
           <div class="field">
             <label for="new-text" class="field-label">{{ t('ask.form.instructions') }}</label>
@@ -241,7 +258,9 @@ onBeforeUnmount(() => {
       </div>
     </section>
 
-    <ol v-if="messages.length" ref="thread" class="thread" role="log" aria-live="polite" :aria-label="t('ask.title')" data-testid="ask-thread">
+    <!-- The log role goes on a wrapper: on the <ol> itself it would hide the list from screen readers. -->
+    <div v-if="messages.length" ref="thread" role="log" aria-live="polite" :aria-label="t('ask.title')" data-testid="ask-thread">
+    <ol class="thread">
       <li v-for="m in messages" :key="m.id" class="turn">
         <div class="you rise" :lang="m.lang"><span class="visually-hidden">{{ t('ask.you') }}: </span>{{ m.q }}</div>
 
@@ -309,6 +328,7 @@ onBeforeUnmount(() => {
         </div>
       </li>
     </ol>
+    </div>
 
     <!-- Starter questions until there is an answer with its own follow-ups (under the composer on the empty page). -->
     <div v-if="messages.length && !isAnswer(latest)" class="starters" role="group" :aria-label="t('ask.chipsLabel')">

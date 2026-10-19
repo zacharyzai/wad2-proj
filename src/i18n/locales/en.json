@@ -295,7 +295,8 @@
     },
     "errors": {
       "RATE_LIMITED": "Too many questions. Wait a minute, then try again.",
-      "AI_UNAVAILABLE": "Not available right now. Ask your pharmacist."
+      "AI_UNAVAILABLE": "Not available right now. Ask your pharmacist.",
+      "BAD_REQUEST": "We couldn’t send that question. Please type it again."
     },
     "meds": {
       "title": "My medicines",
@@ -315,7 +316,8 @@
       "instructions": "What the label says (optional)",
       "hint": "e.g. 1 tablet twice a day after food",
       "add": "Add medicine",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "nameMissing": "Type the medicine name first."
     },
     "need": {
       "text": "Which medicine is this? Add it, then ask again.",

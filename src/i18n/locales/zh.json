@@ -295,7 +295,8 @@
     },
     "errors": {
       "RATE_LIMITED": "问题太多。请等一分钟再试。",
-      "AI_UNAVAILABLE": "现在无法使用。请问药剂师。"
+      "AI_UNAVAILABLE": "现在无法使用。请问药剂师。",
+      "BAD_REQUEST": "无法发送这个问题。请重新输入。"
     },
     "meds": {
       "title": "我的药物",
@@ -315,7 +316,8 @@
       "instructions": "标签上的说明（可选）",
       "hint": "例如：每天两次，每次 1 粒，饭后",
       "add": "添加药物",
-      "cancel": "取消"
+      "cancel": "取消",
+      "nameMissing": "请先输入药名。"
     },
     "need": {
       "text": "这是哪种药？请先添加，再问一次。",

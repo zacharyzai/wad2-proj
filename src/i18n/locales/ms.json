@@ -295,7 +295,8 @@
     },
     "errors": {
       "RATE_LIMITED": "Terlalu banyak soalan. Tunggu seminit, kemudian cuba lagi.",
-      "AI_UNAVAILABLE": "Tidak tersedia sekarang. Tanya ahli farmasi."
+      "AI_UNAVAILABLE": "Tidak tersedia sekarang. Tanya ahli farmasi.",
+      "BAD_REQUEST": "Soalan itu tidak dapat dihantar. Sila taip semula."
     },
     "meds": {
       "title": "Ubat saya",
@@ -315,7 +316,8 @@
       "instructions": "Apa yang tertulis pada label (pilihan)",
       "hint": "cth. 1 biji dua kali sehari selepas makan",
       "add": "Tambah ubat",
-      "cancel": "Batal"
+      "cancel": "Batal",
+      "nameMissing": "Taip nama ubat dahulu."
     },
     "need": {
       "text": "Ubat yang mana? Tambahkannya, kemudian tanya lagi.",

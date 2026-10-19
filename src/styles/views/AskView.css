@@ -73,3 +73,4 @@
   .chat:not(.empty) .dock { bottom: 0; padding-bottom: 16px; }
   .toast-undo { left: auto; right: 32px; bottom: 32px; }
 }
+.name-error { color: var(--color-danger-text); font-weight: 600; }
