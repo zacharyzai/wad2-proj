@@ -1,20 +1,22 @@
 /* Scoped styles for AskView.vue. One reading column, centred like a chat app. */
 .chat { display: flex; flex-direction: column; gap: 22px; max-width: 800px; margin: 0 auto; }
-.min-w-0 { min-width: 0; }
 
 .intro { display: flex; flex-direction: column; gap: 12px; }
 .intro-logo { width: 56px; height: 56px; }
 .empty .intro { align-items: center; text-align: center; padding-top: 8px; }
-.safety { display: flex; gap: 10px; align-items: flex-start; padding: 12px 16px; border-radius: 16px; background: var(--color-surface-2); color: var(--color-text-muted); font-size: 16px; line-height: 1.5; text-align: left; }
+.safety { display: flex; gap: 10px; align-items: flex-start; color: var(--color-text-muted); font-size: 16px; line-height: 1.5; text-align: left; }
 .safety .icon { margin-top: 2px; color: var(--color-primary-text); }
 
 /* My medicines: one row, opens to manage. */
 .meds-panel { padding: 0; }
 .meds-toggle { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 64px; padding: 12px 16px; border: 0; border-radius: var(--r-card); background: none; color: var(--color-text); text-align: left; }
-.meds-title { flex: 1; font-size: 19px; font-weight: 700; }
+/* Title keeps its natural width; when that doesn't fit beside the count, the count wraps below it. */
+.meds-head { flex: 1; min-width: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; }
+.meds-title { flex: 1 0 auto; max-width: 100%; font-size: 19px; font-weight: 700; }
 .meds-body { display: flex; flex-direction: column; gap: 16px; padding: 0 16px 18px; }
 .meds { display: flex; flex-direction: column; gap: 10px; margin: 0; padding: 0; list-style: none; }
 .med { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 18px; background: var(--color-surface-2); }
+.med-info { flex: 1 1 160px; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
 .med-name { font-size: 19px; font-weight: 700; line-height: 1.3; overflow-wrap: anywhere; }
 .add-form { display: flex; flex-direction: column; gap: 16px; padding: 16px; border-radius: 18px; background: var(--color-surface-2); }
 
@@ -31,9 +33,14 @@
 .listen[aria-pressed='true'] { --bs-btn-bg: var(--color-tint); --bs-btn-border-color: var(--color-primary); }
 .thinking { display: flex; align-items: center; min-height: 40px; color: var(--color-text-muted); font-size: 19px; }
 .from { color: var(--color-text-muted); font-size: 16px; }
-.pharm { align-items: center; color: var(--color-link); font-weight: 700; }
-.sos-tile { background: rgba(255, 255, 255, 0.18); }
+/* A plain note, not link-blue: it isn't tappable. */
+.pharm { align-items: center; background: var(--color-surface-2); border-color: transparent; color: var(--color-text); }
+.pharm .icon { color: var(--color-primary-text); }
+.need { border-color: transparent; }
+.sos-tile { background: color-mix(in srgb, currentColor 18%, transparent); }
 .follow { display: flex; flex-direction: column; gap: 10px; padding-top: 4px; }
+.follow-label { font-size: 17px; font-weight: 600; color: var(--color-text-muted); }
+.acts-row { display: flex; flex-wrap: wrap; gap: 8px; }
 .chip:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .starters { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -68,6 +75,12 @@
 /* Phones: the docked composer stays short so the conversation keeps most of the screen. */
 @media (max-width: 575.98px) {
   .chat:not(.empty) .composer textarea { min-height: 1lh; }
+  /* Even, full-width actions instead of a ragged stack. */
+  .acts-row { flex-direction: column; align-self: stretch; }
+  .acts-row > .btn { width: 100%; }
+  /* Remove drops under the name, lined up with the text, so the name gets the width. */
+  .med { flex-wrap: wrap; }
+  .med > .btn { margin-left: calc(var(--tile) + 12px); }
 }
 @media (min-width: 992px) {
   .chat:not(.empty) .dock { bottom: 0; padding-bottom: 16px; }
