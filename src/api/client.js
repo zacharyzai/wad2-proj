@@ -1,10 +1,19 @@
 // The only way the client calls the backend. Always resolves to { ok, data } or { ok: false, error: { code, message } }.
 // Show errors with t(`errors.${error.code}`).
+// Logged-in users send their token; Sheen Hern's requireAuth middleware reads "Authorization: Bearer <token>".
+function authHeader() {
+  try {
+    const token = localStorage.getItem('token')
+    return token ? { authorization: `Bearer ${token}` } : {}
+  } catch {
+    return {}
+  }
+}
 export async function api(path, { method = 'GET', body } = {}) {
   try {
     const res = await fetch(`/api${path}`, {
       method,
-      headers: body ? { 'content-type': 'application/json' } : undefined,
+      headers: { ...(body ? { 'content-type': 'application/json' } : {}), ...authHeader() },
       body: body ? JSON.stringify(body) : undefined,
     })
     return await res.json()

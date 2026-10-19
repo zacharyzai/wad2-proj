@@ -363,5 +363,18 @@
     "home": "Go to home",
     "ask": "Ask a question instead",
     "label": "Error 404"
+  },
+  "auth": {
+    "email": "Email",
+    "password": "Password",
+    "passwordHint": "At least 8 characters",
+    "passwordShort": "Your password needs at least 8 characters.",
+    "loginLead": "Log in to keep your medicines and share them with family.",
+    "signupLead": "Free. We never ask for your NRIC number.",
+    "login": "Log in",
+    "signup": "Create account",
+    "working": "Please wait…",
+    "noAccount": "No account yet?",
+    "haveAccount": "Already have an account?"
   }
 }

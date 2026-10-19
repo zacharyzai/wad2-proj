@@ -363,5 +363,18 @@
     "home": "回到首页",
     "ask": "改为提问",
     "label": "错误 404"
+  },
+  "auth": {
+    "email": "电子邮件",
+    "password": "密码",
+    "passwordHint": "至少 8 个字符",
+    "passwordShort": "密码至少需要 8 个字符。",
+    "loginLead": "登录后可保存您的药物，并与家人分享。",
+    "signupLead": "免费使用。我们绝不会要求您提供身份证号码。",
+    "login": "登录",
+    "signup": "创建账户",
+    "working": "请稍候…",
+    "noAccount": "还没有账户？",
+    "haveAccount": "已有账户？"
   }
 }
