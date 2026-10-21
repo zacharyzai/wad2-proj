@@ -202,8 +202,10 @@ onBeforeUnmount(() => {
     <section class="card meds-panel" data-testid="my-medicines">
       <button type="button" class="meds-toggle" :aria-expanded="medsOpen" aria-controls="meds-body" @click="medsOpen = !medsOpen">
         <span class="tile tile-soft"><AppIcon name="pill" :size="22" /></span>
-        <span class="meds-title">{{ t('ask.meds.title') }}</span>
-        <span class="badge badge-teal meds-count">{{ t('ask.meds.count', medicines.length) }}</span>
+        <span class="meds-head">
+          <span class="meds-title">{{ t('ask.meds.title') }}</span>
+          <span class="badge badge-teal meds-count">{{ t('ask.meds.count', medicines.length) }}</span>
+        </span>
         <AppIcon :name="medsOpen ? 'up' : 'down'" :size="22" class="text-muted-a11y" />
       </button>
 
@@ -213,7 +215,7 @@ onBeforeUnmount(() => {
         <ul v-if="medicines.length" class="meds">
           <li v-for="m in medicines" :key="m.id" class="med">
             <span class="tile"><AppIcon name="pill" :size="20" /></span>
-            <div class="d-flex flex-column gap-1 min-w-0 flex-grow-1">
+            <div class="med-info">
               <span class="med-name">{{ medName(m.medication) }}</span>
               <span v-if="m.medication.rawInstruction" class="text-muted-a11y" :lang="m.source === 'label' ? 'en' : null">“{{ m.medication.rawInstruction }}”</span>
               <span v-if="m.sample || m.source === 'typed'" class="badge align-self-start">{{ t(m.sample ? 'ask.meds.sample' : 'ask.meds.typed') }}</span>
@@ -251,7 +253,7 @@ onBeforeUnmount(() => {
             <button type="button" class="btn btn-ghost btn-sm" @click="adding = false">{{ t('ask.form.cancel') }}</button>
           </div>
         </form>
-        <div v-else class="d-flex flex-wrap gap-2">
+        <div v-else class="acts-row">
           <RouterLink :to="{ name: 'scan', query: { type: 'medication' } }" class="btn btn-secondary btn-sm"><AppIcon name="camera" :size="20" />{{ t('ask.meds.photo') }}</RouterLink>
           <button type="button" class="btn btn-secondary btn-sm" @click="openForm"><AppIcon name="pencil" :size="20" />{{ t('ask.meds.type') }}</button>
         </div>
@@ -278,7 +280,7 @@ onBeforeUnmount(() => {
               <button type="button" class="btn btn-outline btn-sm align-self-start" :disabled="loading" @click="ask(m.q, m.chip, m)"><AppIcon name="replay" :size="20" />{{ t('ask.retry') }}</button>
             </div>
 
-            <div v-else-if="m.reply.type === 'URGENT'" class="alert-sos rise" data-testid="ask-urgent">
+            <div v-else-if="m.reply.type === 'URGENT'" class="alert alert-sos rise" data-testid="ask-urgent">
               <div class="d-flex gap-3 align-items-start">
                 <span class="tile sos-tile"><AppIcon name="alert" :size="22" /></span>
                 <div class="d-flex flex-column gap-1">
@@ -290,9 +292,9 @@ onBeforeUnmount(() => {
             </div>
 
             <!-- We don't know which medicine this is about: ask for its label, or its name and instructions. -->
-            <div v-else-if="m.reply.type === 'NEED_MEDICINE'" class="alert alert-info flex-column rise" data-testid="ask-need">
+            <div v-else-if="m.reply.type === 'NEED_MEDICINE'" class="alert alert-info need flex-column rise" data-testid="ask-need">
               <span class="d-flex gap-2"><AppIcon name="info" />{{ t('ask.need.text') }}</span>
-              <div class="d-flex flex-wrap gap-2">
+              <div class="acts-row">
                 <RouterLink :to="{ name: 'scan', query: { type: 'medication' } }" class="btn btn-outline btn-sm"><AppIcon name="camera" :size="20" />{{ t('ask.meds.photo') }}</RouterLink>
                 <button type="button" class="btn btn-outline btn-sm" @click="openForm"><AppIcon name="pencil" :size="20" />{{ t('ask.meds.type') }}</button>
                 <button type="button" class="btn btn-outline btn-sm" :disabled="loading || !medicines.length" @click="ask(m.q, m.chip, m)"><AppIcon name="replay" :size="20" />{{ t('ask.need.again') }}</button>
@@ -310,13 +312,13 @@ onBeforeUnmount(() => {
                 </div>
               </div>
               <p v-if="m.reply.sources?.length" class="from" data-testid="ask-from">{{ t('ask.from', { source: m.reply.sources.map(sourceText).join(', ') }) }}</p>
-              <div v-if="m.reply.askPharmacist" class="alert alert-note pharm" data-testid="ask-pharmacist">
+              <div v-if="m.reply.askPharmacist" class="alert pharm" data-testid="ask-pharmacist">
                 <AppIcon name="users" />
                 <span>{{ t('ask.pharmacist') }}</span>
               </div>
               <!-- Follow-ups under the newest answer only, so the next question is one tap away. -->
               <div v-if="m === latest" class="follow" role="group" :aria-label="t('ask.followLabel')" data-testid="ask-follow">
-                <span class="section-label">{{ t('ask.followLabel') }}</span>
+                <span class="follow-label">{{ t('ask.followLabel') }}</span>
                 <div class="d-flex flex-wrap gap-2">
                   <button v-for="c in FOLLOW_UPS[m.chip]" :key="c" type="button" class="chip" :disabled="loading" @click="ask(t(`ask.chips.${c}`), c)">
                     {{ t(`ask.chips.${c}`) }}
