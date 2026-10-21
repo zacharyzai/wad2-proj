@@ -1,7 +1,10 @@
-// Finds personal details in OCR'd text (lines of words with boxes), so they can be blacked out before a photo leaves the phone.
-// Pure logic, no browser APIs, so it is unit-tested in sensitive.test.js. Used by redact.js.
-// shortcut: catches labelled fields, NRIC/FIN, phone numbers and address lines only; an unlabelled name (e.g. "TAN AH KOW"
-// on its own line) is NOT found. The user's preview and the frame guide are the safety net. Upgrade if testing shows misses.
+// Decides what of an OCR'd photo (lines of words with boxes) may leave the phone. Pure logic, no browser APIs, so it is
+// unit-tested in sensitive.test.js. Used by redact.js.
+// Keep-list first: only lines that look like medicine or bill details are shown; everything else (including text the
+// reader could not read, and unlabelled names like "TAN AH KOW") stays black. findSensitive then covers labelled
+// personal details that sit on a kept line ("Date of Birth: 15/03/1948").
+// shortcut: a drug name printed alone on its line, with no strength or form ("PANADOL"), is covered too; the AI then
+// marks the name unclear and the user types it on Confirm. Add a drug-name list if that happens often.
 
 const clean = (s) => s.replace(/^[^\p{L}\p{N}*•]+|[^\p{L}\p{N}*•]+$/gu, '')
 
@@ -83,4 +86,65 @@ export function findSensitive(lines) {
     }
   }
   return hits
+}
+
+// A line is worth sending if it has one of these. Bill and label wording, in English (the reader only reads English).
+// "mo(rn|m)ing": the reader often reads "rn" as "m".
+const KEEP = [
+  /\d+(\.\d+)?\s*(mg|mcg|µg|g|ml|%|iu|units?)\b/i, // strength or volume: 500 MG, 5ml
+  /\$?\d+\.\d{2}\b/, // money: 14.50, $8.70
+  /\b(take|tab(let)?s?|cap(sule)?s?|syrup|cream|ointment|gel|drops?|puffs?|inhaler|spray|solution|suspension|lozenges?|patch(es)?|sachets?|(tea)?spoons?(ful)?|apply|inhale|swallow|chew|dissolve|insert|use)\b/i,
+  /\b(once|twice|thrice|times?|daily|day|days|weekly|weeks?|hours?|hourly|every|mo(rn|m)ing|afternoon|evening|night|bedtime|before|after|food|meals?|breakfast|lunch|dinner|needed|required|pain|fever)\b/i,
+  /\b(do not|don'?t|avoid|may cause|drows\w*|alcohol|finish|complete|course|external|refrigerat\w*|store|shake|warning|caution)\b/i,
+  // What it is for. Condition words, not "for ...", so a line like "For Mdm Tan" is never kept.
+  /\b(allerg\w*|nose|itch\w*|rash|cough|cold|flu|sneez\w*|phlegm|sore throat|headache|aches?|gastric|gastritis|acid|reflux|constipation|diarrh?o?ea|vomit\w*|nausea|infection|inflammation|swelling|blood pressure|hypertension|cholesterol|diabetes|sugar|asthma|breathless\w*|wheez\w*|sleep|anxiety|gout|eczema)\b/i,
+  /\b(qty|quantity|exp(iry)?|date|dispensed|pharmacy|polyclinic|clinic|hospital|pharmacist|rx)\b/i,
+  /\b(consult\w*|subsid\w*|medisave|chas|payable|total|gst|invoice|bill|receipt|amount|paid|payment|balance|pioneer|merdeka|generation|medications?|investigations?|procedures?|charges?|fees?|cash|nets|less)\b/i,
+]
+
+// Row geometry from the reader: a baseline (tilted on a tilted photo) plus how far letters reach above and below it.
+// Per-word boxes are not used for this: on photos they are often as tall as the whole line, or wildly off.
+function geometry(line, words) {
+  if (line.baseline && line.rowAttributes) {
+    const { baseline: b, rowAttributes: r } = line
+    const slope = b.x1 > b.x0 ? (b.y1 - b.y0) / (b.x1 - b.x0) : 0
+    return { x0: line.bbox.x0, x1: line.bbox.x1, bx: b.x0, by: b.y0, slope, above: r.rowHeight - r.descenders, below: r.descenders }
+  }
+  // Fallback (tests, or a reader without row data): flat baseline under the words.
+  const heights = words.map((w) => w.bbox.y1 - w.bbox.y0).sort((a, b) => a - b)
+  const by = Math.max(...words.map((w) => w.bbox.y1))
+  return { x0: Math.min(...words.map((w) => w.bbox.x0)), x1: Math.max(...words.map((w) => w.bbox.x1)), bx: 0, by, slope: 0, above: heights[heights.length >> 1], below: 0 }
+}
+export const baselineAt = (g, x) => g.by + g.slope * (x - g.bx)
+
+/**
+ * The reader often splits one printed line into several "lines" (around a pen circle, a fold, glare), so lines whose
+ * baselines line up are first joined into printed rows. A row is shown if its text is useful (KEEP), as one tilted strip.
+ * @param lines Tesseract lines: { words, bbox, baseline, rowAttributes } (tests may pass { words } only)
+ * @returns {
+ *   keep: [{ text, band: { x0, x1, bx, by, slope, above, below } }] strips that may be shown,
+ *   hits: findSensitive's words, blacked out again inside the strips,
+ * }
+ */
+export function planRedaction(lines) {
+  const rows = []
+  for (const line of lines) {
+    const words = line.words.filter((w) => w.text.trim())
+    if (!words.length) continue
+    const g = geometry(line, words)
+    const mid = (g.x0 + g.x1) / 2
+    // Same printed row: its baseline runs along this row's baseline (within a third of a letter height).
+    const row = rows.find((r) => Math.abs(baselineAt(r.band, mid) - baselineAt(g, mid)) < 0.35 * Math.max(r.band.above, g.above))
+    if (row) {
+      row.parts.push(words)
+      row.band.x0 = Math.min(row.band.x0, g.x0)
+      row.band.x1 = Math.max(row.band.x1, g.x1)
+    } else rows.push({ band: g, parts: [words] })
+  }
+  const keep = []
+  for (const { band, parts } of rows) {
+    const text = parts.flat().sort((a, b) => a.bbox.x0 - b.bbox.x0).map((w) => w.text).join(' ')
+    if (KEEP.some((re) => re.test(text))) keep.push({ text, band })
+  }
+  return { keep, hits: findSensitive(lines) }
 }
