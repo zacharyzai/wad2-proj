@@ -45,8 +45,8 @@ export function restore() {
   return pending
 }
 
-async function start(path, email, password) {
-  const res = await api(path, { method: 'POST', body: { email, password } })
+async function start(path, body) {
+  const res = await api(path, { method: 'POST', body })
   if (res.ok) {
     writeToken(res.data.token)
     authStore.user = res.data.user
@@ -55,8 +55,9 @@ async function start(path, email, password) {
   return res // { ok, data } or { ok: false, error: { code } }
 }
 
-export const login = (email, password) => start('/auth/login', email, password)
-export const signup = (email, password) => start('/auth/signup', email, password)
+export const login = (email, password) => start('/auth/login', { email, password })
+// profile = { name, dob, citizenship }
+export const signup = (email, password, profile) => start('/auth/signup', { ...profile, email, password })
 
 export function logout() {
   writeToken(null)

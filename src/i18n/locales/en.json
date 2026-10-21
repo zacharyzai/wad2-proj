@@ -386,7 +386,20 @@
     "signup": "Create account",
     "working": "Please wait…",
     "noAccount": "No account yet?",
-    "haveAccount": "Already have an account?"
+    "haveAccount": "Already have an account?",
+    "heroText": "Log in to keep your family's medicines and bills in one place, and share them with your children.",
+    "tabs": "Log in or create an account",
+    "or": "or",
+    "guest": "Continue without an account",
+    "privacy": "Without an account, your scans stay on this device only.",
+    "show": "Show password",
+    "hide": "Hide password",
+    "name": "Full name",
+    "dob": "Date of birth",
+    "citizenship": "Citizenship",
+    "citizenshipPick": "Choose one",
+    "citizenships": { "SG_CITIZEN": "Singapore citizen", "SG_PR": "Singapore permanent resident", "OTHER": "Other" },
+    "missingFields": "Please fill in every box."
   },
   "landing": {
     "hero": {
@@ -564,5 +577,11 @@
       "newTab": "(opens in a new tab)",
       "medisaveNote": "MediSave may pay part of this, as it did on this bill."
     }
+  },
+    "account": {
+    "lead": "These are the details you gave us.",
+    "details": "Your details",
+    "passwordNote": "Your password is never shown.",
+    "logout": "Log out"
   }
 }
