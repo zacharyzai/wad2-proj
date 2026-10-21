@@ -7,30 +7,30 @@ IS216 G7 T8 · Vue 3 + Bootstrap 5 · Express · MongoDB · Gemini · Playwright
 > The graded submission needs a `README.txt` (setup, live URL, dummy login, AI-use declaration). It gets written before Week 12. This file is the team's dev guide.
 
 ## Setup
-Requires Node 22.9 or newer.
+Requires Node 22.9 or newer and pnpm (`npm install -g pnpm`, or `corepack enable`). Use pnpm only: `npm install` would bring back a second lockfile.
 
 ```bash
-npm install
+pnpm install
 cp .env.example .env          # USE_MOCK_AI=true works without any API key
-npx playwright install chromium
+pnpm exec playwright install chromium
 ```
 
 ## Run (two terminals)
 ```bash
-npm run server   # API on http://localhost:3000 (auto-restarts on change)
-npm run dev      # app on http://localhost:5173 (proxies /api to the API)
+pnpm server   # API on http://localhost:3000 (auto-restarts on change)
+pnpm dev      # app on http://localhost:5173 (proxies /api to the API)
 ```
 
 ## Test
 ```bash
-npm run test:api   # backend checks (node:test)
-npm run test:e2e   # Playwright; starts both servers itself, AI mocked
+pnpm test:api   # backend checks (node:test)
+pnpm test:e2e   # Playwright; starts both servers itself, AI mocked
 ```
 
 ## Try the real AI (Zachary)
 Set `GEMINI_API_KEY` in `.env`, then:
 ```bash
-npm run try:scan -- medication path/to/label.jpg   # prints the contract JSON
+pnpm try:scan medication path/to/label.jpg   # prints the contract JSON
 ```
 To make the app use the real AI, set `USE_MOCK_AI=false` in `.env`. Every real scan uses free-tier quota.
 

@@ -1,5 +1,5 @@
 // Try the real Gemini extraction on a photo, no frontend needed. Uses your daily quota.
-// Usage: npm run try:scan -- medication path/to/label.jpg
+// Usage: pnpm try:scan medication path/to/label.jpg
 import { readFile } from 'node:fs/promises'
 import { extname } from 'node:path'
 import { extractScan } from '../services/gemini.js'
@@ -7,7 +7,7 @@ import { extractScan } from '../services/gemini.js'
 const [type, file] = process.argv.slice(2)
 const mime = { '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp' }[extname(file ?? '').toLowerCase()]
 if (!['medication', 'bill'].includes(type) || !mime) {
-  console.error('Usage: npm run try:scan -- <medication|bill> <photo.jpg|png|webp>')
+  console.error('Usage: pnpm try:scan <medication|bill> <photo.jpg|png|webp>')
   process.exit(1)
 }
 
