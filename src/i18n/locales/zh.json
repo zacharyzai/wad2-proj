@@ -110,12 +110,7 @@
     "useSample": "改用示例",
     "capture": "拍下",
     "preview": "相机画面",
-    "cameraBlocked": "无法打开相机。请在浏览器中允许使用相机，或改用“上传照片”。",
-    "example": "示例",
-    "exampleAlt": {
-      "medication": "药物标签示例",
-      "bill": "医药账单示例"
-    },
+    "cameraBlocked": "无法打开相机。请在浏览器中允许使用相机，或改为上传照片。",
     "choose": {
       "title": "您要扫描什么？",
       "lead": "选一项，然后拍一张清楚的照片。"
@@ -126,7 +121,19 @@
       "medication": "示例药物标签",
       "bill": "示例医药账单"
     },
-    "covering": "正在遮盖您的个人资料…"
+    "covering": "正在遮盖您的个人资料…",
+    "dz": {
+      "title": "点击上传或拖入照片",
+      "hint": "PNG、JPG 或 HEIC · 最大 10MB",
+      "browse": "选择照片",
+      "change": "更换照片",
+      "scan": "扫描",
+      "previewAlt": "您选择的照片",
+      "tooBig": "请选择小于 10MB 的照片。",
+      "wrongType": "请选择 PNG、JPG 或 HEIC 格式的照片。"
+    },
+    "addPhoto": "添加照片",
+    "or": "或"
   },
   "confirm": {
     "title": {

@@ -68,6 +68,7 @@ test('uploaded photo is compressed, sent and shown on Confirm', async ({ page })
   await mockImageScan(page)
   await page.goto('/scan')
   await page.getByTestId('upload-input').setInputFiles({ name: 'label.png', mimeType: 'image/png', buffer: TINY_PNG })
+  await page.getByRole('button', { name: 'Scan', exact: true }).click()
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Check what we read')
   // Compressed to JPEG on the client before upload.
   await expect(page.locator('img[src^="data:image/jpeg"]').first()).toBeAttached()
@@ -95,11 +96,46 @@ test('explain without a confirmed scan goes back to Scan', async ({ page }) => {
   await expect(page).toHaveURL(/\/scan$/)
 })
 
-test('an SVG label can be uploaded; it is converted to JPEG first', async ({ page }) => {
+test('the photo is shown before scanning; Change photo picks another', async ({ page }) => {
   await mockImageScan(page)
   await page.goto('/scan')
-  await page.getByTestId('upload-input').setInputFiles('public/samples/med-1.svg')
+  await page.getByTestId('upload-input').setInputFiles({ name: 'label.png', mimeType: 'image/png', buffer: TINY_PNG })
+  await expect(page.getByRole('img', { name: 'The photo you chose' })).toBeVisible()
+  await expect(page.getByText('label.png')).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Change photo' })).toBeVisible()
+  await page.getByTestId('upload-input').setInputFiles({ name: 'other.png', mimeType: 'image/png', buffer: TINY_PNG })
+  await expect(page.getByText('other.png')).toBeVisible()
+  await page.getByRole('button', { name: 'Scan', exact: true }).click()
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Check what we read')
+})
+
+test('wrong file types and photos over 10MB are refused before anything is sent', async ({ page }) => {
+  let apiCalls = 0
+  await page.route('**/api/scan', (route) => (apiCalls++, route.continue()))
+  await page.goto('/scan')
+  await page.getByTestId('upload-input').setInputFiles('public/samples/med-1.svg')
+  await expect(page.getByRole('alert')).toHaveText('Please choose a PNG, JPG or HEIC photo.')
+  await page.getByTestId('upload-input').setInputFiles({ name: 'big.jpg', mimeType: 'image/jpeg', buffer: Buffer.alloc(10 * 1024 * 1024 + 1) })
+  await expect(page.getByRole('alert')).toHaveText('Please choose a photo under 10MB.')
+  await expect(page.getByRole('button', { name: 'Scan', exact: true })).toHaveCount(0)
+  expect(apiCalls).toBe(0)
+})
+
+test('a photo can be dropped on the upload box, which also opens with the keyboard', async ({ page }) => {
+  await mockImageScan(page)
+  await page.goto('/scan')
+  const zone = page.getByRole('button', { name: 'Tap to upload or drop a photo' })
+  const chooser = page.waitForEvent('filechooser')
+  await zone.focus()
+  await page.keyboard.press('Enter')
+  await chooser
+  const drop = await page.evaluateHandle((b64) => {
+    const dt = new DataTransfer()
+    dt.items.add(new File([Uint8Array.from(atob(b64), (c) => c.charCodeAt(0))], 'dropped.png', { type: 'image/png' }))
+    return dt
+  }, TINY_PNG.toString('base64'))
+  await zone.dispatchEvent('drop', { dataTransfer: drop })
+  await expect(page.getByText('dropped.png')).toBeVisible()
 })
 
 test('a file the browser cannot open says so, without asking the server', async ({ page }) => {
@@ -107,6 +143,7 @@ test('a file the browser cannot open says so, without asking the server', async 
   await page.route('**/api/scan', (route) => (apiCalls++, route.continue()))
   await page.goto('/scan')
   await page.getByTestId('upload-input').setInputFiles({ name: 'notes.png', mimeType: 'image/png', buffer: Buffer.from('not an image') })
+  await page.getByRole('button', { name: 'Scan', exact: true }).click()
   await expect(page.getByRole('alert')).toContainText('This file can’t be used.')
   await expect(page.getByRole('button', { name: 'Upload a different photo' })).toBeVisible()
   expect(apiCalls).toBe(0)

@@ -8,6 +8,7 @@ import { redactImage } from '../utils/redact'
 import { scanStore } from '../stores/scan'
 import AppIcon from '../components/layout/AppIcon.vue'
 import LoadingState from '../components/layout/LoadingState.vue'
+import UploadDropzone from '../components/scan/UploadDropzone.vue'
 
 const SAMPLES = [
   { id: 'med-1', type: 'medication', key: 'med1' },
@@ -205,7 +206,7 @@ onMounted(() => {
 <template>
   <!-- Kept outside the states so Retake/Upload work from the error screen too. -->
   <input ref="camera" type="file" accept="image/*" capture="environment" class="d-none" data-testid="camera-input" @change="onFile" />
-  <input ref="upload" type="file" accept="image/*" class="d-none" data-testid="upload-input" @change="onFile" />
+  <input ref="upload" type="file" accept="image/*" class="d-none" @change="onFile" />
 
   <div v-if="state === 'loading'" class="busy rise">
     <div class="progress-ring" aria-hidden="true">
@@ -275,47 +276,41 @@ onMounted(() => {
     </div>
 
     <div class="cols">
-      <div>
-        <div class="frame-area">
-          <video v-show="stream" ref="video" class="live" autoplay playsinline muted @playing="cameraReady = true" :aria-label="t('scan.preview')"></video>
-          <!-- Example shown while the camera is off, so people know what to photograph. -->
-          <template v-if="!stream">
-            <span class="badge example-tag">{{ t('scan.example') }}</span>
-            <img :src="`/samples/${type === 'bill' ? 'bill-1' : 'med-1'}.svg`" :alt="t(`scan.exampleAlt.${type}`)" class="example" />
-          </template>
+      <!-- Everything for getting a photo in, in one place: camera first (most people scan with a phone), then upload. -->
+      <section aria-labelledby="add-title">
+        <h2 id="add-title" class="section-label">{{ t('scan.addPhoto') }}</h2>
+        <!-- The video stays mounted (hidden) so startCamera can attach the stream to it. -->
+        <div v-show="stream" class="frame-area">
+          <video ref="video" class="live" autoplay playsinline muted @playing="cameraReady = true" :aria-label="t('scan.preview')"></video>
           <span class="frame" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
           <span class="frame-hint"><AppIcon name="sun" :size="18" />{{ t(`scan.frame.${type}`) }}</span>
         </div>
-        <p v-if="cameraBlocked" class="alert alert-warning" role="alert"><AppIcon name="alert" />{{ t('scan.cameraBlocked') }}</p>
-      </div>
+        <template v-if="stream">
+          <button type="button" class="btn btn-primary" :disabled="!cameraReady" @click="capture"><AppIcon name="camera" />{{ t('scan.capture') }}</button>
+          <button type="button" class="btn btn-secondary" @click="stopCamera"><AppIcon name="x" />{{ t('scan.cancel') }}</button>
+        </template>
+        <template v-else>
+          <button type="button" class="btn btn-primary" @click="startCamera"><AppIcon name="camera" />{{ t('scan.take') }}</button>
+          <p v-if="cameraBlocked" class="alert alert-warning" role="alert"><AppIcon name="alert" />{{ t('scan.cameraBlocked') }}</p>
+          <p class="or">{{ t('scan.or') }}</p>
+          <UploadDropzone class="dz-full" @select="useFile" />
+        </template>
+        <p class="privacy"><AppIcon name="shield" :size="20" />{{ t('scan.privacy') }}</p>
+      </section>
 
-      <div>
-        <div class="d-flex flex-column gap-3">
-          <template v-if="stream">
-            <button type="button" class="btn btn-primary" :disabled="!cameraReady" @click="capture"><AppIcon name="camera" />{{ t('scan.capture') }}</button>
-            <button type="button" class="btn btn-secondary" @click="stopCamera"><AppIcon name="x" />{{ t('scan.cancel') }}</button>
-          </template>
-          <template v-else>
-            <button type="button" class="btn btn-primary" @click="startCamera"><AppIcon name="camera" />{{ t('scan.take') }}</button>
-            <button type="button" class="btn btn-secondary" @click="upload.click()"><AppIcon name="upload" />{{ t('scan.upload') }}</button>
-          </template>
-          <p class="privacy"><AppIcon name="shield" :size="20" />{{ t('scan.privacy') }}</p>
+      <section aria-labelledby="samples-title">
+        <h2 id="samples-title" class="section-label">{{ t('scan.samplesTitle') }}</h2>
+        <div class="d-flex flex-column gap-3 stagger">
+          <button v-for="sample in SAMPLES" :key="sample.id" type="button" class="card card-interactive sample" @click="trySample(sample)">
+            <img :src="`/samples/${sample.id}.svg`" alt="" class="sample-thumb" />
+            <span class="d-flex flex-column flex-grow-1">
+              <span class="sample-name">{{ t(`scan.samples.${sample.key}`) }}</span>
+              <span class="text-muted-a11y sample-kind">{{ t(`scan.sampleOf.${sample.type}`) }}</span>
+            </span>
+            <AppIcon name="right" :size="22" class="text-teal" />
+          </button>
         </div>
-
-        <div class="d-flex flex-column gap-3">
-          <h2 class="section-label">{{ t('scan.samplesTitle') }}</h2>
-          <div class="d-flex flex-column gap-3 stagger">
-            <button v-for="sample in SAMPLES" :key="sample.id" type="button" class="card card-interactive sample" @click="trySample(sample)">
-              <img :src="`/samples/${sample.id}.svg`" alt="" class="sample-thumb" />
-              <span class="d-flex flex-column flex-grow-1">
-                <span class="sample-name">{{ t(`scan.samples.${sample.key}`) }}</span>
-                <span class="text-muted-a11y sample-kind">{{ t(`scan.sampleOf.${sample.type}`) }}</span>
-              </span>
-              <AppIcon name="right" :size="22" class="text-teal" />
-            </button>
-          </div>
-        </div>
-      </div>
+      </section>
     </div>
   </div>
 </template>

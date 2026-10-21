@@ -3,6 +3,7 @@
 
 /* Choose what to scan */
 .types { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+@media (min-width: 992px) { .types { gap: 24px; } } /* same gap as the columns below, so the cards line up with them */
 .type { position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 12px; min-height: 132px; padding: 18px; border: 2px solid transparent; border-radius: 22px; background: var(--color-card); color: var(--color-text); text-align: left; box-shadow: var(--shadow-card); transition: border-color var(--dur) var(--ease-out), background-color var(--dur) var(--ease-out); }
 .type:hover { border-color: var(--color-tint-strong); }
 .type-tile { width: 48px; height: 48px; border-radius: 14px; background: var(--color-tint); color: var(--color-tint-text); }
@@ -11,11 +12,15 @@
 .type[aria-checked='true'] .type-tile { background: var(--color-primary); color: #fff; }
 .type-check { position: absolute; top: 14px; right: 14px; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: var(--color-primary); color: #fff; }
 
+/* Add a photo: Take photo, "or", upload box */
+.or { display: flex; align-items: center; gap: 14px; margin: 0; color: var(--color-text-muted); font-size: 16px; font-weight: 600; }
+.or::before, .or::after { content: ''; flex: 1; height: 1px; background: var(--color-border-strong); }
+.dz-full { max-width: none; padding: 20px; } /* fill the column, like the Take photo button above it */
+.dz-full :deep(.dz) { padding-block: 36px; }
+
 /* Dark camera frame with teal corner brackets */
 .frame-area { position: relative; overflow: hidden; aspect-ratio: 4 / 3.6; border-radius: 26px; background: #0e1b1a repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0 12px, transparent 12px 24px); box-shadow: var(--shadow-hover); }
 .live { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-.example { position: absolute; inset: 20% 18% 24%; width: 64%; height: 56%; object-fit: contain; opacity: 0.9; }
-.example-tag { position: absolute; top: 14px; left: 14px; }
 .frame { position: absolute; inset: 14% 12%; }
 .frame i { position: absolute; width: 36px; height: 36px; border: 0 solid var(--color-accent); }
 .frame i:nth-child(1) { top: 0; left: 0; border-width: 4px 0 0 4px; border-top-left-radius: 16px; }
@@ -24,7 +29,7 @@
 .frame i:nth-child(4) { bottom: 0; right: 0; border-width: 0 4px 4px 0; border-bottom-right-radius: 16px; }
 .frame-hint { position: absolute; left: 50%; bottom: 16px; transform: translateX(-50%); width: max-content; max-width: calc(100% - 32px); display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: var(--r-pill); background: rgba(0, 0, 0, 0.6); color: #fff; font-size: 16px; font-weight: 600; line-height: 1.3; }
 
-.privacy { display: flex; align-items: center; gap: 10px; padding: 4px 4px 0; color: var(--color-text-muted); font-size: 16px; line-height: 1.45; }
+.privacy { display: flex; align-items: center; gap: 10px; margin: 0; padding: 0 4px; color: var(--color-text-muted); font-size: 16px; line-height: 1.45; }
 .sample { flex-direction: row; align-items: center; gap: 14px; padding: 12px; border-radius: 20px; text-align: left; }
 .sample-thumb { width: 64px; height: 64px; flex: none; padding: 4px; object-fit: contain; border: 1px solid var(--color-border); border-radius: 14px; background: #fff; }
 .sample-name { font-size: 18px; font-weight: 700; line-height: 1.3; }

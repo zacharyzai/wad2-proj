@@ -110,12 +110,7 @@
     "useSample": "Guna contoh",
     "capture": "Tangkap",
     "preview": "Pratonton kamera",
-    "cameraBlocked": "Kamera tidak dapat dibuka. Benarkan akses kamera dalam pelayar anda, atau guna Muat naik gambar.",
-    "example": "Contoh",
-    "exampleAlt": {
-      "medication": "Contoh label ubat",
-      "bill": "Contoh bil perubatan"
-    },
+    "cameraBlocked": "Kamera tidak dapat dibuka. Benarkan akses kamera dalam pelayar anda, atau muat naik gambar.",
     "choose": {
       "title": "Apa yang anda imbas?",
       "lead": "Pilih satu, kemudian ambil gambar yang jelas."
@@ -126,7 +121,19 @@
       "medication": "Contoh label ubat",
       "bill": "Contoh bil perubatan"
     },
-    "covering": "Menutup butiran peribadi anda…"
+    "covering": "Menutup butiran peribadi anda…",
+    "dz": {
+      "title": "Ketik untuk muat naik atau lepaskan gambar di sini",
+      "hint": "PNG, JPG atau HEIC · maksimum 10MB",
+      "browse": "Pilih gambar",
+      "change": "Tukar gambar",
+      "scan": "Imbas",
+      "previewAlt": "Gambar yang anda pilih",
+      "tooBig": "Sila pilih gambar yang kurang daripada 10MB.",
+      "wrongType": "Sila pilih gambar PNG, JPG atau HEIC."
+    },
+    "addPhoto": "Tambah gambar anda",
+    "or": "atau"
   },
   "confirm": {
     "title": {

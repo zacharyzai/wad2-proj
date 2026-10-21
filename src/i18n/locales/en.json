@@ -110,12 +110,7 @@
     "useSample": "Use a sample instead",
     "capture": "Capture",
     "preview": "Camera preview",
-    "cameraBlocked": "We can’t open the camera. Allow camera access in your browser, or use Upload photo.",
-    "example": "Example",
-    "exampleAlt": {
-      "medication": "Example of a medication label",
-      "bill": "Example of a medical bill"
-    },
+    "cameraBlocked": "We can’t open the camera. Allow camera access in your browser, or upload a photo instead.",
     "choose": {
       "title": "What are you scanning?",
       "lead": "Pick one, then take a clear photo."
@@ -126,7 +121,19 @@
       "medication": "Sample medicine label",
       "bill": "Sample medical bill"
     },
-    "covering": "Covering your personal details…"
+    "covering": "Covering your personal details…",
+    "dz": {
+      "title": "Tap to upload or drop a photo",
+      "hint": "PNG, JPG or HEIC · max 10MB",
+      "browse": "Browse photos",
+      "change": "Change photo",
+      "scan": "Scan",
+      "previewAlt": "The photo you chose",
+      "tooBig": "Please choose a photo under 10MB.",
+      "wrongType": "Please choose a PNG, JPG or HEIC photo."
+    },
+    "addPhoto": "Add your photo",
+    "or": "or"
   },
   "confirm": {
     "title": {

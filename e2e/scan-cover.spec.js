@@ -4,7 +4,10 @@ import { test, expect } from '@playwright/test'
 import { mockImageScan } from './helpers/mockImageScan.js'
 
 const TINY_PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', 'base64')
-const upload = (page) => page.getByTestId('upload-input').setInputFiles({ name: 'label.png', mimeType: 'image/png', buffer: TINY_PNG })
+const upload = async (page) => {
+  await page.getByTestId('upload-input').setInputFiles({ name: 'label.png', mimeType: 'image/png', buffer: TINY_PNG })
+  await page.getByRole('button', { name: 'Scan', exact: true }).click()
+}
 
 test('only the covered photo is sent, and Confirm shows that same covered photo', async ({ page }) => {
   await mockImageScan(page)
