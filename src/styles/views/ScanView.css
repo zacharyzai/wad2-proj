@@ -32,7 +32,6 @@
 
 /* Processing */
 .busy { min-height: 60vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px; padding: 24px 0; text-align: center; }
-.busy-title { font-size: 26px; }
 
 /* Unclear photo / service error */
 .err-tile { width: 88px; height: 88px; border-radius: 26px; }

@@ -2,7 +2,6 @@
 @keyframes ahma-rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
 @keyframes ahma-pulse { 0%, 100% { transform: scale(1); opacity: 0.5; } 50% { transform: scale(1.06); opacity: 1; } }
 @keyframes ahma-spin { to { transform: rotate(360deg); } }
-@keyframes ahma-dot { 0%, 100% { width: 10px; background: var(--color-border-strong); } 30%, 60% { width: 32px; background: var(--color-primary); } }
 .rise { animation: ahma-rise var(--dur) var(--ease-out) both; }
 .stagger > * { animation: ahma-rise var(--dur) var(--ease-out) both; }
 .stagger > :nth-child(2) { animation-delay: calc(var(--stagger) * 1); }
@@ -17,15 +16,10 @@
 .progress-ring__pulse { position: absolute; border-radius: 50%; border: 2px solid var(--color-tint-strong); animation: ahma-pulse 2s ease-in-out infinite; }
 .progress-ring__pulse + .progress-ring__pulse { border-color: var(--color-tint); animation-delay: 0.4s; }
 .progress-ring__core { position: relative; width: 104px; height: 104px; border-radius: 50%; background: var(--color-card); box-shadow: var(--shadow-card); display: grid; place-items: center; color: var(--color-primary-text); }
-.step-dots { display: flex; gap: 8px; }
-.step-dots > span { width: 10px; height: 10px; border-radius: var(--r-pill); background: var(--color-border-strong); animation: ahma-dot 2.4s ease-in-out infinite; }
-.step-dots > :nth-child(2) { animation-delay: 0.6s; }
-.step-dots > :nth-child(3) { animation-delay: 1.2s; }
-.step-dots > :nth-child(4) { animation-delay: 1.8s; }
 .reassure-pill { display: inline-flex; align-items: center; gap: 10px; padding: 12px 20px; border-radius: var(--r-pill); background: var(--color-card); border: 1px solid var(--color-border); box-shadow: var(--shadow-card); font-size: 17px; font-weight: 600; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; animation-delay: 0ms !important; transition-duration: 0.01ms !important; }
   .btn:active, .choice:active, .card-interactive:hover { transform: none !important; }
-  .progress-ring > svg, .progress-ring__pulse, .step-dots > span { animation: none !important; }
+  .progress-ring > svg, .progress-ring__pulse { animation: none !important; }
 }

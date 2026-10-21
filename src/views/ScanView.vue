@@ -7,6 +7,7 @@ import { scanImage, scanSample } from '../api/client'
 import { redactImage } from '../utils/redact'
 import { scanStore } from '../stores/scan'
 import AppIcon from '../components/layout/AppIcon.vue'
+import LoadingState from '../components/layout/LoadingState.vue'
 
 const SAMPLES = [
   { id: 'med-1', type: 'medication', key: 'med1' },
@@ -206,7 +207,7 @@ onMounted(() => {
   <input ref="camera" type="file" accept="image/*" capture="environment" class="d-none" data-testid="camera-input" @change="onFile" />
   <input ref="upload" type="file" accept="image/*" class="d-none" data-testid="upload-input" @change="onFile" />
 
-  <div v-if="state === 'loading'" class="busy rise" role="status">
+  <div v-if="state === 'loading'" class="busy rise">
     <div class="progress-ring" aria-hidden="true">
       <svg width="216" height="216" viewBox="0 0 216 216">
         <circle cx="108" cy="108" r="96" fill="none" stroke="var(--color-surface-2)" stroke-width="12" />
@@ -216,11 +217,8 @@ onMounted(() => {
       <span class="progress-ring__pulse" style="inset: 42px"></span>
       <span class="progress-ring__core"><AppIcon :name="readingType === 'bill' ? 'receipt' : 'pill'" :size="40" /></span>
     </div>
-    <div class="d-flex flex-column gap-2">
-      <h1 class="busy-title">{{ covering ? t('scan.covering') : t(`scan.reading.${readingType}`) }}</h1>
-      <p class="lead-text">{{ t('scan.wait') }}</p>
-    </div>
-    <div class="step-dots" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+    <LoadingState :label="covering ? t('scan.covering') : t(`scan.reading.${readingType}`)" />
+    <p class="lead-text">{{ t('scan.wait') }}</p>
     <span class="reassure-pill"><AppIcon name="shield" :size="20" class="text-teal" />{{ t('scan.neverStored') }}</span>
     <button type="button" class="btn btn-ghost" @click="cancel">{{ t('scan.cancel') }}</button>
   </div>
