@@ -1,4 +1,5 @@
 // Every route is registered here up front so teammates only edit their own view files.
+import { nextTick } from 'vue'
 import { createRouter, createWebHistory } from 'vue-router'
 import { authStore, restore } from '../stores/auth'
 
@@ -52,5 +53,16 @@ router.beforeEach(async (to) => {
   if (authStore.user) return true
   return { name: 'login', query: { next: to.fullPath } } // Login sends them back here afterwards
 })
+
+// Page changes slide and fade (and the scanned photo moves into place on Confirm) where the browser supports it.
+// beforeResolve runs once the next page's code has loaded, so the transition only waits for the DOM swap. Styles: motion.css.
+let finishTransition = null
+router.beforeResolve((to, from) => {
+  if (!from.name || to.path === from.path || !document.startViewTransition || matchMedia('(prefers-reduced-motion: reduce)').matches) return
+  return new Promise((resolve) => {
+    document.startViewTransition(() => new Promise((done) => ((finishTransition = done), resolve())))
+  })
+})
+router.afterEach(() => nextTick(() => (finishTransition?.(), (finishTransition = null))))
 
 export default router

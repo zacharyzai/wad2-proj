@@ -64,7 +64,10 @@
       "afternoon": "Good afternoon",
       "evening": "Good evening"
     },
-    "what": "What can I scan?"
+    "what": "What can I scan?",
+    "ask": {
+      "text": "Ask a question about your medicine, in your own language."
+    }
   },
   "scan": {
     "frame": {

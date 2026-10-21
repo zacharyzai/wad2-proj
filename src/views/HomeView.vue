@@ -59,28 +59,36 @@ function onFile(event) {
       </figure>
     </section>
 
+    <!-- Bento: the two scans are the big tiles; Ask and the samples sit beside them. Stacks in the same order on phones. -->
     <section class="d-flex flex-column gap-3">
       <h2 class="section-label">{{ t('home.what') }}</h2>
-      <div class="grid">
-        <RouterLink v-for="c in CHOICES" :key="c.type" :to="{ name: 'scan', query: { type: c.type } }" class="card card-interactive choice-card">
+      <div class="bento">
+        <RouterLink v-for="c in CHOICES" :key="c.type" :to="{ name: 'scan', query: { type: c.type } }" class="card card-interactive tile-link" :class="`b-${c.type}`">
           <span class="tile tile-lg"><AppIcon :name="c.icon" :size="28" /></span>
-          <span class="d-flex flex-column gap-1 flex-grow-1 min-w-0">
+          <span class="d-flex flex-column gap-1">
             <span class="choice-title">{{ t(`home.${c.key}.title`) }}</span>
             <span class="text-muted-a11y">{{ t(`home.${c.key}.text`) }}</span>
           </span>
+          <img :src="`/samples/${c.type === 'bill' ? 'bill-1' : 'med-1'}.svg`" alt="" class="peek" />
           <span class="chev"><AppIcon name="right" :size="22" /></span>
         </RouterLink>
-      </div>
-    </section>
 
-    <section class="d-flex flex-column gap-3">
-      <h2 class="section-label">{{ t('home.sample') }}</h2>
-      <div class="grid">
-        <RouterLink v-for="s in SAMPLES" :key="s.id" :to="{ name: 'scan', query: { sample: s.id } }" class="sample-link">
-          <AppIcon name="sparkles" />
-          <span class="flex-grow-1">{{ t(`scan.samples.${s.key}`) }}</span>
-          <AppIcon name="right" :size="22" />
+        <RouterLink :to="{ name: 'ask' }" class="card card-interactive tile-link b-ask">
+          <span class="tile tile-lg"><AppIcon name="chat" :size="28" /></span>
+          <span class="d-flex flex-column gap-1">
+            <span class="choice-title">{{ t('pages.ask') }}</span>
+            <span class="text-muted-a11y">{{ t('home.ask.text') }}</span>
+          </span>
         </RouterLink>
+
+        <div class="b-samples">
+          <h3 class="section-label">{{ t('home.sample') }}</h3>
+          <RouterLink v-for="s in SAMPLES" :key="s.id" :to="{ name: 'scan', query: { sample: s.id } }" class="sample-link">
+            <AppIcon name="sparkles" />
+            <span class="flex-grow-1">{{ t(`scan.samples.${s.key}`) }}</span>
+            <AppIcon name="right" :size="22" />
+          </RouterLink>
+        </div>
       </div>
     </section>
   </div>

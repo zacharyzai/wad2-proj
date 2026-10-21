@@ -27,6 +27,9 @@ const type = computed(() => (route.query.type === 'bill' ? 'bill' : 'medication'
 
 const state = ref('idle') // idle | loading | error
 const covering = ref(false) // loading, step 1: blacking out personal details on this phone
+// The photo shown while it is covered, so people watch their details being blacked out: { original, covered }.
+const coverView = ref(null)
+const REVEAL_MS = 1100 // matches the cover-wipe animation in ScanView.css
 const readingType = ref(type.value)
 const errorCode = ref(null)
 const photo = ref(null)
@@ -150,6 +153,7 @@ async function coverAndSend(docType) {
   readingType.value = docType
   covering.value = true
   state.value = 'loading'
+  coverView.value = { original: photo.value, covered: null }
   let covered = null
   try {
     covered = await (window.__redactForTests ?? redactImage)(photo.value)
@@ -157,19 +161,25 @@ async function coverAndSend(docType) {
     // Reader could not load (offline, very old phone) or crashed: fail closed.
   }
   if (id !== run) return // cancelled
-  covering.value = false
   if (!covered || !covered.keep.length) {
+    covering.value = false
     // Nothing that looks like a label or bill was found: the covered photo would be all black, so don't send it.
     errorCode.value = covered ? 'UNREADABLE_IMAGE' : 'COVER_FAILED'
     state.value = 'error'
     return
   }
   photo.value = covered.dataUrl
+  coverView.value = { ...coverView.value, covered: covered.dataUrl }
+  // Let the blacked-out version wipe in before reading starts (shorter with reduced motion: there is no wipe).
+  await new Promise((done) => setTimeout(done, matchMedia('(prefers-reduced-motion: reduce)').matches ? 300 : REVEAL_MS))
+  if (id !== run) return
+  covering.value = false
   send(docType, () => scanImage(docType, photo.value))
 }
 
 function trySample(sample) {
   photo.value = null
+  coverView.value = null
   send(sample.type, () => scanSample(sample.id))
 }
 
@@ -209,7 +219,12 @@ onMounted(() => {
   <input ref="upload" type="file" accept="image/*" class="d-none" @change="onFile" />
 
   <div v-if="state === 'loading'" class="busy rise">
-    <div class="progress-ring" aria-hidden="true">
+    <div v-if="coverView" class="cover-view" :class="{ done: coverView.covered }" aria-hidden="true">
+      <img :src="coverView.original" alt="" />
+      <img v-if="coverView.covered" :src="coverView.covered" alt="" class="cover-after" />
+      <span class="cover-line"></span>
+    </div>
+    <div v-else class="progress-ring" aria-hidden="true">
       <svg width="216" height="216" viewBox="0 0 216 216">
         <circle cx="108" cy="108" r="96" fill="none" stroke="var(--color-surface-2)" stroke-width="12" />
         <circle cx="108" cy="108" r="96" fill="none" stroke="var(--color-primary)" stroke-width="12" stroke-linecap="round" stroke-dasharray="603" stroke-dashoffset="400" />

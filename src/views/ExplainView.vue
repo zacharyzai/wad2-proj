@@ -60,7 +60,8 @@ function medication(m) {
       { big: `${m.timesPerDay}×`, text: t('explain.stat.perDay') },
       m.withFood && { icon: 'food', text: t(`food.${m.withFood}`) },
     ].filter(Boolean),
-    times: (m.timing ?? []).map((k) => ({ key: k, icon: TIME_ICONS[k], text: t(`timing.${k}`) })),
+    // All four parts of the day, so the ones to take stand out in a day strip; skipped ones are for sighted context only.
+    times: m.timing?.length ? Object.keys(TIME_ICONS).map((k) => ({ key: k, icon: TIME_ICONS[k], text: t(`timing.${k}`), on: m.timing.includes(k) })) : [],
     canSchedule: true,
   }
 }
@@ -145,9 +146,13 @@ watch(locale, () => (picked.value = null))
               <span class="stat-text">{{ stat.text }}</span>
             </div>
           </div>
-          <div v-if="view.times?.length" class="d-flex flex-wrap gap-2">
-            <span v-for="time in view.times" :key="time.key" class="badge badge-teal time"><AppIcon :name="time.icon" :size="20" />{{ time.text }}</span>
-          </div>
+          <ol v-if="view.times?.length" class="day-strip">
+            <li v-for="time in view.times" :key="time.key" class="slot" :class="{ on: time.on }" :aria-hidden="!time.on">
+              <AppIcon :name="time.icon" :size="26" />
+              <span>{{ time.text }}</span>
+              <span v-if="time.on" class="slot-check" aria-hidden="true"><AppIcon name="check" :size="14" :stroke="3" /></span>
+            </li>
+          </ol>
 
           <div class="body">
             <p v-for="p in view.paras" :key="p">{{ p }}</p>

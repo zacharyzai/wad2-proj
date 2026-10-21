@@ -64,7 +64,10 @@
       "afternoon": "Selamat petang",
       "evening": "Selamat malam"
     },
-    "what": "Apa yang boleh diimbas?"
+    "what": "Apa yang boleh diimbas?",
+    "ask": {
+      "text": "Tanya soalan tentang ubat anda dalam bahasa anda sendiri."
+    }
   },
   "scan": {
     "frame": {

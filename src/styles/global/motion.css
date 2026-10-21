@@ -18,6 +18,15 @@
 .progress-ring__core { position: relative; width: 104px; height: 104px; border-radius: 50%; background: var(--color-card); box-shadow: var(--shadow-card); display: grid; place-items: center; color: var(--color-primary-text); }
 .reassure-pill { display: inline-flex; align-items: center; gap: 10px; padding: 12px 20px; border-radius: var(--r-pill); background: var(--color-card); border: 1px solid var(--color-border); box-shadow: var(--shadow-card); font-size: 17px; font-weight: 600; }
 
+/* Page transitions (src/router/index.js): only the page content moves; the sidebar and tab bar stay put. */
+#main { view-transition-name: page; }
+.cover-view, .photo.stick { view-transition-name: scan-photo; } /* the covered photo on Scan flies into its place on Confirm */
+::view-transition-old(page) { animation: vt-out 160ms ease-in both; }
+::view-transition-new(page) { animation: vt-in 320ms var(--ease-out) both; }
+::view-transition-group(scan-photo) { animation-duration: 420ms; animation-timing-function: var(--ease-out); }
+@keyframes vt-out { to { opacity: 0; } }
+@keyframes vt-in { from { opacity: 0; transform: translateY(14px); } }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; animation-delay: 0ms !important; transition-duration: 0.01ms !important; }
   .btn:active, .choice:active, .card-interactive:hover { transform: none !important; }

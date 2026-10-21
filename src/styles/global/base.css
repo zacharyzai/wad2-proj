@@ -1,7 +1,8 @@
 /* Owner: Isaac. Resets, type, links, focus, skip link. */
-body { margin: 0; background: var(--color-page); color: var(--color-text); font: 400 var(--fs-body) / var(--lh-body) var(--font-sans); -webkit-font-smoothing: antialiased; }
+body { margin: 0; background: var(--grain) var(--color-page); color: var(--color-text); font: 400 var(--fs-body) / var(--lh-body) var(--font-sans); -webkit-font-smoothing: antialiased; }
 h1, h2, h3, p, ul, ol, dl, figure { margin: 0; }
-h1, .h1 { font-size: var(--fs-h1); font-weight: 800; line-height: var(--lh-tight); letter-spacing: -0.01em; }
+h1, .h1, .display, .hero-number { font-variant-numeric: lining-nums; } /* Young Serif digits otherwise sit low: a 1 can read as an I */
+h1, .h1 { font-family: var(--font-display); font-size: var(--fs-h1); font-weight: 400; line-height: var(--lh-tight); letter-spacing: -0.01em; text-wrap: balance; }
 h2, .h2 { font-size: var(--fs-h2); font-weight: 800; line-height: 1.35; }
 h3, .h3 { font-size: var(--fs-h3); font-weight: 700; line-height: 1.35; }
 a { color: var(--color-link); text-underline-offset: 3px; }
@@ -17,8 +18,8 @@ h1[tabindex='-1']:focus { box-shadow: none; }
 .lead-text { font-size: var(--fs-lead); line-height: 1.55; color: var(--color-text-muted); text-wrap: pretty; }
 /* Small caps label above a card or group */
 .section-label { font-size: var(--fs-small); font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--color-text-muted); margin: 0; }
-.display { font-size: var(--fs-display); font-weight: 800; line-height: 1.15; letter-spacing: -0.02em; text-wrap: balance; }
-.hero-number { font-size: var(--fs-hero); font-weight: 800; line-height: 1; color: var(--color-primary-text); letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+.display { font-family: var(--font-display); font-size: var(--fs-display); font-weight: 400; line-height: 1.15; letter-spacing: -0.02em; text-wrap: balance; }
+.hero-number { font-family: var(--font-display); font-size: var(--fs-hero); font-weight: 400; line-height: 1; color: var(--color-primary-text); letter-spacing: -0.03em; font-variant-numeric: tabular-nums lining-nums; }
 
 /* Skip link: hidden until focused with the keyboard. */
 .skip { position: absolute; left: 12px; top: -100px; z-index: 100; padding: 12px 20px; border-radius: var(--r-field); background: var(--color-text); color: var(--color-card); font-weight: 700; text-decoration: none; }
@@ -27,3 +28,5 @@ h1[tabindex='-1']:focus { box-shadow: none; }
 /* Long-string languages */
 :lang(ta), :lang(ms) { --lh-tight: 1.3; }
 :lang(ta) .display { font-size: calc(var(--fs-display) * 0.85); }
+/* Young Serif has no Tamil; Tamil titles stay in the bold sans so they don't fall back to a thin face. */
+:lang(ta) h1, :lang(ta) .h1, :lang(ta) .display { font-family: var(--font-sans); font-weight: 800; }

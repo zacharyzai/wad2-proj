@@ -67,8 +67,6 @@ onBeforeUnmount(() => url.value && URL.revokeObjectURL(url.value))
       :class="{ 'dz-over': dragging }"
       role="button"
       tabindex="0"
-      aria-labelledby="dz-title"
-      aria-describedby="dz-hint"
       @click="input.click()"
       @keydown.enter.space.prevent="input.click()"
       @dragover.prevent="dragging = true"
@@ -84,10 +82,11 @@ onBeforeUnmount(() => url.value && URL.revokeObjectURL(url.value))
           </svg>
         </span>
       </span>
-      <span id="dz-title" class="dz-title">{{ t('scan.dz.title') }}</span>
-      <span id="dz-hint" class="dz-hint">{{ t('scan.dz.hint') }}</span>
-      <!-- Looks like a button; the whole zone is the real one (a button inside a button would confuse screen readers). -->
-      <span class="dz-pill" aria-hidden="true"><AppIcon name="upload" :size="20" />{{ t('scan.dz.browse') }}</span>
+      <span class="dz-title">{{ t('scan.dz.title') }}</span>
+      <span class="dz-hint">{{ t('scan.dz.hint') }}</span>
+      <!-- Looks like a button; the whole zone is the real one (a button inside a button would confuse screen readers).
+           Its name is all the text inside it, so what people see is what a voice-control user can say. -->
+      <span class="dz-pill"><AppIcon name="upload" :size="20" />{{ t('scan.dz.browse') }}</span>
     </div>
 
     <p v-if="error" class="dz-error" role="alert"><AppIcon name="alert" :size="20" />{{ error }}</p>

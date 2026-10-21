@@ -109,6 +109,38 @@ watch(answers, (next) => {
 })
 onBeforeUnmount(() => clearTimeout(settleTimer))
 
+// The big amount counts up when a bill opens (a quick, visible "this is the number that matters"). Screen readers get the real amount.
+const shownPay = ref(0)
+let countFrame = 0
+watch(
+  () => bill.value?.totalPayableCents,
+  (to) => {
+    cancelAnimationFrame(countFrame)
+    if (to == null) return
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return (shownPay.value = to)
+    const start = performance.now()
+    const step = (now) => {
+      const p = Math.min(1, (now - start) / 700)
+      shownPay.value = Math.round(to * (1 - (1 - p) ** 3))
+      if (p < 1) countFrame = requestAnimationFrame(step)
+    }
+    countFrame = requestAnimationFrame(step)
+  },
+  { immediate: true },
+)
+onBeforeUnmount(() => cancelAnimationFrame(countFrame))
+
+// How the charges split: what you pay, what subsidies took off, what MediSave paid. Shares of the full charges, for the bar.
+const split = computed(() => {
+  const b = bill.value
+  const charges = sumCents(b.items) || 1
+  return [
+    { key: 'pay', cents: b.totalPayableCents },
+    { key: 'subsidy', cents: sumCents(b.subsidies) },
+    { key: 'medisave', cents: b.medisaveCents },
+  ].filter((part) => part.cents > 0).map((part) => ({ ...part, pct: (part.cents / charges) * 100 }))
+})
+
 const summary = computed(() => [
   [t('bill.summary.charges'), money(sumCents(bill.value.items))],
   [t('bill.summary.subsidies'), '−' + money(sumCents(bill.value.subsidies))],
@@ -137,11 +169,15 @@ const summary = computed(() => [
             </div>
           </div>
           <i18n-t keypath="bill.pay" tag="h2" class="pay-title">
-            <template #amount><span class="hero-number">{{ money(bill.totalPayableCents) }}</span></template>
+            <template #amount><span class="hero-number"><span aria-hidden="true">{{ money(shownPay) }}</span><span class="visually-hidden">{{ money(bill.totalPayableCents) }}</span></span></template>
           </i18n-t>
+          <!-- Picture of the list below it (which has the words), so hidden from screen readers. -->
+          <div class="split" aria-hidden="true">
+            <span v-for="part in split" :key="part.key" class="seg" :class="`seg-${part.key}`" :style="{ flexGrow: part.pct }"></span>
+          </div>
           <dl class="summary-row">
-            <div v-for="[label, amount] in summary" :key="label">
-              <dt>{{ label }}</dt>
+            <div v-for="([label, amount], i) in summary" :key="label">
+              <dt><span v-if="i" class="swatch" :class="i === 1 ? 'seg-subsidy' : 'seg-medisave'" aria-hidden="true"></span>{{ label }}</dt>
               <dd>{{ amount }}</dd>
             </div>
           </dl>

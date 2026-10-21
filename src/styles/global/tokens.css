@@ -1,13 +1,13 @@
 /* Owner: Isaac. Design tokens from the Claude Design system ("Design system and screens built"). Night mode swaps the same names. */
 :root {
   /* Colour: light */
-  --color-page: #f8f9fa;
-  --color-card: #ffffff;
-  --color-surface-2: #f1f3f4;
-  --color-border: #e8eaed;
-  --color-border-strong: #dadce0;
-  --color-text: #1a1a1a;
-  --color-text-muted: #5f6368; /* AA on page and card (#80868b fails as text) */
+  --color-page: #faf7f2; /* warm paper, matching the welcome page */
+  --color-card: #fffdfa;
+  --color-surface-2: #f2ede4;
+  --color-border: #ece5d9;
+  --color-border-strong: #dcd3c4;
+  --color-text: #211e1a;
+  --color-text-muted: #5e574e; /* AA on page, card and surface-2 */
   --color-primary: #1a7070;
   --color-primary-pressed: #135555;
   --color-primary-text: #1a7070; /* teal words and digits */
@@ -28,8 +28,8 @@
   --gradient-result: linear-gradient(160deg, #e0f7f5 0%, #ffffff 75%);
 
   /* Elevation */
-  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.06);
-  --shadow-hover: 0 2px 6px rgba(0, 0, 0, 0.08), 0 14px 32px rgba(0, 0, 0, 0.1);
+  --shadow-card: 0 1px 2px rgba(74, 52, 30, 0.08), 0 6px 16px -4px rgba(74, 52, 30, 0.1); /* warm-tinted, one light source from above */
+  --shadow-hover: 0 2px 6px rgba(74, 52, 30, 0.08), 0 18px 36px -10px rgba(74, 52, 30, 0.2);
   --shadow-glow: 0 4px 14px rgba(26, 112, 112, 0.35);
   --shadow-sos: 0 6px 20px rgba(198, 43, 54, 0.35);
   --focus-ring: 0 0 0 4px rgba(26, 112, 112, 0.25);
@@ -43,6 +43,8 @@
 
   /* Type: nothing below 16px */
   --font-sans: 'Plus Jakarta Sans', 'Noto Sans SC', 'Noto Sans Tamil', system-ui, sans-serif;
+  --font-display: 'Young Serif', 'Noto Serif SC', 'Noto Sans Tamil', Georgia, serif; /* page titles and big numbers, as on the welcome page */
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .3 0 0 0 0 .2 0 0 0 0 .1 0 0 0 .06 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   --fs-hero: 52px; --fs-display: 30px; --fs-h1: 28px; --fs-h2: 22px; --fs-h3: 20px;
   --fs-lead: 19px; --fs-body: 18px; --fs-small: 16px;
   --lh-tight: 1.2; --lh-body: 1.55;
