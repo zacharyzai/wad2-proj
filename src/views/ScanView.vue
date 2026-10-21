@@ -4,6 +4,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { scanImage, scanSample } from '../api/client'
+import { redactImage } from '../utils/redact'
 import { scanStore } from '../stores/scan'
 import AppIcon from '../components/layout/AppIcon.vue'
 
@@ -23,6 +24,7 @@ const router = useRouter()
 const type = computed(() => (route.query.type === 'bill' ? 'bill' : 'medication'))
 
 const state = ref('idle') // idle | loading | error
+const covering = ref(false) // loading, step 1: blacking out personal details on this phone
 const readingType = ref(type.value)
 const errorCode = ref(null)
 const photo = ref(null)
@@ -88,8 +90,7 @@ function stopCamera() {
 function capture() {
   photo.value = toJpeg(video.value, video.value.videoWidth, video.value.videoHeight)
   stopCamera()
-  const docType = type.value
-  send(docType, () => scanImage(docType, photo.value))
+  coverAndSend(type.value)
 }
 
 async function retake() {
@@ -134,7 +135,34 @@ async function useFile(file) {
     state.value = 'error'
     return
   }
-  const docType = type.value
+  coverAndSend(type.value)
+}
+
+// Zachary: personal details are blacked out on this phone first (src/utils/redact.js), and only the covered photo is sent.
+// If covering fails, nothing is sent. The covered photo is also what Confirm shows, so the user sees exactly what was sent.
+// e2e tests swap in a fake via window.__redactForTests (e2e/helpers/mockImageScan.js); real covering needs the reader download.
+let coverDocType = null
+async function coverAndSend(docType) {
+  const id = ++run
+  coverDocType = docType
+  readingType.value = docType
+  covering.value = true
+  state.value = 'loading'
+  let covered = null
+  try {
+    covered = await (window.__redactForTests ?? redactImage)(photo.value)
+  } catch {
+    // Reader could not load (offline, very old phone) or crashed: fail closed.
+  }
+  if (id !== run) return // cancelled
+  covering.value = false
+  if (!covered || !covered.keep.length) {
+    // Nothing that looks like a label or bill was found: the covered photo would be all black, so don't send it.
+    errorCode.value = covered ? 'UNREADABLE_IMAGE' : 'COVER_FAILED'
+    state.value = 'error'
+    return
+  }
+  photo.value = covered.dataUrl
   send(docType, () => scanImage(docType, photo.value))
 }
 
@@ -144,11 +172,13 @@ function trySample(sample) {
 }
 
 function retry() {
+  if (errorCode.value === 'COVER_FAILED') return coverAndSend(coverDocType)
   send(lastRequest.docType, lastRequest.request)
 }
 
 function cancel() {
   run++
+  covering.value = false
   state.value = 'idle'
 }
 
@@ -187,7 +217,7 @@ onMounted(() => {
       <span class="progress-ring__core"><AppIcon :name="readingType === 'bill' ? 'receipt' : 'pill'" :size="40" /></span>
     </div>
     <div class="d-flex flex-column gap-2">
-      <h1 class="busy-title">{{ t(`scan.reading.${readingType}`) }}</h1>
+      <h1 class="busy-title">{{ covering ? t('scan.covering') : t(`scan.reading.${readingType}`) }}</h1>
       <p class="lead-text">{{ t('scan.wait') }}</p>
     </div>
     <div class="step-dots" aria-hidden="true"><span></span><span></span><span></span><span></span></div>

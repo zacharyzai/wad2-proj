@@ -44,7 +44,8 @@
     "NOT_IMPLEMENTED": "Ciri ini akan datang.",
     "SERVER_ERROR": "Ada masalah. Sila cuba lagi.",
     "NETWORK_ERROR": "Tidak dapat disambungkan. Sila semak sambungan internet anda.",
-    "UNSUPPORTED_FILE": "Fail ini tidak boleh digunakan. Sila pilih gambar (JPG atau PNG)."
+    "UNSUPPORTED_FILE": "Fail ini tidak boleh digunakan. Sila pilih gambar (JPG atau PNG).",
+    "COVER_FAILED": "Kami tidak dapat menutup butiran peribadi anda pada telefon ini, jadi tiada apa-apa yang dihantar. Sila cuba lagi."
   },
   "home": {
     "title": "Apa yang anda ingin fahami?",
@@ -119,12 +120,13 @@
       "title": "Apa yang anda imbas?",
       "lead": "Pilih satu, kemudian ambil gambar yang jelas."
     },
-    "privacy": "Gambar anda dibaca sekali dan tidak disimpan.",
+    "privacy": "Nama, NRIC dan alamat anda dihitamkan pada telefon ini sebelum gambar anda dibaca. Gambar tidak disimpan.",
     "neverStored": "Gambar anda tidak disimpan",
     "sampleOf": {
       "medication": "Contoh label ubat",
       "bill": "Contoh bil perubatan"
-    }
+    },
+    "covering": "Menutup butiran peribadi anda…"
   },
   "confirm": {
     "title": {

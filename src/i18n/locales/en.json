@@ -44,7 +44,8 @@
     "NOT_IMPLEMENTED": "This feature is coming soon.",
     "SERVER_ERROR": "Something went wrong. Please try again.",
     "NETWORK_ERROR": "Cannot connect. Please check your internet connection.",
-    "UNSUPPORTED_FILE": "This file can’t be used. Please choose a photo (JPG or PNG)."
+    "UNSUPPORTED_FILE": "This file can’t be used. Please choose a photo (JPG or PNG).",
+    "COVER_FAILED": "We couldn't cover your personal details on this phone, so nothing was sent. Please try again."
   },
   "home": {
     "title": "What would you like to understand?",
@@ -119,12 +120,13 @@
       "title": "What are you scanning?",
       "lead": "Pick one, then take a clear photo."
     },
-    "privacy": "Your photo is read once and never stored.",
+    "privacy": "Your name, NRIC and address are blacked out on this phone before your photo is read. It is never stored.",
     "neverStored": "Your photo is never stored",
     "sampleOf": {
       "medication": "Sample medicine label",
       "bill": "Sample medical bill"
-    }
+    },
+    "covering": "Covering your personal details…"
   },
   "confirm": {
     "title": {

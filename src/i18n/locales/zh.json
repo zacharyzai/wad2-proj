@@ -44,7 +44,8 @@
     "NOT_IMPLEMENTED": "此功能即将推出。",
     "SERVER_ERROR": "出了点问题，请再试一次。",
     "NETWORK_ERROR": "无法连接，请检查网络。",
-    "UNSUPPORTED_FILE": "无法使用这个文件。请选择一张照片（JPG 或 PNG）。"
+    "UNSUPPORTED_FILE": "无法使用这个文件。请选择一张照片（JPG 或 PNG）。",
+    "COVER_FAILED": "我们无法在这部手机上遮盖您的个人资料，所以没有发送任何内容。请再试一次。"
   },
   "home": {
     "title": "您想了解什么？",
@@ -119,12 +120,13 @@
       "title": "您要扫描什么？",
       "lead": "选一项，然后拍一张清楚的照片。"
     },
-    "privacy": "您的照片只读取一次，不会被保存。",
+    "privacy": "在读取照片之前，您的姓名、身份证号码和地址会先在这部手机上被涂黑。照片不会被保存。",
     "neverStored": "您的照片不会被保存",
     "sampleOf": {
       "medication": "示例药物标签",
       "bill": "示例医药账单"
-    }
+    },
+    "covering": "正在遮盖您的个人资料…"
   },
   "confirm": {
     "title": {

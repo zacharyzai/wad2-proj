@@ -2,7 +2,15 @@
 // Checks the client sent a compressed JPEG, then answers with the Metformin sample.
 import { expect } from '@playwright/test'
 
-export async function mockImageScan(page) {
+export async function mockImageScan(page, { cover = 'keep' } = {}) {
+  // Covering personal details (src/utils/redact.js) needs the reader download and real label text; tests use a fake that
+  // keeps the photo as it is. Pass { cover } to test other outcomes: 'none' (nothing readable) or 'fail' (reader broke).
+  await page.addInitScript((cover) => {
+    window.__redactForTests = async (dataUrl) => {
+      if (cover === 'fail') throw new Error('reader failed')
+      return { dataUrl, keep: cover === 'none' ? [] : [{ text: 'TAKE 1 TABLET' }], hits: [] }
+    }
+  }, cover)
   await page.route('**/api/scan', async (route) => {
     const body = route.request().postDataJSON()
     if (body.sampleId) return route.continue()
