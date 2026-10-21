@@ -22,6 +22,7 @@ const routes = [
   { path: '/shared/:token', name: 'shared', component: () => import('../views/SharedView.vue') },
   // Zachary: dev-only test bench for photo redaction; not in production builds.
   ...(import.meta.env.DEV ? [{ path: '/dev/redact', name: 'redact-lab', component: () => import('../views/dev/RedactLab.vue') }] : []),
+  ...(import.meta.env.DEV ? [{ path: '/dev/badges', name: 'badge-demo', component: () => import('../views/dev/BadgeDemo.vue') }] : []),
   { path: '/:pathMatch(.*)*', name: 'not-found', component: () => import('../views/NotFoundView.vue') },
 ]
 
