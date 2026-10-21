@@ -234,7 +234,8 @@
       "subsidies": "Subsidi yang ditolak",
       "medisave": "Dibayar oleh MediSave",
       "pay": "Anda bayar",
-      "p": "Subsidi sudah ditolak daripada bil anda. Jumlah MediSave dibayar daripada akaun MediSave CPF anda, bukan dengan wang tunai."
+      "p": "Subsidi sudah ditolak daripada bil anda. Jumlah MediSave dibayar daripada akaun MediSave CPF anda, bukan dengan wang tunai.",
+      "breakdown": "Lihat pecahan penuh"
     },
     "check": {
       "title": "Semakan ringkas",
@@ -376,5 +377,126 @@
     "working": "Sila tunggu…",
     "noAccount": "Belum ada akaun?",
     "haveAccount": "Sudah ada akaun?"
+  },
+  "bill": {
+    "lead": "Tekan mana-mana baris untuk melihat maksudnya.",
+    "scope": "Paling sesuai untuk bil dari poliklinik dan klinik GP di Singapura.",
+    "pay": "Anda bayar {amount}.",
+    "summary": {
+      "label": "Ringkasan bil",
+      "charges": "Jumlah caj",
+      "subsidies": "Subsidi",
+      "medisave": "MediSave"
+    },
+    "charged": "Caj anda",
+    "takenOff": "Ditolak daripada bil anda",
+    "total": "Anda bayar",
+    "takenOffAmount": "{amount} ditolak",
+    "category": {
+      "consultation": "Jumpa doktor",
+      "medication": "Ubat",
+      "investigation": "Ujian",
+      "procedure": "Rawatan",
+      "other": "Lain-lain"
+    },
+    "tag": {
+      "subsidy": "Subsidi",
+      "medisave": "Dari MediSave CPF"
+    },
+    "medisave": "MediSave",
+    "explain": {
+      "consultation": "Ini bayaran untuk berjumpa doktor atau jururawat di klinik.",
+      "medication": "Ini ubat yang diberikan untuk dibawa pulang. Harganya bergantung pada jenis ubat dan jumlahnya.",
+      "investigation": "Ini ujian yang membantu doktor memeriksa kesihatan anda, seperti ujian darah, ujian air kencing atau X-ray.",
+      "procedure": "Ini rawatan yang dibuat semasa lawatan anda, seperti membersih dan membalut luka, atau suntikan.",
+      "other": "Ini caj lain, seperti bahan balutan atau memo perubatan. Tanya di kaunter jika anda tidak pasti.",
+      "scheme": {
+        "government": "Kerajaan membayar sebahagian kos rawatan anda. Jumlah ini sudah ditolak daripada bil anda.",
+        "chas": "CHAS (Skim Bantuan Kesihatan Masyarakat) ialah skim kerajaan yang membantu rakyat Singapura membayar lawatan klinik. Jumlah ini sudah ditolak daripada bil anda.",
+        "pioneer": "Generasi Perintis mendapat bantuan tambahan untuk kos kesihatan. Jika anda dalam Generasi Perintis, anda mempunyai kad Generasi Perintis. Jumlah ini sudah ditolak daripada bil anda.",
+        "merdeka": "Generasi Merdeka mendapat bantuan tambahan untuk kos kesihatan. Jika anda dalam Generasi Merdeka, anda mempunyai kad Generasi Merdeka. Jumlah ini sudah ditolak daripada bil anda.",
+        "other": "Skim atau diskaun lain telah menolak jumlah ini daripada bil anda. Tanya di kaunter skim yang mana."
+      },
+      "medisave": "MediSave ialah simpanan CPF anda untuk kos kesihatan. Wang daripadanya boleh membayar sebahagian bil, jadi anda membayar kurang dengan wang tunai.",
+      "medisaveNone": "Tiada apa-apa dibayar daripada MediSave untuk bil ini."
+    },
+    "none": {
+      "title": "Belum ada bil",
+      "text": "Imbas bil klinik atau poliklinik anda, atau buka contoh bil untuk melihat cara ia berfungsi."
+    },
+    "unchecked": {
+      "text": "Sila semak butiran bil anda dahulu.",
+      "action": "Semak bil saya"
+    },
+    "scan": "Imbas bil",
+    "another": "Imbas bil lain",
+    "samplesTitle": "Contoh bil",
+    "moreSamples": "Cuba contoh bil lain",
+    "sampleTag": "Contoh bil",
+    "samples": {
+      "bill1": "Bedok: jumpa doktor dan ubat",
+      "bill2": "Tampines: ujian darah dan MediSave",
+      "bill3": "Marine Parade: balutan luka, Generasi Merdeka"
+    },
+    "rules": {
+      "pioneer": "Untuk warganegara Singapura yang lahir pada tahun 1949 atau sebelumnya dan menjadi warganegara menjelang tahun 1986. Di poliklinik, anda mendapat potongan tambahan 50% daripada baki bil untuk perkhidmatan dan ubat bersubsidi. Anda juga mendapat bantuan tambahan di klinik GP CHAS.",
+      "merdeka": "Untuk warganegara Singapura yang lahir dari tahun 1950 hingga 1959 dan menjadi warganegara menjelang tahun 1996, serta warganegara lebih tua yang tidak mendapat Pakej Generasi Perintis. Di poliklinik, anda mendapat potongan tambahan 25% daripada baki bil untuk perkhidmatan dan ubat bersubsidi. Anda juga mendapat bantuan tambahan di klinik GP CHAS.",
+      "chas": "Semua warganegara Singapura boleh memohon CHAS. Ia memberi subsidi di klinik GP dan klinik pergigian CHAS sahaja, bukan di poliklinik. Warna kad anda (Biru, Oren atau Hijau) bergantung pada pendapatan bulanan isi rumah bagi setiap orang.",
+      "polyclinic": "Warganegara dan penduduk tetap Singapura membayar kadar bersubsidi di poliklinik. Subsidi ini sudah ditolak daripada bil poliklinik anda."
+    },
+    "q": {
+      "title": "Semak subsidi lain",
+      "lead": "Jawab apa yang anda tahu. Jawapan anda kekal di peranti ini. Ia tidak dihantar atau disimpan.",
+      "birth": "Tahun anda dilahirkan",
+      "yearExample": "cth. 1955",
+      "citizen": "Adakah anda warganegara Singapura?",
+      "status": {
+        "birth": "Ya, sejak lahir",
+        "became": "Ya, saya menjadi warganegara kemudian",
+        "pr": "Tidak, saya penduduk tetap (PR)",
+        "other": "Tidak, saya bukan warganegara atau PR"
+      },
+      "citizenYear": "Tahun anda menjadi warganegara",
+      "income": "Pendapatan isi rumah bagi setiap orang, sebulan",
+      "incomeHelp": "Campurkan pendapatan bulanan semua orang yang tinggal bersama anda, kemudian bahagikan dengan bilangan orang. Ini hanya digunakan untuk CHAS.",
+      "incomes": {
+        "low": "$1,500 atau kurang",
+        "mid": "$1,501 hingga $2,300",
+        "high": "Lebih daripada $2,300",
+        "unsure": "Tidak pasti"
+      },
+      "errors": {
+        "year": "Sila taip tahun 4 digit dari 1901 hingga {max}.",
+        "beforeBirth": "Tahun ini lebih awal daripada tahun anda dilahirkan. Sila semak."
+      },
+      "clear": "Padam jawapan saya"
+    },
+    "r": {
+      "title": "Apa maksudnya untuk anda",
+      "updating": "Sedang dikemas kini…",
+      "updated": "Terkini",
+      "estimateTitle": "Anggaran sahaja — bukan pengiraan rasmi.",
+      "estimateText": "Klinik yang menentukan jumlah bayaran anda. Semak dengan klinik atau halaman rasmi ini:",
+      "onBill": "Subsidi pada bil ini",
+      "noneOnBill": "Bil ini tidak menunjukkan sebarang subsidi.",
+      "matches": "Sepadan dengan jawapan anda",
+      "mayQualify": "Anda mungkin juga layak untuk…",
+      "answerFirst": "Jawab soalan untuk melihat skim lain yang mungkin membantu anda.",
+      "noneMore": "Berdasarkan jawapan anda, kami tidak menemui skim lain untuk bil ini.",
+      "likely": "Anda mungkin layak",
+      "needMore": "Jawab lebih banyak soalan untuk menyemak",
+      "notHere": {
+        "polyclinic": "Tidak digunakan di poliklinik",
+        "chasClinic": "Tidak digunakan di klinik GP"
+      },
+      "saving": "Kira-kira {amount} kurang (potongan {percent}% daripada bil selepas subsidi).",
+      "checkClinic": "Tanya klinik berapa banyak yang ditolak.",
+      "estimate": "Jika klinik menggunakannya, bil selepas subsidi mungkin kira-kira",
+      "insteadOf": "dan bukan {amount}.",
+      "official": "Halaman rasmi untuk {name}",
+      "checked": "Kali terakhir disemak {date}",
+      "newTab": "(dibuka dalam tab baharu)",
+      "medisaveNote": "MediSave mungkin membayar sebahagiannya, seperti pada bil ini."
+    }
   }
 }

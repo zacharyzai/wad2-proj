@@ -7,6 +7,8 @@ import med1 from '../fixtures/med-1.json' with { type: 'json' }
 import med2 from '../fixtures/med-2.json' with { type: 'json' }
 import med3 from '../fixtures/med-3.json' with { type: 'json' }
 import bill1 from '../fixtures/bill-1.json' with { type: 'json' }
+import bill2 from '../fixtures/bill-2.json' with { type: 'json' }
+import bill3 from '../fixtures/bill-3.json' with { type: 'json' }
 
 // Fixed lookup: sampleId is never used as a file path.
 const SAMPLES = new Map([
@@ -14,6 +16,8 @@ const SAMPLES = new Map([
   ['med-2', med2],
   ['med-3', med3],
   ['bill-1', bill1],
+  ['bill-2', bill2],
+  ['bill-3', bill3],
 ])
 const MOCK_BY_TYPE = { medication: med1, bill: bill1 }
 const IMAGE_DATA_URL = /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/]+=*$/

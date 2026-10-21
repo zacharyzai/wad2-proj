@@ -234,7 +234,8 @@
       "subsidies": "Subsidies taken off",
       "medisave": "Paid by MediSave",
       "pay": "You pay",
-      "p": "Subsidies are already taken off your bill. The MediSave amount is paid from your CPF MediSave account, not in cash."
+      "p": "Subsidies are already taken off your bill. The MediSave amount is paid from your CPF MediSave account, not in cash.",
+      "breakdown": "See full breakdown"
     },
     "check": {
       "title": "Quick check",
@@ -376,5 +377,126 @@
     "working": "Please wait…",
     "noAccount": "No account yet?",
     "haveAccount": "Already have an account?"
+  },
+  "bill": {
+    "lead": "Tap any line to see what it means.",
+    "scope": "Works best for bills from Singapore polyclinics and GP clinics.",
+    "pay": "You pay {amount}.",
+    "summary": {
+      "label": "Bill summary",
+      "charges": "Total charges",
+      "subsidies": "Subsidies",
+      "medisave": "MediSave"
+    },
+    "charged": "What you were charged",
+    "takenOff": "Taken off your bill",
+    "total": "You pay",
+    "takenOffAmount": "{amount} taken off",
+    "category": {
+      "consultation": "Doctor visit",
+      "medication": "Medicine",
+      "investigation": "Tests",
+      "procedure": "Treatment",
+      "other": "Other"
+    },
+    "tag": {
+      "subsidy": "Subsidy",
+      "medisave": "From CPF MediSave"
+    },
+    "medisave": "MediSave",
+    "explain": {
+      "consultation": "This is the fee for seeing the doctor or nurse at the clinic.",
+      "medication": "These are the medicines you were given to take home. The price depends on the medicine and how much you got.",
+      "investigation": "These are tests that help the doctor check your health, such as blood tests, urine tests or X-rays.",
+      "procedure": "This is treatment done during your visit, such as cleaning and dressing a wound, or an injection.",
+      "other": "This is another charge, such as dressing materials or a medical memo. Ask at the counter if you are not sure what it is.",
+      "scheme": {
+        "government": "The government pays part of the cost of your care. This amount has already been taken off your bill.",
+        "chas": "CHAS (Community Health Assist Scheme) is a government scheme that helps Singaporeans pay for clinic visits. This amount has already been taken off your bill.",
+        "pioneer": "The Pioneer Generation gets extra help with healthcare costs. If you are in it, you have a Pioneer Generation card. This amount has already been taken off your bill.",
+        "merdeka": "The Merdeka Generation gets extra help with healthcare costs. If you are in it, you have a Merdeka Generation card. This amount has already been taken off your bill.",
+        "other": "Another scheme or discount took this amount off your bill. Ask at the counter which one it is."
+      },
+      "medisave": "MediSave is your CPF savings for healthcare. Money from it can pay part of some bills, so you pay less in cash.",
+      "medisaveNone": "Nothing was paid from MediSave on this bill."
+    },
+    "none": {
+      "title": "No bill to show yet",
+      "text": "Scan your clinic or polyclinic bill, or open a sample bill to see how it works."
+    },
+    "unchecked": {
+      "text": "Please check the details of your bill first.",
+      "action": "Check my bill"
+    },
+    "scan": "Scan a bill",
+    "another": "Scan another bill",
+    "samplesTitle": "Sample bills",
+    "moreSamples": "Try another sample bill",
+    "sampleTag": "Sample bill",
+    "samples": {
+      "bill1": "Bedok: doctor visit and medicine",
+      "bill2": "Tampines: blood tests and MediSave",
+      "bill3": "Marine Parade: wound dressing, Merdeka Generation"
+    },
+    "rules": {
+      "pioneer": "For Singapore citizens born in 1949 or earlier who became citizens by 1986. At polyclinics, you get an extra 50% off the rest of your bill for subsidised services and medicines. You also get extra help at CHAS GP clinics.",
+      "merdeka": "For Singapore citizens born from 1950 to 1959 who became citizens by 1996, and older citizens who did not get the Pioneer Generation Package. At polyclinics, you get an extra 25% off the rest of your bill for subsidised services and medicines. You also get extra help at CHAS GP clinics.",
+      "chas": "All Singapore citizens can apply for CHAS. It gives subsidies at CHAS GP and dental clinics only, not at polyclinics. Your card colour (Blue, Orange or Green) depends on your household’s monthly income per person.",
+      "polyclinic": "Singapore citizens and permanent residents pay subsidised rates at polyclinics. The subsidy is already taken off your polyclinic bill."
+    },
+    "q": {
+      "title": "Check other subsidies",
+      "lead": "Answer what you know. Your answers stay on this device. They are not sent or saved.",
+      "birth": "Year you were born",
+      "yearExample": "e.g. 1955",
+      "citizen": "Are you a Singapore citizen?",
+      "status": {
+        "birth": "Yes, since I was born",
+        "became": "Yes, I became a citizen later",
+        "pr": "No, I am a permanent resident (PR)",
+        "other": "No, I am not a citizen or PR"
+      },
+      "citizenYear": "Year you became a citizen",
+      "income": "Household income per person, each month",
+      "incomeHelp": "Add up the monthly income of everyone living with you, then divide by the number of people. This is only used for CHAS.",
+      "incomes": {
+        "low": "$1,500 or less",
+        "mid": "$1,501 to $2,300",
+        "high": "More than $2,300",
+        "unsure": "Not sure"
+      },
+      "errors": {
+        "year": "Please type a 4-digit year from 1901 to {max}.",
+        "beforeBirth": "This year is before the year you were born. Please check it."
+      },
+      "clear": "Clear my answers"
+    },
+    "r": {
+      "title": "What this means for you",
+      "updating": "Updating…",
+      "updated": "Up to date",
+      "estimateTitle": "Estimate only — not an official calculation.",
+      "estimateText": "The clinic decides what you pay. Check with the clinic or these official pages:",
+      "onBill": "Subsidies on this bill",
+      "noneOnBill": "This bill does not show any subsidies.",
+      "matches": "Matches your answers",
+      "mayQualify": "You may also qualify for…",
+      "answerFirst": "Answer the questions to see other schemes that may help you.",
+      "noneMore": "From your answers, we did not find other schemes for this bill.",
+      "likely": "You may qualify",
+      "needMore": "Answer more questions to check",
+      "notHere": {
+        "polyclinic": "Not used at polyclinics",
+        "chasClinic": "Not used at GP clinics"
+      },
+      "saving": "About {amount} less ({percent}% off the bill after subsidies).",
+      "checkClinic": "Check with the clinic how much this takes off.",
+      "estimate": "If the clinic applies this, the bill after subsidies might be about",
+      "insteadOf": "instead of {amount}.",
+      "official": "Official page for {name}",
+      "checked": "Last checked {date}",
+      "newTab": "(opens in a new tab)",
+      "medisaveNote": "MediSave may pay part of this, as it did on this bill."
+    }
   }
 }

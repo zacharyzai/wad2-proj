@@ -1,0 +1,21 @@
+{
+  "type": "bill",
+  "source": "sample",
+  "unclear": [],
+  "bill": {
+    "clinic": "SingHealth Polyclinics - Marine Parade",
+    "visitDate": "2026-10-02",
+    "items": [
+      { "description": "Consultation", "category": "consultation", "amountCents": 1450 },
+      { "description": "Amlodipine 5mg x 30", "category": "medication", "amountCents": 450 },
+      { "description": "Wound dressing", "category": "procedure", "amountCents": 1200 },
+      { "description": "Dressing materials", "category": "other", "amountCents": 300 }
+    ],
+    "subsidies": [
+      { "scheme": "government", "amountCents": 1100 },
+      { "scheme": "merdeka", "amountCents": 600 }
+    ],
+    "medisaveCents": 0,
+    "totalPayableCents": 1700
+  }
+}
