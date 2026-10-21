@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="840" viewBox="0 0 480 420" font-family="Arial, Helvetica, sans-serif" fill="#111">
+  <rect x="2" y="2" width="476" height="416" rx="6" fill="#fff" stroke="#111" stroke-width="3"/>
+  <text x="240" y="40" font-size="20" font-weight="700" text-anchor="middle">SingHealth Polyclinics - Tampines</text>
+  <text x="240" y="66" font-size="16" text-anchor="middle">TAX INVOICE / RECEIPT · Visit date 15/09/2026</text>
+  <line x1="28" y1="84" x2="452" y2="84" stroke="#111" stroke-width="1.5"/>
+  <text x="28" y="112" font-size="16" font-weight="700">Description</text><text x="452" y="112" font-size="16" font-weight="700" text-anchor="end">Amount (S$)</text>
+  <text x="28" y="148" font-size="18">Consultation</text><text x="452" y="148" font-size="18" text-anchor="end">14.50</text><text x="28" y="178" font-size="18">HbA1c blood test</text><text x="452" y="178" font-size="18" text-anchor="end">22.00</text><text x="28" y="208" font-size="18">Lipid panel blood test</text><text x="452" y="208" font-size="18" text-anchor="end">18.00</text><text x="28" y="238" font-size="18">Metformin 500mg x 60</text><text x="452" y="238" font-size="18" text-anchor="end">8.20</text>
+  <line x1="28" y1="256" x2="452" y2="256" stroke="#111" stroke-width="1" stroke-dasharray="4 3"/>
+  <text x="28" y="282" font-size="18">Subtotal</text><text x="452" y="282" font-size="18" text-anchor="end">62.70</text>
+  <text x="28" y="310" font-size="18">Less: Government subsidy</text><text x="452" y="310" font-size="18" text-anchor="end">-21.00</text>
+  <text x="28" y="338" font-size="18">Less: MediSave</text><text x="452" y="338" font-size="18" text-anchor="end">-25.00</text>
+  <line x1="28" y1="352" x2="452" y2="352" stroke="#111" stroke-width="2"/>
+  <text x="28" y="380" font-size="21" font-weight="700">TOTAL PAYABLE</text><text x="452" y="380" font-size="21" font-weight="700" text-anchor="end">16.70</text>
+  <text x="240" y="406" font-size="13" fill="#b91c1c" text-anchor="middle" font-weight="700">SAMPLE BILL · NOT A REAL INVOICE</text>
+</svg>

@@ -1,0 +1,20 @@
+{
+  "type": "bill",
+  "source": "sample",
+  "unclear": [],
+  "bill": {
+    "clinic": "SingHealth Polyclinics - Tampines",
+    "visitDate": "2026-09-15",
+    "items": [
+      { "description": "Consultation", "category": "consultation", "amountCents": 1450 },
+      { "description": "HbA1c blood test", "category": "investigation", "amountCents": 2200 },
+      { "description": "Lipid panel blood test", "category": "investigation", "amountCents": 1800 },
+      { "description": "Metformin 500mg x 60", "category": "medication", "amountCents": 820 }
+    ],
+    "subsidies": [
+      { "scheme": "government", "amountCents": 2100 }
+    ],
+    "medisaveCents": 2500,
+    "totalPayableCents": 1670
+  }
+}

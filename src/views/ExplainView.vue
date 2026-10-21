@@ -86,6 +86,7 @@ function bill(b) {
     options: [pay, wrongAmount].sort(byValue).map((n) => ({ label: money(n), right: n === pay })),
     right: t('explain.check.billRight', { amount: money(pay) }),
     wrong: t('explain.check.billWrong', { amount: money(pay) }),
+    canBreakdown: true,
   }
 }
 
@@ -198,7 +199,8 @@ watch(locale, () => (picked.value = null))
         <div class="d-flex flex-column gap-3">
           <RouterLink v-if="view.canSchedule" :to="{ name: 'schedule' }" class="btn btn-primary"><AppIcon name="calendar" />{{ t('explain.add') }}</RouterLink>
           <RouterLink v-if="scan.type === 'medication'" :to="{ name: 'ask' }" class="btn btn-secondary"><AppIcon name="chat" />{{ t('explain.ask') }}</RouterLink>
-          <RouterLink :to="{ name: 'scan', query: { type: scan.type } }" :class="view.canSchedule ? 'btn btn-ghost' : 'btn btn-primary'"><AppIcon name="scan" />{{ t('explain.another') }}</RouterLink>
+          <RouterLink v-if="view.canBreakdown" :to="{ name: 'bill' }" class="btn btn-primary"><AppIcon name="receipt" />{{ t('explain.bill.breakdown') }}</RouterLink>
+          <RouterLink :to="{ name: 'scan', query: { type: scan.type } }" :class="view.canSchedule || view.canBreakdown ? 'btn btn-ghost' : 'btn btn-primary'"><AppIcon name="scan" />{{ t('explain.another') }}</RouterLink>
         </div>
       </div>
     </div>

@@ -1,0 +1,17 @@
+/* Scoped styles for SubsidyQuestionnaire.vue. Fields and .choice come from styles/global (forms.css, buttons.css). */
+.q-lead { display: flex; gap: 10px; align-items: flex-start; color: var(--color-text-muted); font-size: 17px; line-height: 1.45; }
+.q-lead .icon { flex: none; margin-top: 2px; }
+fieldset { min-width: 0; margin: 0; padding: 0; border: 0; }
+legend { float: none; width: auto; margin: 0; padding: 0; }
+.year { max-width: 12rem; font-size: 22px; letter-spacing: 0.04em; font-variant-numeric: tabular-nums; }
+.field-error { display: flex; gap: 8px; align-items: flex-start; color: var(--color-danger-text); font-size: 17px; font-weight: 600; line-height: 1.4; }
+.field-error .icon { flex: none; margin-top: 1px; }
+
+.options { display: grid; gap: 10px; }
+@media (min-width: 576px) { .options { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+/* A real radio button inside each label, so arrow keys work; the label shows the state like .choice[aria-checked]. */
+.option { justify-content: flex-start; text-align: left; cursor: pointer; }
+.option:has(input:checked) { border: 2px solid var(--color-primary); padding: 9px 15px; background: var(--color-tint); color: var(--color-tint-text); font-weight: 700; }
+.option:has(input:focus-visible) { box-shadow: var(--focus-ring); }
+.tick { width: 26px; height: 26px; flex: none; display: grid; place-items: center; border: 2px solid var(--color-border-strong); border-radius: 50%; background: var(--color-card); }
+.option:has(input:checked) .tick { border-color: var(--color-primary); background: var(--color-primary); color: #fff; }
