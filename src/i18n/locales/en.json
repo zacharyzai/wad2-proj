@@ -31,7 +31,8 @@
     "history": "Scan history",
     "shared": "Shared summary",
     "notFound": "Page not found",
-    "ask": "Ask about my medicine"
+    "ask": "Ask about my medicine",
+    "welcome": "Welcome"
   },
   "errors": {
     "BAD_REQUEST": "Something was wrong with that request. Please try again.",
@@ -376,5 +377,61 @@
     "working": "Please wait…",
     "noAccount": "No account yet?",
     "haveAccount": "Already have an account?"
+  },
+  "landing": {
+    "hero": {
+      "title": "Understand your medical bills",
+      "lead": "Medical bills, subsidies and medicine labels, explained in plain words and read aloud. Made for Ah Ma, Ah Gong and the family who care for them.",
+      "how": "See how it works"
+    },
+    "try": "Try me out",
+    "scan": {
+      "kicker": "Scan & understand",
+      "title": "Snap a photo. We explain it simply.",
+      "text": "Point your phone at a bill or a medicine label. We tell you what each line means, what is already paid for, and what you still need to pay.",
+      "billTitle": "Your polyclinic bill",
+      "plain": "Plain words",
+      "visit": "Doctor's visit",
+      "med": "Blood pressure medicine, 30 days",
+      "medisave": "Paid by your MediSave",
+      "pay": "You pay"
+    },
+    "listen": {
+      "kicker": "Read aloud in your language",
+      "title": "Hear it in your own language.",
+      "text": "Pick a language, then tap the big button. We read everything out slowly and clearly, as many times as you need.",
+      "group": "Reading language",
+      "read": "Read aloud",
+      "stop": "Stop reading",
+      "hint": "Tap the big button to listen",
+      "hintSpeaking": "Reading aloud now. Tap again to stop."
+    },
+    "doses": {
+      "kicker": "Never miss a dose",
+      "title": "Morning, afternoon, night. All sorted.",
+      "text": "We turn your medicine labels into a simple daily plan, remind you when it is time, and check which subsidies you can get.",
+      "calendar": "Add to Google Calendar",
+      "calEvent": "Take morning medicine",
+      "today": "Today",
+      "reminders": "Reminders",
+      "morning": "Morning · 8 am",
+      "morningText": "2 pills after breakfast",
+      "afternoon": "Afternoon · 1 pm",
+      "afternoonText": "1 pill after lunch",
+      "night": "Night · 9 pm",
+      "nightText": "1 pill before bed",
+      "subsidy": "Subsidy checker",
+      "save": "You may save",
+      "basis": "Based on your age and CHAS card"
+    },
+    "ask": {
+      "kicker": "Ask anything",
+      "title": "No question is too small.",
+      "text": "Type or speak your question and get a short, kind answer in simple words, any time of the day.",
+      "q1": "Can I take my blood pressure pill with kopi?",
+      "a1": "Yes, kopi is fine with your blood pressure pill. Take it after breakfast, same as always.",
+      "q2": "Thank you! Can you read that out for Ah Gong?"
+    },
+    "note": "Ah Ma Ah Gong Can helps you understand. Your doctor and pharmacist still make the decisions."
   }
 }

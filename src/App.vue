@@ -42,7 +42,9 @@ router.afterEach(async (to, from) => {
 </script>
 
 <template>
-  <div class="shell" :class="`lang-${locale}`">
+  <!-- Routes with meta.bare (the welcome page) draw their own full-width page: no sidebar, tabs or footer. -->
+  <main v-if="route.meta.bare" id="main" tabindex="-1"><RouterView /></main>
+  <div v-else class="shell" :class="`lang-${locale}`">
     <a href="#main" class="skip">{{ t('nav.skip') }}</a>
     <aside class="side">
       <RouterLink to="/" class="brand">

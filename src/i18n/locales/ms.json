@@ -31,7 +31,8 @@
     "history": "Sejarah imbasan",
     "shared": "Ringkasan dikongsi",
     "notFound": "Halaman tidak dijumpai",
-    "ask": "Tanya tentang ubat saya"
+    "ask": "Tanya tentang ubat saya",
+    "welcome": "Selamat datang"
   },
   "errors": {
     "BAD_REQUEST": "Permintaan tidak sah. Sila cuba lagi.",
@@ -376,5 +377,61 @@
     "working": "Sila tunggu…",
     "noAccount": "Belum ada akaun?",
     "haveAccount": "Sudah ada akaun?"
+  },
+  "landing": {
+    "hero": {
+      "title": "Fahami bil perubatan anda",
+      "lead": "Bil perubatan, subsidi dan label ubat, diterangkan dengan kata-kata mudah dan dibacakan dengan kuat. Dibuat untuk Ah Ma, Ah Gong dan keluarga yang menjaga mereka.",
+      "how": "Lihat cara ia berfungsi"
+    },
+    "try": "Cuba sekarang",
+    "scan": {
+      "kicker": "Imbas & fahami",
+      "title": "Ambil gambar. Kami terangkan dengan mudah.",
+      "text": "Halakan telefon anda ke bil atau label ubat. Kami beritahu maksud setiap baris, apa yang sudah dibayar, dan berapa yang anda masih perlu bayar.",
+      "billTitle": "Bil poliklinik anda",
+      "plain": "Kata mudah",
+      "visit": "Lawatan doktor",
+      "med": "Ubat darah tinggi, 30 hari",
+      "medisave": "Dibayar oleh MediSave anda",
+      "pay": "Anda bayar"
+    },
+    "listen": {
+      "kicker": "Dibacakan dalam bahasa anda",
+      "title": "Dengar dalam bahasa anda sendiri.",
+      "text": "Pilih bahasa, kemudian tekan butang besar. Kami bacakan semuanya dengan perlahan dan jelas, seberapa kali yang anda perlukan.",
+      "group": "Bahasa bacaan",
+      "read": "Bacakan",
+      "stop": "Berhenti membaca",
+      "hint": "Tekan butang besar untuk mendengar",
+      "hintSpeaking": "Sedang membaca. Tekan sekali lagi untuk berhenti."
+    },
+    "doses": {
+      "kicker": "Jangan terlepas dos",
+      "title": "Pagi, petang, malam. Semua teratur.",
+      "text": "Kami jadikan label ubat anda pelan harian yang mudah, ingatkan anda apabila tiba masanya, dan semak subsidi yang anda boleh dapat.",
+      "calendar": "Tambah ke Google Calendar",
+      "calEvent": "Makan ubat pagi",
+      "today": "Hari ini",
+      "reminders": "Peringatan",
+      "morning": "Pagi · 8 pagi",
+      "morningText": "2 biji selepas sarapan",
+      "afternoon": "Tengah hari · 1 petang",
+      "afternoonText": "1 biji selepas makan tengah hari",
+      "night": "Malam · 9 malam",
+      "nightText": "1 biji sebelum tidur",
+      "subsidy": "Penyemak subsidi",
+      "save": "Anda mungkin jimat",
+      "basis": "Berdasarkan umur dan kad CHAS anda"
+    },
+    "ask": {
+      "kicker": "Tanya apa sahaja",
+      "title": "Tiada soalan yang terlalu kecil.",
+      "text": "Taip atau sebut soalan anda dan dapatkan jawapan yang ringkas dan mesra dalam kata-kata mudah, pada bila-bila masa.",
+      "q1": "Boleh saya makan ubat darah tinggi dengan kopi?",
+      "a1": "Ya, kopi tidak apa-apa dengan ubat darah tinggi anda. Makan selepas sarapan, seperti biasa.",
+      "q2": "Terima kasih! Boleh bacakan untuk Ah Gong?"
+    },
+    "note": "Ah Ma Ah Gong Can membantu anda faham. Doktor dan ahli farmasi anda tetap membuat keputusan."
   }
 }

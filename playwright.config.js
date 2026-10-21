@@ -9,6 +9,8 @@ export default defineConfig({
   use: {
     baseURL: 'http://localhost:5173',
     trace: 'on-first-retry',
+    // Every test starts as a returning visitor, so "/" opens Home; e2e/landing.spec.js clears this to test the welcome page.
+    storageState: { cookies: [], origins: [{ origin: 'http://localhost:5173', localStorage: [{ name: 'seenWelcome', value: '1' }] }] },
   },
   projects: [
     { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
