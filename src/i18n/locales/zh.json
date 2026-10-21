@@ -378,7 +378,20 @@
     "signup": "创建账户",
     "working": "请稍候…",
     "noAccount": "还没有账户？",
-    "haveAccount": "已有账户？"
+    "haveAccount": "已有账户？",
+    "heroText": "登录后，可把全家的药物和账单集中保存，并与子女分享。",
+    "tabs": "登录或注册",
+    "or": "或",
+    "guest": "不登录，继续使用",
+    "privacy": "不登录时，您的扫描内容只保存在这部设备上。",
+    "show": "显示密码",
+    "hide": "隐藏密码",
+    "name": "姓名",
+    "dob": "出生日期",
+    "citizenship": "国籍/公民身份",
+    "citizenshipPick": "请选择",
+    "citizenships": { "SG_CITIZEN": "新加坡公民", "SG_PR": "新加坡永久居民", "OTHER": "其他" },
+    "missingFields": "请填写所有栏目。"
   },
   "landing": {
     "hero": {
@@ -435,5 +448,11 @@
       "q2": "谢谢！可以读给阿公听吗？"
     },
     "note": "Ah Ma Ah Gong Can 帮您看懂。决定仍由您的医生和药剂师来做。"
+  },
+    "account": {
+    "lead": "这是您提供的资料。",
+    "details": "您的资料",
+    "passwordNote": "密码不会显示。",
+    "logout": "退出登录"
   }
 }
