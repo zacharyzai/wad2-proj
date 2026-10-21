@@ -41,7 +41,7 @@ Errors use the same envelope and codes as `/api/scan` (`BAD_REQUEST`, `RATE_LIMI
 1. **Input checks**: language, question length, at most 10 medicines, each with a source and a name, size cap.
 2. **Red flags in code**: emergency phrases in all 4 languages (`server/services/chat.js`) return `URGENT` without calling the AI.
 3. **Limits**: 10 questions per minute per IP (`CHAT_RATE_LIMIT`), and a daily cap of 500 (`AI_CHAT_DAILY_CAP`) kept separate from scans.
-4. **Prompt**: rules are in the system instruction; the question sits inside `"""` delimiters. Answers about the user's medicines use only their entries; general answers stay general. Never change a dose, recommend a medicine or diagnose; under 60 words; numbers as digits.
+4. **Prompt**: rules are in the system instruction; the question sits inside `"""` delimiters. Answers about the user's medicines use only their entries and repeat that label's exact amount (`doseAmount` + `doseUnit`, never `strength`), times, time of day, food rule and relevant warning; general answers stay general. Never change a dose, recommend a medicine or diagnose; under 60 words; numbers as digits.
 5. **Reply checks**: JSON schema `{ answer, askPharmacist, urgent, needMedicine }`. `urgent` wins over `needMedicine`; an empty or broken reply becomes "ask your pharmacist".
 
 ## Models

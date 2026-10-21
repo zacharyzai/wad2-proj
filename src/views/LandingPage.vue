@@ -261,7 +261,7 @@ onBeforeUnmount(() => {
                 <div class="bill-line paid"><span>{{ t('landing.scan.medisave') }}</span><b>−$15.00</b></div>
                 <div class="bill-total"><span class="strong">{{ t('landing.scan.pay') }}</span><span class="serif amount">$8.70</span></div>
               </div>
-              <!-- The fine print stays English on purpose: it is what a real polyclinic bill looks like. -->
+              <!-- The fine print stays English on purpose: it is what a real clinic or hospital bill looks like. -->
               <div data-morph="out" data-ma="0.7" data-mb="0.88" class="receipt" aria-hidden="true">
                 <div class="r-title">TAX INVOICE #2410-88317</div>
                 <div><span>CONSULT GP SUBSQ</span><span>14.50</span></div>

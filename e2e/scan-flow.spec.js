@@ -39,7 +39,7 @@ test('when-needed medicine is flagged for the pharmacist, not scheduled', async 
 })
 
 test('bill sample shows what you pay', async ({ page }) => {
-  await openSample(page, 'Polyclinic bill')
+  await openSample(page, 'Medical bill')
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Check your bill items')
   await page.getByRole('button', { name: 'Looks correct' }).click()
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('You pay $14.00.')

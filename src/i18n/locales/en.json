@@ -54,7 +54,7 @@
       "text": "Tablets, syrups, creams. See the dose and when to take it."
     },
     "bill": {
-      "title": "Scan a polyclinic bill",
+      "title": "Scan a medical bill",
       "text": "See what you pay and which subsidies may apply."
     },
     "sample": "Not sure? Try a sample first",
@@ -91,7 +91,7 @@
       "med1": "Metformin label",
       "med2": "Amlodipine label",
       "med3": "Cough syrup label",
-      "bill1": "Polyclinic bill"
+      "bill1": "Medical bill"
     },
     "reading": {
       "medication": "Reading your label…",
@@ -113,7 +113,7 @@
     "example": "Example",
     "exampleAlt": {
       "medication": "Example of a medication label",
-      "bill": "Example of a polyclinic bill"
+      "bill": "Example of a medical bill"
     },
     "choose": {
       "title": "What are you scanning?",
@@ -123,7 +123,7 @@
     "neverStored": "Your photo is never stored",
     "sampleOf": {
       "medication": "Sample medicine label",
-      "bill": "Sample polyclinic bill"
+      "bill": "Sample medical bill"
     }
   },
   "confirm": {
@@ -349,7 +349,7 @@
   "soon": {
     "title": "Coming soon",
     "schedule": "After you check a medicine label, its doses will show here as a daily timetable.",
-    "bill": "Scan a polyclinic bill to see what you pay, your subsidies and MediSave.",
+    "bill": "Scan a medical bill to see what you pay, your subsidies and MediSave.",
     "history": "Your saved scans will be listed here, newest first. Saving needs an account.",
     "account": "Accounts are coming soon. Until then, scanning works without one and stays on this device.",
     "shared": "Shared summaries will open here as a read-only page.",
@@ -389,7 +389,7 @@
       "kicker": "Scan & understand",
       "title": "Snap a photo. We explain it simply.",
       "text": "Point your phone at a bill or a medicine label. We tell you what each line means, what is already paid for, and what you still need to pay.",
-      "billTitle": "Your polyclinic bill",
+      "billTitle": "Your medical bill",
       "plain": "Plain words",
       "visit": "Doctor's visit",
       "med": "Blood pressure medicine, 30 days",

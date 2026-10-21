@@ -54,7 +54,7 @@
       "text": "Tablet, sirap, krim. Lihat dos dan bila perlu diambil."
     },
     "bill": {
-      "title": "Imbas bil poliklinik",
+      "title": "Imbas bil perubatan",
       "text": "Lihat jumlah yang anda bayar dan subsidi yang mungkin layak."
     },
     "sample": "Tidak pasti? Cuba contoh dahulu",
@@ -91,7 +91,7 @@
       "med1": "Label Metformin",
       "med2": "Label Amlodipine",
       "med3": "Label sirap batuk",
-      "bill1": "Bil poliklinik"
+      "bill1": "Bil perubatan"
     },
     "reading": {
       "medication": "Sedang membaca label anda…",
@@ -113,7 +113,7 @@
     "example": "Contoh",
     "exampleAlt": {
       "medication": "Contoh label ubat",
-      "bill": "Contoh bil poliklinik"
+      "bill": "Contoh bil perubatan"
     },
     "choose": {
       "title": "Apa yang anda imbas?",
@@ -123,7 +123,7 @@
     "neverStored": "Gambar anda tidak disimpan",
     "sampleOf": {
       "medication": "Contoh label ubat",
-      "bill": "Contoh bil poliklinik"
+      "bill": "Contoh bil perubatan"
     }
   },
   "confirm": {
@@ -349,7 +349,7 @@
   "soon": {
     "title": "Akan datang",
     "schedule": "Selepas anda menyemak label ubat, dosnya akan dipaparkan di sini sebagai jadual harian.",
-    "bill": "Imbas bil poliklinik untuk melihat jumlah bayaran, subsidi dan MediSave anda.",
+    "bill": "Imbas bil perubatan untuk melihat jumlah bayaran, subsidi dan MediSave anda.",
     "history": "Imbasan yang anda simpan akan disenaraikan di sini, yang terbaru dahulu. Menyimpan memerlukan akaun.",
     "account": "Akaun akan datang tidak lama lagi. Sementara itu, imbasan boleh dibuat tanpa akaun dan kekal pada peranti ini.",
     "shared": "Ringkasan yang dikongsi akan dibuka di sini sebagai halaman baca sahaja.",
@@ -389,7 +389,7 @@
       "kicker": "Imbas & fahami",
       "title": "Ambil gambar. Kami terangkan dengan mudah.",
       "text": "Halakan telefon anda ke bil atau label ubat. Kami beritahu maksud setiap baris, apa yang sudah dibayar, dan berapa yang anda masih perlu bayar.",
-      "billTitle": "Bil poliklinik anda",
+      "billTitle": "Bil perubatan anda",
       "plain": "Kata mudah",
       "visit": "Lawatan doktor",
       "med": "Ubat darah tinggi, 30 hari",

@@ -52,8 +52,6 @@ router.afterEach(async (to, from) => {
         <span class="brand-name">Ah Ma Ah Gong <span class="brand-can">Can</span></span>
       </RouterLink>
 
-      <RouterLink :to="{ name: 'scan' }" class="btn btn-primary scan-btn"><AppIcon name="scan" />{{ t('nav.scanDoc') }}</RouterLink>
-
       <nav class="nav" :aria-label="t('nav.main')">
         <RouterLink
           v-for="item in NAV"
