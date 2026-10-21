@@ -1,16 +1,6 @@
 /* Scoped styles for ScanView.vue. */
 .text-teal { color: var(--color-primary-text); }
 
-/* Choose what to scan */
-.types { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
-@media (min-width: 992px) { .types { gap: 24px; } } /* same gap as the columns below, so the cards line up with them */
-.type { position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 12px; min-height: 132px; padding: 18px; border: 2px solid transparent; border-radius: 22px; background: var(--color-card); color: var(--color-text); text-align: left; box-shadow: var(--shadow-card); transition: border-color var(--dur) var(--ease-out), background-color var(--dur) var(--ease-out); }
-.type:hover { border-color: var(--color-tint-strong); }
-.type-tile { width: 48px; height: 48px; border-radius: 14px; background: var(--color-tint); color: var(--color-tint-text); }
-.type-name { font-size: 19px; font-weight: 700; line-height: 1.3; padding-right: 28px; }
-.type[aria-checked='true'] { border-color: var(--color-primary); background: var(--color-tint); color: var(--color-tint-text); }
-.type[aria-checked='true'] .type-tile { background: var(--color-primary); color: #fff; }
-.type-check { position: absolute; top: 14px; right: 14px; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: var(--color-primary); color: #fff; }
 
 /* Add a photo: Take photo, "or", upload box */
 .or { display: flex; align-items: center; gap: 14px; margin: 0; color: var(--color-text-muted); font-size: 16px; font-weight: 600; }

@@ -13,7 +13,7 @@ test('skip link jumps past the navigation', async ({ page, browserName }) => {
 
 test('tab title names the page in the chosen language', async ({ page }) => {
   await page.goto('/scan')
-  await expect(page).toHaveTitle('Scan a label or bill · Ah Ma Ah Gong Can')
+  await expect(page).toHaveTitle('Scan a medication label · Ah Ma Ah Gong Can')
   await page.getByRole('button', { name: '中文' }).click()
   await expect(page).toHaveTitle(/^扫描/)
 })

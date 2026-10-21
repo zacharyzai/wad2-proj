@@ -8,7 +8,8 @@ const routes = [
   // Zachary: welcome page, shown once to first-time visitors (guard below)
   { path: '/welcome', name: 'welcome', component: () => import('../views/LandingPage.vue'), meta: { bare: true } },
   // Asher: scan → confirm → explain flow
-  { path: '/scan', name: 'scan', component: () => import('../views/ScanView.vue') },
+  // Scan is for medication labels; bills are scanned from the Bill page (same view, scanType from meta). Old ?type=bill links still land there.
+  { path: '/scan', name: 'scan', component: () => import('../views/ScanView.vue'), beforeEnter: (to) => (to.query.type === 'bill' ? { name: 'bill-scan', query: { sample: to.query.sample } } : undefined) },
   { path: '/scan/confirm', name: 'confirm', component: () => import('../views/ConfirmView.vue') },
   { path: '/scan/explain', name: 'explain', component: () => import('../views/ExplainView.vue') },
   // Zachary: Ask about my medicine (feature 6)
@@ -16,6 +17,7 @@ const routes = [
   // Lokesh
   { path: '/schedule', name: 'schedule', component: () => import('../views/ScheduleView.vue') },
   { path: '/bill', name: 'bill', component: () => import('../views/BillView.vue') },
+  { path: '/bill/scan', name: 'bill-scan', component: () => import('../views/ScanView.vue'), meta: { scanType: 'bill' } },
   // Isaac (+ Sheen Hern's auth API). TODO: guard /history once auth exists; /shared stays public.
   { path: '/login', name: 'login', component: () => import('../views/LoginView.vue') },
   { path: '/signup', name: 'signup', component: () => import('../views/SignupView.vue') },

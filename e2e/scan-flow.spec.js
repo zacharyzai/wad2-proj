@@ -4,8 +4,8 @@ import { mockImageScan } from './helpers/mockImageScan.js'
 
 const TINY_PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', 'base64')
 
-async function openSample(page, name) {
-  await page.goto('/scan')
+async function openSample(page, name, path = '/scan') {
+  await page.goto(path)
   await page.getByRole('button', { name }).click()
 }
 
@@ -39,10 +39,24 @@ test('when-needed medicine is flagged for the pharmacist, not scheduled', async 
 })
 
 test('bill sample shows what you pay', async ({ page }) => {
-  await openSample(page, 'Medical bill')
+  await openSample(page, 'Medical bill', '/bill/scan')
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Check your bill items')
   await page.getByRole('button', { name: 'Looks correct' }).click()
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('You pay $14.00.')
+})
+
+test('Scan is for medication labels; bills are scanned from the Bill page', async ({ page, isMobile }) => {
+  await page.goto('/scan')
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Scan a medication label')
+  await expect(page.getByRole('button', { name: 'Medical bill' })).toHaveCount(0)
+  await expect(page.getByRole('radio')).toHaveCount(0)
+
+  // Old links (/scan?type=bill) land on the bill scan page.
+  await page.goto('/scan?type=bill')
+  await expect(page).toHaveURL(/\/bill\/scan$/)
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Scan a medical bill')
+  await expect(page.getByRole('button', { name: 'Metformin label' })).toHaveCount(0)
+  if (!isMobile) await expect(page.getByRole('link', { name: 'Bill', exact: true })).toHaveAttribute('aria-current', 'page')
 })
 
 test('unclear fields block Confirm until filled', async ({ page }) => {

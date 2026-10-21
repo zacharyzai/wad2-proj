@@ -21,7 +21,7 @@
   },
   "pages": {
     "home": "Understand your medicine and bills",
-    "scan": "Scan a label or bill",
+    "scan": "Scan a medication label",
     "confirm": "Check the details",
     "explain": "What this means",
     "schedule": "Medicine schedule",
@@ -32,7 +32,8 @@
     "shared": "Shared summary",
     "notFound": "Page not found",
     "ask": "Ask about my medicine",
-    "welcome": "Welcome"
+    "welcome": "Welcome",
+    "billScan": "Scan a medical bill"
   },
   "errors": {
     "BAD_REQUEST": "Something was wrong with that request. Please try again.",
@@ -114,10 +115,6 @@
     "capture": "Capture",
     "preview": "Camera preview",
     "cameraBlocked": "We can’t open the camera. Allow camera access in your browser, or upload a photo instead.",
-    "choose": {
-      "title": "What are you scanning?",
-      "lead": "Pick one, then take a clear photo."
-    },
     "privacy": "Your name, NRIC and address are blacked out on this phone before your photo is read. It is never stored.",
     "neverStored": "Your photo is never stored",
     "sampleOf": {
@@ -136,7 +133,11 @@
       "wrongType": "Please choose a PNG, JPG or HEIC photo."
     },
     "addPhoto": "Add your photo",
-    "or": "or"
+    "or": "or",
+    "lead": {
+      "medication": "Take a clear photo of the label, or upload one.",
+      "bill": "Take a clear photo of the whole bill, or upload one."
+    }
   },
   "confirm": {
     "title": {

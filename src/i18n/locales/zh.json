@@ -21,7 +21,7 @@
   },
   "pages": {
     "home": "看懂您的药物和账单",
-    "scan": "扫描药物标签或账单",
+    "scan": "扫描药物标签",
     "confirm": "核对资料",
     "explain": "这是什么意思",
     "schedule": "服药时间表",
@@ -32,7 +32,8 @@
     "shared": "共享摘要",
     "notFound": "找不到页面",
     "ask": "询问我的药物",
-    "welcome": "欢迎"
+    "welcome": "欢迎",
+    "billScan": "扫描医药账单"
   },
   "errors": {
     "BAD_REQUEST": "请求有误，请再试一次。",
@@ -114,10 +115,6 @@
     "capture": "拍下",
     "preview": "相机画面",
     "cameraBlocked": "无法打开相机。请在浏览器中允许使用相机，或改为上传照片。",
-    "choose": {
-      "title": "您要扫描什么？",
-      "lead": "选一项，然后拍一张清楚的照片。"
-    },
     "privacy": "在读取照片之前，您的姓名、身份证号码和地址会先在这部手机上被涂黑。照片不会被保存。",
     "neverStored": "您的照片不会被保存",
     "sampleOf": {
@@ -136,7 +133,11 @@
       "wrongType": "请选择 PNG、JPG 或 HEIC 格式的照片。"
     },
     "addPhoto": "添加照片",
-    "or": "或"
+    "or": "或",
+    "lead": {
+      "medication": "拍一张清晰的标签照片，或上传照片。",
+      "bill": "拍一张清晰的完整账单照片，或上传照片。"
+    }
   },
   "confirm": {
     "title": {

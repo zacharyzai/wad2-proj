@@ -75,7 +75,7 @@ function confirm() {
   router.push({ name: 'explain' })
 }
 
-const scanAgain = () => router.push({ name: 'scan', query: { type: draft.type } })
+const scanAgain = () => router.push({ name: draft.type === 'bill' ? 'bill-scan' : 'scan' })
 </script>
 
 <template>

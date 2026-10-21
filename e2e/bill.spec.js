@@ -43,7 +43,7 @@ test.describe('getting to a bill', () => {
   })
 
   test('a checked bill goes from Explain to the full breakdown', async ({ page }) => {
-    await page.goto('/scan')
+    await page.goto('/bill/scan')
     await page.getByRole('button', { name: 'Medical bill' }).click()
     await page.getByRole('button', { name: 'Looks correct' }).click()
     await page.getByRole('link', { name: 'See full breakdown' }).click()
@@ -53,7 +53,7 @@ test.describe('getting to a bill', () => {
 
   test('an unchecked bill asks to be checked first (sidebar link)', async ({ page, isMobile }) => {
     test.skip(isMobile, 'The Bill link is in the desktop sidebar only; the phone tab bar keeps 4 tabs')
-    await page.goto('/scan')
+    await page.goto('/bill/scan')
     await page.getByRole('button', { name: 'Medical bill' }).click()
     // Wait for Confirm, or Scan would still move there after the sample arrives.
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('Check your bill items')

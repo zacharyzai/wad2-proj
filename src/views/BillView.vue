@@ -201,7 +201,7 @@ const summary = computed(() => [
           <span>{{ t('bill.total') }}</span>
           <strong>{{ money(bill.totalPayableCents) }}</strong>
         </p>
-        <RouterLink :to="{ name: 'scan', query: { type: 'bill' } }" class="btn btn-secondary"><AppIcon name="scan" />{{ t('bill.another') }}</RouterLink>
+        <RouterLink :to="{ name: 'bill-scan' }" class="btn btn-secondary"><AppIcon name="scan" />{{ t('bill.another') }}</RouterLink>
       </div>
     </div>
 
@@ -219,7 +219,7 @@ const summary = computed(() => [
     </div>
 
     <EmptyState v-else :title="t('bill.none.title')" :text="t('bill.none.text')" icon="receipt">
-      <RouterLink :to="{ name: 'scan', query: { type: 'bill' } }" class="btn btn-primary"><AppIcon name="scan" />{{ t('bill.scan') }}</RouterLink>
+      <RouterLink :to="{ name: 'bill-scan' }" class="btn btn-primary"><AppIcon name="scan" />{{ t('bill.scan') }}</RouterLink>
     </EmptyState>
 
     <!-- Samples: always offered when there's no real bill, and as "try another" while looking at a sample. -->

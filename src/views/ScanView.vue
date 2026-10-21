@@ -23,7 +23,8 @@ const MAX_SIDE = 1600
 const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
-const type = computed(() => (route.query.type === 'bill' ? 'bill' : 'medication'))
+const type = computed(() => route.meta.scanType ?? 'medication') // /scan: labels; /bill/scan: bills
+const samples = computed(() => SAMPLES.filter((s) => s.type === type.value))
 
 const state = ref('idle') // idle | loading | error
 const covering = ref(false) // loading, step 1: blacking out personal details on this phone
@@ -208,7 +209,7 @@ onMounted(() => {
   if (file) return useFile(file)
   const sample = SAMPLES.find((s) => s.id === route.query.sample)
   if (!sample) return
-  router.replace({ query: { type: sample.type } }) // so Back from Confirm doesn't run the sample again
+  router.replace({ query: {} }) // so Back from Confirm doesn't run the sample again
   trySample(sample)
 })
 </script>
@@ -270,24 +271,8 @@ onMounted(() => {
 
   <div v-else class="page">
     <div class="page-head">
-      <h1>{{ t('scan.choose.title') }}</h1>
-      <p class="lead-text">{{ t('scan.choose.lead') }}</p>
-    </div>
-
-    <div class="types" role="radiogroup" :aria-label="t('scan.choose.title')">
-      <button
-        v-for="opt in [{ type: 'medication', icon: 'pill', key: 'med' }, { type: 'bill', icon: 'receipt', key: 'bill' }]"
-        :key="opt.type"
-        type="button"
-        role="radio"
-        class="type"
-        :aria-checked="type === opt.type"
-        @click="router.replace({ query: { type: opt.type } })"
-      >
-        <span class="tile tile-lg type-tile"><AppIcon :name="opt.icon" :size="26" /></span>
-        <span class="type-name">{{ t(`home.${opt.key}.title`) }}</span>
-        <span v-if="type === opt.type" class="type-check"><AppIcon name="check" :size="18" :stroke="3" /></span>
-      </button>
+      <h1>{{ t(type === 'bill' ? 'home.bill.title' : 'home.med.title') }}</h1>
+      <p class="lead-text">{{ t(`scan.lead.${type}`) }}</p>
     </div>
 
     <div class="cols">
@@ -316,7 +301,7 @@ onMounted(() => {
       <section aria-labelledby="samples-title">
         <h2 id="samples-title" class="section-label">{{ t('scan.samplesTitle') }}</h2>
         <div class="d-flex flex-column gap-3 stagger">
-          <button v-for="sample in SAMPLES" :key="sample.id" type="button" class="card card-interactive sample" @click="trySample(sample)">
+          <button v-for="sample in samples" :key="sample.id" type="button" class="card card-interactive sample" @click="trySample(sample)">
             <img :src="`/samples/${sample.id}.svg`" alt="" class="sample-thumb" />
             <span class="d-flex flex-column flex-grow-1">
               <span class="sample-name">{{ t(`scan.samples.${sample.key}`) }}</span>

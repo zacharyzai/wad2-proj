@@ -21,7 +21,7 @@
   },
   "pages": {
     "home": "Fahami ubat dan bil anda",
-    "scan": "Imbas label atau bil",
+    "scan": "Imbas label ubat",
     "confirm": "Semak butiran",
     "explain": "Apa maksudnya",
     "schedule": "Jadual ubat",
@@ -32,7 +32,8 @@
     "shared": "Ringkasan dikongsi",
     "notFound": "Halaman tidak dijumpai",
     "ask": "Tanya tentang ubat saya",
-    "welcome": "Selamat datang"
+    "welcome": "Selamat datang",
+    "billScan": "Imbas bil perubatan"
   },
   "errors": {
     "BAD_REQUEST": "Permintaan tidak sah. Sila cuba lagi.",
@@ -114,10 +115,6 @@
     "capture": "Tangkap",
     "preview": "Pratonton kamera",
     "cameraBlocked": "Kamera tidak dapat dibuka. Benarkan akses kamera dalam pelayar anda, atau muat naik gambar.",
-    "choose": {
-      "title": "Apa yang anda imbas?",
-      "lead": "Pilih satu, kemudian ambil gambar yang jelas."
-    },
     "privacy": "Nama, NRIC dan alamat anda dihitamkan pada telefon ini sebelum gambar anda dibaca. Gambar tidak disimpan.",
     "neverStored": "Gambar anda tidak disimpan",
     "sampleOf": {
@@ -136,7 +133,11 @@
       "wrongType": "Sila pilih gambar PNG, JPG atau HEIC."
     },
     "addPhoto": "Tambah gambar anda",
-    "or": "atau"
+    "or": "atau",
+    "lead": {
+      "medication": "Ambil gambar label yang jelas, atau muat naik gambar.",
+      "bill": "Ambil gambar jelas seluruh bil, atau muat naik gambar."
+    }
   },
   "confirm": {
     "title": {
