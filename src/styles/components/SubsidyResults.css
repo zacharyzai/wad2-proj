@@ -1,6 +1,14 @@
 /* Scoped styles for SubsidyResults.vue. Badges and alerts come from styles/global/feedback.css. */
-.r-status { display: inline-flex; align-items: center; gap: 8px; min-height: 28px; color: var(--color-text-muted); font-size: 17px; font-weight: 600; }
-.r-status .spinner-border { color: var(--color-primary); }
+/* Collapsible card: the whole header is one big button (summary). */
+.r-card { padding: 0; overflow: hidden; }
+.r-summary { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 88px; padding: 20px 24px; cursor: pointer; list-style: none; transition: background-color var(--dur) var(--ease-out); }
+.r-summary::-webkit-details-marker { display: none; }
+.r-summary:hover { background: var(--color-surface-2); }
+.r-summary:focus-visible { outline: none; box-shadow: inset var(--focus-ring); }
+.r-hint { color: var(--color-link); font-size: 17px; font-weight: 700; }
+.r-chev { width: var(--hit); height: var(--hit); flex: none; display: grid; place-items: center; border-radius: 50%; background: var(--color-tint); color: var(--color-tint-text); transition: transform var(--dur) var(--ease-out); }
+.r-card[open] .r-chev { transform: rotate(180deg); }
+.r-body { display: flex; flex-direction: column; gap: 24px; padding: 0 24px 24px; animation: ahma-rise var(--dur) var(--ease-out) both; }
 .official { display: flex; flex-direction: column; gap: 2px; padding-left: 20px; font-weight: 600; }
 .official a { display: inline-flex; align-items: center; min-height: var(--hit); }
 

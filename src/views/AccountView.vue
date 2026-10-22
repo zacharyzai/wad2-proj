@@ -5,7 +5,7 @@ import { computed, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { authStore, logout, updateProfile } from '../stores/auth'
-import { citizenshipText } from '../utils/account'
+import { INCOMES, citizenshipText, incomeText, isCitizen } from '../utils/account'
 import PageHeader from '../components/layout/PageHeader.vue'
 import Card from '../components/layout/Card.vue'
 import BigButton from '../components/layout/BigButton.vue'
@@ -33,11 +33,12 @@ const rows = computed(() => [
   { key: 'email', label: t('auth.email'), value: user.value.email || '—' },
   { key: 'dob', label: t('auth.dob'), value: dobText.value },
   { key: 'citizenship', label: t('auth.citizenship'), value: citizenshipText(t, user.value) },
+  ...(isCitizen(user.value.citizenship) ? [{ key: 'income', label: t('bill.q.income'), value: incomeText(t, user.value) }] : []),
 ])
 
 // Editing: a copy of the details, saved with PATCH /api/auth/me. Email and password stay as they are.
 const editing = ref(false)
-const form = reactive({ name: '', dob: '', citizenship: '', citizenSince: '' })
+const form = reactive({ name: '', dob: '', citizenship: '', citizenSince: '', income: '' })
 const busy = ref(false)
 const errorCode = ref(null)
 const saved = ref(false)
@@ -51,7 +52,7 @@ const problems = computed(() => {
 })
 
 function edit() {
-  Object.assign(form, { name: user.value.name ?? '', dob: user.value.dob ?? '', citizenship: user.value.citizenship ?? 'birth', citizenSince: user.value.citizenSince ?? '' })
+  Object.assign(form, { name: user.value.name ?? '', dob: user.value.dob ?? '', citizenship: user.value.citizenship ?? 'birth', citizenSince: user.value.citizenSince ?? '', income: user.value.income ?? 'unsure' })
   errorCode.value = null
   saved.value = false
   editing.value = true
@@ -61,7 +62,7 @@ async function save() {
   if (busy.value || Object.keys(problems.value).length) return
   busy.value = true
   errorCode.value = null
-  const res = await updateProfile({ name: form.name.trim(), dob: form.dob, citizenship: form.citizenship, citizenSince: form.citizenship === 'became' ? Number(form.citizenSince) : null })
+  const res = await updateProfile({ name: form.name.trim(), dob: form.dob, citizenship: form.citizenship, citizenSince: form.citizenship === 'became' ? Number(form.citizenSince) : null, income: isCitizen(form.citizenship) ? form.income : null })
   busy.value = false
   if (!res.ok) return (errorCode.value = res.error.code)
   editing.value = false
@@ -76,7 +77,7 @@ function leave() {
 
 <template>
   <div class="account d-flex flex-column gap-4">
-    <PageHeader :title="t('pages.account')">{{ t('account.lead') }}</PageHeader>
+    <PageHeader :title="t('pages.account')" :back="{ name: 'home' }">{{ t('account.lead') }}</PageHeader>
 
     <Card v-if="!editing" :title="t('account.details')">
       <dl class="rows m-0">
@@ -113,6 +114,13 @@ function leave() {
           <label for="acc-year" class="field-label">{{ t('bill.q.citizenYear') }}</label>
           <input id="acc-year" v-model="form.citizenSince" class="field-input" :class="{ 'is-error': problems.citizenSince }" inputmode="numeric" maxlength="4" :placeholder="t('bill.q.yearExample')" data-testid="account-edit-year" />
           <p v-if="problems.citizenSince" class="field-error" role="alert">{{ problems.citizenSince }}</p>
+        </div>
+        <div v-if="isCitizen(form.citizenship)" class="field">
+          <label for="acc-income" class="field-label">{{ t('bill.q.income') }}</label>
+          <p class="field-help m-0">{{ t('bill.q.incomeHelp') }}</p>
+          <select id="acc-income" v-model="form.income" class="field-input" data-testid="account-edit-income">
+            <option v-for="(key, value) in INCOMES" :key="value" :value="value">{{ t(`bill.q.incomes.${key}`) }}</option>
+          </select>
         </div>
         <div class="d-flex flex-column flex-sm-row gap-3">
           <BigButton type="submit" :busy="busy" data-testid="account-save">{{ busy ? t('auth.working') : t('account.save') }}</BigButton>

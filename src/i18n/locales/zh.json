@@ -17,7 +17,8 @@
     "main": "主菜单",
     "night": "夜间模式",
     "skip": "跳到主要内容",
-    "ask": "提问"
+    "ask": "提问",
+    "backTop": "回到顶部"
   },
   "pages": {
     "home": "看懂您的药物和账单",
@@ -581,9 +582,7 @@
         "year": "请输入 1901 至 {max} 之间的四位数年份。",
         "beforeBirth": "这个年份比您的出生年份还早，请检查一下。"
       },
-      "clear": "清除我的答案",
-      "fromAccount": "已根据您的账户填写：出生于 {year} 年，{status}。如果是别人的账单，请在下面修改答案。",
-      "useAccount": "使用我的账户资料"
+      "clear": "清除我的答案"
     },
     "r": {
       "title": "这对您有什么意义",
@@ -593,7 +592,7 @@
       "estimateText": "您要付多少由诊所决定。请向诊所询问，或查看以下官方网页：",
       "onBill": "这张账单上的津贴",
       "noneOnBill": "这张账单上没有显示任何津贴。",
-      "matches": "与您的答案相符",
+      "matches": "与您的资料相符",
       "mayQualify": "您可能还符合以下资格…",
       "answerFirst": "回答上面的问题，看看还有哪些计划可以帮助您。",
       "noneMore": "根据您的答案，我们没有找到适用于这张账单的其他计划。",
@@ -610,8 +609,19 @@
       "official": "{name}的官方网页",
       "checked": "最后核对日期：{date}",
       "newTab": "（在新标签页中打开）",
-      "medisaveNote": "和这张账单一样，保健储蓄可能会支付其中一部分。"
-    }
+      "medisaveNote": "和这张账单一样，保健储蓄可能会支付其中一部分。",
+      "chasCard": "可能获得 CHAS {colour}卡",
+      "chasColour": {
+        "blue": "蓝色",
+        "orange": "橙色",
+        "green": "绿色"
+      },
+      "show": "按这里查看更多",
+      "hide": "按这里收起"
+    },
+    "basis": "已根据您的账户资料查看：出生于 {year} 年，{status}。",
+    "basisChange": "修改我的资料",
+    "closeBill": "关闭此账单"
   },
   "account": {
     "lead": "这是您提供的资料。",

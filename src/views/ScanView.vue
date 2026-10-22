@@ -270,9 +270,13 @@ onMounted(() => {
   </div>
 
   <div v-else class="page">
-    <div class="page-head">
-      <h1>{{ t(type === 'bill' ? 'home.bill.title' : 'home.med.title') }}</h1>
-      <p class="lead-text">{{ t(`scan.lead.${type}`) }}</p>
+    <div class="d-flex align-items-start gap-3">
+      <!-- Bills are scanned from the Bill page, so this goes back there. (Medicine Scan is a main tab: no Back.) -->
+      <RouterLink v-if="type === 'bill'" :to="{ name: 'bill' }" class="back" :aria-label="t('nav.back')" data-testid="scan-back"></RouterLink>
+      <div class="page-head">
+        <h1>{{ t(type === 'bill' ? 'home.bill.title' : 'home.med.title') }}</h1>
+        <p class="lead-text">{{ t(`scan.lead.${type}`) }}</p>
+      </div>
     </div>
 
     <div class="cols">

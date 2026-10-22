@@ -13,6 +13,10 @@ const CHOICES = [
   { type: 'medication', key: 'med', icon: 'pill' },
   { type: 'bill', key: 'bill', icon: 'receipt' },
 ]
+// Each list is shown twice in a row, so the loop is seamless: when the first copy has moved out, the second is in its place.
+const LABEL_LOOP = ['med-1', 'med-2', 'med-3', 'med-1', 'med-2', 'med-3']
+const RECEIPT_LOOP = ['bill-1', 'bill-2', 'bill-3', 'bill-1', 'bill-2', 'bill-3']
+
 const SAMPLES = [
   { id: 'med-1', key: 'med1' },
   { id: 'bill-1', key: 'bill1' },
@@ -69,7 +73,14 @@ function onFile(event) {
             <span class="choice-title">{{ t(`home.${c.key}.title`) }}</span>
             <span class="text-muted-a11y">{{ t(`home.${c.key}.text`) }}</span>
           </span>
-          <img :src="`/samples/${c.type === 'bill' ? 'bill-1' : 'med-1'}.svg`" alt="" class="peek" />
+          <!-- Decoration, so hidden from screen readers. Paused on hover/focus; still with reduced motion. -->
+          <span v-if="c.type === 'medication'" class="labels" aria-hidden="true">
+            <span class="labels-track"><img v-for="(id, i) in LABEL_LOOP" :key="i" :src="`/samples/${id}.svg`" alt="" /></span>
+          </span>
+          <span v-else class="receipt" aria-hidden="true">
+            <span class="receipt-slot"></span>
+            <span class="receipt-paper"><span class="receipt-track"><img v-for="(id, i) in RECEIPT_LOOP" :key="i" :src="`/samples/${id}.svg`" alt="" /></span></span>
+          </span>
           <span class="chev"><AppIcon name="right" :size="22" /></span>
         </RouterLink>
 

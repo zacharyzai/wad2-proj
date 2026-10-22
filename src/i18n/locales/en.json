@@ -17,7 +17,8 @@
     "main": "Main",
     "night": "Night mode",
     "skip": "Skip to main content",
-    "ask": "Ask"
+    "ask": "Ask",
+    "backTop": "Back to top"
   },
   "pages": {
     "home": "Understand your medicine and bills",
@@ -581,9 +582,7 @@
         "year": "Please type a 4-digit year from 1901 to {max}.",
         "beforeBirth": "This year is before the year you were born. Please check it."
       },
-      "clear": "Clear my answers",
-      "fromAccount": "Filled in from your account: born {year}, {status}. Checking someone else's bill? Change the answers below.",
-      "useAccount": "Use my account details"
+      "clear": "Clear my answers"
     },
     "r": {
       "title": "What this means for you",
@@ -593,7 +592,7 @@
       "estimateText": "The clinic decides what you pay. Check with the clinic or these official pages:",
       "onBill": "Subsidies on this bill",
       "noneOnBill": "This bill does not show any subsidies.",
-      "matches": "Matches your answers",
+      "matches": "Matches your details",
       "mayQualify": "You may also qualify for…",
       "answerFirst": "Answer the questions to see other schemes that may help you.",
       "noneMore": "From your answers, we did not find other schemes for this bill.",
@@ -610,8 +609,19 @@
       "official": "Official page for {name}",
       "checked": "Last checked {date}",
       "newTab": "(opens in a new tab)",
-      "medisaveNote": "MediSave may pay part of this, as it did on this bill."
-    }
+      "medisaveNote": "MediSave may pay part of this, as it did on this bill.",
+      "chasCard": "Likely a CHAS {colour} card",
+      "chasColour": {
+        "blue": "Blue",
+        "orange": "Orange",
+        "green": "Green"
+      },
+      "show": "Press here to see more",
+      "hide": "Press here to hide"
+    },
+    "basis": "Checked with your account details: born {year}, {status}.",
+    "basisChange": "Change my details",
+    "closeBill": "Close this bill"
   },
   "account": {
     "lead": "These are the details you gave us.",

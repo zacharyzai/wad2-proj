@@ -1,34 +1,37 @@
 <!-- Owner: Lokesh. Subsidy results: what is already on the bill, and what the user may also qualify for. Estimates only; every scheme links its official page. -->
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AppIcon from '../layout/AppIcon.vue'
-import { RULES, compareWithBill } from '../../rules/subsidies'
+import { RULES, chasTier, compareWithBill } from '../../rules/subsidies'
 import { money } from './lines'
 
 const props = defineProps({
   bill: { type: Object, required: true },
-  answers: { type: Object, required: true },
-  // True while the answers are still changing (BillView waits a moment before showing new results).
-  updating: { type: Boolean, default: false },
+  answers: { type: Object, required: true }, // from the account: { birthYear, residency, citizenSince, income }
 })
 const { t, locale } = useI18n()
 
 // Runs the rules again whenever the answers or the bill change. All amounts are integer cents.
 const result = computed(() => compareWithBill(props.bill, props.answers))
+// Closed at first so the bill itself comes first; one big tap opens it. Native <details>: keyboard and screen readers know it.
+const open = ref(false)
+const chasCard = computed(() => chasTier(props.answers)) // 'blue' | 'orange' | 'green' | null
 const answered = computed(() => Object.values(props.answers).some((value) => value !== null))
 const checkedOn = (iso) => new Date(`${iso}T00:00`).toLocaleDateString(locale.value, { day: 'numeric', month: 'long', year: 'numeric' })
 </script>
 
 <template>
-  <section class="card d-flex flex-column gap-4" aria-labelledby="r-title" :aria-busy="updating">
-    <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap">
-      <h2 id="r-title">{{ t('bill.r.title') }}</h2>
-      <span class="r-status" role="status">
-        <template v-if="updating"><span class="spinner-border spinner-border-sm" aria-hidden="true"></span>{{ t('bill.r.updating') }}</template>
-        <template v-else-if="answered"><AppIcon name="checkCircle" :size="20" />{{ t('bill.r.updated') }}</template>
+  <details class="card r-card" data-testid="subsidy-details" :open="open" @toggle="open = $event.target.open">
+    <summary class="r-summary">
+      <span class="d-flex flex-column gap-1">
+        <h2 id="r-title">{{ t('bill.r.title') }}</h2>
+        <span class="r-hint">{{ open ? t('bill.r.hide') : t('bill.r.show') }}</span>
       </span>
-    </div>
+      <span class="r-chev" aria-hidden="true"><AppIcon name="down" :size="24" /></span>
+    </summary>
+
+    <div class="r-body">
 
     <div class="alert alert-warning" data-testid="estimate-notice">
       <AppIcon name="alert" />
@@ -43,7 +46,7 @@ const checkedOn = (iso) => new Date(`${iso}T00:00`).toLocaleDateString(locale.va
       </div>
     </div>
 
-    <div class="d-flex flex-column gap-3" :class="{ stale: updating }">
+    <div class="d-flex flex-column gap-3">
       <h3 class="section-label">{{ t('bill.r.onBill') }}</h3>
       <p v-if="!result.onBill.length" class="text-muted-a11y">{{ t('bill.r.noneOnBill') }}</p>
       <ul v-else class="results">
@@ -61,7 +64,7 @@ const checkedOn = (iso) => new Date(`${iso}T00:00`).toLocaleDateString(locale.va
       </ul>
     </div>
 
-    <div class="d-flex flex-column gap-3" :class="{ stale: updating }">
+    <div class="d-flex flex-column gap-3">
       <h3 class="section-label">{{ t('bill.r.mayQualify') }}</h3>
       <p v-if="!answered" class="text-muted-a11y">{{ t('bill.r.answerFirst') }}</p>
       <p v-else-if="!result.mayQualify.length" class="text-muted-a11y">{{ t('bill.r.noneMore') }}</p>
@@ -74,6 +77,7 @@ const checkedOn = (iso) => new Date(`${iso}T00:00`).toLocaleDateString(locale.va
           <div class="d-flex flex-wrap gap-2">
             <span v-if="item.result === true" class="badge badge-success"><AppIcon name="checkCircle" :size="18" />{{ t('bill.r.likely') }}</span>
             <span v-else class="badge badge-warning"><AppIcon name="info" :size="18" />{{ t('bill.r.needMore') }}</span>
+            <span v-if="item.rule.id === 'chas' && chasCard" class="badge badge-teal" data-testid="chas-card"><AppIcon name="wallet" :size="18" />{{ t('bill.r.chasCard', { colour: t(`bill.r.chasColour.${chasCard}`) }) }}</span>
             <span v-if="!item.here" class="badge badge-navy"><AppIcon name="info" :size="18" />{{ t(`bill.r.notHere.${result.place}`) }}</span>
           </div>
           <p>{{ t(item.rule.explainKey) }}</p>
@@ -93,7 +97,8 @@ const checkedOn = (iso) => new Date(`${iso}T00:00`).toLocaleDateString(locale.va
         <span v-if="bill.medisaveCents" class="w-100">{{ t('bill.r.medisaveNote') }}</span>
       </p>
     </div>
-  </section>
+    </div>
+  </details>
 </template>
 
 <style scoped src="../../styles/components/SubsidyResults.css"></style>

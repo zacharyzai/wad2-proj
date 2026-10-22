@@ -1,20 +1,23 @@
-<!-- Owner: Lokesh. Bill breakdown: every line of a Singapore polyclinic or GP clinic bill with its category, and a tap-to-open plain explanation. -->
+<!-- Owner: Lokesh. Bill breakdown: every line of a Singapore polyclinic or GP clinic bill with its category, and a tap-to-open plain explanation.
+     Subsidies are checked from the account's date of birth and citizenship (no questions on this page); Back returns to where you came from. -->
 <script setup>
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { scanStore } from '../stores/scan'
 import { authStore } from '../stores/auth'
 import { scanSample } from '../api/client'
 import BillLine from '../components/bill/BillLine.vue'
-import SubsidyQuestionnaire from '../components/bill/SubsidyQuestionnaire.vue'
 import SubsidyResults from '../components/bill/SubsidyResults.vue'
 import EmptyState from '../components/layout/EmptyState.vue'
 import LoadingState from '../components/layout/LoadingState.vue'
 import ErrorBanner from '../components/layout/ErrorBanner.vue'
 import AppIcon from '../components/layout/AppIcon.vue'
 import { CATEGORY_STYLE, SUBSIDY_STYLE, MEDISAVE_STYLE, money, sumCents } from '../components/bill/lines'
+import { citizenshipText } from '../utils/account'
 
 const { t, locale } = useI18n()
+const router = useRouter()
 
 const SAMPLES = [
   { id: 'bill-1', key: 'bill1' },
@@ -42,6 +45,27 @@ async function openSample(id) {
   scanStore.current = res.data
   scanStore.photo = null
   scanStore.confirmed = true
+  openedHere.value = true
+}
+
+// Back: a sample opened on this page closes again (back to the list of bills); otherwise return to the page before
+// (usually Explain, via See full breakdown), or Home when this page was opened directly.
+const openedHere = ref(false)
+function goBack() {
+  if (openedHere.value) {
+    openedHere.value = false
+    scanStore.current = null
+    scanStore.confirmed = false
+    return window.scrollTo({ top: 0 })
+  }
+  if (window.history.state?.back) router.back()
+  else router.push({ name: 'home' })
+}
+function toTop() {
+  window.scrollTo({ top: 0, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })
+  const h1 = document.querySelector('main h1')
+  h1?.setAttribute('tabindex', '-1') // headings aren't focusable by default
+  h1?.focus({ preventScroll: true })
 }
 
 // One line open at a time, so there is only ever one read-aloud player.
@@ -94,21 +118,15 @@ const takenOff = computed(() => {
   ]
 })
 
-// Questionnaire answers: only in this page's memory, never sent to the server or saved.
-// Results follow a moment after the last change, so "Updating…" shows while the person is still typing.
-const answers = ref({ birthYear: null, residency: null, citizenSince: null, income: null })
-const settledAnswers = ref(answers.value)
-const updating = ref(false)
-let settleTimer = null
-watch(answers, (next) => {
-  updating.value = true
-  clearTimeout(settleTimer)
-  settleTimer = setTimeout(() => {
-    settledAnswers.value = next
-    updating.value = false
-  }, 500)
-})
-onBeforeUnmount(() => clearTimeout(settleTimer))
+// Subsidies are checked from the account (date of birth and citizenship, given at signup or on the Account page).
+// Household income (citizens, from signup) gives the CHAS card colour.
+const user = computed(() => authStore.user)
+const answers = computed(() => ({
+  birthYear: user.value?.dob ? Number(user.value.dob.slice(0, 4)) : null,
+  residency: { birth: 'citizen', became: 'citizen', pr: 'pr', other: 'other' }[user.value?.citizenship] ?? null,
+  citizenSince: user.value?.citizenship === 'birth' ? 'birth' : user.value?.citizenSince ?? null,
+  income: user.value?.income ?? null,
+}))
 
 // The big amount counts up when a bill opens (a quick, visible "this is the number that matters"). Screen readers get the real amount.
 const shownPay = ref(0)
@@ -151,9 +169,12 @@ const summary = computed(() => [
 
 <template>
   <div class="page">
-    <div class="page-head">
-      <h1>{{ t('pages.bill') }}</h1>
-      <p v-if="bill" class="lead-text">{{ t('bill.lead') }}</p>
+    <div class="d-flex align-items-start gap-3">
+      <button v-if="bill" type="button" class="back" :aria-label="openedHere ? t('bill.closeBill') : t('nav.back')" data-testid="bill-back" @click="goBack"></button>
+      <div class="page-head">
+        <h1>{{ t('pages.bill') }}</h1>
+        <p v-if="bill" class="lead-text">{{ t('bill.lead') }}</p>
+      </div>
     </div>
 
     <p class="alert alert-note"><AppIcon name="info" />{{ t('bill.scope') }}</p>
@@ -183,7 +204,18 @@ const summary = computed(() => [
             </div>
           </dl>
           <span v-if="scan.source === 'sample'" class="badge badge-navy align-self-start"><AppIcon name="file" :size="18" />{{ t('bill.sampleTag') }}</span>
-        </section>      </div>
+        </section>
+
+        <!-- What the subsidies below are based on, and where to change it (a caregiver can check with their parent's details there). -->
+        <p v-if="user?.dob" class="basis" data-testid="bill-basis">
+          <AppIcon name="user" :size="20" />
+          <span class="d-flex flex-column">
+            {{ t('bill.basis', { year: user.dob.slice(0, 4), status: citizenshipText(t, user) }) }}
+            <RouterLink :to="{ name: 'account' }" class="basis-link">{{ t('bill.basisChange') }}<AppIcon name="right" :size="18" /></RouterLink>
+          </span>
+        </p>
+        <SubsidyResults :bill="bill" :answers="answers" />
+      </div>
 
       <div>
         <section class="d-flex flex-column gap-3" aria-labelledby="bill-charged">
@@ -202,13 +234,12 @@ const summary = computed(() => [
           <span>{{ t('bill.total') }}</span>
           <strong>{{ money(bill.totalPayableCents) }}</strong>
         </p>
-        <RouterLink :to="{ name: 'bill-scan' }" class="btn btn-secondary"><AppIcon name="scan" />{{ t('bill.another') }}</RouterLink>
+        <div class="d-flex flex-column gap-3">
+          <button type="button" class="btn btn-primary" data-testid="bill-done" @click="goBack"><AppIcon name="left" />{{ openedHere ? t('bill.closeBill') : t('nav.back') }}</button>
+          <RouterLink :to="{ name: 'bill-scan' }" class="btn btn-secondary"><AppIcon name="scan" />{{ t('bill.another') }}</RouterLink>
+          <button type="button" class="btn btn-ghost" data-testid="bill-top" @click="toTop"><AppIcon name="up" />{{ t('nav.backTop') }}</button>
+        </div>
       </div>
-    </div>
-
-    <div v-if="bill" class="cols">
-      <div><SubsidyQuestionnaire v-model="answers" :account="authStore.user" /></div>
-      <div><SubsidyResults :bill="bill" :answers="settledAnswers" :updating="updating" /></div>
     </div>
 
     <div v-else-if="unchecked" class="alert alert-warning">

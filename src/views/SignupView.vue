@@ -9,9 +9,10 @@ import AuthShell from '../components/layout/AuthShell.vue'
 import ErrorBanner from '../components/layout/ErrorBanner.vue'
 import BigButton from '../components/layout/BigButton.vue'
 import AppIcon from '../components/layout/AppIcon.vue'
+import { INCOMES, isCitizen } from '../utils/account'
 
 const MIN_PASSWORD = 8
-// Same values as the subsidy questions (SubsidyQuestionnaire.vue) and the server (server/models/User.js).
+// Same values as the subsidy rules (src/rules/subsidies.js, via BillView) and the server (server/models/User.js).
 const CITIZENSHIPS = ['birth', 'became', 'pr', 'other']
 const today = new Date().toISOString().slice(0, 10) // a birth date cannot be in the future
 const thisYear = new Date().getFullYear()
@@ -20,7 +21,7 @@ const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 
-const form = reactive({ name: '', email: '', password: '', dob: '', citizenship: '', citizenSince: '' })
+const form = reactive({ name: '', email: '', password: '', dob: '', citizenship: '', citizenSince: '', income: '' })
 const remember = ref(true)
 const showPw = ref(false)
 const busy = ref(false)
@@ -38,6 +39,7 @@ const problems = computed(() => {
   const year = Number(form.citizenSince)
   const born = Number(form.dob.slice(0, 4)) || 1900
   if (form.citizenship === 'became' && !(Number.isInteger(year) && year >= born && year <= thisYear)) p.citizenSince = t('auth.need.citizenSince', { max: thisYear })
+  if (isCitizen(form.citizenship) && !form.income) p.income = t('auth.need.citizenship')
   return p
 })
 const show = (field) => tried.value && problems.value[field]
@@ -53,7 +55,7 @@ async function submit() {
   const first = Object.keys(problems.value)[0]
   if (first) {
     await nextTick()
-    document.getElementById(`signup-${first === 'citizenSince' ? 'citizen-year' : first}`)?.focus()
+    document.getElementById(`signup-${{ citizenSince: 'citizen-year' }[first] ?? first}`)?.focus()
     return
   }
   busy.value = true
@@ -61,7 +63,7 @@ async function submit() {
   const res = await signup(
     form.email.trim(),
     form.password,
-    { name: form.name.trim(), dob: form.dob, citizenship: form.citizenship, citizenSince: form.citizenship === 'became' ? Number(form.citizenSince) : null },
+    { name: form.name.trim(), dob: form.dob, citizenship: form.citizenship, citizenSince: form.citizenship === 'became' ? Number(form.citizenSince) : null, income: isCitizen(form.citizenship) ? form.income : null },
     remember.value,
   )
   busy.value = false
@@ -142,6 +144,20 @@ async function submit() {
           <input id="signup-citizen-year" v-model="form.citizenSince" inputmode="numeric" maxlength="4" :placeholder="t('bill.q.yearExample')" required :aria-invalid="!!show('citizenSince')" aria-describedby="signup-year-err" data-testid="signup-citizen-year" />
         </div>
         <span v-if="show('citizenSince')" id="signup-year-err" class="auth-warn">{{ problems.citizenSince }}</span>
+      </div>
+
+      <!-- CHAS is for citizens: their income band sets the card colour shown on the Bill page. -->
+      <div v-if="isCitizen(form.citizenship)">
+        <label for="signup-income" class="auth-label">{{ t('bill.q.income') }}</label>
+        <div class="auth-field" :class="{ bad: show('income') }">
+          <AppIcon name="wallet" :size="22" />
+          <select id="signup-income" v-model="form.income" required :aria-invalid="!!show('income')" aria-describedby="signup-income-help" data-testid="signup-income">
+            <option value="" disabled>{{ t('auth.citizenshipPick') }}</option>
+            <option v-for="(key, value) in INCOMES" :key="value" :value="value">{{ t(`bill.q.incomes.${key}`) }}</option>
+          </select>
+        </div>
+        <span v-if="show('income')" id="signup-income-help" class="auth-warn">{{ problems.income }}</span>
+        <span v-else id="signup-income-help" class="auth-help">{{ t('bill.q.incomeHelp') }}</span>
       </div>
 
       <label class="auth-check">

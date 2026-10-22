@@ -2,7 +2,7 @@
 import { Router } from 'express'
 import { sendError } from '../errors.js'
 import { connectDb } from '../db.js'
-import { User, CITIZENSHIP } from '../models/User.js'
+import { User, CITIZENSHIP, INCOME } from '../models/User.js'
 import { hashPassword, signToken, verifyPassword } from '../services/auth.js'
 import { requireAuth } from '../middleware/requireAuth.js'
 import { authRateLimit } from '../middleware/rateLimit.js'
@@ -10,7 +10,7 @@ import { authRateLimit } from '../middleware/rateLimit.js'
 const MIN_PASSWORD = 8
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
-// Name, date of birth and citizenship: checked the same way at signup and when editing on the Account page.
+// Name, date of birth, citizenship and (for citizens) household income: checked the same way at signup and when editing on the Account page.
 // Returns the clean profile, or a message for a 400.
 export function checkProfile(body, now = new Date()) {
   const name = typeof body?.name === 'string' ? body.name.trim() : ''
@@ -31,7 +31,13 @@ export function checkProfile(body, now = new Date()) {
       return { error: 'citizenSince must be a year from the birth year to this year' }
     }
   }
-  return { profile: { name, dob, citizenship, citizenSince } }
+  // CHAS is for citizens only, so only they are asked; anyone else stores null.
+  let income = null
+  if (citizenship === 'birth' || citizenship === 'became') {
+    if (!INCOME.includes(body.income)) return { error: `income must be one of ${INCOME.join(', ')}` }
+    income = body.income
+  }
+  return { profile: { name, dob, citizenship, citizenSince, income } }
 }
 
 const answer = (res, user, remember) => res.json({ ok: true, data: { token: signToken(user.id, remember), user: user.toPublic() } })

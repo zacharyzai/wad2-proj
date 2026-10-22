@@ -1,4 +1,4 @@
-// Feature 4: bill breakdown + subsidy questionnaire. Samples only (bill-1, bill-2, bill-3), never real AI.
+// Feature 4: bill breakdown + subsidies from the account (date of birth, citizenship). Samples only (bill-1, bill-2, bill-3), never real AI.
 // Runs on desktop Chrome and iPhone 6 (playwright.config.js). Rules: src/rules/subsidies.js.
 import { test, expect } from './fixtures.js'
 import AxeBuilder from '@axe-core/playwright'
@@ -11,7 +11,12 @@ const MARINE_PARADE = 'Marine Parade: wound dressing, Merdeka Generation' // bil
 async function openSample(page, name) {
   await page.goto('/bill')
   await page.getByRole('button', { name }).click()
-  await expect(page.getByRole('heading', { name: 'Check other subsidies' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'What this means for you' })).toBeVisible()
+}
+// The subsidies are in a closed "Press here to see more" section.
+async function openSubsidies(page) {
+  await page.getByText('Press here to see more').click()
+  await expect(page.getByTestId('subsidy-details')).toHaveAttribute('open', '')
 }
 
 // A bill line's button is named "<description> <category> <amount>".
@@ -19,15 +24,8 @@ const line = (page, name) => page.getByRole('button', { name: new RegExp(name) }
 // Substring match: the big amount is its own block, so the heading reads "You pay $14.00 ." with a space.
 const youPay = (page, text) => page.getByRole('heading', { level: 2, name: text })
 const rule = (page, id) => page.locator(`[data-rule="${id}"]`)
-const upToDate = (page) => page.getByRole('status').filter({ hasText: 'Up to date' })
-
-async function answer(page, { born, status, citizenYear }) {
-  if (born !== undefined) await page.getByLabel('Year you were born').fill(born)
-  if (status) await page.getByText(status, { exact: true }).click()
-  if (citizenYear !== undefined) await page.getByLabel('Year you became a citizen').fill(citizenYear)
-  // Results follow a moment after the last change.
-  await expect(upToDate(page)).toBeVisible()
-}
+// Log in as someone with this date of birth and citizenship (the Bill page checks subsidies from the account).
+const as = (page, dob, citizenship, citizenSince = null) => signIn(page, { ...DEMO_USER, dob, citizenship, citizenSince })
 
 async function expectNoAxeViolations(page) {
   const { violations } = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze()
@@ -138,18 +136,14 @@ test.describe('breakdown', () => {
   })
 })
 
-test.describe('subsidy questionnaire', () => {
-  // These test the questions themselves, so start from an account with no birth date or citizenship (nothing filled in).
-  // Filling in from the account is tested in auth.spec.js.
-  test.beforeEach(({ page }) => signIn(page, { ...DEMO_USER, dob: null, citizenship: null }))
-
-  test('Pioneer Generation senior: estimate from the official 50%, live as you type', async ({ page }) => {
+test.describe('subsidies from the account', () => {
+  test('Pioneer Generation senior: estimate from the official 50%, and the line saying which details were used', async ({ page }) => {
+    await as(page, '1945-08-12', 'birth')
     await openSample(page, BEDOK)
-    await expect(page.getByText('Answer the questions to see other schemes')).toBeVisible()
-
-    await page.getByLabel('Year you were born').fill('1945')
-    await expect(page.getByRole('status').filter({ hasText: 'Updating…' })).toBeVisible()
-    await answer(page, { status: 'Yes, since I was born' })
+    await openSubsidies(page)
+    await expect(page.getByTestId('bill-basis')).toContainText('born 1945, Singapore citizen (by birth)')
+    await expect(page.getByTestId('bill-basis').getByRole('link', { name: 'Change my details' })).toHaveAttribute('href', '/account')
+    await expect(page.getByRole('heading', { name: 'Check other subsidies' })).toHaveCount(0) // no questions on this page
 
     const pioneer = rule(page, 'pioneer')
     await expect(pioneer).toContainText('You may qualify')
@@ -165,8 +159,9 @@ test.describe('subsidy questionnaire', () => {
   })
 
   test('Pioneer Generation senior with MediSave on the bill: compared with the bill after subsidies', async ({ page }) => {
+    await as(page, '1945-08-12', 'birth')
     await openSample(page, TAMPINES)
-    await answer(page, { born: '1945', status: 'Yes, since I was born' })
+    await openSubsidies(page)
     await expect(rule(page, 'pioneer')).toContainText('−$20.85') // 50% of ($62.70 − $21.00)
     const estimate = page.getByTestId('estimate')
     await expect(estimate).toContainText('the bill after subsidies might be about')
@@ -176,57 +171,45 @@ test.describe('subsidy questionnaire', () => {
     await expect(estimate).not.toContainText('$0.00')
   })
 
-  test('Merdeka Generation senior: already on the bill, so it is matched, not offered again', async ({ page }) => {
+  test('Merdeka Generation senior (citizen since 1990): already on the bill, so it is matched, not offered again', async ({ page }) => {
+    await as(page, '1955-03-21', 'became', 1990)
     await openSample(page, MARINE_PARADE)
-    await answer(page, { born: '1955', status: 'Yes, I became a citizen later', citizenYear: '1990' })
-
+    await openSubsidies(page)
     const onBill = page.locator('.result').filter({ hasText: 'Merdeka Generation' }).first()
     await expect(onBill).toContainText('−$6.00')
-    await expect(onBill).toContainText('Matches your answers')
+    await expect(onBill).toContainText('Matches your details')
     await expect(onBill).toContainText('Last checked')
     await expect(rule(page, 'merdeka')).toHaveCount(0)
     await expect(rule(page, 'pioneer')).toHaveCount(0)
     await expect(page.getByTestId('estimate')).toHaveCount(0)
   })
 
-  test('not eligible: born 1985 gets no PG or MG and no estimate', async ({ page }) => {
+  test('born 1946, citizen only in 1990: missed Pioneer, so Merdeka instead', async ({ page }) => {
+    await as(page, '1946-11-02', 'became', 1990)
     await openSample(page, BEDOK)
-    await answer(page, { born: '1985', status: 'Yes, since I was born' })
+    await openSubsidies(page)
+    await expect(rule(page, 'pioneer')).toHaveCount(0)
+    await expect(rule(page, 'merdeka')).toContainText('You may qualify')
+  })
+
+  test('not eligible: a citizen born 1985 gets no PG or MG and no estimate; a PR gets no CHAS either', async ({ page }) => {
+    await as(page, '1985-01-01', 'birth')
+    await openSample(page, BEDOK)
+    await openSubsidies(page)
     await expect(rule(page, 'pioneer')).toHaveCount(0)
     await expect(rule(page, 'merdeka')).toHaveCount(0)
     await expect(page.getByTestId('estimate')).toHaveCount(0)
-  })
 
-  test('without a confirmed figure: no amount, just the official link', async ({ page }) => {
+    await as(page, '1958-01-30', 'pr')
     await openSample(page, BEDOK)
-    await answer(page, { status: 'Yes, since I was born' })
-    // No birth year yet: PG/MG can't be decided, so no number is shown.
-    await expect(rule(page, 'pioneer')).toContainText('Answer more questions to check')
-    await expect(rule(page, 'pioneer')).not.toContainText('−$')
-    await expect(rule(page, 'pioneer').getByRole('link', { name: /Official page/ })).toBeVisible()
-    await expect(page.getByTestId('estimate')).toHaveCount(0)
-  })
-
-  test('invalid years show plain errors next to the field', async ({ page }) => {
-    await openSample(page, BEDOK)
-    const born = page.getByLabel('Year you were born')
-
-    await born.fill('1899')
-    await expect(page.getByText('Please type a 4-digit year from 1901 to')).toBeVisible()
-    await expect(born).toHaveAttribute('aria-invalid', 'true')
-    await born.fill(String(new Date().getFullYear() + 1))
-    await expect(page.getByText('Please type a 4-digit year from 1901 to')).toBeVisible()
-    await born.fill('1955')
-    await expect(page.getByText('Please type a 4-digit year from 1901 to')).toHaveCount(0)
-    await expect(born).toHaveAttribute('aria-invalid', 'false')
-
-    await page.getByText('Yes, I became a citizen later', { exact: true }).click()
-    await page.getByLabel('Year you became a citizen').fill('1940')
-    await expect(page.getByText('This year is before the year you were born.')).toBeVisible()
+    await openSubsidies(page)
+    await expect(page.getByTestId('bill-basis')).toContainText('Singapore permanent resident (PR)')
+    for (const id of ['pioneer', 'merdeka', 'chas']) await expect(rule(page, id)).toHaveCount(0)
   })
 
   test('"Estimate only" notice links every official page', async ({ page }) => {
     await openSample(page, BEDOK)
+    await openSubsidies(page)
     const notice = page.getByTestId('estimate-notice')
     await expect(notice).toBeVisible()
     await expect(notice).toContainText('Estimate only — not an official calculation.')
@@ -236,24 +219,60 @@ test.describe('subsidy questionnaire', () => {
       await expect(link).toHaveAttribute('target', '_blank')
     }
   })
+})
 
-  test('answers stay in the browser: no request sent, nothing stored', async ({ page }) => {
+test('the subsidies start closed and open with one tap on "Press here to see more"', async ({ page }) => {
+  await openSample(page, BEDOK)
+  const details = page.getByTestId('subsidy-details')
+  await expect(details).not.toHaveAttribute('open')
+  await expect(page.getByTestId('estimate-notice')).toBeHidden()
+  await openSubsidies(page)
+  await expect(page.getByTestId('estimate-notice')).toBeVisible()
+  await page.getByText('Press here to hide').click()
+  await expect(page.getByTestId('estimate-notice')).toBeHidden()
+})
+
+test.describe('getting back', () => {
+  test('a sample opened here: Back and "Close this bill" return to the list of bills', async ({ page }) => {
     await openSample(page, BEDOK)
-    const requests = []
-    page.on('request', (request) => request.url().includes('/api/') && requests.push(request.url()))
-    await answer(page, { born: '1945', status: 'Yes, I became a citizen later', citizenYear: '1970' })
-    expect(requests).toEqual([])
-    const stored = await page.evaluate(() => JSON.stringify({ ...localStorage }) + JSON.stringify({ ...sessionStorage }))
-    expect(stored).not.toContain('1945')
-    expect(stored).not.toContain('1970')
+    await page.getByTestId('bill-back').click()
+    await expect(page.getByRole('heading', { name: 'No bill to show yet' })).toBeVisible()
+    await openSample(page, TAMPINES)
+    await page.getByTestId('bill-done').click()
+    await expect(page.getByRole('heading', { name: 'No bill to show yet' })).toBeVisible()
+    await expect(page).toHaveURL(/\/bill$/)
+  })
+
+  test('from Explain (See full breakdown): Back returns to the explanation', async ({ page }) => {
+    await page.goto('/bill/scan')
+    await page.getByRole('button', { name: 'Medical bill' }).click()
+    await page.getByRole('button', { name: 'Looks correct' }).click()
+    await page.getByRole('link', { name: 'See full breakdown' }).click()
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Bill breakdown')
+    await page.getByTestId('bill-back').click()
+    await expect(page).toHaveURL(/\/scan\/explain$/)
+  })
+
+  test('Back to top, and Back from the bill scan page and Account', async ({ page }) => {
+    await openSample(page, TAMPINES)
+    await page.getByTestId('bill-top').click()
+    await expect.poll(() => page.evaluate(() => scrollY)).toBe(0)
+    await expect(page.getByRole('heading', { level: 1 })).toBeFocused()
+
+    await page.goto('/bill/scan')
+    await page.getByTestId('scan-back').click()
+    await expect(page).toHaveURL(/\/bill$/)
+    await page.goto('/account')
+    await page.getByRole('link', { name: 'Back' }).click()
+    await expect(page).toHaveURL(/\/$/)
   })
 })
 
 test.describe('layout and accessibility', () => {
   test('fits the screen: no sideways scroll, tap targets ≥ 48px, text ≥ 16px', async ({ page }) => {
     await openSample(page, TAMPINES)
+    await openSubsidies(page)
     await line(page, 'HbA1c blood test').click()
-    await answer(page, { born: '1945', status: 'Yes, since I was born' })
 
     expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(0)
 
@@ -270,15 +289,13 @@ test.describe('layout and accessibility', () => {
   })
 
   for (const theme of ['light', 'dark']) {
-    test(`no WCAG A/AA violations, line open and questionnaire filled (${theme})`, async ({ page }) => {
+    test(`no WCAG A/AA violations, line open and a Pioneer senior's subsidies showing (${theme})`, async ({ page }) => {
       await page.emulateMedia({ colorScheme: theme, reducedMotion: 'reduce' })
+      await as(page, '1945-08-12', 'birth')
       await openSample(page, MARINE_PARADE)
+      await openSubsidies(page)
       await line(page, 'Wound dressing').click()
-      await answer(page, { born: '1945', status: 'Yes, since I was born' })
-      await page.getByText('$1,500 or less', { exact: true }).click()
-      await page.getByLabel('Year you were born').fill('1899') // include the error state
-      await expect(page.getByText('Please type a 4-digit year')).toBeVisible()
-      await expect(upToDate(page)).toBeVisible()
+      await page.waitForLoadState('networkidle')
       await expectNoAxeViolations(page)
     })
   }

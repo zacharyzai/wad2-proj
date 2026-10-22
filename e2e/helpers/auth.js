@@ -7,7 +7,7 @@ export const E2E_SECRET = 'e2e-only-secret'
 process.env.JWT_SECRET = E2E_SECRET
 const { signToken } = await import('../../server/services/auth.js')
 
-export const DEMO_USER = { name: 'Tan Mei Ling', email: 'demo@example.com', dob: '1952-03-07', citizenship: 'birth', citizenSince: null }
+export const DEMO_USER = { name: 'Tan Mei Ling', email: 'demo@example.com', dob: '1952-03-07', citizenship: 'birth', citizenSince: null, income: 'upTo1500' }
 export const DEMO_PASSWORD = 'password123'
 export const testToken = (remember = true) => signToken('demo-user', remember)
 
@@ -17,8 +17,8 @@ export async function mockAuth(page, user = DEMO_USER) {
   const ok = (route, extra = {}) => route.fulfill({ json: { ok: true, data: { user: current, ...extra } } })
   await page.route('**/api/auth/login', (route) => ok(route, { token: testToken(route.request().postDataJSON().remember) }))
   await page.route('**/api/auth/signup', (route) => {
-    const { name, email, dob, citizenship, citizenSince, remember } = route.request().postDataJSON()
-    current = { name, email, dob, citizenship, citizenSince }
+    const { name, email, dob, citizenship, citizenSince, income, remember } = route.request().postDataJSON()
+    current = { name, email, dob, citizenship, citizenSince, income }
     return ok(route, { token: testToken(remember) })
   })
   await page.route('**/api/auth/me', (route) => {

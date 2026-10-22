@@ -1,8 +1,10 @@
 // Owner: Sheen Hern (built by Claude, declared in README.txt). An account. Never holds scans, photos or NRIC numbers.
-// Citizenship uses the subsidy questionnaire's values (src/components/bill/SubsidyQuestionnaire.vue), so the Bill page can use it as-is.
+// Citizenship and income use the subsidy rules' values (src/rules/subsidies.js), so the Bill page can use them as-is.
 import mongoose from 'mongoose'
 
 export const CITIZENSHIP = ['birth', 'became', 'pr', 'other'] // citizen by birth, became a citizen (citizenSince = year), PR, other
+// Household monthly income per person, in the CHAS card bands (chas.sg). Citizens only; it sets the CHAS card colour.
+export const INCOME = ['upTo1500', '1501to2300', 'above2300', 'unsure']
 
 const userSchema = new mongoose.Schema(
   {
@@ -12,13 +14,14 @@ const userSchema = new mongoose.Schema(
     dob: { type: String, required: true, match: /^\d{4}-\d{2}-\d{2}$/ }, // 'YYYY-MM-DD', as <input type="date"> gives it
     citizenship: { type: String, required: true, enum: CITIZENSHIP },
     citizenSince: { type: Number, default: null }, // only when citizenship is 'became'
+    income: { type: String, enum: [...INCOME, null], default: null }, // only for citizens
   },
   { timestamps: true },
 )
 
 // What the client may see: never the password hash.
 userSchema.methods.toPublic = function () {
-  return { name: this.name, email: this.email, dob: this.dob, citizenship: this.citizenship, citizenSince: this.citizenSince }
+  return { name: this.name, email: this.email, dob: this.dob, citizenship: this.citizenship, citizenSince: this.citizenSince, income: this.income }
 }
 
 export const User = mongoose.models.User ?? mongoose.model('User', userSchema)

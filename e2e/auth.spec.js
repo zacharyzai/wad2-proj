@@ -81,9 +81,10 @@ test.describe('logged out', () => {
     await page.getByTestId('signup-dob').fill('1958-11-02')
     await page.getByTestId('signup-citizenship').selectOption('became')
     await page.getByTestId('signup-citizen-year').fill('1975')
+    await page.getByTestId('signup-income').selectOption('1501to2300')
     await page.getByTestId('signup-submit').click()
     expect((await sent).postDataJSON()).toEqual({
-      name: 'Lim Ah Huat', email: 'ahhuat@example.com', password: 'password123', dob: '1958-11-02', citizenship: 'became', citizenSince: 1975, remember: true,
+      name: 'Lim Ah Huat', email: 'ahhuat@example.com', password: 'password123', dob: '1958-11-02', citizenship: 'became', citizenSince: 1975, income: '1501to2300', remember: true,
     })
     await expect(page).toHaveURL(/\/scan$/)
   })
@@ -123,6 +124,7 @@ test('Account shows the details, saves edits and logs out', async ({ page, isMob
   await expect(page.getByTestId('account-name')).toContainText('Tan Mei Ling')
   await expect(page.getByTestId('account-dob')).toContainText('1952')
   await expect(page.getByTestId('account-citizenship')).toContainText('Singapore citizen (by birth)')
+  await expect(page.getByTestId('account-income')).toContainText('$1,500 or less')
   if (!isMobile) await expect(page.locator('.acct')).toHaveAttribute('aria-current', 'page')
 
   await page.getByTestId('account-edit').click()
@@ -132,32 +134,36 @@ test('Account shows the details, saves edits and logs out', async ({ page, isMob
   await expect(page.getByText('Your details are saved.')).toBeVisible()
   await expect(page.getByTestId('account-citizenship')).toContainText('Singapore citizen since 1970')
 
+  // A PR is not asked about income (CHAS is for citizens), and it disappears from the details.
+  await page.getByTestId('account-edit').click()
+  await page.getByTestId('account-edit-citizenship').selectOption('pr')
+  await expect(page.getByTestId('account-edit-income')).toHaveCount(0)
+  await page.getByTestId('account-save').click()
+  await expect(page.getByTestId('account-income')).toHaveCount(0)
+
   await page.getByTestId('account-logout').click()
   await expect(page).toHaveURL(/\/login$/)
   await page.goto('/scan')
   await expect(page).toHaveURL(/\/login\?next=/)
 })
 
-test('the Bill page fills in birth year and citizenship from the account, and they can be changed', async ({ page }) => {
+test('the Bill page checks subsidies from the account, and links to Account to change the details', async ({ page }) => {
   await page.goto('/bill')
   await page.getByRole('button', { name: /Tampines/ }).click()
-  const note = page.getByTestId('from-account')
-  await expect(note).toContainText('born 1952, Singapore citizen (by birth)')
-  await expect(page.locator('#q-birth')).toHaveValue('1952')
-  // Born 1952, citizen by birth: Merdeka Generation.
+  await page.getByText('Press here to see more').click()
+  await expect(page.getByTestId('bill-basis')).toContainText('born 1952, Singapore citizen (by birth)')
+  // Born 1952, citizen by birth: Merdeka Generation. Income $1,500 or less: a CHAS Blue card.
   await expect(page.locator('[data-rule="merdeka"]')).toContainText('You may qualify')
-
-  // A caregiver checking a parent's bill changes the answers; the note gives way to a button to go back.
-  await page.locator('#q-birth').fill('1945')
-  await expect(note).toHaveCount(0)
-  await page.getByTestId('use-account').click()
-  await expect(page.locator('#q-birth')).toHaveValue('1952')
+  await expect(page.getByTestId('chas-card')).toHaveText('Likely a CHAS Blue card')
+  await page.getByTestId('bill-basis').getByRole('link', { name: 'Change my details' }).click()
+  await expect(page).toHaveURL(/\/account$/)
 })
 
-test('details from a different account fill in its own year', async ({ page }) => {
+test('details from a different account give its own result', async ({ page }) => {
   await signIn(page, { ...DEMO_USER, dob: '1946-05-01', citizenship: 'became', citizenSince: 1980 })
   await page.goto('/bill')
   await page.getByRole('button', { name: /Bedok/ }).click()
-  await expect(page.getByTestId('from-account')).toContainText('born 1946, Singapore citizen since 1980')
-  await expect(page.locator('#q-citizen-year')).toHaveValue('1980')
+  await page.getByText('Press here to see more').click()
+  await expect(page.getByTestId('bill-basis')).toContainText('born 1946, Singapore citizen since 1980')
+  await expect(page.locator('[data-rule="pioneer"]')).toContainText('You may qualify') // born by 1949, citizen by 1986
 })

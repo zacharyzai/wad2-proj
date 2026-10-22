@@ -22,15 +22,15 @@ pnpm dev      # app on http://localhost:5173 (proxies /api to the API)
 ```
 
 ## Demo accounts
-Every page needs an account. These five fake people each show a different subsidy result on the Bill page (their date of birth and citizenship fill in the subsidy questions). Password for all: `Demo1234!`
+Every page needs an account. These five fake people each show a different subsidy result on the Bill page (their date of birth, citizenship and household income come from the account; the Bill page asks nothing). Password for all: `Demo1234!`
 
-| Email | Person | Born | Citizenship | Bill page shows |
-|---|---|---|---|---|
-| `pioneer.demo@example.com` | Tan Ah Kow | 1945 | Citizen by birth | Pioneer Generation |
-| `merdeka.demo@example.com` | Siti Aminah binte Rahman | 1955 | Citizen by birth | Merdeka Generation |
-| `late.citizen.demo@example.com` | Lim Mei Ling | 1946 | Citizen since 1990 | Merdeka Generation (missed Pioneer: citizen after 1986) |
-| `chas.demo@example.com` | Rajesh s/o Kumar | 1975 | Citizen by birth | No Pioneer or Merdeka; CHAS once a household income is picked |
-| `pr.demo@example.com` | Maria Santos | 1958 | Permanent resident | No Pioneer, Merdeka or CHAS; polyclinic PR rates only |
+| Email | Person | Born | Citizenship | Income per person | Bill page shows |
+|---|---|---|---|---|---|
+| `pioneer.demo@example.com` | Tan Ah Kow | 1945 | Citizen by birth | $1,500 or less | Pioneer Generation; CHAS Blue |
+| `merdeka.demo@example.com` | Siti Aminah binte Rahman | 1955 | Citizen by birth | $1,501 to $2,300 | Merdeka Generation; CHAS Orange |
+| `late.citizen.demo@example.com` | Lim Mei Ling | 1946 | Citizen since 1990 | More than $2,300 | Merdeka Generation (missed Pioneer: citizen after 1986); CHAS Green |
+| `chas.demo@example.com` | Rajesh s/o Kumar | 1975 | Citizen by birth | $1,500 or less | No Pioneer or Merdeka; CHAS Blue only |
+| `pr.demo@example.com` | Maria Santos | 1958 | Permanent resident | (not asked) | No Pioneer, Merdeka or CHAS; polyclinic PR rates only |
 
 Create or reset them in the database from `.env` (safe to run again; it updates the same five):
 ```bash

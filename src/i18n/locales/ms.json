@@ -17,7 +17,8 @@
     "main": "Menu utama",
     "night": "Mod malam",
     "skip": "Langkau ke kandungan utama",
-    "ask": "Tanya"
+    "ask": "Tanya",
+    "backTop": "Kembali ke atas"
   },
   "pages": {
     "home": "Fahami ubat dan bil anda",
@@ -581,9 +582,7 @@
         "year": "Sila taip tahun 4 digit dari 1901 hingga {max}.",
         "beforeBirth": "Tahun ini lebih awal daripada tahun anda dilahirkan. Sila semak."
       },
-      "clear": "Padam jawapan saya",
-      "fromAccount": "Diisi daripada akaun anda: lahir {year}, {status}. Menyemak bil orang lain? Tukar jawapan di bawah.",
-      "useAccount": "Guna butiran akaun saya"
+      "clear": "Padam jawapan saya"
     },
     "r": {
       "title": "Apa maksudnya untuk anda",
@@ -593,7 +592,7 @@
       "estimateText": "Klinik yang menentukan jumlah bayaran anda. Semak dengan klinik atau halaman rasmi ini:",
       "onBill": "Subsidi pada bil ini",
       "noneOnBill": "Bil ini tidak menunjukkan sebarang subsidi.",
-      "matches": "Sepadan dengan jawapan anda",
+      "matches": "Sepadan dengan butiran anda",
       "mayQualify": "Anda mungkin juga layak untuk…",
       "answerFirst": "Jawab soalan untuk melihat skim lain yang mungkin membantu anda.",
       "noneMore": "Berdasarkan jawapan anda, kami tidak menemui skim lain untuk bil ini.",
@@ -610,8 +609,19 @@
       "official": "Halaman rasmi untuk {name}",
       "checked": "Kali terakhir disemak {date}",
       "newTab": "(dibuka dalam tab baharu)",
-      "medisaveNote": "MediSave mungkin membayar sebahagiannya, seperti pada bil ini."
-    }
+      "medisaveNote": "MediSave mungkin membayar sebahagiannya, seperti pada bil ini.",
+      "chasCard": "Mungkin kad CHAS {colour}",
+      "chasColour": {
+        "blue": "Biru",
+        "orange": "Oren",
+        "green": "Hijau"
+      },
+      "show": "Tekan di sini untuk lihat lagi",
+      "hide": "Tekan di sini untuk tutup"
+    },
+    "basis": "Disemak dengan butiran akaun anda: lahir {year}, {status}.",
+    "basisChange": "Ubah butiran saya",
+    "closeBill": "Tutup bil ini"
   },
   "account": {
     "lead": "Ini ialah butiran yang anda berikan.",

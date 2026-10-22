@@ -17,7 +17,7 @@ after(() => server.close())
 
 const post = (path, body, headers = {}) =>
   fetch(`${base}/api/auth${path}`, { method: 'POST', headers: { 'content-type': 'application/json', ...headers }, body: JSON.stringify(body) })
-const GOOD = { name: 'Tan Mei Ling', email: 'mei@example.com', password: 'password123', dob: '1952-03-07', citizenship: 'birth' }
+const GOOD = { name: 'Tan Mei Ling', email: 'mei@example.com', password: 'password123', dob: '1952-03-07', citizenship: 'birth', income: 'upTo1500' }
 
 test('passwords are salted hashes that only the right password matches', async () => {
   const a = await hashPassword('password123')
@@ -49,7 +49,8 @@ test('tokens: remember me lasts 30 days, otherwise 12 hours; forged or expired t
 
 test('profile checks: real dates, known citizenship, and a citizenship year only when it makes sense', () => {
   const now = new Date('2026-10-22T00:00:00Z')
-  assert.deepEqual(checkProfile(GOOD, now).profile, { name: 'Tan Mei Ling', dob: '1952-03-07', citizenship: 'birth', citizenSince: null })
+  assert.deepEqual(checkProfile(GOOD, now).profile, { name: 'Tan Mei Ling', dob: '1952-03-07', citizenship: 'birth', citizenSince: null, income: 'upTo1500' })
+  assert.equal(checkProfile({ ...GOOD, citizenship: 'pr', income: 'upTo1500' }, now).profile.income, null) // only citizens are asked
   assert.deepEqual(checkProfile({ ...GOOD, citizenship: 'became', citizenSince: '1988' }, now).profile.citizenSince, 1988)
   for (const bad of [
     { name: '  ' },
@@ -59,6 +60,8 @@ test('profile checks: real dates, known citizenship, and a citizenship year only
     { citizenship: 'SG_CITIZEN' },
     { citizenship: 'became' }, // missing year
     { citizenship: 'became', citizenSince: 1940 }, // before birth
+    { income: undefined }, // citizens must answer ("Not sure" is an answer)
+    { income: 'rich' },
   ]) {
     assert.ok(checkProfile({ ...GOOD, ...bad }, now).error, JSON.stringify(bad))
   }
