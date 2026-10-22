@@ -22,6 +22,7 @@ const routes = [
   { path: '/login', name: 'login', component: () => import('../views/LoginView.vue') },
   { path: '/signup', name: 'signup', component: () => import('../views/SignupView.vue') },
   { path: '/history', name: 'history', component: () => import('../views/HistoryView.vue'), meta: { requiresAuth: true } },
+  { path: '/account', name: 'account', component: () => import('../views/AccountView.vue'), meta: { requiresAuth: true } },
   { path: '/shared/:token', name: 'shared', component: () => import('../views/SharedView.vue') },
   // Zachary: dev-only test bench for photo redaction; not in production builds.
   ...(import.meta.env.DEV ? [{ path: '/dev/redact', name: 'redact-lab', component: () => import('../views/dev/RedactLab.vue') }] : []),

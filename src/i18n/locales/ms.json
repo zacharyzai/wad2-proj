@@ -390,7 +390,20 @@
     "signup": "Cipta akaun",
     "working": "Sila tunggu…",
     "noAccount": "Belum ada akaun?",
-    "haveAccount": "Sudah ada akaun?"
+    "haveAccount": "Sudah ada akaun?",
+    "heroText": "Log masuk untuk simpan ubat dan bil keluarga di satu tempat, dan kongsi dengan anak-anak.",
+    "tabs": "Log masuk atau daftar akaun",
+    "or": "atau",
+    "guest": "Teruskan tanpa akaun",
+    "privacy": "Tanpa akaun, imbasan anda kekal pada peranti ini sahaja.",
+    "show": "Tunjuk kata laluan",
+    "hide": "Sembunyi kata laluan",
+    "name": "Nama penuh",
+    "dob": "Tarikh lahir",
+    "citizenship": "Kewarganegaraan",
+    "citizenshipPick": "Pilih satu",
+    "citizenships": { "SG_CITIZEN": "Warganegara Singapura", "SG_PR": "Penduduk tetap Singapura", "OTHER": "Lain-lain" },
+    "missingFields": "Sila isi semua ruang."
   },
   "landing": {
     "hero": {
@@ -568,5 +581,11 @@
       "newTab": "(dibuka dalam tab baharu)",
       "medisaveNote": "MediSave mungkin membayar sebahagiannya, seperti pada bil ini."
     }
+  },
+    "account": {
+    "lead": "Ini ialah butiran yang anda berikan.",
+    "details": "Butiran anda",
+    "passwordNote": "Kata laluan tidak pernah dipaparkan.",
+    "logout": "Log keluar"
   }
 }
