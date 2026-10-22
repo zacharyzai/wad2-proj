@@ -3,6 +3,7 @@
 import { useI18n } from 'vue-i18n'
 import EmptyState from '../components/layout/EmptyState.vue'
 import AppIcon from '../components/layout/AppIcon.vue'
+import { openGuide } from '../stores/guide'
 
 const { t } = useI18n()
 </script>
@@ -13,6 +14,7 @@ const { t } = useI18n()
       <template #default>
         <RouterLink to="/" class="btn btn-primary"><AppIcon name="home" />{{ t('notFound.home') }}</RouterLink>
         <RouterLink :to="{ name: 'ask' }" class="btn btn-ghost"><AppIcon name="chat" />{{ t('notFound.ask') }}</RouterLink>
+        <button type="button" class="btn btn-ghost" @click="openGuide"><AppIcon name="compass" />{{ t('guide.open') }}</button>
       </template>
     </EmptyState>
   </div>

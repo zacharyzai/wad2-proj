@@ -294,7 +294,7 @@ onMounted(() => {
           <button type="button" class="btn btn-secondary" @click="stopCamera"><AppIcon name="x" />{{ t('scan.cancel') }}</button>
         </template>
         <template v-else>
-          <button type="button" class="btn btn-primary" @click="startCamera"><AppIcon name="camera" />{{ t('scan.take') }}</button>
+          <button type="button" class="btn btn-primary" data-guide="scan-take" @click="startCamera"><AppIcon name="camera" />{{ t('scan.take') }}</button>
           <p v-if="cameraBlocked" class="alert alert-warning" role="alert"><AppIcon name="alert" />{{ t('scan.cameraBlocked') }}</p>
           <p class="or">{{ t('scan.or') }}</p>
           <UploadDropzone class="dz-full" @select="useFile" />

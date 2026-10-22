@@ -5,6 +5,7 @@ import { computed, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { authStore, logout, updateProfile } from '../stores/auth'
+import { openGuide } from '../stores/guide'
 import { INCOMES, citizenshipText, incomeText, isCitizen } from '../utils/account'
 import PageHeader from '../components/layout/PageHeader.vue'
 import Card from '../components/layout/Card.vue'
@@ -129,6 +130,8 @@ function leave() {
       </form>
     </Card>
 
+    <!-- The Beginner's guide again (on phones this is the only way back to it; desktop also has it in the sidebar). -->
+    <button type="button" class="btn btn-outline" data-testid="account-guide" @click="openGuide"><AppIcon name="compass" />{{ t('guide.open') }}</button>
     <BigButton variant="alt" data-testid="account-logout" @click="leave"><AppIcon name="logout" />{{ t('account.logout') }}</BigButton>
   </div>
 </template>

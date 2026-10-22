@@ -257,7 +257,7 @@ const summary = computed(() => [
     <!-- Samples: always offered when there's no real bill, and as "try another" while looking at a sample. -->
     <section v-if="!bill || scan.source === 'sample'" class="d-flex flex-column gap-3" aria-labelledby="bill-samples">
       <h2 id="bill-samples" class="section-label">{{ bill ? t('bill.moreSamples') : t('bill.samplesTitle') }}</h2>
-      <div class="samples">
+      <div class="samples" data-guide="bill-samples">
         <button v-for="sample in SAMPLES" :key="sample.id" type="button" class="card card-interactive sample" :disabled="loading" @click="openSample(sample.id)">
           <img :src="`/samples/${sample.id}.svg`" alt="" class="sample-thumb" />
           <span class="d-flex flex-column flex-grow-1">

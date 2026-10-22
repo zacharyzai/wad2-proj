@@ -634,5 +634,62 @@
     "editTitle": "Edit your details",
     "save": "Save",
     "cancel": "Cancel"
+  },
+  "guide": {
+    "open": "How to use the app",
+    "skip": "Skip",
+    "next": "Next",
+    "step": "Step {n} of {total}",
+    "listen": "Read this step aloud",
+    "stop": "Stop reading",
+    "try": "Try a sample label",
+    "start": "Start using the app",
+    "again": "Show again",
+    "end": {
+      "skip": "Closed. Open it again from \"How to use the app\".",
+      "sample": "Opening a sample label.",
+      "start": "You are ready. Open this again from \"How to use the app\"."
+    },
+    "steps": {
+      "intro": {
+        "t": "Your language, read aloud",
+        "b": "Pick your language, and tap a speaker to hear a page read aloud. Next, we will show you the main buttons."
+      },
+      "scan": {
+        "t": "Tap {name}",
+        "b": "This is where you scan a medicine label."
+      },
+      "scanTake": {
+        "t": "Take a photo of the label",
+        "b": "Or upload one. Your name and NRIC are blacked out on your phone before anything is read."
+      },
+      "bill": {
+        "t": "Tap {name}",
+        "b": "This is where you scan a medical bill."
+      },
+      "billSample": {
+        "t": "Try a sample bill",
+        "b": "Open one to see what you pay, and which subsidies you may get."
+      },
+      "ask": {
+        "t": "Tap {name}",
+        "b": "Ask questions about your medicine here."
+      },
+      "askBox": {
+        "t": "Type your question here",
+        "b": "Answers come from your own medicine labels. Doctors and pharmacists still decide."
+      },
+      "account": {
+        "t": "Tap {name}",
+        "b": "Your details are here. They fill in your subsidies. You can open this guide again here too."
+      },
+      "finish": {
+        "t": "You are ready",
+        "b": "Try a sample label to see it all work, or start using the app."
+      }
+    },
+    "begin": "Show me around",
+    "tapHint": "Tap the glowing button",
+    "there": "Take me there"
   }
 }

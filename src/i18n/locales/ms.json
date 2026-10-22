@@ -634,5 +634,62 @@
     "editTitle": "Ubah butiran anda",
     "save": "Simpan",
     "cancel": "Batal"
+  },
+  "guide": {
+    "open": "Cara guna aplikasi",
+    "skip": "Langkau",
+    "next": "Seterusnya",
+    "step": "Langkah {n} daripada {total}",
+    "listen": "Baca langkah ini",
+    "stop": "Berhenti membaca",
+    "try": "Cuba label contoh",
+    "start": "Mula guna aplikasi",
+    "again": "Tunjuk semula",
+    "end": {
+      "skip": "Ditutup. Buka semula dari \"Cara guna aplikasi\".",
+      "sample": "Membuka label contoh.",
+      "start": "Anda sudah sedia. Buka semula dari \"Cara guna aplikasi\"."
+    },
+    "steps": {
+      "intro": {
+        "t": "Bahasa anda, dibaca kuat",
+        "b": "Pilih bahasa anda. Ketik pembesar suara untuk mendengar halaman dibacakan. Kemudian kami tunjukkan butang utama."
+      },
+      "scan": {
+        "t": "Ketik {name}",
+        "b": "Di sini anda imbas label ubat."
+      },
+      "scanTake": {
+        "t": "Ambil gambar label",
+        "b": "Atau muat naik gambar. Nama dan NRIC anda dihitamkan pada telefon sebelum apa-apa dibaca."
+      },
+      "bill": {
+        "t": "Ketik {name}",
+        "b": "Di sini anda imbas bil perubatan."
+      },
+      "billSample": {
+        "t": "Cuba bil contoh",
+        "b": "Buka satu untuk melihat jumlah bayaran, dan subsidi yang mungkin anda dapat."
+      },
+      "ask": {
+        "t": "Ketik {name}",
+        "b": "Tanya soalan tentang ubat anda di sini."
+      },
+      "askBox": {
+        "t": "Taip soalan anda di sini",
+        "b": "Jawapan datang daripada label ubat anda sendiri. Doktor dan ahli farmasi tetap membuat keputusan."
+      },
+      "account": {
+        "t": "Ketik {name}",
+        "b": "Butiran anda ada di sini. Ia mengisi subsidi anda. Anda juga boleh buka panduan ini semula di sini."
+      },
+      "finish": {
+        "t": "Anda sudah sedia",
+        "b": "Cuba label contoh untuk melihat semuanya berfungsi, atau mula guna aplikasi."
+      }
+    },
+    "begin": "Tunjukkan saya",
+    "tapHint": "Ketik butang yang bercahaya",
+    "there": "Bawa saya ke sana"
   }
 }

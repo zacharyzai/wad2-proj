@@ -338,7 +338,7 @@ onBeforeUnmount(() => {
     </div>
 
     <div class="dock">
-      <form class="composer" @submit.prevent="ask(question)">
+      <form class="composer" data-guide="ask-box" @submit.prevent="ask(question)">
         <label for="ask-input" class="visually-hidden">{{ t('ask.inputLabel') }}</label>
         <textarea
           id="ask-input"
