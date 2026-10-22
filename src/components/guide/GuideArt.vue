@@ -41,7 +41,7 @@ const LANGS = { en: 'EN', zh: '中文', ms: 'BM', ta: 'தமிழ்' }
 
 /* 1: working language buttons */
 .langs { width: 240px; padding: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; border-radius: 18px; }
-.langs button { min-height: 52px; border: 0; border-radius: 14px; background: var(--color-surface-2); color: var(--color-text); font: 600 18px var(--font-sans); }
+.langs button { min-height: var(--z52, 52px); border: 0; border-radius: 14px; background: var(--color-surface-2); color: var(--color-text); font: 600 18px var(--font-sans); }
 .langs button[aria-pressed='true'] { background: var(--color-primary); color: var(--color-on-primary); font-weight: 700; }
 
 /* 5: a question and an answer */

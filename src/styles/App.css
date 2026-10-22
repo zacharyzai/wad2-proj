@@ -19,10 +19,10 @@
 /* Bottom tabs: the active tab gets a tinted pill behind its icon and a bar under its label. */
 .nav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 10; display: flex; padding: 8px 8px calc(8px + env(safe-area-inset-bottom)); background: var(--color-card); border-top: 1px solid var(--color-border); box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.05); }
 /* Phone tabs share the width by label length (5 tabs; long Tamil words like அட்டவணை need more room than "Ask"). */
-.navi { position: relative; flex: 1 1 auto; min-width: 0; white-space: nowrap; min-height: 64px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding-bottom: 6px; border-radius: 16px; color: var(--color-text-muted); font-size: 16px; font-weight: 600; line-height: 1.2; text-align: center; text-decoration: none; }
+.navi { position: relative; flex: 1 1 auto; min-width: 0; white-space: nowrap; min-height: var(--z64, 64px); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding-bottom: 6px; border-radius: 16px; color: var(--color-text-muted); font-size: 16px; font-weight: 600; line-height: 1.2; text-align: center; text-decoration: none; }
 .navi:hover { color: var(--color-tint-text); }
 .guide-link { width: 100%; border: 1px solid var(--color-border); background: none; font-family: inherit; }
-.navi-icon { width: 56px; height: 32px; border-radius: var(--r-pill); display: grid; place-items: center; transition: background-color var(--dur) var(--ease-out); }
+.navi-icon { width: var(--z56, 56px); height: 32px; border-radius: var(--r-pill); display: grid; place-items: center; transition: background-color var(--dur) var(--ease-out); }
 .navi.on { color: var(--color-tint-text); font-weight: 700; }
 .navi.on .navi-icon { background: var(--color-tint); }
 .navi.on::after { content: ''; position: absolute; bottom: 0; width: 20px; height: 4px; border-radius: var(--r-pill); background: var(--color-primary-text); }
@@ -38,14 +38,14 @@
 
 @media (min-width: 992px) {
   .shell { flex-direction: row; padding-bottom: 0; }
-  .side { position: sticky; top: 0; align-self: flex-start; flex: 0 0 288px; display: flex; flex-direction: column; align-items: stretch; gap: 24px; height: 100vh; height: 100dvh; padding: 28px 20px 24px; border-bottom: 0; border-right: 1px solid var(--color-border); overflow-y: auto; }
+  .side { position: sticky; top: 0; align-self: flex-start; flex: 0 0 248px; display: flex; flex-direction: column; align-items: stretch; gap: 18px; height: 100vh; height: 100dvh; padding: 22px 16px 20px; border-bottom: 0; border-right: 1px solid var(--color-border); overflow-y: auto; }
   .brand { padding: 0 4px; }
-  .logo { width: 56px; height: 56px; border-radius: 14px; }
-  .brand-name { font-size: 19px; }
+  .logo { width: 44px; height: 44px; border-radius: 12px; }
+  .brand-name { font-size: 17px; }
   .desk-only, .navi.desk-only { display: flex; }
 
   .nav { position: static; flex-direction: column; gap: 4px; padding: 0; border: 0; box-shadow: none; background: none; }
-  .navi { flex: none; flex-direction: row; justify-content: flex-start; gap: 14px; min-height: 56px; padding: 8px 12px; color: var(--color-text); font-size: 18px; text-align: left; }
+  .navi { flex: none; flex-direction: row; justify-content: flex-start; gap: 12px; min-height: 46px; padding: 5px 10px; color: var(--color-text); font-size: 16px; text-align: left; }
   .navi-icon { width: var(--tile); height: var(--tile); border-radius: var(--r-sm); background: var(--color-surface-2); color: var(--color-text-muted); }
   .navi:hover { background: var(--color-surface-2); color: var(--color-text); }
   .navi.on { background: var(--color-tint); }
@@ -57,15 +57,15 @@
   .lang-box .section-label { padding: 0 4px; }
   .langs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
 
-  .night { display: flex; align-items: center; gap: 12px; width: 100%; height: auto; min-height: 56px; padding: 4px 6px 4px 12px; border-radius: 16px; background: var(--color-card); color: var(--color-text); text-align: left; }
+  .night { display: flex; align-items: center; gap: 12px; width: 100%; height: auto; min-height: var(--z56, 56px); padding: 4px 6px 4px 12px; border-radius: 16px; background: var(--color-card); color: var(--color-text); text-align: left; }
   .night-phone { display: none; }
   .night-desk { display: block; color: var(--color-text-muted); }
-  .night-label { display: block; flex: 1; font-size: 18px; font-weight: 600; line-height: 1.25; }
+  .night-label { display: block; flex: 1; font-size: 16px; font-weight: 600; line-height: 1.25; white-space: nowrap; }
 
-  .acct { display: flex; align-items: center; gap: 12px; width: 100%; height: auto; min-height: 56px; padding: 4px 12px; border-radius: 16px; background: var(--color-surface-2); color: var(--color-text); }
+  .acct { display: flex; align-items: center; gap: 12px; width: 100%; height: auto; min-height: var(--z56, 56px); padding: 4px 12px; border-radius: 16px; background: var(--color-surface-2); color: var(--color-text); }
   .acct:hover { background: var(--color-border); color: var(--color-text); }
   .acct-icon { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; background: var(--color-tint); color: var(--color-tint-text); }
-  .acct-label { display: block; flex: 1; font-size: 17px; font-weight: 600; }
+  .acct-label { display: block; flex: 1; font-size: 16px; font-weight: 600; }
   .acct-chev { display: block; }
   .acct[aria-current='page'] { background: var(--color-tint); color: var(--color-tint-text); font-weight: 700; } /* on the Account page, like the active nav item */
   .acct[aria-current='page'] .acct-icon { background: var(--color-primary); color: var(--color-on-primary); }

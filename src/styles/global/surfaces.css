@@ -7,7 +7,7 @@
 .card-warning { background: var(--color-warning-bg); border-color: var(--color-warning-border); }
 
 .hero { position: relative; overflow: hidden; isolation: isolate; border-radius: var(--r-hero); background: var(--gradient-hero); color: #fff; padding: var(--s-6); box-shadow: var(--shadow-hover); }
-@media (min-width: 992px) { .hero { padding: var(--s-12); } }
+@media (min-width: 992px) { .hero { padding: var(--s-10); } }
 /* Soft decorative circles behind hero content */
 .blob { position: absolute; z-index: -1; border-radius: 50%; background: rgba(255, 255, 255, 0.08); pointer-events: none; }
 

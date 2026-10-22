@@ -1,11 +1,11 @@
 /* Scoped styles for ReadAloud.vue. */
 .player { gap: 16px; }
 .player-label { display: flex; align-items: center; gap: 10px; color: var(--color-text-muted); }
-.play { flex: 1; display: flex; align-items: center; gap: 14px; padding: 0; border: 0; background: none; color: var(--color-text); font-size: 20px; font-weight: 700; text-align: left; }
-.play-btn { width: 72px; height: 72px; flex: none; display: grid; place-items: center; border-radius: 50%; background: var(--color-primary); color: #fff; box-shadow: var(--shadow-glow); transition: transform var(--dur-fast) ease, background-color var(--dur) var(--ease-out); }
+.play { flex: 1; display: flex; align-items: center; gap: 14px; padding: 0; border: 0; background: none; color: var(--color-text); font-size: var(--t20, 20px); font-weight: 700; text-align: left; }
+.play-btn { width: var(--z72, 72px); height: var(--z72, 72px); flex: none; display: grid; place-items: center; border-radius: 50%; background: var(--color-primary); color: #fff; box-shadow: var(--shadow-glow); transition: transform var(--dur-fast) ease, background-color var(--dur) var(--ease-out); }
 .play:hover .play-btn { background: var(--color-primary-pressed); }
 .play:active .play-btn { transform: scale(0.95); }
 .play.on .play-btn { box-shadow: 0 0 0 6px var(--color-tint), var(--shadow-glow); }
-.replay { width: 52px; height: 52px; --bs-btn-bg: var(--color-surface-2); --bs-btn-border-color: var(--color-border); }
+.replay { width: var(--z52, 52px); height: var(--z52, 52px); --bs-btn-bg: var(--color-surface-2); --bs-btn-border-color: var(--color-border); }
 .speed-label { font-size: 17px; font-weight: 600; color: var(--color-text-muted); }
 .speeds { flex: 1; min-width: 220px; }

@@ -100,7 +100,7 @@ const PROMISES = [
 .auth-sheet { display: flex; padding: 24px 20px 32px; background: var(--color-card); }
 .auth-form { width: 100%; max-width: 460px; margin: 0 auto; display: flex; flex-direction: column; gap: 22px; }
 .auth-tabs { display: flex; gap: 28px; border-bottom: 1px solid var(--color-border); }
-.auth-tab { min-height: var(--hit); display: flex; align-items: center; margin-bottom: -1px; border-bottom: 3px solid transparent; color: var(--color-text-muted); font-size: 19px; font-weight: 600; text-decoration: none; transition: color var(--dur) var(--ease-out), border-color var(--dur) var(--ease-out); }
+.auth-tab { min-height: var(--hit); display: flex; align-items: center; margin-bottom: -1px; border-bottom: 3px solid transparent; color: var(--color-text-muted); font-size: var(--t19, 19px); font-weight: 600; text-decoration: none; transition: color var(--dur) var(--ease-out), border-color var(--dur) var(--ease-out); }
 .auth-tab:hover { color: var(--color-text); }
 .auth-tab.on { color: var(--color-text); font-weight: 800; border-color: var(--color-primary); }
 
@@ -112,7 +112,7 @@ const PROMISES = [
 }
 .auth-field:focus-within { border-color: var(--color-primary); background: var(--color-card); box-shadow: var(--focus-ring); }
 .auth-field.bad { border: 2px solid var(--color-danger); }
-.auth-field input, .auth-field select { flex: 1; min-width: 0; min-height: 52px; border: 0; outline: 0; background: transparent; color: var(--color-text); font: 500 19px var(--font-sans); }
+.auth-field input, .auth-field select { flex: 1; min-width: 0; min-height: var(--z52, 52px); border: 0; outline: 0; background: transparent; color: var(--color-text); font: 500 19px var(--font-sans); }
 .auth-field input:focus, .auth-field select:focus { box-shadow: none; }
 .auth-eye { width: var(--hit); height: var(--hit); display: grid; place-items: center; border: 0; border-radius: var(--r-sm); background: transparent; color: var(--color-text-muted); }
 .auth-eye:hover { background: var(--color-surface-2); color: var(--color-text); }
@@ -136,17 +136,20 @@ const PROMISES = [
   .auth { display: grid; grid-template-columns: minmax(0, 1.08fr) minmax(480px, 0.92fr); grid-template-rows: auto 1fr; grid-template-areas: 'story top' 'story sheet'; }
   .auth-top { grid-area: top; justify-content: flex-end; padding: 24px 40px 0; background: var(--color-card); border-left: 1px solid var(--color-border); }
   /* One screen tall and stays put while a long form (signup) scrolls, so there is never an empty gap. */
-  .auth-story { grid-area: story; position: sticky; top: 0; align-self: start; height: 100vh; height: 100dvh; gap: 28px; padding: 40px 56px 40px; overflow: hidden; }
+  .auth-story { grid-area: story; position: sticky; top: 0; align-self: start; height: 100vh; height: 100dvh; gap: clamp(14px, 2.6vh, 28px); padding: clamp(24px, 4vh, 40px) 48px; overflow: hidden; }
+  /* The greeting shrinks with the window height, so the pictures and promises always fit. */
+  .auth-hello h1 { font-size: clamp(36px, 7.5vh, 72px); }
   .auth-sheet { grid-area: sheet; align-items: center; padding: 24px 40px 48px; border-left: 1px solid var(--color-border); }
   .auth-promises-phone { display: none; }
   .auth-promises-desk { display: flex; padding: 0; background: none; }
-  .auth-papers { display: block; position: relative; flex: 1; min-height: 200px; margin: 0; }
-  .paper { position: absolute; width: min(58%, 340px); border-radius: 10px; background: #fff; box-shadow: var(--shadow-hover); animation: paper-in 700ms var(--ease-out) both; }
+  /* The pictures fill whatever height is left: sized from the box itself (container units), never hidden. */
+  .auth-papers { display: block; position: relative; flex: 1 1 0; min-height: 120px; margin: 0; container-type: size; }
+  .paper { position: absolute; width: min(58cqw, 92cqh, 340px); border-radius: 10px; background: #fff; box-shadow: var(--shadow-hover); animation: paper-in 700ms var(--ease-out) both; }
   .paper-bill { left: 34%; top: 0; transform: rotate(6deg); animation-delay: 80ms; }
   .paper-med { left: 2%; top: 18%; transform: rotate(-6deg); }
-  .paper-chip { position: absolute; left: 18%; bottom: 8%; padding: 14px 20px; border-radius: 18px; background: var(--color-primary); color: var(--color-on-primary); font-family: var(--font-display); font-size: 24px; font-variant-numeric: lining-nums; box-shadow: var(--shadow-glow); transform: rotate(-2deg); animation: paper-in 700ms var(--ease-out) 220ms both; }
+  .paper-chip { position: absolute; left: 18%; bottom: 4%; padding: 10px 16px; border-radius: 16px; background: var(--color-primary); color: var(--color-on-primary); font-family: var(--font-display); font-size: clamp(16px, 7cqh, 24px); font-variant-numeric: lining-nums; box-shadow: var(--shadow-glow); transform: rotate(-2deg); animation: paper-in 700ms var(--ease-out) 220ms both; }
 }
 /* Short laptop screens: the papers make way so the promises still fit in the panel. */
-@media (min-width: 992px) and (max-height: 780px) { .auth-papers { display: none; } .auth-story { justify-content: space-between; } }
+@media (min-width: 992px) and (max-height: 560px) { .auth-papers { display: none; } } /* only very short windows drop them */
 @keyframes paper-in { from { opacity: 0; translate: 0 24px; } }
 </style>

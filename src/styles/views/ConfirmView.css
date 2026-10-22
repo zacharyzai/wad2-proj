@@ -4,7 +4,7 @@
 .steps li + li::before { content: '—'; margin-right: 2px; color: var(--color-text-muted); font-weight: 600; }
 .steps .done { color: var(--color-success-text); }
 .steps .now { color: var(--color-tint-text); font-weight: 800; }
-.thumb { width: 72px; height: 72px; object-fit: cover; border: 1px solid var(--color-border); border-radius: 12px; flex: none; }
+.thumb { width: var(--z72, 72px); height: var(--z72, 72px); object-fit: cover; border: 1px solid var(--color-border); border-radius: 12px; flex: none; }
 .amount { max-width: 120px; }
 .fgrid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; padding: 22px; }
 @media (min-width: 576px) { .fgrid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
@@ -12,6 +12,6 @@
 .span2 { grid-column: 1 / -1; }
 .note { color: var(--color-warning-text); font-weight: 700; }
 .row-label { padding-left: 4px; }
-.total { font-weight: 800; font-size: 20px; }
+.total { font-weight: 800; font-size: var(--t20, 20px); }
 label.total { padding-top: 10px; border-top: 1px dashed var(--color-border-strong); }
 @media (min-width: 576px) { .acts .ok { flex: 2 1 280px; } }

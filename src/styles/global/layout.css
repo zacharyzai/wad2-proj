@@ -9,3 +9,5 @@
 .acts { display: flex; flex-direction: column-reverse; gap: 12px; }
 @media (min-width: 576px) { .acts { flex-direction: row; flex-wrap: wrap; } .acts > .btn { flex: 1 1 220px; } }
 @media (min-width: 992px) { .stick { position: sticky; top: 24px; } }
+/* Laptops and desktops: tighter page rhythm (see the compact tokens in tokens.css). */
+@media (min-width: 992px) { .page { gap: 22px; } .cols { gap: 20px; } .cols > * { gap: 16px; } }

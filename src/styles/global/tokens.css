@@ -60,8 +60,18 @@
   color-scheme: light;
 }
 
+/* Laptops and desktops: about 25% more compact (they sit closer to the eyes than a phone), but text never below 16px.
+   --tNN / --zNN are the hard-coded sizes in page styles (font-size: var(--t20, 20px)): phones keep the fallback. */
 @media (min-width: 992px) {
-  :root { --gutter: 48px; --fs-display: 46px; --fs-h1: 36px; }
+  :root {
+    --gutter: 28px;
+    --s-5: 16px; --s-6: 20px; --s-8: 24px; --s-10: 32px; --s-12: 40px;
+    --fs-hero: 36px; --fs-display: 32px; --fs-h1: 28px; --fs-h2: 19px; --fs-h3: 17px; --fs-lead: 16px; --fs-body: 16px;
+    --h-btn: 48px; --h-btn-sm: 48px; --h-field: 48px; --hit: 48px; --tile: 32px; --tile-lg: 42px; /* tap targets stay 48px */
+    --r-btn: 15px; --r-card: 20px; --r-hero: 24px;
+    --t19: 16px; --t20: 16px; --t21: 17px; --t22: 17px; --t23: 18px; --t24: 19px; --t26: 20px; --t28: 22px; --t34: 26px; --t60: 44px;
+    --z52: 48px; --z56: 48px; --z64: 48px; --z72: 54px;
+  }
 }
 
 /* Night mode: set on <html> by src/theme.js (and the inline script in index.html, so there's no white flash). */

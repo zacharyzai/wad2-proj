@@ -104,7 +104,7 @@ onBeforeUnmount(() => url.value && URL.revokeObjectURL(url.value))
 .dz-over { background: var(--color-tint); }
 .dz:focus-visible { outline: 3px solid var(--color-primary); outline-offset: 3px; }
 
-.dz-stack { position: relative; width: 64px; height: 64px; margin-bottom: 12px; }
+.dz-stack { position: relative; width: var(--z64, 64px); height: var(--z64, 64px); margin-bottom: 12px; }
 .dz-sq { position: absolute; inset: 0; display: grid; place-items: center; border: 1px solid var(--color-border-strong); border-radius: 14px; background: var(--color-card); transition: transform var(--dur) var(--ease-spring); }
 .dz-back-l { transform: translateX(-10px) rotate(-8deg); }
 .dz-back-r { transform: translateX(10px) rotate(8deg); }

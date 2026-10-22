@@ -2,36 +2,36 @@
 .chat { display: flex; flex-direction: column; gap: 22px; max-width: 800px; margin: 0 auto; }
 
 .intro { display: flex; flex-direction: column; gap: 12px; }
-.intro-logo { width: 56px; height: 56px; }
+.intro-logo { width: var(--z56, 56px); height: var(--z56, 56px); }
 .empty .intro { align-items: center; text-align: center; padding-top: 8px; }
 .safety { display: flex; gap: 10px; align-items: flex-start; color: var(--color-text-muted); font-size: 16px; line-height: 1.5; text-align: left; }
 .safety .icon { margin-top: 2px; color: var(--color-primary-text); }
 
 /* My medicines: one row, opens to manage. */
 .meds-panel { padding: 0; }
-.meds-toggle { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 64px; padding: 12px 16px; border: 0; border-radius: var(--r-card); background: none; color: var(--color-text); text-align: left; }
+.meds-toggle { display: flex; align-items: center; gap: 12px; width: 100%; min-height: var(--z64, 64px); padding: 12px 16px; border: 0; border-radius: var(--r-card); background: none; color: var(--color-text); text-align: left; }
 /* Title keeps its natural width; when that doesn't fit beside the count, the count wraps below it. */
 .meds-head { flex: 1; min-width: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; }
-.meds-title { flex: 1 0 auto; max-width: 100%; font-size: 19px; font-weight: 700; }
+.meds-title { flex: 1 0 auto; max-width: 100%; font-size: var(--t19, 19px); font-weight: 700; }
 .meds-body { display: flex; flex-direction: column; gap: 16px; padding: 0 16px 18px; }
 .meds { display: flex; flex-direction: column; gap: 10px; margin: 0; padding: 0; list-style: none; }
 .med { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 18px; background: var(--color-surface-2); }
 .med-info { flex: 1 1 160px; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
-.med-name { font-size: 19px; font-weight: 700; line-height: 1.3; overflow-wrap: anywhere; }
+.med-name { font-size: var(--t19, 19px); font-weight: 700; line-height: 1.3; overflow-wrap: anywhere; }
 .add-form { display: flex; flex-direction: column; gap: 16px; padding: 16px; border-radius: 18px; background: var(--color-surface-2); }
 
 /* Conversation: the user's words in a soft bubble on the right, answers as plain text beside the logo. */
 .thread { display: flex; flex-direction: column; gap: 28px; margin: 0; padding: 0; list-style: none; }
 .turn { display: flex; flex-direction: column; gap: 18px; }
-.you { align-self: flex-end; max-width: 82%; padding: 14px 18px; border-radius: 22px 22px 6px 22px; background: var(--color-tint); color: var(--color-text); font-size: 19px; line-height: 1.5; overflow-wrap: anywhere; }
+.you { align-self: flex-end; max-width: 82%; padding: 14px 18px; border-radius: 22px 22px 6px 22px; background: var(--color-tint); color: var(--color-text); font-size: var(--t19, 19px); line-height: 1.5; overflow-wrap: anywhere; }
 .reply { display: flex; gap: 12px; align-items: flex-start; scroll-margin-top: 16px; }
 .avatar { flex: none; width: 40px; height: 40px; border-radius: 10px; box-shadow: var(--shadow-card); }
 .reply-body { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 12px; }
-.answer p { font-size: 19px; line-height: 1.6; overflow-wrap: anywhere; }
+.answer p { font-size: var(--t19, 19px); line-height: 1.6; overflow-wrap: anywhere; }
 .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
 .listen { --bs-btn-border-radius: var(--r-pill); }
 .listen[aria-pressed='true'] { --bs-btn-bg: var(--color-tint); --bs-btn-border-color: var(--color-primary); }
-.thinking { display: flex; align-items: center; min-height: 40px; color: var(--color-text-muted); font-size: 19px; }
+.thinking { display: flex; align-items: center; min-height: 40px; color: var(--color-text-muted); font-size: var(--t19, 19px); }
 .from { color: var(--color-text-muted); font-size: 16px; }
 /* A plain note, not link-blue: it isn't tappable. */
 .pharm { align-items: center; background: var(--color-surface-2); border-color: transparent; color: var(--color-text); }
@@ -51,7 +51,7 @@
 .chat:not(.empty) .dock { position: sticky; bottom: calc(82px + env(safe-area-inset-bottom)); z-index: 5; padding-top: 16px; background: linear-gradient(to bottom, transparent, var(--color-page) 16px); }
 .composer { display: flex; flex-direction: column; gap: 6px; padding: 12px 12px 10px 18px; border: 1px solid var(--color-border); border-radius: var(--r-card); background: var(--color-card); box-shadow: var(--shadow-hover); transition: border-color var(--dur) var(--ease-out); }
 .composer:focus-within { border-color: var(--color-primary); }
-.composer textarea { width: 100%; min-height: 2lh; max-height: 8lh; padding: 6px 0; border: 0; outline: none; resize: none; background: none; color: var(--color-text); font: inherit; font-size: 19px; line-height: 1.45; field-sizing: content; }
+.composer textarea { width: 100%; min-height: 2lh; max-height: 8lh; padding: 6px 0; border: 0; outline: none; resize: none; background: none; color: var(--color-text); font: inherit; font-size: var(--t19, 19px); line-height: 1.45; field-sizing: content; }
 .composer textarea:focus-visible { box-shadow: none; }
 .composer textarea::placeholder { color: var(--color-text-muted); }
 .tools { display: flex; align-items: center; gap: 8px; }

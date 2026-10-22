@@ -21,7 +21,7 @@
 
 .privacy { display: flex; align-items: center; gap: 10px; margin: 0; padding: 0 4px; color: var(--color-text-muted); font-size: 16px; line-height: 1.45; }
 .sample { flex-direction: row; align-items: center; gap: 14px; padding: 12px; border-radius: 20px; text-align: left; }
-.sample-thumb { width: 64px; height: 64px; flex: none; padding: 4px; object-fit: contain; border: 1px solid var(--color-border); border-radius: 14px; background: #fff; }
+.sample-thumb { width: var(--z64, 64px); height: var(--z64, 64px); flex: none; padding: 4px; object-fit: contain; border: 1px solid var(--color-border); border-radius: 14px; background: #fff; }
 .sample-name { font-size: 18px; font-weight: 700; line-height: 1.3; }
 .sample-kind { font-size: 16px; line-height: 1.4; }
 
