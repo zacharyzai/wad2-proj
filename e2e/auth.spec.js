@@ -1,6 +1,7 @@
 // Accounts: every page needs one. Login (with Remember me), signup with date of birth and citizenship, the Account page,
 // and the Bill page filling in its subsidy questions from the account. The auth API is mocked (see helpers/auth.js).
 import { test, expect } from './fixtures.js'
+import AxeBuilder from '@axe-core/playwright'
 import { DEMO_USER, mockAuth, mockWrongLogin, fillLogin, login, signIn } from './helpers/auth.js'
 
 test.describe('logged out', () => {
@@ -86,6 +87,21 @@ test.describe('logged out', () => {
     })
     await expect(page).toHaveURL(/\/scan$/)
   })
+
+  for (const colorScheme of ['light', 'dark']) {
+    test(`Log in and Create account have no WCAG A/AA violations (${colorScheme})`, async ({ page }) => {
+      await page.emulateMedia({ colorScheme, reducedMotion: 'reduce' })
+      const bad = []
+      for (const path of ['/login', '/signup']) {
+        await page.goto(path)
+        await page.waitForLoadState('networkidle') // dev styles arrive just after load
+        if (path === '/signup') await page.getByTestId('signup-submit').click() // with every error showing
+        const { violations } = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze()
+        bad.push(...violations.map((v) => `${path} ${v.id}: ${v.nodes.map((n) => n.target).join(' | ')}`))
+      }
+      expect(bad).toEqual([])
+    })
+  }
 
   test('login page has no missing translations in any language', async ({ page }) => {
     await page.goto('/login')

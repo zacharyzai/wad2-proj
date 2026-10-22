@@ -395,7 +395,6 @@
     "working": "Sila tunggu…",
     "noAccount": "Belum ada akaun?",
     "haveAccount": "Sudah ada akaun?",
-    "heroText": "Log masuk untuk simpan ubat dan bil keluarga di satu tempat, dan kongsi dengan anak-anak.",
     "tabs": "Log masuk atau daftar akaun",
     "privacy": "Kami tidak pernah meminta NRIC anda. Kata laluan anda disimpan dalam bentuk berkod, jadi kami pun tidak dapat membacanya.",
     "show": "Tunjuk kata laluan",
@@ -420,7 +419,20 @@
       "dob": "Sila pilih tarikh lahir anda.",
       "citizenship": "Sila pilih satu.",
       "citizenSince": "Taip tahun antara tahun lahir anda hingga {max}."
-    }
+    },
+    "hello": {
+      "login": "Selamat kembali.",
+      "loginLead": "Log masuk untuk melihat ubat, bil dan subsidi anda.",
+      "signup": "Mari sediakan akaun anda.",
+      "signupLead": "Satu borang pendek. Tarikh lahir dan kewarganegaraan anda membolehkan kami menyemak subsidi untuk anda."
+    },
+    "promise": {
+      "read": "Label diterangkan dengan kata-kata mudah, dan dibacakan dalam 4 bahasa.",
+      "bill": "Bil dipecahkan, bersama subsidi yang mungkin anda dapat.",
+      "private": "Nama dan NRIC anda dihitamkan pada telefon sebelum apa-apa dibaca."
+    },
+    "promiseLabel": "Apa yang anda dapat",
+    "about": "Baru di sini? Lihat cara ia berfungsi"
   },
   "landing": {
     "hero": {

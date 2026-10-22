@@ -20,8 +20,8 @@ const routes = [
   { path: '/bill', name: 'bill', component: () => import('../views/BillView.vue') },
   { path: '/bill/scan', name: 'bill-scan', component: () => import('../views/ScanView.vue'), meta: { scanType: 'bill' } },
   // Isaac (+ auth API). Everything needs an account except pages marked public: welcome, login, signup, share links, 404.
-  { path: '/login', name: 'login', component: () => import('../views/LoginView.vue'), meta: { public: true, guestOnly: true } },
-  { path: '/signup', name: 'signup', component: () => import('../views/SignupView.vue'), meta: { public: true, guestOnly: true } },
+  { path: '/login', name: 'login', component: () => import('../views/LoginView.vue'), meta: { public: true, guestOnly: true, bare: true } },
+  { path: '/signup', name: 'signup', component: () => import('../views/SignupView.vue'), meta: { public: true, guestOnly: true, bare: true } },
   { path: '/history', name: 'history', component: () => import('../views/HistoryView.vue') },
   { path: '/account', name: 'account', component: () => import('../views/AccountView.vue') },
   // Share links stay open: they are for family on WhatsApp, who have no account.

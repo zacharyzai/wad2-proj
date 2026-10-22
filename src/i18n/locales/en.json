@@ -395,7 +395,6 @@
     "working": "Please wait…",
     "noAccount": "No account yet?",
     "haveAccount": "Already have an account?",
-    "heroText": "Log in to keep your family's medicines and bills in one place, and share them with your children.",
     "tabs": "Log in or create an account",
     "privacy": "We never ask for your NRIC. Your password is stored scrambled, so not even we can read it.",
     "show": "Show password",
@@ -420,7 +419,20 @@
       "dob": "Please choose your date of birth.",
       "citizenship": "Please choose one.",
       "citizenSince": "Type a year from your birth year to {max}."
-    }
+    },
+    "hello": {
+      "login": "Welcome back.",
+      "loginLead": "Log in to see your medicines, bills and subsidies.",
+      "signup": "Let's set you up.",
+      "signupLead": "One short form. Your date of birth and citizenship let us check your subsidies for you."
+    },
+    "promise": {
+      "read": "Labels explained in simple words, and read aloud in 4 languages.",
+      "bill": "Bills broken down, with the subsidies you may get.",
+      "private": "Your name and NRIC are blacked out on your phone before anything is read."
+    },
+    "promiseLabel": "What you get",
+    "about": "New here? See how it works"
   },
   "landing": {
     "hero": {
