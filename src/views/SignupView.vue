@@ -1,6 +1,7 @@
-<!-- Owner: Isaac. Calls Sheen Hern's POST /api/auth/signup. We never ask for an NRIC number. -->
+<!-- Owner: Isaac. Calls POST /api/auth/signup (docs/auth-contract.md). We never ask for an NRIC number.
+     Date of birth and citizenship fill in the Bill page's subsidy questions, so they use the same choices. -->
 <script setup>
-import { ref } from 'vue'
+import { computed, nextTick, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { signup } from '../stores/auth'
@@ -10,43 +11,59 @@ import BigButton from '../components/layout/BigButton.vue'
 import AppIcon from '../components/layout/AppIcon.vue'
 
 const MIN_PASSWORD = 8
-// The values the server stores. The words people see come from the locale files.
-const CITIZENSHIPS = ['SG_CITIZEN', 'SG_PR', 'OTHER']
+// Same values as the subsidy questions (SubsidyQuestionnaire.vue) and the server (server/models/User.js).
+const CITIZENSHIPS = ['birth', 'became', 'pr', 'other']
 const today = new Date().toISOString().slice(0, 10) // a birth date cannot be in the future
+const thisYear = new Date().getFullYear()
 
 const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 
-const name = ref('')
-const email = ref('')
-const password = ref('')
-const dob = ref('') // 'YYYY-MM-DD', which is what <input type="date"> gives us
-const citizenship = ref('')
+const form = reactive({ name: '', email: '', password: '', dob: '', citizenship: '', citizenSince: '' })
+const remember = ref(true)
 const showPw = ref(false)
 const busy = ref(false)
 const errorCode = ref(null)
-const tooShort = ref(false)
-const missing = ref(false)
+const tried = ref(false) // show problems only after the first press of Create account
+
+// Every problem at once, each under its own box (not one at a time).
+const problems = computed(() => {
+  const p = {}
+  if (!form.name.trim()) p.name = t('auth.need.name')
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) p.email = t('auth.need.email')
+  if (form.password.length < MIN_PASSWORD) p.password = t('auth.passwordShort')
+  if (!form.dob || form.dob > today) p.dob = t('auth.need.dob')
+  if (!form.citizenship) p.citizenship = t('auth.need.citizenship')
+  const year = Number(form.citizenSince)
+  const born = Number(form.dob.slice(0, 4)) || 1900
+  if (form.citizenship === 'became' && !(Number.isInteger(year) && year >= born && year <= thisYear)) p.citizenSince = t('auth.need.citizenSince', { max: thisYear })
+  return p
+})
+const show = (field) => tried.value && problems.value[field]
 
 function destination() {
   const next = route.query.next
-  return typeof next === 'string' && next.startsWith('/') && !next.startsWith('//') ? next : '/history'
+  return typeof next === 'string' && next.startsWith('/') && !next.startsWith('//') ? next : '/'
 }
 
 async function submit() {
   if (busy.value) return
-  tooShort.value = password.value.length < MIN_PASSWORD
-  if (tooShort.value) return // the server checks too; this just saves a round trip
-  missing.value = !name.value.trim() || !email.value.trim() || !dob.value || !citizenship.value
-  if (missing.value) return
+  tried.value = true
+  const first = Object.keys(problems.value)[0]
+  if (first) {
+    await nextTick()
+    document.getElementById(`signup-${first === 'citizenSince' ? 'citizen-year' : first}`)?.focus()
+    return
+  }
   busy.value = true
   errorCode.value = null
-  const res = await signup(email.value.trim(), password.value, {
-    name: name.value.trim(),
-    dob: dob.value,
-    citizenship: citizenship.value,
-  })
+  const res = await signup(
+    form.email.trim(),
+    form.password,
+    { name: form.name.trim(), dob: form.dob, citizenship: form.citizenship, citizenSince: form.citizenship === 'became' ? Number(form.citizenSince) : null },
+    remember.value,
+  )
   busy.value = false
   if (res.ok) router.push(destination())
   else errorCode.value = res.error.code
@@ -57,60 +74,81 @@ async function submit() {
   <AuthShell active="signup">
     <form class="d-flex flex-column gap-3" novalidate @submit.prevent="submit">
       <ErrorBanner v-if="errorCode" :code="errorCode" data-testid="signup-error" />
+      <p v-if="tried && Object.keys(problems).length" class="auth-warn m-0" role="alert" data-testid="signup-missing">
+        <AppIcon name="alert" :size="20" />{{ t('auth.missingFields') }}
+      </p>
 
       <div>
         <label for="signup-name" class="auth-label">{{ t('auth.name') }}</label>
-        <div class="auth-field">
+        <div class="auth-field" :class="{ bad: show('name') }">
           <AppIcon name="user" :size="22" />
-          <input id="signup-name" v-model="name" type="text" autocomplete="name" required data-testid="signup-name" />
+          <input id="signup-name" v-model="form.name" type="text" autocomplete="name" maxlength="80" required :aria-invalid="!!show('name')" aria-describedby="signup-name-err" data-testid="signup-name" />
         </div>
+        <span v-if="show('name')" id="signup-name-err" class="auth-warn">{{ problems.name }}</span>
       </div>
 
       <div>
         <label for="signup-email" class="auth-label">{{ t('auth.email') }}</label>
-        <div class="auth-field">
+        <div class="auth-field" :class="{ bad: show('email') }">
           <AppIcon name="mail" :size="22" />
-          <input id="signup-email" v-model="email" type="email" autocomplete="email" required data-testid="signup-email" />
+          <input id="signup-email" v-model="form.email" type="email" autocomplete="email" required :aria-invalid="!!show('email')" aria-describedby="signup-email-err" data-testid="signup-email" />
         </div>
+        <span v-if="show('email')" id="signup-email-err" class="auth-warn">{{ problems.email }}</span>
       </div>
 
       <div>
         <label for="signup-password" class="auth-label">{{ t('auth.password') }}</label>
-        <div class="auth-field" :class="{ bad: tooShort }">
+        <div class="auth-field" :class="{ bad: show('password') }">
           <AppIcon name="lock" :size="22" />
           <input
-            id="signup-password" v-model="password" :type="showPw ? 'text' : 'password'"
-            autocomplete="new-password" aria-describedby="signup-hint" :aria-invalid="tooShort" required data-testid="signup-password"
+            id="signup-password" v-model="form.password" :type="showPw ? 'text' : 'password'"
+            autocomplete="new-password" aria-describedby="signup-hint" :aria-invalid="!!show('password')" required data-testid="signup-password"
           />
           <button type="button" class="auth-eye" :aria-pressed="showPw" :aria-label="showPw ? t('auth.hide') : t('auth.show')" data-testid="signup-toggle" @click="showPw = !showPw">
             <AppIcon :name="showPw ? 'blur' : 'eye'" :size="22" />
           </button>
         </div>
-        <span id="signup-hint" class="mt-2 d-block" :class="tooShort ? 'banner-amber' : 'text-soft'" :role="tooShort ? 'alert' : null" data-testid="signup-hint">
-          {{ tooShort ? t('auth.passwordShort') : t('auth.passwordHint') }}
-        </span>
+        <!-- Colour never carries meaning alone: the hint turns into a warning with words and an icon. -->
+        <span v-if="show('password')" id="signup-hint" class="auth-warn" data-testid="signup-hint"><AppIcon name="alert" :size="18" />{{ problems.password }}</span>
+        <span v-else id="signup-hint" class="auth-help" data-testid="signup-hint">{{ t('auth.passwordHint') }}</span>
       </div>
 
       <div>
         <label for="signup-dob" class="auth-label">{{ t('auth.dob') }}</label>
-        <div class="auth-field">
+        <div class="auth-field" :class="{ bad: show('dob') }">
           <AppIcon name="calendar" :size="22" />
-          <input id="signup-dob" v-model="dob" type="date" :max="today" autocomplete="bday" required data-testid="signup-dob" />
+          <input id="signup-dob" v-model="form.dob" type="date" min="1900-01-01" :max="today" autocomplete="bday" required :aria-invalid="!!show('dob')" aria-describedby="signup-dob-help" data-testid="signup-dob" />
         </div>
+        <span v-if="show('dob')" id="signup-dob-help" class="auth-warn">{{ problems.dob }}</span>
+        <span v-else id="signup-dob-help" class="auth-help">{{ t('auth.dobHelp') }}</span>
       </div>
 
       <div>
-        <label for="signup-citizenship" class="auth-label">{{ t('auth.citizenship') }}</label>
-        <div class="auth-field">
+        <label for="signup-citizenship" class="auth-label">{{ t('bill.q.citizen') }}</label>
+        <div class="auth-field" :class="{ bad: show('citizenship') }">
           <AppIcon name="globe" :size="22" />
-          <select id="signup-citizenship" v-model="citizenship" required data-testid="signup-citizenship">
+          <select id="signup-citizenship" v-model="form.citizenship" required :aria-invalid="!!show('citizenship')" aria-describedby="signup-citizenship-err" data-testid="signup-citizenship">
             <option value="" disabled>{{ t('auth.citizenshipPick') }}</option>
-            <option v-for="c in CITIZENSHIPS" :key="c" :value="c">{{ t(`auth.citizenships.${c}`) }}</option>
+            <option v-for="c in CITIZENSHIPS" :key="c" :value="c">{{ t(`bill.q.status.${c}`) }}</option>
           </select>
         </div>
+        <span v-if="show('citizenship')" id="signup-citizenship-err" class="auth-warn">{{ problems.citizenship }}</span>
       </div>
 
-      <p v-if="missing" class="banner-amber m-0" role="alert" data-testid="signup-missing">{{ t('auth.missingFields') }}</p>
+      <div v-if="form.citizenship === 'became'">
+        <label for="signup-citizen-year" class="auth-label">{{ t('bill.q.citizenYear') }}</label>
+        <div class="auth-field" :class="{ bad: show('citizenSince') }">
+          <AppIcon name="calendar" :size="22" />
+          <input id="signup-citizen-year" v-model="form.citizenSince" inputmode="numeric" maxlength="4" :placeholder="t('bill.q.yearExample')" required :aria-invalid="!!show('citizenSince')" aria-describedby="signup-year-err" data-testid="signup-citizen-year" />
+        </div>
+        <span v-if="show('citizenSince')" id="signup-year-err" class="auth-warn">{{ problems.citizenSince }}</span>
+      </div>
+
+      <label class="auth-check">
+        <input v-model="remember" type="checkbox" aria-describedby="signup-remember-help" data-testid="signup-remember" />
+        {{ t('auth.remember') }}
+      </label>
+      <span id="signup-remember-help" class="auth-help mt-0">{{ t('auth.rememberHelp') }}</span>
 
       <BigButton type="submit" :busy="busy" data-testid="signup-submit">{{ busy ? t('auth.working') : t('auth.signup') }}</BigButton>
     </form>

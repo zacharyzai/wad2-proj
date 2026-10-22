@@ -6,7 +6,10 @@ import med1 from '../fixtures/med-1.json' with { type: 'json' }
 
 process.env.USE_MOCK_AI = 'true'
 process.env.CHAT_RATE_LIMIT = '50'
+process.env.JWT_SECRET = 'test-secret'
 const { default: app } = await import('../app.js')
+const { signToken } = await import('../services/auth.js')
+const AUTH = { authorization: `Bearer ${signToken('test-user', false)}` } // chat needs an account
 
 let server, base
 before(() => {
@@ -21,7 +24,7 @@ afterEach(() => {
 })
 
 const ask = (body) =>
-  realFetch(`${base}/api/chat`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) })
+  realFetch(`${base}/api/chat`, { method: 'POST', headers: { 'content-type': 'application/json', ...AUTH }, body: JSON.stringify(body) })
 const metformin = { source: 'label', medication: med1.medication }
 const valid = { medicines: [metformin], question: 'Can I take it with food?', lang: 'en' }
 

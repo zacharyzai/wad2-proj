@@ -1,5 +1,5 @@
 // Feature 1: Scan → Confirm → Explain. Samples only; the photo upload is answered in the browser.
-import { test, expect } from '@playwright/test'
+import { test, expect } from './fixtures.js'
 import { mockImageScan } from './helpers/mockImageScan.js'
 
 const TINY_PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', 'base64')

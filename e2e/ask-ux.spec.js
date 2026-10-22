@@ -1,5 +1,5 @@
 // Ask (feature 6) usability checks from docs/heuristic-audit.md: loading state, friendly errors, form validation, axe.
-import { test, expect } from '@playwright/test'
+import { test, expect } from './fixtures.js'
 import AxeBuilder from '@axe-core/playwright'
 
 const answer = (text) => ({ ok: true, data: { type: 'ANSWER', answer: text, askPharmacist: false } })

@@ -1,6 +1,6 @@
 // Personal details are covered on the phone before a photo is sent (src/utils/redact.js). The reader itself is faked here
 // (see mockImageScan); its rules are unit-tested in src/utils/sensitive.test.js and checked by hand at /dev/redact.
-import { test, expect } from '@playwright/test'
+import { test, expect } from './fixtures.js'
 import { mockImageScan } from './helpers/mockImageScan.js'
 
 const TINY_PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', 'base64')

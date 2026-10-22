@@ -6,6 +6,7 @@ import historyRouter from './routes/history.js'
 import shareRouter from './routes/share.js'
 import ttsRouter from './routes/tts.js'
 import { sendError } from './errors.js'
+import { requireAuth } from './middleware/requireAuth.js'
 
 const app = express()
 
@@ -15,8 +16,9 @@ app.set('trust proxy', 1)
 app.use(express.json({ limit: '4mb' }))
 
 app.get('/api/health', (req, res) => res.json({ ok: true }))
-app.use('/api/scan', scanRouter)
-app.use('/api/chat', chatRouter)
+// Every feature needs an account (so only signed-up users use the AI quota). Only /api/auth and /api/health are open.
+app.use('/api/scan', requireAuth, scanRouter)
+app.use('/api/chat', requireAuth, chatRouter)
 app.use('/api/auth', authRouter)
 app.use('/api/history', historyRouter)
 app.use('/api/share', shareRouter)

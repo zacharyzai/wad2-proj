@@ -1,13 +1,18 @@
 // The only way the client calls the backend. Always resolves to { ok, data } or { ok: false, error: { code, message } }.
 // Show errors with t(`errors.${error.code}`).
-// Logged-in users send their token; Sheen Hern's requireAuth middleware reads "Authorization: Bearer <token>".
-function authHeader() {
+// Logged-in users send their token (server/middleware/requireAuth.js reads "Authorization: Bearer <token>").
+// It is in localStorage with "Remember me", otherwise in sessionStorage (stores/auth.js decides).
+export const TOKEN_KEY = 'token'
+export function readToken() {
   try {
-    const token = localStorage.getItem('token')
-    return token ? { authorization: `Bearer ${token}` } : {}
+    return localStorage.getItem(TOKEN_KEY) ?? sessionStorage.getItem(TOKEN_KEY)
   } catch {
-    return {}
+    return null // storage blocked (private mode)
   }
+}
+function authHeader() {
+  const token = readToken()
+  return token ? { authorization: `Bearer ${token}` } : {}
 }
 export async function api(path, { method = 'GET', body } = {}) {
   try {

@@ -15,3 +15,7 @@ legend { float: none; width: auto; margin: 0; padding: 0; }
 .option:has(input:focus-visible) { box-shadow: var(--focus-ring); }
 .tick { width: 26px; height: 26px; flex: none; display: grid; place-items: center; border: 2px solid var(--color-border-strong); border-radius: 50%; background: var(--color-card); }
 .option:has(input:checked) .tick { border-color: var(--color-primary); background: var(--color-primary); color: #fff; }
+
+/* "Filled in from your account": a calm teal note, words plus icon. */
+.from-account { display: flex; gap: 10px; align-items: flex-start; margin: 0; padding: 12px 14px; border-radius: 16px; background: var(--color-tint); color: var(--color-tint-text); font-size: 17px; font-weight: 600; line-height: 1.45; }
+.from-account .icon { flex: none; margin-top: 2px; }

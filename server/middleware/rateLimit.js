@@ -1,13 +1,14 @@
 // Protects the free AI quota. Only real image scans and chat questions count; sample scans are exempt.
 import { rateLimit } from 'express-rate-limit'
 
-const limiter = (windowMin, limit, message, skip) =>
+const limiter = (windowMin, limit, message, skip, extra = {}) =>
   rateLimit({
     windowMs: windowMin * 60_000,
     limit,
     standardHeaders: 'draft-8',
     legacyHeaders: false,
     skip,
+    ...extra,
     handler: (req, res) => res.status(429).json({ ok: false, error: { code: 'RATE_LIMITED', message } }),
   })
 
@@ -20,6 +21,8 @@ export const scanRateLimit = limiter(
   (req) => req.body?.sampleId !== undefined,
 )
 export const chatRateLimit = limiter(1, Number(process.env.CHAT_RATE_LIMIT) || 10, 'Too many questions, please try again later')
+// Slows password guessing: only failed logins and signups count.
+export const authRateLimit = limiter(15, Number(process.env.AUTH_RATE_LIMIT) || 10, 'Too many tries, please wait a few minutes', undefined, { skipSuccessfulRequests: true })
 
 // Global cap across all users, so rotating IPs can't drain the daily AI quota. Scan and chat count
 // separately (they use different models, so different quotas). Call only after validation, right before the AI call.

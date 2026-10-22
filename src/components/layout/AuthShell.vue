@@ -3,7 +3,6 @@
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import AppIcon from './AppIcon.vue'
-import BigButton from './BigButton.vue'
 
 defineProps({ active: { type: String, required: true } }) // 'login' or 'signup'
 const { t } = useI18n()
@@ -26,9 +25,6 @@ const route = useRoute()
         </nav>
 
         <slot />
-
-        <div class="auth-or"><span></span>{{ t('auth.or') }}<span></span></div>
-        <BigButton to="/scan" variant="alt">{{ t('auth.guest') }}</BigButton>
 
         <p class="auth-note">
           <AppIcon name="shield" :size="20" />
@@ -87,8 +83,11 @@ const route = useRoute()
   width: var(--hit); height: var(--hit); display: grid; place-items: center;
   border: 0; border-radius: var(--r-sm); background: transparent; color: var(--color-text-muted);
 }
-.auth-or { display: flex; align-items: center; gap: var(--s-3); color: var(--color-text-muted); font-size: var(--fs-small); }
-.auth-or span { flex: 1; height: 1px; background: var(--color-border); }
+/* Remember me: a big tick box, the whole row is the label. */
+.auth-check { display: flex; align-items: center; gap: 12px; min-height: var(--hit); font-weight: 600; cursor: pointer; }
+.auth-check input { width: 26px; height: 26px; flex: none; accent-color: var(--color-primary); }
+.auth-help { display: block; margin-top: var(--s-2); font-size: var(--fs-small); color: var(--color-text-muted); }
+.auth-warn { display: flex; gap: 8px; align-items: flex-start; margin-top: var(--s-2); color: var(--color-danger-text); font-size: var(--fs-small); font-weight: 600; }
 .auth-note { margin: 0; display: flex; gap: var(--s-2); font-size: var(--fs-small); line-height: 1.5; color: var(--color-text-muted); }
 .auth-note :first-child { flex: none; color: var(--color-primary-text); }
 

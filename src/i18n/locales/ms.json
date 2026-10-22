@@ -33,7 +33,8 @@
     "notFound": "Halaman tidak dijumpai",
     "ask": "Tanya tentang ubat saya",
     "welcome": "Selamat datang",
-    "billScan": "Imbas bil perubatan"
+    "billScan": "Imbas bil perubatan",
+    "account": "Akaun anda"
   },
   "errors": {
     "BAD_REQUEST": "Permintaan tidak sah. Sila cuba lagi.",
@@ -46,7 +47,10 @@
     "SERVER_ERROR": "Ada masalah. Sila cuba lagi.",
     "NETWORK_ERROR": "Tidak dapat disambungkan. Sila semak sambungan internet anda.",
     "UNSUPPORTED_FILE": "Fail ini tidak boleh digunakan. Sila pilih gambar (JPG atau PNG).",
-    "COVER_FAILED": "Kami tidak dapat menutup butiran peribadi anda pada telefon ini, jadi tiada apa-apa yang dihantar. Sila cuba lagi."
+    "COVER_FAILED": "Kami tidak dapat menutup butiran peribadi anda pada telefon ini, jadi tiada apa-apa yang dihantar. Sila cuba lagi.",
+    "WRONG_LOGIN": "E-mel atau kata laluan itu tidak betul. Sila cuba lagi.",
+    "NOT_LOGGED_IN": "Sila log masuk semula.",
+    "EMAIL_TAKEN": "Akaun dengan e-mel ini sudah wujud. Cuba log masuk."
   },
   "home": {
     "title": "Apa yang anda ingin fahami?",
@@ -393,17 +397,30 @@
     "haveAccount": "Sudah ada akaun?",
     "heroText": "Log masuk untuk simpan ubat dan bil keluarga di satu tempat, dan kongsi dengan anak-anak.",
     "tabs": "Log masuk atau daftar akaun",
-    "or": "atau",
-    "guest": "Teruskan tanpa akaun",
-    "privacy": "Tanpa akaun, imbasan anda kekal pada peranti ini sahaja.",
+    "privacy": "Kami tidak pernah meminta NRIC anda. Kata laluan anda disimpan dalam bentuk berkod, jadi kami pun tidak dapat membacanya.",
     "show": "Tunjuk kata laluan",
     "hide": "Sembunyi kata laluan",
     "name": "Nama penuh",
     "dob": "Tarikh lahir",
     "citizenship": "Kewarganegaraan",
     "citizenshipPick": "Pilih satu",
-    "citizenships": { "SG_CITIZEN": "Warganegara Singapura", "SG_PR": "Penduduk tetap Singapura", "OTHER": "Lain-lain" },
-    "missingFields": "Sila isi semua ruang."
+    "citizenships": {
+      "birth": "Warganegara Singapura (sejak lahir)",
+      "became": "Warganegara Singapura sejak {year}",
+      "pr": "Penduduk tetap Singapura (PR)",
+      "other": "Bukan warganegara atau PR"
+    },
+    "missingFields": "Beberapa ruang perlu disemak. Ia ditanda merah.",
+    "remember": "Ingat saya pada peranti ini",
+    "rememberHelp": "Anda kekal log masuk selama 30 hari selepas setiap lawatan. Nyahtanda jika telefon atau komputer dikongsi.",
+    "dobHelp": "Digunakan untuk menyemak subsidi yang anda layak di halaman Bil.",
+    "need": {
+      "name": "Sila taip nama anda.",
+      "email": "Sila taip alamat e-mel, contohnya name{'@'}example.com.",
+      "dob": "Sila pilih tarikh lahir anda.",
+      "citizenship": "Sila pilih satu.",
+      "citizenSince": "Taip tahun antara tahun lahir anda hingga {max}."
+    }
   },
   "landing": {
     "hero": {
@@ -552,7 +569,9 @@
         "year": "Sila taip tahun 4 digit dari 1901 hingga {max}.",
         "beforeBirth": "Tahun ini lebih awal daripada tahun anda dilahirkan. Sila semak."
       },
-      "clear": "Padam jawapan saya"
+      "clear": "Padam jawapan saya",
+      "fromAccount": "Diisi daripada akaun anda: lahir {year}, {status}. Menyemak bil orang lain? Tukar jawapan di bawah.",
+      "useAccount": "Guna butiran akaun saya"
     },
     "r": {
       "title": "Apa maksudnya untuk anda",
@@ -582,10 +601,16 @@
       "medisaveNote": "MediSave mungkin membayar sebahagiannya, seperti pada bil ini."
     }
   },
-    "account": {
+  "account": {
     "lead": "Ini ialah butiran yang anda berikan.",
     "details": "Butiran anda",
     "passwordNote": "Kata laluan tidak pernah dipaparkan.",
-    "logout": "Log keluar"
+    "logout": "Log keluar",
+    "saved": "Butiran anda telah disimpan.",
+    "billNote": "Tarikh lahir dan kewarganegaraan anda akan diisi dalam soalan subsidi di halaman Bil.",
+    "edit": "Ubah butiran saya",
+    "editTitle": "Ubah butiran anda",
+    "save": "Simpan",
+    "cancel": "Batal"
   }
 }

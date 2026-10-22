@@ -33,7 +33,8 @@
     "notFound": "Page not found",
     "ask": "Ask about my medicine",
     "welcome": "Welcome",
-    "billScan": "Scan a medical bill"
+    "billScan": "Scan a medical bill",
+    "account": "Your account"
   },
   "errors": {
     "BAD_REQUEST": "Something was wrong with that request. Please try again.",
@@ -46,7 +47,10 @@
     "SERVER_ERROR": "Something went wrong. Please try again.",
     "NETWORK_ERROR": "Cannot connect. Please check your internet connection.",
     "UNSUPPORTED_FILE": "This file can’t be used. Please choose a photo (JPG or PNG).",
-    "COVER_FAILED": "We couldn't cover your personal details on this phone, so nothing was sent. Please try again."
+    "COVER_FAILED": "We couldn't cover your personal details on this phone, so nothing was sent. Please try again.",
+    "WRONG_LOGIN": "That email or password is not right. Please try again.",
+    "NOT_LOGGED_IN": "Please log in again.",
+    "EMAIL_TAKEN": "An account with this email already exists. Try logging in instead."
   },
   "home": {
     "title": "What would you like to understand?",
@@ -393,17 +397,30 @@
     "haveAccount": "Already have an account?",
     "heroText": "Log in to keep your family's medicines and bills in one place, and share them with your children.",
     "tabs": "Log in or create an account",
-    "or": "or",
-    "guest": "Continue without an account",
-    "privacy": "Without an account, your scans stay on this device only.",
+    "privacy": "We never ask for your NRIC. Your password is stored scrambled, so not even we can read it.",
     "show": "Show password",
     "hide": "Hide password",
     "name": "Full name",
     "dob": "Date of birth",
     "citizenship": "Citizenship",
     "citizenshipPick": "Choose one",
-    "citizenships": { "SG_CITIZEN": "Singapore citizen", "SG_PR": "Singapore permanent resident", "OTHER": "Other" },
-    "missingFields": "Please fill in every box."
+    "citizenships": {
+      "birth": "Singapore citizen (by birth)",
+      "became": "Singapore citizen since {year}",
+      "pr": "Singapore permanent resident (PR)",
+      "other": "Not a citizen or PR"
+    },
+    "missingFields": "Some boxes need checking. They are marked in red.",
+    "remember": "Remember me on this device",
+    "rememberHelp": "You stay logged in for 30 days after each visit. Untick this on a shared phone or computer.",
+    "dobHelp": "Used to check which subsidies you can get on the Bill page.",
+    "need": {
+      "name": "Please type your name.",
+      "email": "Please type an email address, like name{'@'}example.com.",
+      "dob": "Please choose your date of birth.",
+      "citizenship": "Please choose one.",
+      "citizenSince": "Type a year from your birth year to {max}."
+    }
   },
   "landing": {
     "hero": {
@@ -552,7 +569,9 @@
         "year": "Please type a 4-digit year from 1901 to {max}.",
         "beforeBirth": "This year is before the year you were born. Please check it."
       },
-      "clear": "Clear my answers"
+      "clear": "Clear my answers",
+      "fromAccount": "Filled in from your account: born {year}, {status}. Checking someone else's bill? Change the answers below.",
+      "useAccount": "Use my account details"
     },
     "r": {
       "title": "What this means for you",
@@ -582,10 +601,16 @@
       "medisaveNote": "MediSave may pay part of this, as it did on this bill."
     }
   },
-    "account": {
+  "account": {
     "lead": "These are the details you gave us.",
     "details": "Your details",
     "passwordNote": "Your password is never shown.",
-    "logout": "Log out"
+    "logout": "Log out",
+    "saved": "Your details are saved.",
+    "billNote": "Your date of birth and citizenship fill in the subsidy questions on the Bill page.",
+    "edit": "Edit my details",
+    "editTitle": "Edit your details",
+    "save": "Save",
+    "cancel": "Cancel"
   }
 }

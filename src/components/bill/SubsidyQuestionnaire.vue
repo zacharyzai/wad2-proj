@@ -1,12 +1,17 @@
-<!-- Owner: Lokesh. Subsidy questions: birth year, citizenship and household income. Answers live only in this page's memory: never sent or saved. -->
+<!-- Owner: Lokesh. Subsidy questions: birth year, citizenship and household income. Answers live only in this page's memory: never sent or saved.
+     Logged-in users start with birth year and citizenship from their account (a visible line says so); they can still change them,
+     e.g. a caregiver checking a parent's bill. -->
 <script setup>
-import { computed, reactive, watchEffect } from 'vue'
+import { computed, reactive, watch, watchEffect } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AppIcon from '../layout/AppIcon.vue'
 import { validYear } from '../../rules/subsidies'
+import { citizenshipText } from '../../utils/account'
 
 // The parsed answers for BillView, in the shape src/rules/subsidies.js expects.
 const answers = defineModel({ type: Object, required: true })
+// The logged-in user ({ dob, citizenship, citizenSince }), or null.
+const props = defineProps({ account: { type: Object, default: null } })
 const { t } = useI18n()
 const thisYear = new Date().getFullYear()
 
@@ -54,6 +59,22 @@ watchEffect(() => {
   if (JSON.stringify(next) !== JSON.stringify(answers.value)) answers.value = next
 })
 
+// What the account says, in the form's own shape.
+const accountForm = computed(() => {
+  const a = props.account
+  if (!a?.dob || !a.citizenship) return null
+  return { birth: a.dob.slice(0, 4), status: a.citizenship, citizenYear: a.citizenship === 'became' && a.citizenSince ? String(a.citizenSince) : '' }
+})
+const usingAccount = computed(() => {
+  const a = accountForm.value
+  return Boolean(a) && form.birth === a.birth && form.status === a.status && (a.status !== 'became' || form.citizenYear === a.citizenYear)
+})
+function useAccount() {
+  if (accountForm.value) Object.assign(form, accountForm.value)
+}
+// Fill in once the account is known, but never over answers the person already typed.
+watch(accountForm, (a) => a && !form.birth && !form.status && useAccount(), { immediate: true })
+
 function clear() {
   Object.assign(form, { birth: '', status: '', citizenYear: '', income: '' })
   Object.assign(left, { birth: false, citizenYear: false })
@@ -66,6 +87,14 @@ function clear() {
       <h2 id="q-title">{{ t('bill.q.title') }}</h2>
       <p class="q-lead"><AppIcon name="lock" :size="20" />{{ t('bill.q.lead') }}</p>
     </div>
+
+    <p v-if="usingAccount" class="from-account" role="status" data-testid="from-account">
+      <AppIcon name="user" :size="20" />
+      <span>{{ t('bill.q.fromAccount', { year: accountForm.birth, status: citizenshipText(t, account) }) }}</span>
+    </p>
+    <button v-else-if="accountForm" type="button" class="btn btn-secondary btn-sm align-self-start" data-testid="use-account" @click="useAccount">
+      <AppIcon name="user" :size="20" />{{ t('bill.q.useAccount') }}
+    </button>
 
     <!-- autocomplete="off" so the browser doesn't remember the answers either. -->
     <form class="d-flex flex-column gap-4" autocomplete="off" @submit.prevent>

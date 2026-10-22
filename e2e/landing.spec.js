@@ -1,14 +1,15 @@
 // Welcome page (/welcome): shown once to first-time visitors. Cycling headline, scroll-tied falling items, read-aloud demo, axe.
-import { test, expect } from '@playwright/test'
+import { test, expect } from './fixtures.js'
 import AxeBuilder from '@axe-core/playwright'
+import { signIn } from './helpers/auth.js'
 
 // These tests are first-time visitors: no "seen" flag (the config gives every other test one).
-test.use({ storageState: { cookies: [], origins: [] } })
+test.use({ storageState: { cookies: [], origins: [] }, loggedIn: false })
 
 const headline = (page) => page.getByTestId('landing-headline')
 const billCard = (page) => page.locator('#scan .bill')
 
-test('a first visit to "/" opens the welcome page once; after that "/" is Home', async ({ page }) => {
+test('a first visit to "/" opens the welcome page once; after that "/" asks to log in', async ({ page }) => {
   await page.goto('/')
   await expect(page).toHaveURL(/\/welcome$/)
   await expect(page.getByRole('heading', { level: 1 })).toHaveAccessibleName('Understand your medical bills')
@@ -17,26 +18,26 @@ test('a first visit to "/" opens the welcome page once; after that "/" is Home',
   await expect(page.locator('.shell')).toHaveCount(0)
 
   await page.goto('/')
-  await expect(page).toHaveURL(/\/$/)
+  await expect(page).toHaveURL(/\/login$/) // every page needs an account
   await expect(page.getByTestId('landing-hero')).toHaveCount(0)
 })
 
 test('someone with a login on this device skips the welcome page', async ({ page }) => {
-  await page.addInitScript(() => localStorage.setItem('token', 'any'))
+  await signIn(page)
   await page.goto('/')
   await expect(page).toHaveURL(/\/$/)
 })
 
-test('both "Try me out" buttons go to Scan', async ({ page }) => {
+test('both "Try me out" buttons go to Create account, then on to Scan', async ({ page }) => {
   await page.goto('/welcome')
   await page.getByTestId('landing-cta-hero').click()
-  await expect(page).toHaveURL(/\/scan$/)
+  await expect(page).toHaveURL(/\/signup\?next=(%2F|\/)scan$/)
 
   await page.goto('/welcome')
   // It lands at the very end of the page. Retry: the router's scroll-to-top can still run just after load and undo one scroll.
   await expect.poll(() => page.evaluate(() => (window.scrollTo(0, document.body.scrollHeight), scrollY > 0))).toBe(true)
   await page.getByTestId('landing-cta-final').click()
-  await expect(page).toHaveURL(/\/scan$/)
+  await expect(page).toHaveURL(/\/signup\?next=(%2F|\/)scan$/)
 })
 
 test('the headline changes language on its own; tapping a language stops it and switches the page', async ({ page }) => {

@@ -3,6 +3,7 @@
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { scanStore } from '../stores/scan'
+import { authStore } from '../stores/auth'
 import { scanSample } from '../api/client'
 import BillLine from '../components/bill/BillLine.vue'
 import SubsidyQuestionnaire from '../components/bill/SubsidyQuestionnaire.vue'
@@ -206,7 +207,7 @@ const summary = computed(() => [
     </div>
 
     <div v-if="bill" class="cols">
-      <div><SubsidyQuestionnaire v-model="answers" /></div>
+      <div><SubsidyQuestionnaire v-model="answers" :account="authStore.user" /></div>
       <div><SubsidyResults :bill="bill" :answers="settledAnswers" :updating="updating" /></div>
     </div>
 

@@ -33,7 +33,8 @@
     "notFound": "找不到页面",
     "ask": "询问我的药物",
     "welcome": "欢迎",
-    "billScan": "扫描医药账单"
+    "billScan": "扫描医药账单",
+    "account": "我的账户"
   },
   "errors": {
     "BAD_REQUEST": "请求有误，请再试一次。",
@@ -46,7 +47,10 @@
     "SERVER_ERROR": "出了点问题，请再试一次。",
     "NETWORK_ERROR": "无法连接，请检查网络。",
     "UNSUPPORTED_FILE": "无法使用这个文件。请选择一张照片（JPG 或 PNG）。",
-    "COVER_FAILED": "我们无法在这部手机上遮盖您的个人资料，所以没有发送任何内容。请再试一次。"
+    "COVER_FAILED": "我们无法在这部手机上遮盖您的个人资料，所以没有发送任何内容。请再试一次。",
+    "WRONG_LOGIN": "电子邮件或密码不正确，请再试一次。",
+    "NOT_LOGGED_IN": "请重新登录。",
+    "EMAIL_TAKEN": "此电子邮件已有账户，请直接登录。"
   },
   "home": {
     "title": "您想了解什么？",
@@ -393,17 +397,30 @@
     "haveAccount": "已有账户？",
     "heroText": "登录后，可把全家的药物和账单集中保存，并与子女分享。",
     "tabs": "登录或注册",
-    "or": "或",
-    "guest": "不登录，继续使用",
-    "privacy": "不登录时，您的扫描内容只保存在这部设备上。",
+    "privacy": "我们从不要求您的身份证号码。您的密码经过加密保存，连我们也无法看到。",
     "show": "显示密码",
     "hide": "隐藏密码",
     "name": "姓名",
     "dob": "出生日期",
     "citizenship": "国籍/公民身份",
     "citizenshipPick": "请选择",
-    "citizenships": { "SG_CITIZEN": "新加坡公民", "SG_PR": "新加坡永久居民", "OTHER": "其他" },
-    "missingFields": "请填写所有栏目。"
+    "citizenships": {
+      "birth": "新加坡公民（出生即为公民）",
+      "became": "自 {year} 年起为新加坡公民",
+      "pr": "新加坡永久居民",
+      "other": "非公民或永久居民"
+    },
+    "missingFields": "有些栏目需要检查，已用红色标出。",
+    "remember": "在此设备上记住我",
+    "rememberHelp": "每次使用后保持登录 30 天。如果是共用的手机或电脑，请取消勾选。",
+    "dobHelp": "用于在账单页面查看您可获得哪些津贴。",
+    "need": {
+      "name": "请输入您的姓名。",
+      "email": "请输入电子邮件地址，例如 name{'@'}example.com。",
+      "dob": "请选择您的出生日期。",
+      "citizenship": "请选择一项。",
+      "citizenSince": "请输入从您出生年份到 {max} 年之间的年份。"
+    }
   },
   "landing": {
     "hero": {
@@ -552,7 +569,9 @@
         "year": "请输入 1901 至 {max} 之间的四位数年份。",
         "beforeBirth": "这个年份比您的出生年份还早，请检查一下。"
       },
-      "clear": "清除我的答案"
+      "clear": "清除我的答案",
+      "fromAccount": "已根据您的账户填写：出生于 {year} 年，{status}。如果是别人的账单，请在下面修改答案。",
+      "useAccount": "使用我的账户资料"
     },
     "r": {
       "title": "这对您有什么意义",
@@ -582,10 +601,16 @@
       "medisaveNote": "和这张账单一样，保健储蓄可能会支付其中一部分。"
     }
   },
-    "account": {
+  "account": {
     "lead": "这是您提供的资料。",
     "details": "您的资料",
     "passwordNote": "密码不会显示。",
-    "logout": "退出登录"
+    "logout": "退出登录",
+    "saved": "您的资料已保存。",
+    "billNote": "您的出生日期和公民身份会自动填入账单页面的津贴问题。",
+    "edit": "编辑我的资料",
+    "editTitle": "编辑您的资料",
+    "save": "保存",
+    "cancel": "取消"
   }
 }

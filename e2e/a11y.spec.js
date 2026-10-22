@@ -1,5 +1,5 @@
 // Shell accessibility: skip link, page titles, focus and scroll after navigation.
-import { test, expect } from '@playwright/test'
+import { test, expect } from './fixtures.js'
 
 test('skip link jumps past the navigation', async ({ page, browserName }) => {
   test.skip(browserName === 'webkit', 'Safari only tabs to links with a system setting')

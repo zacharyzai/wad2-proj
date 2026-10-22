@@ -1,6 +1,6 @@
 // Feature 6: Ask about my medicine. Open any time; answers use the user's medicines (checked labels or typed in).
 // Answers are mocked in the browser (no AI quota); red flags hit the real server because they never reach the AI.
-import { test, expect } from '@playwright/test'
+import { test, expect } from './fixtures.js'
 
 async function checkSample(page) {
   await page.goto('/scan')

@@ -1,5 +1,6 @@
 // Foundation smoke test. Each owner adds their own <feature>.spec.js next to this one.
-import { test, expect } from '@playwright/test'
+import { test, expect } from './fixtures.js'
+import { testToken } from './helpers/auth.js'
 
 test('home page loads and switches language', async ({ page }) => {
   await page.goto('/')
@@ -10,8 +11,9 @@ test('home page loads and switches language', async ({ page }) => {
   await expect(page.locator('html')).toHaveAttribute('lang', 'zh')
 })
 
-test('sample scan works through the dev proxy', async ({ request }) => {
-  const res = await request.post('/api/scan', { data: { sampleId: 'med-1' } })
+test('sample scan works through the dev proxy, and only with a login', async ({ request }) => {
+  expect((await request.post('/api/scan', { data: { sampleId: 'med-1' } })).status()).toBe(401)
+  const res = await request.post('/api/scan', { data: { sampleId: 'med-1' }, headers: { authorization: `Bearer ${testToken()}` } })
   expect(res.ok()).toBeTruthy()
   const body = await res.json()
   expect(body.data.medication.name).toBe('Metformin')

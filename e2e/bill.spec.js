@@ -1,7 +1,8 @@
 // Feature 4: bill breakdown + subsidy questionnaire. Samples only (bill-1, bill-2, bill-3), never real AI.
 // Runs on desktop Chrome and iPhone 6 (playwright.config.js). Rules: src/rules/subsidies.js.
-import { test, expect } from '@playwright/test'
+import { test, expect } from './fixtures.js'
 import AxeBuilder from '@axe-core/playwright'
+import { DEMO_USER, signIn } from './helpers/auth.js'
 
 const BEDOK = 'Bedok: doctor visit and medicine' // bill-1
 const TAMPINES = 'Tampines: blood tests and MediSave' // bill-2
@@ -138,6 +139,10 @@ test.describe('breakdown', () => {
 })
 
 test.describe('subsidy questionnaire', () => {
+  // These test the questions themselves, so start from an account with no birth date or citizenship (nothing filled in).
+  // Filling in from the account is tested in auth.spec.js.
+  test.beforeEach(({ page }) => signIn(page, { ...DEMO_USER, dob: null, citizenship: null }))
+
   test('Pioneer Generation senior: estimate from the official 50%, live as you type', async ({ page }) => {
     await openSample(page, BEDOK)
     await expect(page.getByText('Answer the questions to see other schemes')).toBeVisible()

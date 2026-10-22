@@ -1,5 +1,5 @@
 // Day/night mode: follows the device until the user picks, then remembers the pick.
-import { test, expect } from '@playwright/test'
+import { test, expect } from './fixtures.js'
 
 test('follows the device setting by default', async ({ page }) => {
   await page.emulateMedia({ colorScheme: 'dark' })

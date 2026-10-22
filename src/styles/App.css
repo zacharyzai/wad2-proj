@@ -14,6 +14,7 @@
 .night { grid-area: night; display: grid; place-items: center; width: var(--hit); height: var(--hit); padding: 0; border: 1px solid var(--color-border); border-radius: var(--r-pill); background: var(--color-surface-2); color: var(--color-text); }
 .acct { grid-area: acct; display: grid; place-items: center; width: var(--hit); height: var(--hit); border-radius: var(--r-pill); background: var(--color-tint); color: var(--color-tint-text); text-decoration: none; }
 .acct:hover { color: var(--color-tint-text); background: var(--color-tint-strong); }
+.acct[aria-current='page'] { background: var(--color-primary); color: var(--color-on-primary); }
 
 /* Bottom tabs: the active tab gets a tinted pill behind its icon and a bar under its label. */
 .nav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 10; display: flex; padding: 8px 8px calc(8px + env(safe-area-inset-bottom)); background: var(--color-card); border-top: 1px solid var(--color-border); box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.05); }
@@ -64,6 +65,8 @@
   .acct-icon { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; background: var(--color-tint); color: var(--color-tint-text); }
   .acct-label { display: block; flex: 1; font-size: 17px; font-weight: 600; }
   .acct-chev { display: block; }
+  .acct[aria-current='page'] { background: var(--color-tint); color: var(--color-tint-text); font-weight: 700; } /* on the Account page, like the active nav item */
+  .acct[aria-current='page'] .acct-icon { background: var(--color-primary); color: var(--color-on-primary); }
 
   .main { padding: var(--gutter) var(--gutter) 32px; }
 }

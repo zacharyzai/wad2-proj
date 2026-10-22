@@ -5,7 +5,10 @@ import assert from 'node:assert/strict'
 process.env.USE_MOCK_AI = 'true'
 process.env.SCAN_RATE_LIMIT = '6'
 process.env.AI_DAILY_CAP = '1000'
+process.env.JWT_SECRET = 'test-secret'
 const { default: app } = await import('../app.js')
+const { signToken } = await import('../services/auth.js')
+const AUTH = { authorization: `Bearer ${signToken('test-user', false)}` } // scanning needs an account
 
 const TINY_PNG = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='
 let server, base
@@ -19,7 +22,7 @@ after(() => server.close())
 const scan = (body) =>
   fetch(`${base}/api/scan`, {
     method: 'POST',
-    headers: { 'content-type': 'application/json' },
+    headers: { 'content-type': 'application/json', ...AUTH },
     body: typeof body === 'string' ? body : JSON.stringify(body),
   })
 
@@ -76,8 +79,14 @@ test('oversized body is 413 IMAGE_TOO_LARGE', async () => {
 })
 
 test('stub routes answer 501', async () => {
-  const res = await fetch(`${base}/api/auth/login`, { method: 'POST' })
+  const res = await fetch(`${base}/api/history`)
   assert.equal(res.status, 501)
+})
+
+test('scanning without a login is refused before anything else runs', async () => {
+  const res = await fetch(`${base}/api/scan`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ sampleId: 'med-1' }) })
+  assert.equal(res.status, 401)
+  assert.equal((await res.json()).error.code, 'NOT_LOGGED_IN')
 })
 
 // Runs last: it uses up this IP's image-scan budget.

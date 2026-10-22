@@ -1,5 +1,5 @@
 // Ask page speech: voice input and read-aloud, with the browser speech APIs replaced by fakes so tests are repeatable.
-import { test, expect } from '@playwright/test'
+import { test, expect } from './fixtures.js'
 
 // Fake speech APIs. window.__spoken records what was read and at what speed; recognition "hears" window.__heard.
 function fakeSpeech(page, { recognition = true } = {}) {

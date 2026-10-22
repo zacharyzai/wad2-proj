@@ -1,5 +1,5 @@
 // Feature 1: live camera on Scan. Own file because the fake webcam needs different browser launch flags.
-import { test, expect } from '@playwright/test'
+import { test, expect } from './fixtures.js'
 import { mockImageScan } from './helpers/mockImageScan.js'
 
 // Chromium's fake webcam, with the permission prompt auto-accepted.

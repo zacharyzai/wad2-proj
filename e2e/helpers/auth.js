@@ -1,14 +1,40 @@
-// Shared test helpers (Isaac). Auth is mocked, so tests need no database and no Sheen Hern endpoints.
+// Shared test helpers (Isaac). Every page needs an account, so tests start logged in (e2e/fixtures.js) unless they opt out.
+// The e2e API server signs tokens with E2E_SECRET (playwright.config.js), so a test token is accepted by the real
+// scan and chat routes. The /api/auth/* calls themselves are mocked: tests need no database.
 import { expect } from '@playwright/test'
 
-export const DEMO_USER = { email: 'demo@example.com' }
-export const DEMO_PASSWORD = 'password123'
+export const E2E_SECRET = 'e2e-only-secret'
+process.env.JWT_SECRET = E2E_SECRET
+const { signToken } = await import('../../server/services/auth.js')
 
-// Pretend the server accepts logins and signups and knows who the saved token belongs to.
+export const DEMO_USER = { name: 'Tan Mei Ling', email: 'demo@example.com', dob: '1952-03-07', citizenship: 'birth', citizenSince: null }
+export const DEMO_PASSWORD = 'password123'
+export const testToken = (remember = true) => signToken('demo-user', remember)
+
+// Pretend the server accepts logins and signups, knows who the saved token belongs to, and saves edits.
 export async function mockAuth(page, user = DEMO_USER) {
-  await page.route('**/api/auth/login', (route) => route.fulfill({ json: { ok: true, data: { token: 'test-token', user } } }))
-  await page.route('**/api/auth/signup', (route) => route.fulfill({ json: { ok: true, data: { token: 'test-token', user } } }))
-  await page.route('**/api/auth/me', (route) => route.fulfill({ json: { ok: true, data: { user } } }))
+  let current = { ...user }
+  const ok = (route, extra = {}) => route.fulfill({ json: { ok: true, data: { user: current, ...extra } } })
+  await page.route('**/api/auth/login', (route) => ok(route, { token: testToken(route.request().postDataJSON().remember) }))
+  await page.route('**/api/auth/signup', (route) => {
+    const { name, email, dob, citizenship, citizenSince, remember } = route.request().postDataJSON()
+    current = { name, email, dob, citizenship, citizenSince }
+    return ok(route, { token: testToken(remember) })
+  })
+  await page.route('**/api/auth/me', (route) => {
+    if (route.request().method() === 'PATCH') current = { ...current, ...route.request().postDataJSON() }
+    return ok(route)
+  })
+}
+
+// Start a test already logged in: a remembered token, set once (so a test that logs out stays logged out).
+export async function signIn(page, user = DEMO_USER) {
+  await mockAuth(page, user)
+  await page.addInitScript((token) => {
+    if (sessionStorage.getItem('e2e-signed-in')) return
+    sessionStorage.setItem('e2e-signed-in', '1')
+    localStorage.setItem('token', token)
+  }, testToken())
 }
 
 // Pretend the server rejects the login.

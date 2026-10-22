@@ -2,11 +2,12 @@
 import { nextTick } from 'vue'
 import { createRouter, createWebHistory } from 'vue-router'
 import { authStore, restore } from '../stores/auth'
+import { readToken } from '../api/client'
 
 const routes = [
   { path: '/', name: 'home', component: () => import('../views/HomeView.vue') },
   // Zachary: welcome page, shown once to first-time visitors (guard below)
-  { path: '/welcome', name: 'welcome', component: () => import('../views/LandingPage.vue'), meta: { bare: true } },
+  { path: '/welcome', name: 'welcome', component: () => import('../views/LandingPage.vue'), meta: { bare: true, public: true } },
   // Asher: scan → confirm → explain flow
   // Scan is for medication labels; bills are scanned from the Bill page (same view, scanType from meta). Old ?type=bill links still land there.
   { path: '/scan', name: 'scan', component: () => import('../views/ScanView.vue'), beforeEnter: (to) => (to.query.type === 'bill' ? { name: 'bill-scan', query: { sample: to.query.sample } } : undefined) },
@@ -18,16 +19,17 @@ const routes = [
   { path: '/schedule', name: 'schedule', component: () => import('../views/ScheduleView.vue') },
   { path: '/bill', name: 'bill', component: () => import('../views/BillView.vue') },
   { path: '/bill/scan', name: 'bill-scan', component: () => import('../views/ScanView.vue'), meta: { scanType: 'bill' } },
-  // Isaac (+ Sheen Hern's auth API). TODO: guard /history once auth exists; /shared stays public.
-  { path: '/login', name: 'login', component: () => import('../views/LoginView.vue') },
-  { path: '/signup', name: 'signup', component: () => import('../views/SignupView.vue') },
-  { path: '/history', name: 'history', component: () => import('../views/HistoryView.vue'), meta: { requiresAuth: true } },
-  { path: '/account', name: 'account', component: () => import('../views/AccountView.vue'), meta: { requiresAuth: true } },
-  { path: '/shared/:token', name: 'shared', component: () => import('../views/SharedView.vue') },
+  // Isaac (+ auth API). Everything needs an account except pages marked public: welcome, login, signup, share links, 404.
+  { path: '/login', name: 'login', component: () => import('../views/LoginView.vue'), meta: { public: true, guestOnly: true } },
+  { path: '/signup', name: 'signup', component: () => import('../views/SignupView.vue'), meta: { public: true, guestOnly: true } },
+  { path: '/history', name: 'history', component: () => import('../views/HistoryView.vue') },
+  { path: '/account', name: 'account', component: () => import('../views/AccountView.vue') },
+  // Share links stay open: they are for family on WhatsApp, who have no account.
+  { path: '/shared/:token', name: 'shared', component: () => import('../views/SharedView.vue'), meta: { public: true } },
   // Zachary: dev-only test bench for photo redaction; not in production builds.
   ...(import.meta.env.DEV ? [{ path: '/dev/redact', name: 'redact-lab', component: () => import('../views/dev/RedactLab.vue') }] : []),
   ...(import.meta.env.DEV ? [{ path: '/dev/badges', name: 'badge-demo', component: () => import('../views/dev/BadgeDemo.vue') }] : []),
-  { path: '/:pathMatch(.*)*', name: 'not-found', component: () => import('../views/NotFoundView.vue') },
+  { path: '/:pathMatch(.*)*', name: 'not-found', component: () => import('../views/NotFoundView.vue'), meta: { public: true } },
 ]
 
 const router = createRouter({
@@ -42,19 +44,20 @@ export const WELCOME_KEY = 'seenWelcome'
 router.beforeEach((to) => {
   if (to.name !== 'home') return true
   try {
-    if (!localStorage.getItem(WELCOME_KEY) && !localStorage.getItem('token')) return { name: 'welcome' }
+    if (!localStorage.getItem(WELCOME_KEY) && !readToken()) return { name: 'welcome' }
   } catch {
-    // Storage blocked (private mode): show Home rather than the welcome page every time.
+    // Storage blocked (private mode): skip the welcome page rather than show it every time.
   }
   return true
 })
 
-// Runs before every navigation. Public pages pass straight through; protected ones need a logged-in user.
+// Every page needs an account. Logged-out visitors go to Login, then back to the page they wanted;
+// logged-in people who open Login or Signup go Home instead.
 router.beforeEach(async (to) => {
-  if (!to.meta.requiresAuth) return true
   await restore()
-  if (authStore.user) return true
-  return { name: 'login', query: { next: to.fullPath } } // Login sends them back here afterwards
+  if (authStore.user) return to.meta.guestOnly ? { name: 'home' } : true
+  if (to.meta.public) return true
+  return { name: 'login', query: to.fullPath === '/' ? {} : { next: to.fullPath } }
 })
 
 // Page changes slide and fade (and the scanned photo moves into place on Confirm) where the browser supports it.
@@ -63,7 +66,10 @@ let finishTransition = null
 router.beforeResolve((to, from) => {
   if (!from.name || to.path === from.path || !document.startViewTransition || matchMedia('(prefers-reduced-motion: reduce)').matches) return
   return new Promise((resolve) => {
-    document.startViewTransition(() => new Promise((done) => ((finishTransition = done), resolve())))
+    const transition = document.startViewTransition(() => new Promise((done) => ((finishTransition = done), resolve())))
+    // Skipped transitions (window resized, tab hidden) still swap the page; they only reject these promises.
+    transition.ready.catch(() => {})
+    transition.finished.catch(() => {})
   })
 })
 router.afterEach(() => nextTick(() => (finishTransition?.(), (finishTransition = null))))

@@ -5,7 +5,6 @@ import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { setLocale } from './i18n'
 import { theme, toggleTheme } from './theme'
-import { authStore } from './stores/auth'
 import AppIcon from './components/layout/AppIcon.vue'
 
 const { t, locale } = useI18n()
@@ -85,10 +84,10 @@ router.afterEach(async (to, from) => {
         <span class="switch night-desk" aria-hidden="true"></span>
       </button>
 
-      <!-- Logged out: "Log in" goes to /login. Logged in: "Account" goes to /account. -->
-      <RouterLink :to="authStore.user ? '/account' : '/login'" class="acct" :aria-label="t(authStore.user ? 'nav.account' : 'nav.login')">
+      <!-- Everyone has an account, so this is always Account (logged-out visitors are sent to Log in by the router). -->
+      <RouterLink to="/account" class="acct" :aria-label="t('nav.account')" :aria-current="isOn('/account') ? 'page' : null">
         <span class="acct-icon"><AppIcon name="user" :size="22" /></span>
-        <span class="acct-label" aria-hidden="true">{{ t(authStore.user ? 'nav.account' : 'nav.login') }}</span>
+        <span class="acct-label" aria-hidden="true">{{ t('nav.account') }}</span>
         <AppIcon name="right" :size="20" class="acct-chev" />
       </RouterLink>
     </aside>
