@@ -33,7 +33,8 @@ test('both "Try me out" buttons go to Scan', async ({ page }) => {
   await expect(page).toHaveURL(/\/scan$/)
 
   await page.goto('/welcome')
-  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight)) // it lands at the very end of the page
+  // It lands at the very end of the page. Retry: the router's scroll-to-top can still run just after load and undo one scroll.
+  await expect.poll(() => page.evaluate(() => (window.scrollTo(0, document.body.scrollHeight), scrollY > 0))).toBe(true)
   await page.getByTestId('landing-cta-final').click()
   await expect(page).toHaveURL(/\/scan$/)
 })
