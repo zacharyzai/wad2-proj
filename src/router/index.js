@@ -3,6 +3,7 @@ import { nextTick } from 'vue'
 import { createRouter, createWebHistory } from 'vue-router'
 import { authStore, restore } from '../stores/auth'
 import { readToken } from '../api/client'
+import { guide } from '../stores/guide'
 
 const routes = [
   { path: '/', name: 'home', component: () => import('../views/HomeView.vue') },
@@ -64,7 +65,8 @@ router.beforeEach(async (to) => {
 // beforeResolve runs once the next page's code has loaded, so the transition only waits for the DOM swap. Styles: motion.css.
 let finishTransition = null
 router.beforeResolve((to, from) => {
-  if (!from.name || to.path === from.path || !document.startViewTransition || matchMedia('(prefers-reduced-motion: reduce)').matches) return
+  // Skipped while the Beginner's guide is open: the guide moves its own glow and bubble between pages.
+  if (!from.name || to.path === from.path || guide.open || !document.startViewTransition || matchMedia('(prefers-reduced-motion: reduce)').matches) return
   return new Promise((resolve) => {
     const transition = document.startViewTransition(() => new Promise((done) => ((finishTransition = done), resolve())))
     // Skipped transitions (window resized, tab hidden) still swap the page; they only reject these promises.

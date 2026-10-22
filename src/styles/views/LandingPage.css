@@ -31,10 +31,10 @@
 /* Sections: one screen tall, copy beside the demo; .flip puts the demo on the left on wide screens. */
 .sec { position: relative; min-height: 100svh; display: flex; align-items: center; padding: clamp(56px, 9vh, 112px) var(--l-gutter); }
 .sand { background: var(--l-sand); }
-.row { width: 100%; max-width: 1200px; margin: 0 auto; display: flex; flex-wrap: wrap; align-items: center; gap: clamp(36px, 5vw, 96px); }
+.row { width: 100%; max-width: 1200px; margin: 0 auto; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: clamp(36px, 5vw, 96px); }
 .row.flip { flex-direction: row-reverse; }
 .copy { flex: 1 1 320px; max-width: 540px; display: flex; flex-direction: column; gap: 20px; }
-.demo { flex: 1 1 320px; display: flex; justify-content: center; }
+.demo { flex: 1 1 320px; max-width: 540px; display: flex; justify-content: center; } /* same cap as .copy, so each section sits centred */
 .demo.col { flex-direction: column; align-items: center; gap: 24px; }
 .kicker { font-size: 18px; font-weight: 700; color: var(--l-accent-text); }
 .title2 { margin: 0; font-size: clamp(34px, 4vw, 56px); line-height: 1.1; text-wrap: balance; }
@@ -88,9 +88,18 @@
 .c2 { left: 86%; top: 34%; width: clamp(70px, 9vw, 140px); aspect-ratio: 2.4; transform: rotate(-40deg); }
 .t1 { left: 72%; top: 2%; width: clamp(50px, 7vw, 112px); aspect-ratio: 1; --c: oklch(0.86 0.065 150); --score: oklch(0.74 0.08 150); transform: rotate(20deg); }
 .t2 { left: 66%; top: 64%; width: clamp(40px, 5vw, 84px); aspect-ratio: 1; --c: oklch(0.89 0.1 88); }
+/* Idle float: each piece drifts and sways on its own timing. Uses translate/rotate, which add on top of the scroll engine's transform. */
+.hero-art .fly { animation: drift var(--d, 6s) ease-in-out var(--delay, 0s) infinite alternate; }
+.bottle { --d: 7s; --dx: 4px; --dy: -12px; --dr: -3deg; }
+.c1 { --d: 5.5s; --delay: -1s; --dx: 10px; --dy: -16px; --dr: 8deg; }
+.c2 { --d: 6s; --delay: -3s; --dx: -8px; --dy: -12px; --dr: -7deg; }
+.t1 { --d: 6.5s; --delay: -2s; --dx: -6px; --dy: -10px; --dr: 24deg; }
+.t2 { --d: 4.8s; --delay: -0.5s; --dx: 6px; --dy: -14px; --dr: -14deg; }
+@keyframes drift { to { translate: var(--dx) var(--dy); rotate: var(--dr); } }
 
 /* 02 Scan: a camera frame; the fine-print bill falls in and becomes the plain-words card. */
 .frame { position: relative; width: 100%; max-width: 440px; padding: 26px; }
+#scan .demo { flex: 0 1 440px; } /* the column is as wide as the card, so the copy + card pair sits centred */
 .corner { position: absolute; width: 48px; height: 48px; border: 0 solid var(--l-muted); }
 .corner.tl { top: 0; left: 0; border-top-width: 5px; border-left-width: 5px; border-top-left-radius: 18px; }
 .corner.tr { top: 0; right: 0; border-top-width: 5px; border-right-width: 5px; border-top-right-radius: 18px; }
@@ -119,6 +128,15 @@
 .speaker { position: relative; width: clamp(136px, 13vw, 168px); aspect-ratio: 1; padding: 0; border: none; border-radius: 50%; background: transparent; }
 .speaker-face { position: absolute; inset: 0; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--l-accent); color: var(--l-on-accent); box-shadow: 0 0 0 12px oklch(0.52 0.16 35 / 0.12), 0 24px 40px -18px oklch(0.45 0.15 35 / 0.7); transition: box-shadow 0.3s, background-color 0.25s; }
 .speaker:hover .speaker-face { background: var(--l-accent-hover); }
+/* The big listen button breathes and sends out rings, so it reads as "press me"; faster while it is speaking. */
+.speaker-face { z-index: 0; }
+.speaker-face::before, .speaker-face::after { content: ''; position: absolute; inset: 0; z-index: -1; border-radius: 50%; background: var(--l-accent); animation: ring 2.6s ease-out infinite; }
+.speaker-face::after { animation-delay: 1.3s; }
+.speaker-face .icon { animation: breathe 2.6s ease-in-out infinite; }
+.speaker.speaking .speaker-face::before, .speaker.speaking .speaker-face::after { animation-duration: 1.3s; }
+.speaker.speaking .speaker-face::after { animation-delay: 0.65s; }
+@keyframes ring { from { transform: scale(1); opacity: 0.45; } to { transform: scale(1.55); opacity: 0; } }
+@keyframes breathe { 50% { scale: 1.1; } }
 .speaker.speaking .speaker-face { box-shadow: 0 0 0 12px oklch(0.52 0.16 35 / 0.28), 0 24px 40px -18px oklch(0.45 0.15 35 / 0.7); }
 .tablet.big { --c: oklch(0.89 0.1 88); --score: oklch(0.8 0.12 80); }
 .tablet.big > span { left: 18%; right: 18%; height: 5px; margin-top: -2.5px; }
@@ -175,4 +193,6 @@
 /* Reduced motion: only the colour changes stay; the scroll engine already renders everything landed. */
 @media (prefers-reduced-motion: reduce) {
   .head { transform: none; }
+  .hero-art .fly, .speaker-face::before, .speaker-face::after, .speaker-face .icon { animation: none; }
+  .speaker-face::before, .speaker-face::after { opacity: 0; }
 }

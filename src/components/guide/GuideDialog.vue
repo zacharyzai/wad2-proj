@@ -62,6 +62,9 @@ function end(kind) {
 // ---- where the glow and the bubble go (tap and look steps) ----
 const hole = ref(null) // { top, left, width, height } around the target, or null while it isn't on screen
 const bubble = ref({ top: 0, left: 0, side: 'below', arrow: 0 })
+// The glow and bubble appear in place first, then glide between buttons (so they never fly in from the corner).
+const ringReady = ref(false)
+watch(hole, (h) => h && !ringReady.value && requestAnimationFrame(() => (ringReady.value = true)))
 let frame = 0
 let lastFound = 0
 let scrolled = false // each step scrolls its button into view once, as soon as it exists (the page may still be loading)
@@ -144,7 +147,7 @@ async function enterStep() {
   cancelAnimationFrame(frame)
   lockPage(isCard.value)
   if (!isCard.value) {
-    hole.value = null
+    // Keep the last glow and bubble where they are until the next button appears, so they glide there instead of blinking.
     lastFound = performance.now()
     scrolled = false
     await nextTick()
@@ -158,6 +161,8 @@ watch(
   () => [guide.open, guide.step],
   ([open], [wasOpen] = []) => {
     if (open && !wasOpen) {
+      hole.value = null // a fresh start: nothing glides in from where the guide last was
+      ringReady.value = false
       returnFocus = document.activeElement
       document.addEventListener('click', onTapTarget, true)
       document.addEventListener('keydown', onKey)
@@ -174,8 +179,8 @@ watch(locale, stopVoice) // the step re-renders in the new language; old speech 
 
 // The four dimmed panels around the glow (they block taps), and the glow itself.
 const dims = computed(() => {
-  const h = hole.value
-  if (!h) return [{ top: 0, left: 0, width: '100%', height: '100%' }]
+  // Always four panels (no swap to one full-screen sheet), so their size changes animate smoothly.
+  const h = hole.value ?? { top: innerHeight / 2, left: innerWidth / 2, width: 0, height: 0 }
   const px = (n) => `${Math.max(0, n)}px`
   return [
     { top: 0, left: 0, width: '100%', height: px(h.top) },
@@ -239,8 +244,8 @@ onBeforeUnmount(() => {
   <!-- Pointing steps: dim everything but the target, glow around it, a speech bubble beside it -->
   <div v-else-if="guide.open" class="coach" :class="`lang-${locale}`" data-testid="guide-coach">
     <div v-for="(d, i) in dims" :key="i" class="dim" :style="d" aria-hidden="true" @pointerdown="nudge"></div>
-    <div v-if="hole" class="ring" :class="{ tap: step.kind === 'tap' }" :style="ringStyle" aria-hidden="true"></div>
-    <div ref="panel" class="bubble" :class="[`side-${bubble.side}`, { centred: !hole }]" :style="bubbleStyle" role="dialog" aria-modal="false" aria-labelledby="guide-title" aria-describedby="guide-text" data-testid="guide">
+    <div v-if="hole" class="ring" :class="{ tap: step.kind === 'tap', ready: ringReady }" :style="ringStyle" aria-hidden="true"></div>
+    <div ref="panel" class="bubble" :class="[`side-${bubble.side}`, { centred: !hole, ready: ringReady }]" :style="bubbleStyle" role="dialog" aria-modal="false" aria-labelledby="guide-title" aria-describedby="guide-text" data-testid="guide">
       <span v-if="hole" class="arrow" :style="bubble.side === 'right' ? { top: `${bubble.arrow}px` } : { left: `${bubble.arrow}px` }" aria-hidden="true"></span>
       <div :key="step.id" class="bubble-in">
         <div class="top">
@@ -297,9 +302,11 @@ p { margin: 0; font-size: 18px; line-height: 1.55; text-wrap: pretty; }
 .coach { position: fixed; inset: 0; z-index: 50; pointer-events: none; }
 .dim { position: fixed; background: rgba(20, 18, 16, 0.62); pointer-events: auto; animation: fade 220ms ease-out both; transition: top 420ms var(--ease-out), left 420ms var(--ease-out), width 420ms var(--ease-out), height 420ms var(--ease-out); }
 /* The glow: follows the button, and pulses on "tap" steps so it's clear what to press. */
-.ring { position: fixed; top: 0; left: 0; border-radius: 18px; box-shadow: 0 0 0 3px var(--color-accent), 0 0 24px 4px rgba(0, 184, 169, 0.55); transition: transform 420ms var(--ease-out), width 420ms var(--ease-out), height 420ms var(--ease-out); }
+.ring { position: fixed; top: 0; left: 0; border-radius: 18px; box-shadow: 0 0 0 3px var(--color-accent), 0 0 24px 4px rgba(0, 184, 169, 0.55); animation: fade 240ms ease-out both; }
+.ring.ready { transition: transform 460ms var(--ease-out), width 460ms var(--ease-out), height 460ms var(--ease-out); }
 .ring.tap::after { content: ''; position: absolute; inset: -3px; border-radius: inherit; border: 3px solid var(--color-accent); animation: pulse 1.6s ease-out infinite; }
-.bubble { position: fixed; top: 0; left: 0; width: min(360px, calc(100vw - 24px)); padding: 18px 18px 16px; border-radius: 22px; background: var(--color-card); color: var(--color-text); box-shadow: 0 18px 48px rgba(0, 0, 0, 0.3); pointer-events: auto; transition: transform 420ms var(--ease-out); }
+.bubble { position: fixed; top: 0; left: 0; width: min(360px, calc(100vw - 24px)); padding: 18px 18px 16px; border-radius: 22px; background: var(--color-card); color: var(--color-text); box-shadow: 0 18px 48px rgba(0, 0, 0, 0.3); pointer-events: auto; }
+.bubble.ready { transition: transform 460ms var(--ease-out); }
 .bubble.centred { top: 50%; left: 50%; transform: translate(-50%, -50%); }
 .bubble-in { display: flex; flex-direction: column; gap: 10px; animation: pop 320ms var(--ease-spring) both; }
 .bubble h2 { font-size: var(--t24, 24px); }
