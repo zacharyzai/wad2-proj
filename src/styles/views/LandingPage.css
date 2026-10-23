@@ -57,11 +57,23 @@
 .fill { position: absolute; inset: 0; opacity: 0; } /* the illustration a control "was" before it landed; faded out by scroll */
 
 /* Hero */
-.hero-sec { flex-direction: column; align-items: stretch; padding: 0; }
-.top { position: relative; z-index: 3; width: 100%; max-width: 1392px; margin: 0 auto; padding: 14px var(--l-gutter); display: flex; align-items: center; }
-.brand { display: flex; align-items: center; gap: 14px; min-height: 48px; text-decoration: none; color: var(--l-ink); font-size: 22px; line-height: 1.1; }
+.hero-sec { flex-direction: column; align-items: stretch; min-height: calc(100svh - 66px); padding: 0; } /* the top bar sits above it */
+/* Top bar: sticks to the top; see-through over the hero, then solid with a soft blur once the page scrolls. */
+.lnav { position: sticky; top: 0; z-index: 20; display: flex; align-items: center; gap: 12px; padding: 10px var(--l-gutter); transition: background-color 0.3s, box-shadow 0.3s; }
+.lnav.solid { background: color-mix(in oklch, var(--l-bg) 84%, transparent); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); box-shadow: 0 1px 0 var(--l-line), 0 12px 30px -22px var(--l-shadow); }
+.brand-logo { flex: none; width: 40px; height: 40px; border-radius: 11px; box-shadow: 0 6px 14px -8px var(--l-shadow); }
+.lnav-links { display: none; }
+.landing .lnav-links a, .landing .lnav-login { display: inline-flex; align-items: center; min-height: 46px; padding: 0 16px; border-radius: 999px; color: var(--l-muted); font-size: 17px; font-weight: 700; text-decoration: none; transition: background-color 0.25s, color 0.25s; }
+.landing .lnav-links a:hover, .landing .lnav-login:hover { background: oklch(0.28 0.035 45 / 0.07); color: var(--l-ink); }
+.landing .lnav-links a.on { background: var(--l-sand); color: var(--l-ink); }
+.landing a.lnav-login { color: var(--l-ink); } /* beats the page-wide accent colour for links */
+.lnav-acts { margin-left: auto; display: flex; align-items: center; gap: 6px; }
+.cta.sm { min-height: 46px; padding: 0 22px; font-size: 17px; }
+@media (min-width: 1024px) { .lnav-links { display: flex; gap: 2px; margin: 0 auto; } .lnav-acts { margin-left: 0; } }
+@media (max-width: 560px) { .brand-name { display: none; } .landing .lnav-login { padding: 0 10px; } .cta.sm { padding: 0 16px; } }
+.sec { scroll-margin-top: 66px; } /* section titles land below the top bar */
+.brand { display: flex; align-items: center; gap: 12px; min-height: 48px; text-decoration: none; color: var(--l-ink); font-size: 22px; line-height: 1.1; }
 .brand:hover { color: var(--l-ink); }
-.brand-pill { width: 40px; height: 18px; transform: rotate(-35deg); box-shadow: 0 6px 10px -6px oklch(0.35 0.06 45 / 0.6); }
 .hero-body { flex: 1; display: flex; align-items: center; padding: 0 var(--l-gutter) clamp(40px, 8vh, 96px); }
 .hero-row { flex-wrap: wrap-reverse; gap: clamp(4px, 4vw, 72px); }
 .hero-text { flex: 1.15 1 340px; position: relative; z-index: 2; display: flex; flex-direction: column; gap: 22px; }
@@ -90,7 +102,10 @@
 .t2 { left: 66%; top: 64%; width: clamp(40px, 5vw, 84px); aspect-ratio: 1; --c: oklch(0.89 0.1 88); }
 /* Idle float: each piece drifts and sways on its own timing. Uses translate/rotate, which add on top of the scroll engine's transform. */
 .hero-art .fly { animation: drift var(--d, 6s) ease-in-out var(--delay, 0s) infinite alternate; }
-.bottle { --d: 7s; --dx: 4px; --dy: -12px; --dr: -3deg; }
+/* The bottle turns all the way round (slowly) while it bobs: clearly alive, never distracting. */
+.hero-art .bottle { animation: spin 16s linear infinite, bob 3.4s ease-in-out infinite alternate; }
+@keyframes spin { to { rotate: 360deg; } }
+@keyframes bob { to { translate: 0 -14px; } }
 .c1 { --d: 5.5s; --delay: -1s; --dx: 10px; --dy: -16px; --dr: 8deg; }
 .c2 { --d: 6s; --delay: -3s; --dx: -8px; --dy: -12px; --dr: -7deg; }
 .t1 { --d: 6.5s; --delay: -2s; --dx: -6px; --dy: -10px; --dr: 24deg; }
@@ -193,6 +208,6 @@
 /* Reduced motion: only the colour changes stay; the scroll engine already renders everything landed. */
 @media (prefers-reduced-motion: reduce) {
   .head { transform: none; }
-  .hero-art .fly, .speaker-face::before, .speaker-face::after, .speaker-face .icon { animation: none; }
+  .hero-art .fly, .hero-art .bottle, .speaker-face::before, .speaker-face::after, .speaker-face .icon { animation: none; }
   .speaker-face::before, .speaker-face::after { opacity: 0; }
 }

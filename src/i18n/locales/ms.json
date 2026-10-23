@@ -489,7 +489,14 @@
       "a1": "Ya, kopi tidak apa-apa dengan ubat darah tinggi anda. Makan selepas sarapan, seperti biasa.",
       "q2": "Terima kasih! Boleh bacakan untuk Ah Gong?"
     },
-    "note": "Ah Ma Ah Gong Can membantu anda faham. Doktor dan ahli farmasi anda tetap membuat keputusan."
+    "note": "Ah Ma Ah Gong Can membantu anda faham. Doktor dan ahli farmasi anda tetap membuat keputusan.",
+    "nav": {
+      "label": "Bahagian halaman",
+      "scan": "Imbas",
+      "listen": "Baca kuat",
+      "doses": "Waktu ubat",
+      "ask": "Tanya"
+    }
   },
   "bill": {
     "lead": "Tekan mana-mana baris untuk melihat maksudnya.",

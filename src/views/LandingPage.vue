@@ -79,6 +79,19 @@ const remind = ref(true)
 const calendarUrl = () =>
   `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(t('landing.doses.calEvent'))}&details=${encodeURIComponent(t('landing.doses.morningText'))}&recur=RRULE%3AFREQ%3DDAILY`
 
+// ---- Top bar: links to each section, the one being read is highlighted; solid background once the page scrolls.
+const SECTIONS = ['scan', 'listen', 'doses', 'ask']
+const navActive = ref(null)
+const navSolid = ref(false)
+function updateNav() {
+  navSolid.value = scrollY > 8
+  const line = innerHeight * 0.4 // a section counts as "being read" once its top passes 40% down the screen
+  navActive.value = SECTIONS.findLast((id) => document.getElementById(id)?.getBoundingClientRect().top <= line) ?? null
+}
+function goTo(id) {
+  document.getElementById(id)?.scrollIntoView({ behavior: reduceMq.matches ? 'auto' : 'smooth' })
+}
+
 function scrollToScan() {
   document.getElementById('scan')?.scrollIntoView({ behavior: reduceMq.matches ? 'auto' : 'smooth' })
 }
@@ -175,6 +188,8 @@ onMounted(() => {
     // Storage blocked (private mode): the welcome page just shows again next time.
   }
   addEventListener('scroll', onScroll, { passive: true })
+  addEventListener('scroll', updateNav, { passive: true })
+  updateNav()
   addEventListener('resize', onScroll)
   reduceMq.addEventListener('change', onScroll)
   frame()
@@ -185,6 +200,7 @@ onBeforeUnmount(() => {
   clearInterval(timer)
   cancelAnimationFrame(raf)
   removeEventListener('scroll', onScroll)
+  removeEventListener('scroll', updateNav)
   removeEventListener('resize', onScroll)
   reduceMq.removeEventListener('change', onScroll)
   window.speechSynthesis?.cancel()
@@ -193,13 +209,21 @@ onBeforeUnmount(() => {
 
 <template>
   <div ref="root" class="landing">
+    <header class="lnav" :class="{ solid: navSolid }" data-testid="landing-nav">
+      <a href="#top" class="brand" :aria-label="t('app.name')" @click.prevent="goTo('top')">
+        <img src="/logo-192.png" alt="" class="brand-logo" width="40" height="40" />
+        <span class="serif brand-name">{{ t('app.name') }}</span>
+      </a>
+      <nav class="lnav-links" :aria-label="t('landing.nav.label')">
+        <a v-for="id in SECTIONS" :key="id" :href="`#${id}`" :class="{ on: navActive === id }" :aria-current="navActive === id ? 'true' : null" @click.prevent="goTo(id)">{{ t(`landing.nav.${id}`) }}</a>
+      </nav>
+      <div class="lnav-acts">
+        <RouterLink :to="{ name: 'login' }" class="lnav-login">{{ t('nav.login') }}</RouterLink>
+        <RouterLink :to="{ name: 'signup', query: { next: '/scan' } }" class="cta sm">{{ t('landing.try') }}</RouterLink>
+      </div>
+    </header>
+
     <section id="top" data-sec="1" class="sec hero-sec" data-testid="landing-hero">
-      <header class="top">
-        <a href="#top" class="brand">
-          <span class="brand-pill capsule" :style="pill('brand')" aria-hidden="true"></span>
-          <span class="serif">{{ t('app.name') }}</span>
-        </a>
-      </header>
       <div class="hero-body">
         <div class="row hero-row">
           <div class="hero-text">

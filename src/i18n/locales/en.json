@@ -489,7 +489,14 @@
       "a1": "Yes, kopi is fine with your blood pressure pill. Take it after breakfast, same as always.",
       "q2": "Thank you! Can you read that out for Ah Gong?"
     },
-    "note": "Ah Ma Ah Gong Can helps you understand. Your doctor and pharmacist still make the decisions."
+    "note": "Ah Ma Ah Gong Can helps you understand. Your doctor and pharmacist still make the decisions.",
+    "nav": {
+      "label": "Page sections",
+      "scan": "Scan",
+      "listen": "Read aloud",
+      "doses": "Medicine times",
+      "ask": "Ask"
+    }
   },
   "bill": {
     "lead": "Tap any line to see what it means.",
