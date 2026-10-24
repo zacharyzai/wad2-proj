@@ -2,7 +2,7 @@
 import { test, before, after } from 'node:test'
 import assert from 'node:assert/strict'
 
-process.env.JWT_SECRET = 'test-secret'
+process.env.JWT_SECRET = 'test-secret-for-auth-checks-at-least-32-bytes'
 delete process.env.MONGODB_URI // so a request that passes the checks gets the "accounts unavailable" answer, not a real DB
 const { default: app } = await import('../app.js')
 const { hashPassword, verifyPassword, signToken, readToken, TOKEN_SECONDS } = await import('../services/auth.js')
@@ -22,7 +22,7 @@ const GOOD = { name: 'Tan Mei Ling', email: 'mei@example.com', password: 'passwo
 test('passwords are salted hashes that only the right password matches', async () => {
   const a = await hashPassword('password123')
   const b = await hashPassword('password123')
-  assert.match(a, /^scrypt\$/)
+  assert.match(a, /^\$argon2id\$/)
   assert.notEqual(a, b) // different salt each time
   assert.ok(!a.includes('password123'))
   assert.equal(await verifyPassword('password123', a), true)
