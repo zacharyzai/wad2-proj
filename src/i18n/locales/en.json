@@ -51,7 +51,10 @@
     "COVER_FAILED": "We couldn't cover your personal details on this phone, so nothing was sent. Please try again.",
     "WRONG_LOGIN": "That email or password is not right. Please try again.",
     "NOT_LOGGED_IN": "Please log in again.",
-    "EMAIL_TAKEN": "An account with this email already exists. Try logging in instead."
+    "EMAIL_TAKEN": "An account with this email already exists. Try logging in instead.",
+    "GOOGLE_NOT_CONNECTED": "Connect Google Calendar first.",
+    "GOOGLE_DISCONNECTED": "Google Calendar was disconnected. Please connect it again.",
+    "GOOGLE_UNAVAILABLE": "Google Calendar is not available right now. Please try again later."
   },
   "home": {
     "title": "What would you like to understand?",

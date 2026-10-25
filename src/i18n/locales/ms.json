@@ -51,7 +51,10 @@
     "COVER_FAILED": "Kami tidak dapat menutup butiran peribadi anda pada telefon ini, jadi tiada apa-apa yang dihantar. Sila cuba lagi.",
     "WRONG_LOGIN": "E-mel atau kata laluan itu tidak betul. Sila cuba lagi.",
     "NOT_LOGGED_IN": "Sila log masuk semula.",
-    "EMAIL_TAKEN": "Akaun dengan e-mel ini sudah wujud. Cuba log masuk."
+    "EMAIL_TAKEN": "Akaun dengan e-mel ini sudah wujud. Cuba log masuk.",
+    "GOOGLE_NOT_CONNECTED": "Sambungkan Google Calendar dahulu.",
+    "GOOGLE_DISCONNECTED": "Google Calendar telah terputus. Sila sambungkan semula.",
+    "GOOGLE_UNAVAILABLE": "Google Calendar tidak tersedia sekarang. Sila cuba lagi nanti."
   },
   "home": {
     "title": "Apa yang anda ingin fahami?",

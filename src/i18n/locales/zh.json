@@ -51,7 +51,10 @@
     "COVER_FAILED": "我们无法在这部手机上遮盖您的个人资料，所以没有发送任何内容。请再试一次。",
     "WRONG_LOGIN": "电子邮件或密码不正确，请再试一次。",
     "NOT_LOGGED_IN": "请重新登录。",
-    "EMAIL_TAKEN": "此电子邮件已有账户，请直接登录。"
+    "EMAIL_TAKEN": "此电子邮件已有账户，请直接登录。",
+    "GOOGLE_NOT_CONNECTED": "请先连接 Google 日历。",
+    "GOOGLE_DISCONNECTED": "Google 日历已断开连接。请重新连接。",
+    "GOOGLE_UNAVAILABLE": "Google 日历暂时无法使用。请稍后再试。"
   },
   "home": {
     "title": "您想了解什么？",

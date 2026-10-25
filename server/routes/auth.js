@@ -1,7 +1,7 @@
 // Owner: Sheen Hern (built by Claude, declared in README.txt). Contract: docs/auth-contract.md
 import { Router } from 'express'
 import { sendError } from '../errors.js'
-import { connectDb } from '../db.js'
+import { withDb } from '../db.js'
 import { User, CITIZENSHIP, INCOME } from '../models/User.js'
 import { hashPassword, signToken, verifyPassword } from '../services/auth.js'
 import { requireAuth } from '../middleware/requireAuth.js'
@@ -41,17 +41,6 @@ export function checkProfile(body, now = new Date()) {
 }
 
 const answer = (res, user, remember) => res.json({ ok: true, data: { token: signToken(user.id, remember), user: user.toPublic() } })
-
-// A database outage is our problem, not the user's: say so plainly instead of a 500 stack.
-async function withDb(res, work) {
-  try {
-    await connectDb()
-  } catch (err) {
-    console.error('MongoDB:', err.message)
-    return sendError(res, 503, 'SERVER_ERROR', 'Accounts are not available right now')
-  }
-  return work()
-}
 
 const router = Router()
 
