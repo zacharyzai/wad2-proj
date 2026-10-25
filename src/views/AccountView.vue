@@ -1,10 +1,11 @@
 <!-- Owner: Isaac. The details the person gave when they signed up, with Edit and Log out. The password is never shown.
      Date of birth and citizenship fill in the Bill page's subsidy questions, so a mistake here changes the estimate there. -->
 <script setup>
-import { computed, reactive, ref } from 'vue'
+import { computed, onBeforeUnmount, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { authStore, logout, updateProfile } from '../stores/auth'
+import { authStore, logout, saveLanguage, updateProfile } from '../stores/auth'
+import { LOCALES, setLocale } from '../i18n'
 import { openGuide } from '../stores/guide'
 import { INCOMES, citizenshipText, incomeText, isCitizen } from '../utils/account'
 import PageHeader from '../components/layout/PageHeader.vue'
@@ -42,7 +43,6 @@ const editing = ref(false)
 const form = reactive({ name: '', dob: '', citizenship: '', citizenSince: '', income: '' })
 const busy = ref(false)
 const errorCode = ref(null)
-const saved = ref(false)
 const problems = computed(() => {
   const p = {}
   if (!form.name.trim()) p.name = t('auth.need.name')
@@ -55,7 +55,6 @@ const problems = computed(() => {
 function edit() {
   Object.assign(form, { name: user.value.name ?? '', dob: user.value.dob ?? '', citizenship: user.value.citizenship ?? 'birth', citizenSince: user.value.citizenSince ?? '', income: user.value.income ?? 'unsure' })
   errorCode.value = null
-  saved.value = false
   editing.value = true
 }
 
@@ -67,8 +66,27 @@ async function save() {
   busy.value = false
   if (!res.ok) return (errorCode.value = res.error.code)
   editing.value = false
-  saved.value = true
+  notify(t('account.toast'))
 }
+
+// Language: the page switches at once; the account remembers it for every device they log in on.
+async function chooseLanguage(code) {
+  if (code === locale.value) return
+  const saving = saveLanguage(code) // first, so the store's own language watcher doesn't save it twice
+  setLocale(code)
+  const res = await saving
+  notify(res?.ok ? t('account.toast') : t(`errors.${res?.error.code ?? 'SERVER_ERROR'}`), !res?.ok)
+}
+
+// "Settings saved": a small message at the bottom that fades after 3 seconds. Polite, so screen readers hear it too.
+const toast = ref(null)
+let toastTimer = 0
+function notify(text, bad = false) {
+  clearTimeout(toastTimer)
+  toast.value = { text, bad }
+  toastTimer = setTimeout(() => (toast.value = null), 3000)
+}
+onBeforeUnmount(() => clearTimeout(toastTimer))
 
 function leave() {
   logout()
@@ -87,7 +105,6 @@ function leave() {
           <dd>{{ r.value }}</dd>
         </div>
       </dl>
-      <p v-if="saved" class="saved m-0" role="status"><AppIcon name="checkCircle" :size="20" />{{ t('account.saved') }}</p>
       <p class="text-muted-a11y m-0">{{ t('account.billNote') }}</p>
       <button type="button" class="btn btn-secondary" data-testid="account-edit" @click="edit"><AppIcon name="pencil" />{{ t('account.edit') }}</button>
     </Card>
@@ -130,9 +147,25 @@ function leave() {
       </form>
     </Card>
 
+    <Card :title="t('nav.language')">
+      <p class="text-muted-a11y m-0">{{ t('account.languageNote') }}</p>
+      <div class="segmented langs" role="group" :aria-label="t('nav.language')" data-testid="account-language">
+        <button v-for="(label, code) in LOCALES" :key="code" type="button" :lang="code" :aria-pressed="locale === code" @click="chooseLanguage(code)">{{ label }}</button>
+      </div>
+    </Card>
+
     <!-- The Beginner's guide again (on phones this is the only way back to it; desktop also has it in the sidebar). -->
     <button type="button" class="btn btn-outline" data-testid="account-guide" @click="openGuide"><AppIcon name="compass" />{{ t('guide.open') }}</button>
     <BigButton variant="alt" data-testid="account-logout" @click="leave"><AppIcon name="logout" />{{ t('account.logout') }}</BigButton>
+
+    <!-- Always in the page, so screen readers announce what appears in it. -->
+    <div class="toast-slot" role="status" aria-live="polite">
+      <Transition name="toast">
+        <p v-if="toast" class="toast-ahma m-0" :class="{ bad: toast.bad }" data-testid="account-toast">
+          <AppIcon :name="toast.bad ? 'alert' : 'checkCircle'" :size="22" />{{ toast.text }}
+        </p>
+      </Transition>
+    </div>
   </div>
 </template>
 
@@ -142,6 +175,15 @@ function leave() {
 .row-item:last-child { border-bottom: 0; }
 dt { font-size: var(--fs-small); color: var(--color-text-muted); font-weight: 600; }
 dd { margin: 0; font-size: var(--fs-h3); font-weight: 700; overflow-wrap: anywhere; }
-.saved { display: flex; align-items: center; gap: 8px; color: var(--color-success-text); font-weight: 700; }
+.langs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (min-width: 576px) { .langs { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+/* Above the phone tab bar; bottom-centre on desktop. */
+.toast-slot { position: fixed; left: 16px; right: 16px; bottom: calc(96px + env(safe-area-inset-bottom)); z-index: 30; display: flex; justify-content: center; pointer-events: none; }
+@media (min-width: 992px) { .toast-slot { bottom: 32px; left: 248px; } } /* centred in the page area, beside the sidebar */
+.toast-ahma { padding: 14px 20px; }
+.toast-ahma.bad { background: #a31f2a; } /* fixed dark red: white text stays readable in night mode too */
+.toast-enter-active { transition: opacity 220ms var(--ease-out), transform 220ms var(--ease-out); }
+.toast-leave-active { transition: opacity 160ms ease-in, transform 160ms ease-in; }
+.toast-enter-from, .toast-leave-to { opacity: 0; transform: translateY(12px); }
 .field-error { display: flex; gap: 8px; margin: 0; color: var(--color-danger-text); font-size: 16px; font-weight: 600; }
 </style>

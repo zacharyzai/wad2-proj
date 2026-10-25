@@ -635,11 +635,12 @@
     "closeBill": "关闭此账单"
   },
   "account": {
+    "toast": "设置已保存",
+    "languageNote": "您在任何手机或电脑登录时，应用都会使用这个语言。",
     "lead": "这是您提供的资料。",
     "details": "您的资料",
     "passwordNote": "密码不会显示。",
     "logout": "退出登录",
-    "saved": "您的资料已保存。",
     "billNote": "您的出生日期和公民身份会自动填入账单页面的津贴问题。",
     "edit": "编辑我的资料",
     "editTitle": "编辑您的资料",

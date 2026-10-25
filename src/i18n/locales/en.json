@@ -635,11 +635,12 @@
     "closeBill": "Close this bill"
   },
   "account": {
+    "toast": "Settings saved",
+    "languageNote": "The app uses this language on every phone or computer you log in on.",
     "lead": "These are the details you gave us.",
     "details": "Your details",
     "passwordNote": "Your password is never shown.",
     "logout": "Log out",
-    "saved": "Your details are saved.",
     "billNote": "Your date of birth and citizenship fill in the subsidy questions on the Bill page.",
     "edit": "Edit my details",
     "editTitle": "Edit your details",

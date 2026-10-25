@@ -635,11 +635,12 @@
     "closeBill": "Tutup bil ini"
   },
   "account": {
+    "toast": "Tetapan disimpan",
+    "languageNote": "Aplikasi akan menggunakan bahasa ini pada setiap telefon atau komputer yang anda log masuk.",
     "lead": "Ini ialah butiran yang anda berikan.",
     "details": "Butiran anda",
     "passwordNote": "Kata laluan tidak pernah dipaparkan.",
     "logout": "Log keluar",
-    "saved": "Butiran anda telah disimpan.",
     "billNote": "Tarikh lahir dan kewarganegaraan anda akan diisi dalam soalan subsidi di halaman Bil.",
     "edit": "Ubah butiran saya",
     "editTitle": "Ubah butiran anda",

@@ -2,7 +2,7 @@
 import { Router } from 'express'
 import { sendError } from '../errors.js'
 import { withDb } from '../db.js'
-import { User, CITIZENSHIP, INCOME } from '../models/User.js'
+import { User, CITIZENSHIP, INCOME, LANGUAGES } from '../models/User.js'
 import { hashPassword, signToken, verifyPassword, jwtSecret } from '../services/auth.js'
 import { requireAuth } from '../middleware/requireAuth.js'
 import { authRateLimit } from '../middleware/rateLimit.js'
@@ -40,6 +40,9 @@ export function checkProfile(body, now = new Date()) {
   return { profile: { name, dob, citizenship, citizenSince, income } }
 }
 
+// The app language: optional (the client sends the one in use), so accounts made before it existed still work.
+const checkLanguage = (language) => (language === undefined || LANGUAGES.includes(language) ? null : `language must be one of ${LANGUAGES.join(', ')}`)
+
 const answer = (res, user, remember, status = 200) => res.status(status).json({ ok: true, data: { token: signToken(user.id, remember), user: user.toPublic() } })
 
 let dummyHash
@@ -63,12 +66,13 @@ router.post('/signup', authRateLimit, (req, res) => {
     return sendError(res, 400, 'BAD_REQUEST', `password must be ${MIN_PASSWORD} to 200 characters`)
   }
   const { profile, error } = checkProfile(req.body)
-  if (error) return sendError(res, 400, 'BAD_REQUEST', error)
+  const languageError = checkLanguage(req.body?.language)
+  if (error || languageError) return sendError(res, 400, 'BAD_REQUEST', error ?? languageError)
 
   if (!configured(res)) return
   return withDb(res, async () => {
     try {
-      const user = await User.create({ ...profile, email: cleanEmail, passwordHash: await hashPassword(password) })
+      const user = await User.create({ ...profile, language: req.body.language ?? null, email: cleanEmail, passwordHash: await hashPassword(password) })
       answer(res, user, remember, 201)
     } catch (err) {
       if (err?.code === 11000) return sendError(res, 409, 'EMAIL_TAKEN', 'An account with this email already exists')
@@ -101,13 +105,21 @@ router.get('/me', requireAuth, (req, res) =>
   }),
 )
 
-// Edit name, date of birth and citizenship (Account page). Email and password are not changed here.
+// Edit the details (Account page), the language, or both. `{ language }` alone just changes the language (the language
+// switcher anywhere in the app); anything else is the full details form. Email and password are not changed here.
 router.patch('/me', requireAuth, (req, res) => {
-  const { profile, error } = checkProfile(req.body)
-  if (error) return sendError(res, 400, 'BAD_REQUEST', error)
+  const { language, ...rest } = req.body ?? {}
+  const languageError = checkLanguage(language)
+  if (languageError) return sendError(res, 400, 'BAD_REQUEST', languageError)
+  let update = language ? { language } : {}
+  if (Object.keys(rest).length || !language) {
+    const { profile, error } = checkProfile(rest)
+    if (error) return sendError(res, 400, 'BAD_REQUEST', error)
+    update = { ...update, ...profile }
+  }
   if (!configured(res)) return
   return withDb(res, async () => {
-    const user = await User.findByIdAndUpdate(req.userId, profile, { returnDocument: 'after', runValidators: true }).catch(() => null)
+    const user = await User.findByIdAndUpdate(req.userId, update, { returnDocument: 'after', runValidators: true }).catch(() => null)
     if (!user) return sendError(res, 401, 'NOT_LOGGED_IN', 'Please log in')
     res.json({ ok: true, data: { user: user.toPublic() } })
   })
