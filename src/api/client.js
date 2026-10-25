@@ -33,4 +33,4 @@ export const scanImage = (type, image) => api('/scan', { method: 'POST', body: {
 export const scanSample = (sampleId) => api('/scan', { method: 'POST', body: { sampleId } })
 
 // Contract: docs/chat-contract.md
-export const askMedicine = (medicines, question, lang) => api('/chat', { method: 'POST', body: { medicines, question, lang } })
+export const askMedicine = (medicines, question, lang, history = []) => api('/chat', { method: 'POST', body: { medicines, question, lang, history } })

@@ -159,3 +159,20 @@ test('questions are asked in the chosen language', async ({ page }) => {
   await expect(page.getByTestId('ask-answer')).toContainText('放在阴凉干燥的地方。')
   expect(sent[0]).toMatchObject({ question: '药物怎样保存？', lang: 'zh' })
 })
+
+test('the AI\'s suggested next questions become chips, and follow-ups carry the earlier turns', async ({ page }) => {
+  const suggested = { ok: true, data: { type: 'ANSWER', answer: 'Hello! I can help with your medicines.', askPharmacist: false, suggestions: ['How do I store insulin?', 'What if I miss a dose?'] } }
+  const sent = mockChat(page, [suggested, answer('Keep it in the fridge.')])
+  await page.goto('/ask')
+  await page.getByLabel('Or type your own question').fill('Hi there')
+  await page.getByLabel('Or type your own question').press('Enter')
+  const follow = page.getByTestId('ask-follow')
+  await expect(follow.getByRole('button')).toHaveText(['How do I store insulin?', 'What if I miss a dose?'])
+  expect(sent[0].history).toEqual([])
+
+  await follow.getByRole('button', { name: 'How do I store insulin?' }).click()
+  await expect(page.getByTestId('ask-answer').nth(1)).toContainText('Keep it in the fridge.')
+  expect(sent[1]).toMatchObject({ question: 'How do I store insulin?', history: [{ q: 'Hi there', a: 'Hello! I can help with your medicines.' }] })
+  // No suggestions on this answer: the fixed follow-ups come back.
+  await expect(follow.getByRole('button')).toHaveText(['When do I take my medicine?', 'What if I miss a dose?', 'What side effects to watch for?'])
+})

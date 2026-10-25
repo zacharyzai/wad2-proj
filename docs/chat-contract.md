@@ -6,6 +6,8 @@ Owner: **Zachary**. The chatbot is its own page (`/ask`), open any time. It supp
 - **About one of their medicines**: the answer uses only that medicine's entry.
 - **About a medicine we don't know** (not in the list, or unclear which): the reply is `NEED_MEDICINE`, and the page asks for a label photo or the name and instructions, then offers "Ask again".
 - **General questions**: general, well-established medicine information only; anything personal gets "ask your pharmacist". This uses the model's own knowledge until a human-checked information bank is added.
+- **Small talk and off-topic**: greetings and thanks get a short, warm reply that invites a medicine question; other topics (homework, news, recipes) get a kind "I only help with medicines" and an idea of what to ask instead.
+- **Follow-ups**: the last few answered turns are sent with each question, so "and at night?" makes sense. Under each answer the page shows the AI's suggested next questions as chips, or fixed ones when it gave none.
 
 ## Request
 
@@ -15,18 +17,20 @@ Owner: **Zachary**. The chatbot is its own page (`/ask`), open any time. It supp
 {
   "medicines": [{ "source": "label" | "typed", "medication": Medication }],  // 0 to 10; Medication as in docs/scan-contract.md
   "question": "Can I take it with food?",
-  "lang": "en" | "zh" | "ms" | "ta"
+  "lang": "en" | "zh" | "ms" | "ta",
+  "history": [{ "q": "When do I take it?", "a": "Twice a day, after food." }]  // optional, 0 to 4 earlier turns, oldest first
 }
 ```
 
 - Each `medication` is re-checked with `normalizeMedication`, so only contract fields reach the AI. `name` is required; typed medicines usually only have `name` and `rawInstruction`.
-- `question` is 1 to 300 characters. Each question is answered on its own; no chat history is sent.
-- From the client, call `askMedicine(medicines, question, lang)` from `src/api/client.js`.
+- `question` is 1 to 300 characters. Each `history` turn is `{ q, a }` strings (q up to 300, a up to 800); other fields are dropped. Only `question` is checked for red flags.
+- From the client, call `askMedicine(medicines, question, lang, history)` from `src/api/client.js`.
 
 ## Response
 
 ```jsonc
 { "ok": true, "data": { "type": "ANSWER", "answer": "Take it after food.", "askPharmacist": false } }
+{ "ok": true, "data": { "type": "ANSWER", "answer": "Hello! ...", "askPharmacist": false, "suggestions": ["How do I store insulin?"] } }  // 1 to 3 next questions, only when there are some
 { "ok": true, "data": { "type": "ANSWER", "answer": null, "askPharmacist": true } }  // no usable answer: show a fixed "ask your pharmacist" line
 { "ok": true, "data": { "type": "NEED_MEDICINE" } }                               // ask for a label photo or the name and instructions
 { "ok": true, "data": { "type": "URGENT" } }                                      // show the fixed 995 card
@@ -41,8 +45,8 @@ Errors use the same envelope and codes as `/api/scan` (`BAD_REQUEST`, `RATE_LIMI
 1. **Input checks**: language, question length, at most 10 medicines, each with a source and a name, size cap.
 2. **Red flags in code**: emergency phrases in all 4 languages (`server/services/chat.js`) return `URGENT` without calling the AI.
 3. **Limits**: 10 questions per minute per IP (`CHAT_RATE_LIMIT`), and a daily cap of 500 (`AI_CHAT_DAILY_CAP`) kept separate from scans.
-4. **Prompt**: rules are in the system instruction; the question sits inside `"""` delimiters. Answers about the user's medicines use only their entries and repeat that label's exact amount (`doseAmount` + `doseUnit`, never `strength`), times, time of day, food rule and relevant warning; general answers stay general. Never change a dose, recommend a medicine or diagnose; under 60 words; numbers as digits.
-5. **Reply checks**: JSON schema `{ answer, askPharmacist, urgent, needMedicine }`. `urgent` wins over `needMedicine`; an empty or broken reply becomes "ask your pharmacist".
+4. **Prompt**: rules are in the system instruction; the history (as JSON) and the question each sit inside `"""` delimiters. Temperature 0.5 for natural, varied wording; safety does not rely on it. Answers about the user's medicines use only their entries and repeat that label's exact amount (`doseAmount` + `doseUnit`, never `strength`), times, time of day, food rule and relevant warning; general answers stay general. Never change a dose, recommend a medicine or diagnose; under 60 words; numbers as digits.
+5. **Reply checks**: JSON schema `{ answer, suggestions, askPharmacist, urgent, needMedicine }`. `urgent` wins over `needMedicine`; an empty or broken reply becomes "ask your pharmacist". Suggestions keep only strings of 80 characters or less, at most 3, and drop any containing a red-flag phrase.
 
 ## Models
 

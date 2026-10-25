@@ -3,7 +3,7 @@ import { Router } from 'express'
 import { sendError } from '../errors.js'
 import { chatRateLimit, takeDailyQuota } from '../middleware/rateLimit.js'
 import { normalizeMedication } from '../services/normalizeScan.js'
-import { askAboutMedicine, isRedFlag, mockReply, LANGS, MAX_QUESTION } from '../services/chat.js'
+import { askAboutMedicine, isRedFlag, mockReply, LANGS, MAX_ANSWER, MAX_HISTORY, MAX_QUESTION } from '../services/chat.js'
 import { ScanError } from '../services/gemini.js'
 
 // A real label is a few hundred characters; more means someone is stuffing the prompt.
@@ -14,7 +14,7 @@ const SOURCES = ['label', 'typed']
 const router = Router()
 
 router.post('/', chatRateLimit, async (req, res) => {
-  const { medicines = [], question, lang } = req.body ?? {}
+  const { medicines = [], question, lang, history = [] } = req.body ?? {}
 
   if (!Object.hasOwn(LANGS, lang)) return sendError(res, 400, 'BAD_REQUEST', 'lang must be en, zh, ms or ta')
   const q = typeof question === 'string' ? question.trim() : ''
@@ -28,6 +28,13 @@ router.post('/', chatRateLimit, async (req, res) => {
     return sendError(res, 400, 'BAD_REQUEST', 'each medicine needs a source (label or typed) and a name')
   }
 
+  // Earlier turns, oldest first: plain strings within the same limits the server itself uses.
+  const turnOk = (h) => typeof h?.q === 'string' && typeof h?.a === 'string' && h.q.length <= MAX_QUESTION && h.a.length <= MAX_ANSWER
+  if (!Array.isArray(history) || history.length > MAX_HISTORY || !history.every(turnOk)) {
+    return sendError(res, 400, 'BAD_REQUEST', `history must be at most ${MAX_HISTORY} turns of { q, a }`)
+  }
+  const turns = history.map(({ q, a }) => ({ q, a })) // drop any extra fields
+
   // Emergencies get a fixed answer from our code, never from the AI.
   if (isRedFlag(q)) return res.json({ ok: true, data: { type: 'URGENT' } })
 
@@ -35,7 +42,7 @@ router.post('/', chatRateLimit, async (req, res) => {
   if (process.env.USE_MOCK_AI !== 'false') return res.json({ ok: true, data: mockReply(facts, q) })
 
   try {
-    res.json({ ok: true, data: await askAboutMedicine(facts, q, lang) })
+    res.json({ ok: true, data: await askAboutMedicine(facts, q, lang, turns) })
   } catch (err) {
     if (err instanceof ScanError) return sendError(res, err.status, err.code, err.message)
     throw err

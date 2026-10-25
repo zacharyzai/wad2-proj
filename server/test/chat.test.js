@@ -79,6 +79,10 @@ test('bad input is 400', async () => {
     { ...valid, medicines: [{ source: 'ai', medication: med1.medication }] },
     { ...valid, medicines: [{ source: 'typed', medication: { rawInstruction: 'no name' } }] },
     { ...valid, medicines: [{ source: 'label', medication: { ...med1.medication, warnings: ['x'.repeat(7000)] } }] },
+    { ...valid, history: 'earlier' },
+    { ...valid, history: Array(5).fill({ q: 'Hi', a: 'Hello' }) },
+    { ...valid, history: [{ q: 'Hi' }] },
+    { ...valid, history: [{ q: 'Hi', a: 'x'.repeat(801) }] },
   ]
   for (const body of bad) {
     const res = await ask(body)
@@ -117,4 +121,27 @@ test('unusable AI replies become "ask your pharmacist"', () => {
   assert.deepEqual(checkReply({ answer: '  ' }), { type: 'ANSWER', answer: null, askPharmacist: true })
   assert.deepEqual(checkReply({ answer: 'Hi', urgent: true, needMedicine: true }), { type: 'URGENT' })
   assert.equal(checkReply({ answer: 'x'.repeat(2000) }).answer.length, 800)
+})
+
+test('earlier turns reach the AI inside the delimiters, without extra fields', async () => {
+  const sent = stubGemini({ answer: 'At night too, after food.', suggestions: [], askPharmacist: false, urgent: false, needMedicine: false })
+  process.env.USE_MOCK_AI = 'false'
+  try {
+    const history = [{ q: 'When do I take it?', a: 'Twice a day, after food.', name: 'Tan Ah Kow' }]
+    const res = await ask({ ...valid, question: 'And at night?', history })
+    assert.equal((await res.json()).data.answer, 'At night too, after food.')
+  } finally {
+    process.env.USE_MOCK_AI = 'true'
+  }
+  const user = sent.contents[0].parts[0].text
+  assert.match(user, /HISTORY:\n"""\[\{"q":"When do I take it\?","a":"Twice a day, after food."\}\]"""/)
+  assert.doesNotMatch(user, /Tan Ah Kow/)
+  assert.equal(sent.generationConfig.temperature, 0.5)
+})
+
+test('suggested next questions are cleaned: short strings only, at most 3, none on an empty answer', () => {
+  const raw = { answer: 'Hello!', suggestions: ['  When do I take it?  ', 42, '', 'x'.repeat(81), 'I took too many', 'Can I take it with food?', 'How do I store it?', 'What if I miss a dose?'] }
+  assert.deepEqual(checkReply(raw).suggestions, ['When do I take it?', 'Can I take it with food?', 'How do I store it?'])
+  assert.equal(checkReply({ answer: 'Hi', suggestions: [] }).suggestions, undefined)
+  assert.equal(checkReply({ answer: '', suggestions: ['When?'] }).suggestions, undefined)
 })

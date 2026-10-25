@@ -16,8 +16,8 @@ import { speechRate } from '../stores/speech'
 import AppIcon from '../components/layout/AppIcon.vue'
 
 const CHIPS = ['when', 'food', 'missed', 'store']
-// Follow-ups offered under an answer, by the chip that was asked (typed questions use `typed`).
-// All are self-contained questions, because each question is answered on its own (no chat history is sent).
+// Fallback follow-ups under an answer, by the chip that was asked (typed questions use `typed`), when the AI suggested none.
+// Self-contained questions, so they make sense even without the earlier turns.
 const FOLLOW_UPS = {
   when: ['food', 'missed', 'side'],
   food: ['when', 'side', 'missed'],
@@ -28,6 +28,7 @@ const FOLLOW_UPS = {
   typed: ['when', 'missed', 'side'],
 }
 const MAX = 300 // same limit as the server (MAX_QUESTION)
+const HISTORY = 4 // earlier answered turns sent with a question (server MAX_HISTORY)
 
 const { t, te, locale } = useI18n()
 
@@ -57,7 +58,13 @@ async function ask(text, chip = 'typed', msg = null) {
   }
   scrollTo(msg, 'nearest')
   const list = medicines.map(({ source, medication }) => ({ source, medication: toRaw(medication) }))
-  const res = await askMedicine(list, q, msg.lang)
+  // The last few answered turns before this one, so a follow-up like "and at night?" makes sense.
+  const history = messages
+    .slice(0, messages.indexOf(msg))
+    .filter((m) => isAnswer(m) && m.reply.answer)
+    .slice(-HISTORY)
+    .map((m) => ({ q: m.q, a: m.reply.answer }))
+  const res = await askMedicine(list, q, msg.lang, history)
   // On error the question stays in the bubble, so "Try again" resends it.
   Object.assign(msg, res.ok ? { state: 'done', reply: res.data } : { state: 'error', error: res.error.code })
   scrollTo(msg, 'start')
@@ -320,9 +327,14 @@ onBeforeUnmount(() => {
               <div v-if="m === latest" class="follow" role="group" :aria-label="t('ask.followLabel')" data-testid="ask-follow">
                 <span class="follow-label">{{ t('ask.followLabel') }}</span>
                 <div class="d-flex flex-wrap gap-2">
-                  <button v-for="c in FOLLOW_UPS[m.chip]" :key="c" type="button" class="chip" :disabled="loading" @click="ask(t(`ask.chips.${c}`), c)">
-                    {{ t(`ask.chips.${c}`) }}
-                  </button>
+                  <template v-if="m.reply.suggestions?.length">
+                    <button v-for="s in m.reply.suggestions" :key="s" type="button" class="chip" :lang="m.lang" :disabled="loading" @click="ask(s)">{{ s }}</button>
+                  </template>
+                  <template v-else>
+                    <button v-for="c in FOLLOW_UPS[m.chip]" :key="c" type="button" class="chip" :disabled="loading" @click="ask(t(`ask.chips.${c}`), c)">
+                      {{ t(`ask.chips.${c}`) }}
+                    </button>
+                  </template>
                 </div>
               </div>
             </template>
