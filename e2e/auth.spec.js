@@ -84,7 +84,7 @@ test.describe('logged out', () => {
     await page.getByTestId('signup-income').selectOption('1501to2300')
     await page.getByTestId('signup-submit').click()
     expect((await sent).postDataJSON()).toEqual({
-      name: 'Lim Ah Huat', email: 'ahhuat@example.com', password: 'password123', dob: '1958-11-02', citizenship: 'became', citizenSince: 1975, income: '1501to2300', remember: true,
+      name: 'Lim Ah Huat', email: 'ahhuat@example.com', password: 'password123', dob: '1958-11-02', citizenship: 'became', citizenSince: 1975, income: '1501to2300', remember: true, language: 'en',
     })
     await expect(page).toHaveURL(/\/scan$/)
   })
@@ -131,7 +131,8 @@ test('Account shows the details, saves edits and logs out', async ({ page, isMob
   await page.getByTestId('account-edit-citizenship').selectOption('became')
   await page.getByTestId('account-edit-year').fill('1970')
   await page.getByTestId('account-save').click()
-  await expect(page.getByText('Your details are saved.')).toBeVisible()
+  await expect(page.getByTestId('account-toast')).toHaveText('Settings saved')
+  await expect(page.getByTestId('account-toast')).toHaveCount(0, { timeout: 4500 }) // fades after 3 seconds
   await expect(page.getByTestId('account-citizenship')).toContainText('Singapore citizen since 1970')
 
   // A PR is not asked about income (CHAS is for citizens), and it disappears from the details.
@@ -145,6 +146,51 @@ test('Account shows the details, saves edits and logs out', async ({ page, isMob
   await expect(page).toHaveURL(/\/login$/)
   await page.goto('/scan')
   await expect(page).toHaveURL(/\/login\?next=/)
+})
+
+test('language: chosen on the welcome page becomes the account language at signup', async ({ browser }) => {
+  const page = await browser.newPage({ storageState: { cookies: [], origins: [] } })
+  await mockAuth(page)
+  await page.goto('/welcome')
+  await page.getByTestId('landing-nav').getByRole('link', { name: /Try me out/ }).first().waitFor()
+  await page.evaluate(() => localStorage.setItem('locale', 'zh')) // as tapping 中文 on the welcome page does
+  const sent = page.waitForRequest('**/api/auth/signup')
+  await page.goto('/signup')
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(/创建|账户|帐户/)
+  await page.getByTestId('signup-name').fill('Lim Ah Huat')
+  await page.getByTestId('signup-email').fill('ahhuat@example.com')
+  await page.getByTestId('signup-password').fill('password123')
+  await page.getByTestId('signup-dob').fill('1958-11-02')
+  await page.getByTestId('signup-citizenship').selectOption('pr')
+  await page.getByTestId('signup-submit').click()
+  expect((await sent).postDataJSON().language).toBe('zh')
+  await page.close()
+})
+
+test('language: logging in on a new device switches to the account language', async ({ browser }) => {
+  const page = await browser.newPage({ storageState: { cookies: [], origins: [] } })
+  await mockAuth(page, { ...DEMO_USER, language: 'ta' })
+  await login(page)
+  await expect(page).toHaveURL(/\/$/)
+  await expect(page.locator('html')).toHaveAttribute('lang', 'ta')
+  await page.close()
+})
+
+test('language: changing it on Account saves it, says "Settings saved", and so does the switcher anywhere else', async ({ page }) => {
+  const patches = []
+  page.on('request', (r) => r.url().includes('/api/auth/me') && r.method() === 'PATCH' && patches.push(r.postDataJSON()))
+  await page.goto('/account')
+  await expect.poll(() => patches).toEqual([{ language: 'en' }]) // an account with no language yet gets this device's
+  await page.getByTestId('account-language').getByRole('button', { name: 'Bahasa Melayu' }).click()
+  await expect(page.getByTestId('account-toast')).toHaveText('Tetapan disimpan')
+  await expect(page.getByTestId('account-language').getByRole('button', { name: 'Bahasa Melayu' })).toHaveAttribute('aria-pressed', 'true')
+  await expect.poll(() => patches.at(-1)).toEqual({ language: 'ms' })
+
+  // The header or sidebar switcher saves it too (no message there: it is not the settings page).
+  await page.goto('/')
+  await page.getByRole('button', { name: '中文', exact: true }).first().click()
+  await expect.poll(() => patches.at(-1)).toEqual({ language: 'zh' })
+  await page.getByRole('button', { name: 'EN', exact: true }).first().click()
 })
 
 test('the Bill page checks subsidies from the account, and links to Account to change the details', async ({ page }) => {

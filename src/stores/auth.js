@@ -3,8 +3,10 @@
 // so closing the browser logs you out. api/client.js sends the token with every request.
 // A copy of the account details is kept next to the token, so a returning user opens the app instantly
 // while restore() checks with the server in the background. Logging out removes both.
-import { reactive } from 'vue'
+// The app language is part of the account: logging in on any device uses it, and changing it anywhere saves it.
+import { reactive, watch } from 'vue'
 import { api, TOKEN_KEY, readToken } from '../api/client'
+import i18n, { setLocale } from '../i18n'
 
 const USER_KEY = 'user'
 
@@ -55,6 +57,7 @@ export function restore() {
   pending ??= api('/auth/me').then((res) => {
     if (res.ok) {
       authStore.user = res.data.user
+      useAccountLanguage(res.data.user)
       // Remembered logins get a fresh 30 days from today; either way the saved copy is updated.
       save(res.data.token ?? readToken(), Boolean(res.data.token) || isRemembered(), res.data.user)
     } else if (res.error.code === 'NOT_LOGGED_IN') {
@@ -72,6 +75,7 @@ async function start(path, body, remember) {
   if (res.ok) {
     save(res.data.token, remember, res.data.user)
     authStore.user = res.data.user
+    useAccountLanguage(res.data.user)
     authStore.checked = true
   }
   return res // { ok, data } or { ok: false, error: { code } }
@@ -79,7 +83,9 @@ async function start(path, body, remember) {
 
 export const login = (email, password, remember = true) => start('/auth/login', { email, password }, remember)
 // profile = { name, dob, citizenship, citizenSince }
-export const signup = (email, password, profile, remember = true) => start('/auth/signup', { ...profile, email, password }, remember)
+// The language in use when they sign up (picked on the welcome page or above the form) becomes the account's language.
+export const signup = (email, password, profile, remember = true) =>
+  start('/auth/signup', { ...profile, email, password, language: i18n.global.locale.value }, remember)
 
 // Account page: change name, date of birth or citizenship.
 export async function updateProfile(profile) {
@@ -90,6 +96,30 @@ export async function updateProfile(profile) {
   }
   return res
 }
+
+// Save a new app language to the account. The page changes language straight away; this only remembers it.
+export async function saveLanguage(language) {
+  if (!authStore.user) return null
+  authStore.user = { ...authStore.user, language } // now, so the watcher below doesn't save it a second time
+  const res = await api('/auth/me', { method: 'PATCH', body: { language } })
+  if (res.ok) {
+    authStore.user = res.data.user
+    save(readToken(), isRemembered(), res.data.user)
+  }
+  return res
+}
+
+// Logged in: switch to the account's language. Accounts from before languages were saved get this device's language.
+function useAccountLanguage(user) {
+  if (!user.language) saveLanguage(i18n.global.locale.value)
+  else if (user.language !== i18n.global.locale.value) setLocale(user.language)
+}
+
+// The language switcher anywhere (sidebar, phone header, welcome page) changes the account's language too.
+watch(
+  () => i18n.global.locale.value,
+  (language) => authStore.user && authStore.user.language !== language && saveLanguage(language),
+)
 
 export function logout() {
   save(null)

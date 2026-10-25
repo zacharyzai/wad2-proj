@@ -20,8 +20,10 @@
 
 /* Page transitions (src/router/index.js): only the page content moves; the sidebar and tab bar stay put. */
 #main { view-transition-name: page; }
-/* The footer sits below pages of different lengths: it glides to its new place instead of jumping over the new page. */
+/* The footer sits below pages of different lengths: it glides to its new place instead of jumping over the new page.
+   A view-transition-name makes its own layer, so the page is lifted above it: a page's pop-ups (Undo, Settings saved) stay on top. */
 .ft { view-transition-name: page-footer; }
+#main { position: relative; z-index: 1; }
 .cover-view, .photo.stick { view-transition-name: scan-photo; } /* the covered photo on Scan flies into its place on Confirm */
 /* Fade through: the old page is gone before the new one fades in, so the two never show on top of each other. */
 ::view-transition-old(page) { animation: vt-out 110ms ease-in both; }

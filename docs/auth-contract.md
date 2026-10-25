@@ -14,10 +14,10 @@ All answers use the usual envelope: `{ ok: true, data }` or `{ ok: false, error:
 
 | Method | Path | Body | Answer |
 |---|---|---|---|
-| POST | `/api/auth/signup` | `{ name, email, password, dob, citizenship, citizenSince, income, remember }` | `{ token, user }` · `400 BAD_REQUEST` · `409 EMAIL_TAKEN` |
+| POST | `/api/auth/signup` | `{ name, email, password, dob, citizenship, citizenSince, income, remember, language }` | `{ token, user }` · `400 BAD_REQUEST` · `409 EMAIL_TAKEN` |
 | POST | `/api/auth/login` | `{ email, password, remember }` | `{ token, user }` · `401 WRONG_LOGIN` (same for unknown email and wrong password) |
 | GET | `/api/auth/me` | (token) | `{ user }`, plus a fresh `token` when the login is remembered · `401 NOT_LOGGED_IN` |
-| PATCH | `/api/auth/me` | `{ name, dob, citizenship, citizenSince, income }` | `{ user }` · `400` · `401` |
+| PATCH | `/api/auth/me` | `{ name, dob, citizenship, citizenSince, income, language? }`, or `{ language }` alone | `{ user }` · `400` · `401` |
 
 - `user` = `{ name, email, dob, citizenship, citizenSince, income }`. The password hash never leaves the server.
 - `dob`: `'YYYY-MM-DD'`, a real date from 1900 to today.
@@ -38,3 +38,8 @@ shortcut: logging out only deletes the token on that device; a copied token stay
 ## Tests
 
 `server/test/auth.test.js` (no database) and `server/test/auth.integration.test.js` (disposable MongoDB). E2E tests sign a token with the test secret in `playwright.config.js` and mock `/api/auth/*` (`e2e/helpers/auth.js`); start each test logged out with `test.use({ loggedIn: false })`. `e2e/auth-api.spec.js` exercises the real profile signup, Account editing, Remember me and protected scan flow against a disposable MongoDB. See [auth.md](auth.md) for Atlas/local setup and migration details.
+
+## App language
+
+`user.language` is `en`, `zh`, `ms`, `ta`, or `null` (accounts from before this field). Signup saves the language in use (picked on the welcome page or above the form). On login and every visit the app switches to the account's language; a `null` account gets the device's current language saved. Changing the language anywhere while logged in (sidebar, phone header, Account page) sends `PATCH /api/auth/me { language }`. The Account page shows "Settings saved" after each save.
+
