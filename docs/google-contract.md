@@ -26,7 +26,8 @@ Code: `server/routes/google.js`, `server/services/google.js`, `server/models/Goo
 - **Sync** makes Google match the **whole** schedule sent: new doses are created, changed ones updated, doses no longer in `entries` deleted. Unchanged doses are not touched, so it is safe to call after every save. Send the full schedule each time, never just the changed medicine.
 - `401 GOOGLE_DISCONNECTED`: the user removed our access in their Google account. The server has already forgotten the dead token, so show **Reconnect**, not an error page.
 - Flagged medicines (when necessary, weekly, tapering) and entries without `endDate` are never synced: ask for the number of days first, never create an endless series.
-- Event text is in `lang` (en, zh, ms, ta); dose numbers stay digits and the medicine name stays as printed. shortcut: the unit word (`tablet`) stays English in every language; translate it with Asher's template words if the Schedule page has them.
+- Event text is in `lang` (en, zh, ms, ta), unit words and punctuation included ("1 粒，饭后。"); dose numbers stay digits and the medicine name stays as printed. The zh, ms and ta wording is to be checked by Asher.
+- Tested live on 25 Oct 2026 with a real Google account: create, no duplicates on re-sync, time change moves the same event, removed dose deletes its event, flagged medicine skipped, Chinese text, disconnect removes the events and revokes access.
 
 ### ScheduleEntry (as in the build guide)
 

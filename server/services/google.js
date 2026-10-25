@@ -131,11 +131,12 @@ async function calendar(token, method, path = '', body) {
 
 // --- the schedule → events ------------------------------------------------------------------------------------------------------
 // Event text in the user's language. Dose numbers stay digits; the medicine name stays as printed on the label.
+// Unit words: English has singular/plural; 'other' has no word (just the number). Translations to be checked by Asher.
 const TEXT = {
-  en: { take: (l) => `Take ${l}`, food: { before: 'before food', after: 'after food', with: 'with food', any: 'with or without food' }, ask: 'Ask your pharmacist if unsure.' },
-  zh: { take: (l) => `服用 ${l}`, food: { before: '饭前', after: '饭后', with: '随餐', any: '饭前饭后都可以' }, ask: '如有疑问，请问药剂师。' },
-  ms: { take: (l) => `Ambil ${l}`, food: { before: 'sebelum makan', after: 'selepas makan', with: 'semasa makan', any: 'sebelum atau selepas makan' }, ask: 'Tanya ahli farmasi jika tidak pasti.' },
-  ta: { take: (l) => `${l} எடுக்கவும்`, food: { before: 'உணவுக்கு முன்', after: 'உணவுக்குப் பின்', with: 'உணவுடன்', any: 'உணவுடன் அல்லது இல்லாமல்' }, ask: 'சந்தேகம் இருந்தால் மருந்தாளரிடம் கேளுங்கள்.' },
+  en: { take: (l) => `Take ${l}`, unit: { tablet: ['tablet', 'tablets'], capsule: ['capsule', 'capsules'], ml: ['ml', 'ml'], puff: ['puff', 'puffs'], drop: ['drop', 'drops'] }, comma: ', ', stop: '. ', food: { before: 'before food', after: 'after food', with: 'with food', any: 'with or without food' }, ask: 'Ask your pharmacist if unsure.' },
+  zh: { take: (l) => `服用 ${l}`, unit: { tablet: '粒', capsule: '颗胶囊', ml: '毫升', puff: '喷', drop: '滴' }, comma: '，', stop: '。', food: { before: '饭前', after: '饭后', with: '随餐', any: '饭前饭后都可以' }, ask: '如有疑问，请问药剂师。' },
+  ms: { take: (l) => `Ambil ${l}`, unit: { tablet: 'biji', capsule: 'kapsul', ml: 'ml', puff: 'sedutan', drop: 'titis' }, comma: ', ', stop: '. ', food: { before: 'sebelum makan', after: 'selepas makan', with: 'semasa makan', any: 'sebelum atau selepas makan' }, ask: 'Tanya ahli farmasi jika tidak pasti.' },
+  ta: { take: (l) => `${l} எடுக்கவும்`, unit: { tablet: 'மாத்திரை', capsule: 'கேப்ஸ்யூல்', ml: 'மி.லி.', puff: 'முறை உறிஞ்சவும்', drop: 'சொட்டு' }, comma: ', ', stop: '. ', food: { before: 'உணவுக்கு முன்', after: 'உணவுக்குப் பின்', with: 'உணவுடன்', any: 'உணவுடன் அல்லது இல்லாமல்' }, ask: 'சந்தேகம் இருந்தால் மருந்தாளரிடம் கேளுங்கள்.' },
 }
 export const LANGS = Object.keys(TEXT)
 
@@ -188,8 +189,10 @@ const localPlus = (date, time, minutes) => new Date(Date.parse(`${date}T${time}:
 export function buildEvent(entry, dose, lang = 'en') {
   const t = TEXT[lang] ?? TEXT.en
   const { count, unit, food } = entry.instruction
-  const amount = [count, unit].filter((x) => x != null).join(' ')
-  const description = [[amount, food && t.food[food]].filter(Boolean).join(', '), t.ask].filter(Boolean).join('. ')
+  const word = t.unit[unit]
+  const unitWord = Array.isArray(word) ? word[count === 1 ? 0 : 1] : word
+  const amount = count == null ? '' : lang === 'zh' ? `${count} ${unitWord ?? ''}`.trim() : [count, unitWord].filter(Boolean).join(' ')
+  const description = [[amount, food && t.food[food]].filter(Boolean).join(t.comma), t.ask].filter(Boolean).join(t.stop)
   return {
     summary: t.take(entry.label),
     description,

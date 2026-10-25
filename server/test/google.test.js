@@ -78,7 +78,9 @@ test('one repeating event per dose, in Singapore time, with an alert at dose tim
     reminders: { useDefault: false, overrides: [{ method: 'popup', minutes: 0 }] },
   })
   assert.equal(g.buildEvent(entry, entry.doses[0], 'zh').summary, '服用 Metformin 500mg')
-  assert.match(g.buildEvent(entry, entry.doses[0], 'zh').description, /饭后/)
+  assert.equal(g.buildEvent(entry, entry.doses[0], 'zh').description, '1 粒，饭后。如有疑问，请问药剂师。') // the unit and punctuation follow the language
+  assert.equal(g.buildEvent({ ...entry, instruction: { count: 2, unit: 'tablet', food: null } }, entry.doses[0]).description, '2 tablets. Ask your pharmacist if unsure.')
+  assert.equal(g.buildEvent({ ...entry, instruction: { count: 10, unit: 'ml', food: 'with' } }, entry.doses[0], 'ms').description, '10 ml, semasa makan. Tanya ahli farmasi jika tidak pasti.')
   // A dose at 23:50 ends after midnight, on the next day.
   assert.equal(g.buildEvent(entry, { id: 'x', time: '23:50' }).end.dateTime, '2026-10-24T00:05:00')
 })
