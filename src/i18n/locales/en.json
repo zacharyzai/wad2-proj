@@ -455,7 +455,19 @@
       "visit": "Doctor's visit",
       "med": "Blood pressure medicine, 30 days",
       "medisave": "Paid by your MediSave",
-      "pay": "You pay"
+      "pay": "You pay",
+      "labelTitle": "Your medicine label",
+      "howMuch": "How much",
+      "oneTablet": "1 tablet",
+      "when": "When",
+      "morning": "Every morning",
+      "food": "Food",
+      "anyFood": "With or without food",
+      "forWhat": "For",
+      "bloodPressure": "High blood pressure",
+      "pick": "Show an example",
+      "billTab": "Bill",
+      "labelTab": "Medicine label"
     },
     "listen": {
       "kicker": "Read aloud in your language",

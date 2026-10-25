@@ -455,7 +455,19 @@
       "visit": "看医生",
       "med": "降血压药，30天",
       "medisave": "保健储蓄已付",
-      "pay": "您需付"
+      "pay": "您需付",
+      "labelTitle": "您的药物标签",
+      "howMuch": "每次",
+      "oneTablet": "1 粒",
+      "when": "时间",
+      "morning": "每天早上",
+      "food": "饮食",
+      "anyFood": "饭前饭后都可以",
+      "forWhat": "用途",
+      "bloodPressure": "高血压",
+      "pick": "查看例子",
+      "billTab": "账单",
+      "labelTab": "药物标签"
     },
     "listen": {
       "kicker": "用您的语言读出来",

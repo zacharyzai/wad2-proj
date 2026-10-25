@@ -53,6 +53,19 @@ function pickHead(i) {
   setLocale(LANGS[i].lang)
 }
 
+// "Snap a photo": the scan frame takes turns showing a bill and a medicine label, every 5 s, each swap re-scanned.
+// Tapping Bill or Medicine label stops it there (WCAG 2.2.2), like the headline. Still with reduced motion.
+const SCAN_ITEMS = ['bill', 'label']
+const scanItem = ref('bill')
+const scanPinned = ref(false)
+const scanTimer = setInterval(() => {
+  if (!scanPinned.value && !reduceMq.matches) scanItem.value = scanItem.value === 'bill' ? 'label' : 'bill'
+}, 5000)
+function pickScan(item) {
+  scanItem.value = item
+  scanPinned.value = true
+}
+
 // Read-aloud demo. shortcut: browser speech only (no cloud TTS fallback like ReadAloud); fine for a demo line.
 const voice = ref(byLocale())
 const speaking = ref(false)
@@ -198,6 +211,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   clearInterval(timer)
+  clearInterval(scanTimer)
   cancelAnimationFrame(raf)
   removeEventListener('scroll', onScroll)
   removeEventListener('scroll', updateNav)
@@ -271,10 +285,12 @@ onBeforeUnmount(() => {
           <h2 id="scan-title" class="title2 serif">{{ t('landing.scan.title') }}</h2>
           <p class="lede">{{ t('landing.scan.text') }}</p>
         </div>
-        <div class="demo">
+        <div class="demo col">
           <div class="frame">
             <span v-for="c in ['tl', 'tr', 'bl', 'br']" :key="c" class="corner" :class="c" aria-hidden="true"></span>
             <div data-fall="2" data-a="0.02" data-b="0.5" data-r0="-14" data-dx="-50" class="paper bill">
+              <!-- Both cards sit in the same spot (the taller one sets the size, so nothing jumps); only one shows at a time. -->
+              <div class="face" :class="{ on: scanItem === 'bill' }" :aria-hidden="scanItem !== 'bill'" data-testid="scan-face-bill">
               <div data-morph="in" data-ma="0.72" data-mb="0.92" class="bill-plain">
                 <div class="bill-head">
                   <span class="strong">{{ t('landing.scan.billTitle') }}</span>
@@ -295,8 +311,42 @@ onBeforeUnmount(() => {
                 <div class="strong"><span>NET PAYABLE</span><span>8.70</span></div>
                 <div class="barcode"></div>
               </div>
+              </div>
+
+              <div class="face" :class="{ on: scanItem === 'label' }" :aria-hidden="scanItem !== 'label'" data-testid="scan-face-label">
+                <div data-morph="in" data-ma="0.72" data-mb="0.92" class="bill-plain">
+                  <div class="bill-head">
+                    <span class="strong">{{ t('landing.scan.labelTitle') }}</span>
+                    <span class="tag">{{ t('landing.scan.plain') }}</span>
+                  </div>
+                  <!-- The medicine name stays as printed; dose numbers stay digits. -->
+                  <div class="label-name serif">Amlodipine 5 mg</div>
+                  <div class="bill-line"><span>{{ t('landing.scan.howMuch') }}</span><b>{{ t('landing.scan.oneTablet') }}</b></div>
+                  <div class="bill-line"><span>{{ t('landing.scan.when') }}</span><b>{{ t('landing.scan.morning') }}</b></div>
+                  <div class="bill-line paid"><span>{{ t('landing.scan.food') }}</span><b>{{ t('landing.scan.anyFood') }}</b></div>
+                  <div class="bill-total"><span class="strong">{{ t('landing.scan.forWhat') }}</span><span class="for">{{ t('landing.scan.bloodPressure') }}</span></div>
+                </div>
+                <!-- Fine print in English on purpose: what a real pharmacy label looks like. -->
+                <div data-morph="out" data-ma="0.7" data-mb="0.88" class="receipt" aria-hidden="true">
+                  <div class="r-title">POLYCLINIC PHARMACY</div>
+                  <div><span>AMLODIPINE BESYLATE 5MG TAB</span></div>
+                  <div><span>TAKE 1 TAB OM</span><span>QTY 30</span></div>
+                  <div><span>FOR HIGH BLOOD PRESSURE</span></div>
+                  <div><span>KEEP OUT OF REACH OF CHILDREN</span></div>
+                  <div class="strong"><span>DISP 24/10/26</span><span>RX 5512093</span></div>
+                  <div class="barcode"></div>
+                </div>
+              </div>
+
               <div data-morph="scan" data-ma="0.5" data-mb="0.72" class="scanline" aria-hidden="true"></div>
+              <!-- Each swap is scanned again: a line sweeps down the new card (restarted by the key). -->
+              <div :key="scanItem" class="rescan" aria-hidden="true"></div>
             </div>
+          </div>
+          <div class="segmented scan-pick" role="group" :aria-label="t('landing.scan.pick')" data-testid="scan-pick">
+            <button v-for="item in SCAN_ITEMS" :key="item" type="button" :aria-pressed="scanItem === item" @click="pickScan(item)">
+              <AppIcon :name="item === 'bill' ? 'receipt' : 'pill'" :size="20" />{{ t(`landing.scan.${item}Tab`) }}
+            </button>
           </div>
         </div>
       </div>
