@@ -3,6 +3,7 @@
 // Contract: docs/google-contract.md
 import { createCipheriv, createDecipheriv, createHash, createHmac, randomBytes, timingSafeEqual } from 'node:crypto'
 import { DOSE_UNITS, WITH_FOOD } from './normalizeScan.js'
+import { jwtSecret } from './auth.js'
 
 const AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth'
 const TOKEN_URL = 'https://oauth2.googleapis.com/token'
@@ -27,7 +28,7 @@ export const isConfigured = () =>
 
 // --- state: proves the callback belongs to the user who pressed Connect ---------------------------------------------------------
 // Signed like a login token, but with `purpose`, so a state (which passes through Google's address bar) can never be used as a login.
-const hmac = (body) => createHmac('sha256', process.env.JWT_SECRET).update(`google-state.${body}`).digest('base64url')
+const hmac = (body) => createHmac('sha256', jwtSecret()).update(`google-state.${body}`).digest('base64url')
 
 export function signState(userId, next, now = Date.now()) {
   const body = Buffer.from(JSON.stringify({ purpose: 'google', sub: String(userId), next, exp: Math.floor(now / 1000) + STATE_SECONDS })).toString('base64url')

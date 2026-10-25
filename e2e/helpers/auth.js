@@ -3,7 +3,7 @@
 // scan and chat routes. The /api/auth/* calls themselves are mocked: tests need no database.
 import { expect } from '@playwright/test'
 
-export const E2E_SECRET = 'e2e-only-secret'
+export const E2E_SECRET = 'e2e-only-secret-for-auth-checks-at-least-32-bytes'
 process.env.JWT_SECRET = E2E_SECRET
 const { signToken } = await import('../../server/services/auth.js')
 

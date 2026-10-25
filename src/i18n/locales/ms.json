@@ -38,6 +38,7 @@
     "account": "Akaun anda"
   },
   "errors": {
+    "AUTH_UNAVAILABLE": "Log masuk dan pendaftaran tidak tersedia buat sementara waktu. Sila cuba lagi nanti.",
     "BAD_REQUEST": "Permintaan tidak sah. Sila cuba lagi.",
     "NOT_FOUND": "Kami tidak dapat menjumpainya.",
     "IMAGE_TOO_LARGE": "Gambar terlalu besar. Sila cuba gambar yang lebih kecil.",

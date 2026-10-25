@@ -3,7 +3,7 @@ import { Router } from 'express'
 import { sendError } from '../errors.js'
 import { withDb } from '../db.js'
 import { User, CITIZENSHIP, INCOME } from '../models/User.js'
-import { hashPassword, signToken, verifyPassword } from '../services/auth.js'
+import { hashPassword, signToken, verifyPassword, jwtSecret } from '../services/auth.js'
 import { requireAuth } from '../middleware/requireAuth.js'
 import { authRateLimit } from '../middleware/rateLimit.js'
 
@@ -40,9 +40,20 @@ export function checkProfile(body, now = new Date()) {
   return { profile: { name, dob, citizenship, citizenSince, income } }
 }
 
-const answer = (res, user, remember) => res.json({ ok: true, data: { token: signToken(user.id, remember), user: user.toPublic() } })
+const answer = (res, user, remember, status = 200) => res.status(status).json({ ok: true, data: { token: signToken(user.id, remember), user: user.toPublic() } })
 
+let dummyHash
 const router = Router()
+router.use((req, res, next) => {
+  res.set('Cache-Control', 'no-store')
+  next()
+})
+function configured(res) {
+  try { jwtSecret(); return true } catch {
+    sendError(res, 503, 'AUTH_UNAVAILABLE', 'Authentication is not configured')
+    return false
+  }
+}
 
 router.post('/signup', authRateLimit, (req, res) => {
   const { email, password, remember = true } = req.body ?? {}
@@ -54,10 +65,11 @@ router.post('/signup', authRateLimit, (req, res) => {
   const { profile, error } = checkProfile(req.body)
   if (error) return sendError(res, 400, 'BAD_REQUEST', error)
 
+  if (!configured(res)) return
   return withDb(res, async () => {
     try {
       const user = await User.create({ ...profile, email: cleanEmail, passwordHash: await hashPassword(password) })
-      answer(res, user, remember)
+      answer(res, user, remember, 201)
     } catch (err) {
       if (err?.code === 11000) return sendError(res, 409, 'EMAIL_TAKEN', 'An account with this email already exists')
       throw err
@@ -69,10 +81,13 @@ router.post('/login', authRateLimit, (req, res) => {
   const { email, password, remember = true } = req.body ?? {}
   if (typeof email !== 'string' || typeof password !== 'string') return sendError(res, 400, 'BAD_REQUEST', 'email and password are required')
 
+  if (!configured(res)) return
   return withDb(res, async () => {
     const user = await User.findOne({ email: email.trim().toLowerCase() })
     // Same answer for "no such email" and "wrong password", so the login form can't be used to find out who has an account.
-    if (!user || !(await verifyPassword(password, user.passwordHash))) return sendError(res, 401, 'WRONG_LOGIN', 'Wrong email or password')
+    dummyHash ??= hashPassword('unused-dummy-password')
+    const matches = await verifyPassword(password, user?.passwordHash ?? await dummyHash)
+    if (!user || !matches) return sendError(res, 401, 'WRONG_LOGIN', 'Wrong email or password')
     answer(res, user, remember)
   })
 })
@@ -90,6 +105,7 @@ router.get('/me', requireAuth, (req, res) =>
 router.patch('/me', requireAuth, (req, res) => {
   const { profile, error } = checkProfile(req.body)
   if (error) return sendError(res, 400, 'BAD_REQUEST', error)
+  if (!configured(res)) return
   return withDb(res, async () => {
     const user = await User.findByIdAndUpdate(req.userId, profile, { returnDocument: 'after', runValidators: true }).catch(() => null)
     if (!user) return sendError(res, 401, 'NOT_LOGGED_IN', 'Please log in')

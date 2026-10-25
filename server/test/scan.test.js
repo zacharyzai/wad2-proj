@@ -5,7 +5,7 @@ import assert from 'node:assert/strict'
 process.env.USE_MOCK_AI = 'true'
 process.env.SCAN_RATE_LIMIT = '6'
 process.env.AI_DAILY_CAP = '1000'
-process.env.JWT_SECRET = 'test-secret'
+process.env.JWT_SECRET = 'test-secret-for-auth-checks-at-least-32-bytes'
 const { default: app } = await import('../app.js')
 const { signToken } = await import('../services/auth.js')
 const AUTH = { authorization: `Bearer ${signToken('test-user', false)}` } // scanning needs an account
