@@ -4,7 +4,7 @@ import { test, before, after, afterEach } from 'node:test'
 import assert from 'node:assert/strict'
 import { randomBytes } from 'node:crypto'
 
-process.env.JWT_SECRET = 'test-secret'
+process.env.JWT_SECRET = 'test-secret-at-least-32-bytes-long!!'
 process.env.GOOGLE_CLIENT_ID = 'test-client.apps.googleusercontent.com'
 process.env.GOOGLE_CLIENT_SECRET = 'test-client-secret'
 process.env.GOOGLE_REDIRECT_URI = 'http://localhost:5173/api/google/callback'

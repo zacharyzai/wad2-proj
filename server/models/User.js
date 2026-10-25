@@ -16,12 +16,15 @@ const userSchema = new mongoose.Schema(
     citizenSince: { type: Number, default: null }, // only when citizenship is 'became'
     income: { type: String, enum: [...INCOME, null], default: null }, // only for citizens
   },
-  { timestamps: true },
+  { timestamps: true, bufferCommands: false },
 )
 
 // What the client may see: never the password hash.
 userSchema.methods.toPublic = function () {
-  return { name: this.name, email: this.email, dob: this.dob, citizenship: this.citizenship, citizenSince: this.citizenSince, income: this.income }
+  return { name: this.name ?? '', email: this.email, dob: this.dob ?? '', citizenship: this.citizenship ?? '', citizenSince: this.citizenSince ?? null, income: this.income ?? null }
 }
 
 export const User = mongoose.models.User ?? mongoose.model('User', userSchema)
+
+// Default export retained for local tooling and the database integration tests.
+export default User

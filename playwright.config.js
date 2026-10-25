@@ -23,7 +23,7 @@ export default defineConfig({
       command: 'node server/index.js',
       url: 'http://localhost:3000/api/health',
       // JWT_SECRET matches e2e/helpers/auth.js, so tests can sign a login token without a database.
-      env: { USE_MOCK_AI: 'true', PORT: '3000', JWT_SECRET: 'e2e-only-secret' },
+      env: { USE_MOCK_AI: 'true', PORT: '3000', JWT_SECRET: 'e2e-only-secret-for-auth-checks-at-least-32-bytes' },
       reuseExistingServer: !process.env.CI,
     },
     {

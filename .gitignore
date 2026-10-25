@@ -10,3 +10,6 @@ dist/
 /playwright-report/
 /playwright/.cache/
 *.log
+
+# Local MongoDB data and development JWT secret
+.local/
