@@ -6,8 +6,11 @@ export const DOSE_UNITS = ['tablet', 'capsule', 'ml', 'puff', 'drop', 'other']
 export const TIMINGS = ['morning', 'afternoon', 'evening', 'bedtime']
 export const WITH_FOOD = ['before', 'after', 'with', 'any']
 export const FREQUENCY_TYPES = ['daily', 'as_needed', 'weekly', 'tapering', 'other']
-export const BILL_CATEGORIES = ['consultation', 'medication', 'investigation', 'procedure', 'other']
-export const SUBSIDY_SCHEMES = ['government', 'chas', 'pioneer', 'merdeka', 'other']
+export const BILL_CATEGORIES = ['consultation', 'medication', 'investigation', 'procedure', 'ward', 'tax', 'other']
+// insurance: MediShield Life, Integrated Shield, private or employer insurance. Lowers what is paid, like a subsidy.
+export const SUBSIDY_SCHEMES = ['government', 'chas', 'pioneer', 'merdeka', 'insurance', 'other']
+// Where the bill is from. It decides which subsidy rules can apply (src/rules/subsidies.js).
+export const BILL_PLACES = ['polyclinic', 'gp', 'dental', 'specialist', 'hospital', 'tcm', 'pharmacy', 'lab', 'other']
 
 const str = (v) => (typeof v === 'string' && v.trim() ? v.trim() : null)
 const num = (v) => (typeof v === 'number' && Number.isFinite(v) && v >= 0 ? v : null)
@@ -63,6 +66,7 @@ export function normalizeBill(raw = {}) {
 
   const bill = {
     clinic: str(raw.clinic),
+    place: oneOf(raw.place, BILL_PLACES),
     visitDate: isoDate(raw.visitDate),
     items,
     subsidies,

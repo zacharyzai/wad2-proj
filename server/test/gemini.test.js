@@ -134,6 +134,15 @@ test('no fallback for a bad request or key, or for an unreadable photo', async (
   assert.equal(calls.length, 1)
 })
 
+test('a clear photo of the wrong kind of document says so, instead of "retake it in good light"', async () => {
+  reply(200, geminiText({ readable: true, otherDocument: true }))
+  await assert.rejects(extractScan('bill', IMG), (e) => e.code === 'WRONG_DOCUMENT' && e.status === 422 && /medical bill/.test(e.message))
+  reply(200, geminiText({ readable: true, otherDocument: true }))
+  await assert.rejects(extractScan('medication', IMG), (e) => e.code === 'WRONG_DOCUMENT' && /medication label/.test(e.message))
+  reply(200, geminiText({ readable: false, otherDocument: false }))
+  await rejectsWith('UNREADABLE_IMAGE')
+})
+
 test('when every model fails: quota everywhere is RATE_LIMITED, anything else AI_UNAVAILABLE', async (t) => {
   process.env.GEMINI_FALLBACK_MODELS = 'backup-1'
   t.after(() => delete process.env.GEMINI_FALLBACK_MODELS)

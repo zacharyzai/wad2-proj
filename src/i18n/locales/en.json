@@ -55,7 +55,8 @@
     "EMAIL_TAKEN": "An account with this email already exists. Try logging in instead.",
     "GOOGLE_NOT_CONNECTED": "Connect Google Calendar first.",
     "GOOGLE_DISCONNECTED": "Google Calendar was disconnected. Please connect it again.",
-    "GOOGLE_UNAVAILABLE": "Google Calendar is not available right now. Please try again later."
+    "GOOGLE_UNAVAILABLE": "Google Calendar is not available right now. Please try again later.",
+    "WRONG_DOCUMENT": "That isn’t the kind of document we can read."
   },
   "home": {
     "title": "What would you like to understand?",
@@ -146,6 +147,16 @@
     "lead": {
       "medication": "Take a clear photo of the label, or upload one.",
       "bill": "Take a clear photo of the whole bill, or upload one."
+    },
+    "wrongDoc": {
+      "bill": {
+        "title": "This doesn’t look like a medical bill",
+        "text": "The photo is clear, but it doesn’t look like a bill from a clinic, hospital or pharmacy. Please check that you picked the right photo."
+      },
+      "medication": {
+        "title": "This doesn’t look like a medicine label",
+        "text": "The photo is clear, but it isn’t a medicine label. To read a bill, use the Bill page."
+      }
     }
   },
   "confirm": {
@@ -228,6 +239,7 @@
     "chas": "CHAS subsidy",
     "pioneer": "Pioneer Generation",
     "merdeka": "Merdeka Generation",
+    "insurance": "Insurance (MediShield Life or other)",
     "other": "Other subsidy"
   },
   "explain": {
@@ -516,13 +528,14 @@
   },
   "bill": {
     "lead": "Tap any line to see what it means.",
-    "scope": "Works best for bills from Singapore polyclinics and GP clinics.",
+    "scope": "Works with medical bills from Singapore clinics, hospitals, dental clinics and pharmacies. Subsidy estimates are for polyclinic, GP and dental bills only.",
     "pay": "You pay {amount}.",
     "summary": {
       "label": "Bill summary",
       "charges": "Total charges",
       "subsidies": "Subsidies",
-      "medisave": "MediSave"
+      "medisave": "MediSave",
+      "subsidiesInsurance": "Subsidies & insurance"
     },
     "charged": "What you were charged",
     "takenOff": "Taken off your bill",
@@ -533,11 +546,14 @@
       "medication": "Medicine",
       "investigation": "Tests",
       "procedure": "Treatment",
+      "ward": "Ward / room",
+      "tax": "GST",
       "other": "Other"
     },
     "tag": {
       "subsidy": "Subsidy",
-      "medisave": "From CPF MediSave"
+      "medisave": "From CPF MediSave",
+      "insurance": "Insurance"
     },
     "medisave": "MediSave",
     "explain": {
@@ -545,12 +561,15 @@
       "medication": "These are the medicines you were given to take home. The price depends on the medicine and how much you got.",
       "investigation": "These are tests that help the doctor check your health, such as blood tests, urine tests or X-rays.",
       "procedure": "This is treatment done during your visit, such as cleaning and dressing a wound, or an injection.",
+      "ward": "This is the charge for your hospital bed and room, usually for each day you stayed.",
+      "tax": "GST (Goods and Services Tax) is a tax added to the bill. It is not a medical charge.",
       "other": "This is another charge, such as dressing materials or a medical memo. Ask at the counter if you are not sure what it is.",
       "scheme": {
         "government": "The government pays part of the cost of your care. This amount has already been taken off your bill.",
         "chas": "CHAS (Community Health Assist Scheme) is a government scheme that helps Singaporeans pay for clinic visits. This amount has already been taken off your bill.",
         "pioneer": "The Pioneer Generation gets extra help with healthcare costs. If you are in it, you have a Pioneer Generation card. This amount has already been taken off your bill.",
         "merdeka": "The Merdeka Generation gets extra help with healthcare costs. If you are in it, you have a Merdeka Generation card. This amount has already been taken off your bill.",
+        "insurance": "MediShield Life or your insurance plan paid this part of the bill. You don’t pay this amount.",
         "other": "Another scheme or discount took this amount off your bill. Ask at the counter which one it is."
       },
       "medisave": "MediSave is your CPF savings for healthcare. Money from it can pay part of some bills, so you pay less in cash.",
@@ -558,7 +577,7 @@
     },
     "none": {
       "title": "No bill to show yet",
-      "text": "Scan your clinic or polyclinic bill, or open a sample bill to see how it works."
+      "text": "Scan a bill from any clinic, hospital or pharmacy, or open a sample bill to see how it works."
     },
     "unchecked": {
       "text": "Please check the details of your bill first.",
@@ -572,7 +591,8 @@
     "samples": {
       "bill1": "Bedok: doctor visit and medicine",
       "bill2": "Tampines: blood tests and MediSave",
-      "bill3": "Marine Parade: wound dressing, Merdeka Generation"
+      "bill3": "Marine Parade: wound dressing, Merdeka Generation",
+      "bill4": "Hospital stay: ward, GST and MediShield Life"
     },
     "rules": {
       "pioneer": "For Singapore citizens born in 1949 or earlier who became citizens by 1986. At polyclinics, you get an extra 50% off the rest of your bill for subsidised services and medicines. You also get extra help at CHAS GP clinics.",
@@ -623,7 +643,8 @@
       "needMore": "Answer more questions to check",
       "notHere": {
         "polyclinic": "Not used at polyclinics",
-        "chasClinic": "Not used at GP clinics"
+        "chasClinic": "Not used at GP clinics",
+        "other": "May not apply at this kind of place. Check with them."
       },
       "saving": "About {amount} less ({percent}% off the bill after subsidies).",
       "checkClinic": "Check with the clinic how much this takes off.",

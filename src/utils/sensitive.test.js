@@ -78,6 +78,24 @@ test('keep-list: only medicine and bill lines are shown; names, addresses and un
   ])
 })
 
+test('keep-list: hospital bill lines are shown; admission number, doctor and payer lines stay black', () => {
+  assert.deepEqual(
+    kept(
+      'MERLION VALLEY GENERAL HOSPITAL',
+      'Bill No : MVGH-2026-0047812', // kept, as on every bill ("bill"): a bill number is not a personal detail
+      'Admission No : IP26-0098341',
+      'Ward / Class : Ward 7B / Class C (Subsidised)',
+      'Discharged : 22/10/2026 10:05',
+      'Attending Doctor : Dr Lim Wei Ming (MCR M99999Z)',
+      'Radiology - Chest X-Ray PA',
+      'Less: MediShield Life Claim',
+      'Payer: Tan Mei Ling (Daughter)',
+      'Bedok North', // "bed" only as a whole word
+    ),
+    ['MERLION VALLEY GENERAL HOSPITAL', 'Bill No : MVGH-2026-0047812', 'Ward / Class : Ward 7B / Class C (Subsidised)', 'Discharged : 22/10/2026 10:05', 'Radiology - Chest X-Ray PA', 'Less: MediShield Life Claim'],
+  )
+})
+
 test('keep-list: personal details on a kept line are still covered', () => {
   const plan = planRedaction(lines('Date of Birth: 15/03/1948', 'Date: 01/09/2026'))
   assert.deepEqual(plan.keep.map((k) => k.text), ['Date of Birth: 15/03/1948', 'Date: 01/09/2026'])

@@ -1,4 +1,4 @@
-// Feature 4: bill breakdown + subsidies from the account (date of birth, citizenship). Samples only (bill-1, bill-2, bill-3), never real AI.
+// Feature 4: bill breakdown + subsidies from the account (date of birth, citizenship). Samples only (bill-1 to bill-4), never real AI.
 // Runs on desktop Chrome and iPhone 6 (playwright.config.js). Rules: src/rules/subsidies.js.
 import { test, expect } from './fixtures.js'
 import AxeBuilder from '@axe-core/playwright'
@@ -7,6 +7,7 @@ import { DEMO_USER, signIn } from './helpers/auth.js'
 const BEDOK = 'Bedok: doctor visit and medicine' // bill-1
 const TAMPINES = 'Tampines: blood tests and MediSave' // bill-2
 const MARINE_PARADE = 'Marine Parade: wound dressing, Merdeka Generation' // bill-3
+const HOSPITAL = 'Hospital stay: ward, GST and MediShield Life' // bill-4
 
 async function openSample(page, name) {
   await page.goto('/bill')
@@ -35,10 +36,10 @@ async function expectNoAxeViolations(page) {
 test.describe('getting to a bill', () => {
   test('with no bill, offers the samples, a scan button and the scope note', async ({ page }) => {
     await page.goto('/bill')
-    await expect(page.getByText('Works best for bills from Singapore polyclinics and GP clinics.')).toBeVisible()
+    await expect(page.getByText('Works with medical bills from Singapore clinics, hospitals, dental clinics and pharmacies.')).toBeVisible()
     await expect(page.getByRole('heading', { name: 'No bill to show yet' })).toBeVisible()
     await expect(page.getByRole('link', { name: 'Scan a bill' })).toBeVisible()
-    await expect(page.getByRole('button', { name: /Sample bill$/ })).toHaveCount(3)
+    await expect(page.getByRole('button', { name: /Sample bill$/ })).toHaveCount(4)
   })
 
   test('a checked bill goes from Explain to the full breakdown', async ({ page }) => {
@@ -96,6 +97,21 @@ test.describe('breakdown', () => {
     await expect(line(page, 'Government subsidy Subsidy −\\$11\\.00')).toBeVisible()
     await expect(line(page, 'Merdeka Generation Subsidy −\\$6\\.00')).toBeVisible()
     await expect(page.getByTestId('bill-total')).toContainText('$17.00')
+  })
+
+  test('bill-4, a hospital stay: ward, GST and a MediShield Life claim; schemes shown as "may not apply here", never estimated', async ({ page }) => {
+    await signIn(page, { ...DEMO_USER, dob: '1945-03-07' }) // a Pioneer
+    await openSample(page, HOSPITAL)
+    await expect(youPay(page, 'You pay $106.53')).toBeVisible()
+    await expect(line(page, 'Daily Ward Charges .* Ward / room \\$140\\.00')).toBeVisible()
+    await expect(line(page, 'GST 9% GST \\$87\\.12')).toBeVisible()
+    await expect(line(page, 'Insurance \\(MediShield Life or other\\) Insurance −\\$150\\.00')).toBeVisible()
+    await expect(page.getByText('Subsidies & insurance')).toBeVisible()
+    await line(page, 'Daily Ward Charges').click()
+    await expect(page.getByText('This is the charge for your hospital bed and room')).toBeVisible()
+    await openSubsidies(page)
+    await expect(page.getByTestId('estimate')).toHaveCount(0) // no official figure for a hospital stay
+    await expect(rule(page, 'chas')).toContainText('May not apply at this kind of place.')
   })
 
   test('tapping a line opens its explanation with read-aloud, one at a time', async ({ page }) => {

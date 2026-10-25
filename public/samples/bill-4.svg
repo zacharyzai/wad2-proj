@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="1236" viewBox="0 0 480 618" font-family="Arial, Helvetica, sans-serif" fill="#111">
+  <rect x="2" y="2" width="476" height="614" rx="6" fill="#fff" stroke="#111" stroke-width="3"/>
+  <text x="240" y="40" font-size="20" font-weight="700" text-anchor="middle">Merlion Valley General Hospital</text>
+  <text x="240" y="64" font-size="15" text-anchor="middle">TAX INVOICE / FINAL BILL · Ward 7B, Class C</text>
+  <text x="240" y="86" font-size="14" text-anchor="middle">Admitted 18/10/2026 · Discharged 22/10/2026</text>
+  <line x1="28" y1="100" x2="452" y2="100" stroke="#111" stroke-width="1.5"/>
+  <text x="28" y="126" font-size="15" font-weight="700">Description</text><text x="452" y="126" font-size="15" font-weight="700" text-anchor="end">Amount (S$)</text>
+  <text x="28" y="154" font-size="15">Daily Ward Charges (4 days x $35.00)</text><text x="452" y="154" font-size="15" text-anchor="end">140.00</text>
+  <text x="28" y="180" font-size="15">Doctor's Daily Treatment Fees</text><text x="452" y="180" font-size="15" text-anchor="end">320.00</text>
+  <text x="28" y="206" font-size="15">Laboratory Investigations (FBC, CRP)</text><text x="452" y="206" font-size="15" text-anchor="end">186.40</text>
+  <text x="28" y="232" font-size="15">Radiology - Chest X-Ray</text><text x="452" y="232" font-size="15" text-anchor="end">62.00</text>
+  <text x="28" y="258" font-size="15">IV Ceftriaxone 1g x 8</text><text x="452" y="258" font-size="15" text-anchor="end">96.80</text>
+  <text x="28" y="284" font-size="15">Oral Azithromycin 500mg x 3</text><text x="452" y="284" font-size="15" text-anchor="end">24.60</text>
+  <text x="28" y="310" font-size="15">Consumables &amp; Nursing Procedures</text><text x="452" y="310" font-size="15" text-anchor="end">58.20</text>
+  <text x="28" y="336" font-size="15">Inpatient Physiotherapy (2 sessions)</text><text x="452" y="336" font-size="15" text-anchor="end">80.00</text>
+  <line x1="28" y1="350" x2="452" y2="350" stroke="#111" stroke-width="1" stroke-dasharray="4 3"/>
+  <text x="28" y="372" font-size="15">Gross Total (before GST)</text><text x="452" y="372" font-size="15" text-anchor="end">968.00</text>
+  <text x="28" y="398" font-size="15">GST 9%</text><text x="452" y="398" font-size="15" text-anchor="end">87.12</text>
+  <text x="28" y="424" font-size="16" font-weight="700">Total Charges</text><text x="452" y="424" font-size="16" font-weight="700" text-anchor="end">1,055.12</text>
+  <text x="28" y="452" font-size="15" fill="#15803d">Less: Government Subsidy (65%)</text><text x="452" y="452" font-size="15" text-anchor="end" fill="#15803d">-685.83</text>
+  <text x="28" y="478" font-size="15" fill="#15803d">Less: Pioneer Generation Subsidy</text><text x="452" y="478" font-size="15" text-anchor="end" fill="#15803d">-52.76</text>
+  <text x="28" y="504" font-size="15" fill="#15803d">Less: MediShield Life Claim</text><text x="452" y="504" font-size="15" text-anchor="end" fill="#15803d">-150.00</text>
+  <text x="28" y="530" font-size="15" fill="#15803d">Less: MediSave Deduction</text><text x="452" y="530" font-size="15" text-anchor="end" fill="#15803d">-60.00</text>
+  <line x1="28" y1="544" x2="452" y2="544" stroke="#111" stroke-width="2"/>
+  <text x="28" y="574" font-size="21" font-weight="700">AMOUNT PAYABLE</text><text x="452" y="574" font-size="21" font-weight="700" text-anchor="end">106.53</text>
+  <text x="240" y="602" font-size="12" font-weight="700" text-anchor="middle" fill="#b91c1c">SAMPLE BILL · FICTIONAL HOSPITAL · NOT A REAL INVOICE</text>
+</svg>
