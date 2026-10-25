@@ -455,7 +455,19 @@
       "visit": "Lawatan doktor",
       "med": "Ubat darah tinggi, 30 hari",
       "medisave": "Dibayar oleh MediSave anda",
-      "pay": "Anda bayar"
+      "pay": "Anda bayar",
+      "labelTitle": "Label ubat anda",
+      "howMuch": "Berapa banyak",
+      "oneTablet": "1 biji",
+      "when": "Bila",
+      "morning": "Setiap pagi",
+      "food": "Makanan",
+      "anyFood": "Sebelum atau selepas makan",
+      "forWhat": "Untuk",
+      "bloodPressure": "Darah tinggi",
+      "pick": "Tunjukkan contoh",
+      "billTab": "Bil",
+      "labelTab": "Label ubat"
     },
     "listen": {
       "kicker": "Dibacakan dalam bahasa anda",

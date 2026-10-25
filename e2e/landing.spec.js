@@ -95,7 +95,7 @@ test('items fall in with scroll and go back up when scrolling back', async ({ pa
   await page.locator('#scan').evaluate((el) => window.scrollTo(0, Math.max(el.offsetTop, el.offsetTop + el.offsetHeight - innerHeight)))
   await expect(billCard(page)).toHaveCSS('transform', 'none')
   await expect(billCard(page)).toHaveCSS('opacity', '1')
-  await expect(page.locator('#scan .receipt')).toHaveCSS('visibility', 'hidden') // the fine print has become plain words
+  await expect(page.locator('[data-testid="scan-face-bill"] .receipt')).toHaveCSS('visibility', 'hidden') // the fine print has become plain words
 
   await page.evaluate(() => window.scrollTo(0, 0))
   await expect(billCard(page)).not.toHaveCSS('transform', 'none')
@@ -111,6 +111,40 @@ test('with reduced motion everything is shown landed and the headline stays in t
   await expect(page.locator('#ask .big-face')).toHaveCSS('opacity', '1')
   await page.waitForTimeout(3600)
   await expect(headline(page)).toHaveText('Fahami bil perubatan anda')
+})
+
+test('"Snap a photo" takes turns showing a bill and a medicine label; tapping one keeps it', async ({ page }) => {
+  await page.clock.install()
+  await page.goto('/welcome')
+  const bill = page.getByTestId('scan-face-bill')
+  const label = page.getByTestId('scan-face-label')
+  const pick = page.getByTestId('scan-pick')
+  await expect(bill).toHaveClass(/\bon\b/)
+  await expect(label).toHaveAttribute('aria-hidden', 'true')
+  await expect(pick.getByRole('button', { name: 'Bill' })).toHaveAttribute('aria-pressed', 'true')
+
+  await page.clock.runFor(5100) // swaps on its own every 5 seconds
+  await expect(label).toHaveClass(/\bon\b/)
+  await expect(label).toContainText('Every morning')
+  await expect(bill).toHaveAttribute('aria-hidden', 'true')
+  await page.clock.runFor(5100)
+  await expect(bill).toHaveClass(/\bon\b/)
+
+  await pick.getByRole('button', { name: 'Medicine label' }).click()
+  await expect(label).toHaveClass(/\bon\b/)
+  await page.clock.runFor(12000) // picked: it stays
+  await expect(label).toHaveClass(/\bon\b/)
+  await expect(pick.getByRole('button', { name: 'Medicine label' })).toHaveAttribute('aria-pressed', 'true')
+})
+
+test('with reduced motion "Snap a photo" never swaps on its own', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await page.clock.install()
+  await page.goto('/welcome')
+  await page.clock.runFor(11000)
+  await expect(page.getByTestId('scan-face-bill')).toHaveClass(/\bon\b/)
+  await page.getByTestId('scan-pick').getByRole('button', { name: 'Medicine label' }).click()
+  await expect(page.getByTestId('scan-face-label')).toHaveClass(/\bon\b/)
 })
 
 test('read-aloud demo: pick a language, tap the speaker, tap again to stop', async ({ page }) => {
