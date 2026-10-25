@@ -4,6 +4,7 @@ import { test, expect } from './fixtures.js'
 test('skip link jumps past the navigation', async ({ page, browserName }) => {
   test.skip(browserName === 'webkit', 'Safari only tabs to links with a system setting')
   await page.goto('/')
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible() // the app shows once the first page has loaded
   await page.keyboard.press('Tab')
   const skip = page.getByRole('link', { name: 'Skip to main content' })
   await expect(skip).toBeFocused()

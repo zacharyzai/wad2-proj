@@ -17,9 +17,9 @@
 /* Medication tile: the sample labels slide past, endlessly (the track holds the list twice; moving it by half loops seamlessly). */
 .labels { display: block; width: calc(100% + 48px); margin: auto -24px -24px; padding: 6px 0 22px; overflow: hidden; -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent); mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent); }
 .labels-track { display: flex; gap: 16px; width: max-content; animation: labels-slide 32s linear infinite; }
-.labels img { width: 210px; flex: none; border-radius: 10px; background: #fff; box-shadow: var(--shadow-card); }
-.labels img:nth-child(odd) { transform: rotate(-2deg); }
-.labels img:nth-child(even) { transform: rotate(2deg) translateY(6px); }
+.labels img { width: 210px; height: auto; flex: none; border-radius: 10px; background: #fff; box-shadow: var(--shadow-card); transform: rotate(-2deg); }
+/* Tilt by position within each copy of the list (3 labels), so both copies match and the loop point is invisible. */
+.labels img:nth-child(3n + 2) { transform: rotate(2deg) translateY(6px); }
 @keyframes labels-slide { to { transform: translateX(calc(-50% - 8px)); } }
 
 /* Bill tile: a receipt that never ends, feeding down out of a printer slot. */
@@ -27,7 +27,7 @@
 .receipt-slot { flex: none; width: 112%; height: 12px; border-radius: 0 0 8px 8px; background: var(--color-text); opacity: 0.85; position: relative; z-index: 1; }
 .receipt-paper { flex: 1; width: 100%; overflow: hidden; background: #fff; box-shadow: var(--shadow-card); -webkit-mask-image: linear-gradient(#000 65%, transparent); mask-image: linear-gradient(#000 65%, transparent); }
 .receipt-track { display: flex; flex-direction: column; animation: receipt-feed 26s linear infinite; }
-.receipt img { display: block; width: 100%; border-bottom: 2px dashed #c9c2b6; } /* a tear line between bills */
+.receipt img { display: block; width: 100%; height: auto; border-bottom: 2px dashed #c9c2b6; } /* a tear line between bills */
 @keyframes receipt-feed { from { transform: translateY(-50%); } to { transform: translateY(0); } }
 
 .tile-link:hover :is(.labels-track, .receipt-track), .tile-link:focus-visible :is(.labels-track, .receipt-track) { animation-play-state: paused; }
@@ -53,5 +53,5 @@
   .b-samples .sample-link { min-height: var(--z56, 56px); padding: 10px 12px; gap: 10px; font-size: 17px; }
   .home-hero { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); }
   .hero-art { display: grid; place-items: center; aspect-ratio: 4 / 3.4; padding: 28px; border: 1px dashed rgba(255, 255, 255, 0.45); border-radius: 22px; background: repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0 12px, rgba(255, 255, 255, 0.03) 12px 24px); }
-  .hero-label { width: 86%; transform: rotate(-4deg); border-radius: 14px; background: #fff; box-shadow: 0 18px 40px rgba(0, 0, 0, 0.3); }
+  .hero-label { width: 86%; height: auto; transform: rotate(-4deg); border-radius: 14px; background: #fff; box-shadow: 0 18px 40px rgba(0, 0, 0, 0.3); }
 }

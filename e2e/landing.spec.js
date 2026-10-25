@@ -1,7 +1,7 @@
 // Welcome page (/welcome): shown once to first-time visitors. Cycling headline, scroll-tied falling items, read-aloud demo, axe.
 import { test, expect } from './fixtures.js'
 import AxeBuilder from '@axe-core/playwright'
-import { signIn } from './helpers/auth.js'
+import { signIn, mockAuth, fillLogin, DEMO_USER } from './helpers/auth.js'
 
 // These tests are first-time visitors: no "seen" flag (the config gives every other test one).
 test.use({ storageState: { cookies: [], origins: [] }, loggedIn: false })
@@ -26,6 +26,39 @@ test('someone with a login on this device skips the welcome page', async ({ page
   await signIn(page)
   await page.goto('/')
   await expect(page).toHaveURL(/\/$/)
+})
+
+test('someone with an account who never saw the welcome page goes to Log in after logging out, not the welcome page', async ({ page }) => {
+  await mockAuth(page)
+  await page.goto('/login') // straight to Log in, e.g. from a link
+  await fillLogin(page)
+  await expect(page).toHaveURL(/\/$/)
+  await page.evaluate(() => {
+    localStorage.removeItem('token')
+    localStorage.removeItem('user')
+  }) // logged out
+  await page.goto('/')
+  await expect(page).toHaveURL(/\/login$/)
+})
+
+test('signed in before: Home opens straight away, without waiting for the server', async ({ page }) => {
+  await signIn(page)
+  await page.addInitScript((user) => localStorage.setItem('user', JSON.stringify(user)), DEMO_USER)
+  let answer
+  await page.route('**/api/auth/me', (route) => (answer = () => route.fulfill({ json: { ok: true, data: { user: DEMO_USER } } }))) // held until released
+  await page.goto('/')
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible({ timeout: 2000 })
+  await expect(page).toHaveURL(/\/$/)
+  answer()
+})
+
+test('signed in before, but the server no longer accepts that login: off to Log in, and the saved copy is gone', async ({ page }) => {
+  await signIn(page)
+  await page.addInitScript((user) => localStorage.setItem('user', JSON.stringify(user)), DEMO_USER)
+  await page.route('**/api/auth/me', (route) => route.fulfill({ status: 401, json: { ok: false, error: { code: 'NOT_LOGGED_IN', message: 'Please log in' } } }))
+  await page.goto('/account')
+  await expect(page).toHaveURL(/\/login/)
+  expect(await page.evaluate(() => [localStorage.getItem('token'), localStorage.getItem('user')])).toEqual([null, null])
 })
 
 test('both "Try me out" buttons go to Create account, then on to Scan', async ({ page }) => {
