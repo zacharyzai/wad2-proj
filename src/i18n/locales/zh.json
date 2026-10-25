@@ -38,6 +38,7 @@
     "account": "我的账户"
   },
   "errors": {
+    "AUTH_UNAVAILABLE": "暂时无法登录或注册，请稍后再试。",
     "BAD_REQUEST": "请求有误，请再试一次。",
     "NOT_FOUND": "找不到相关内容。",
     "IMAGE_TOO_LARGE": "照片太大，请换一张较小的照片。",

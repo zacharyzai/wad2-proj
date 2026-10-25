@@ -21,6 +21,9 @@ pnpm server   # API on http://localhost:3000 (auto-restarts on change)
 pnpm dev      # app on http://localhost:5173 (proxies /api to the API)
 ```
 
+## Shared Atlas and local MongoDB
+Follow [docs/atlas.md](docs/atlas.md) for team access. Run `pnpm atlas:configure` to configure your ignored `.env`, then `pnpm db:check` and `pnpm server` to use the shared Atlas database. For isolated manual testing use `pnpm server:local` instead; automated auth integration tests create disposable MongoDB instances.
+
 ## Demo accounts
 Every page needs an account. These five fake people each show a different subsidy result on the Bill page (their date of birth, citizenship and household income come from the account; the Bill page asks nothing). Password for all: `Demo1234!`
 

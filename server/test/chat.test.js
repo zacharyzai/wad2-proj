@@ -6,7 +6,7 @@ import med1 from '../fixtures/med-1.json' with { type: 'json' }
 
 process.env.USE_MOCK_AI = 'true'
 process.env.CHAT_RATE_LIMIT = '50'
-process.env.JWT_SECRET = 'test-secret'
+process.env.JWT_SECRET = 'test-secret-for-auth-checks-at-least-32-bytes'
 const { default: app } = await import('../app.js')
 const { signToken } = await import('../services/auth.js')
 const AUTH = { authorization: `Bearer ${signToken('test-user', false)}` } // chat needs an account

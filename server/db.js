@@ -1,13 +1,25 @@
-// One MongoDB connection, opened on first use and reused (serverless functions keep it between requests while warm).
 import mongoose from 'mongoose'
+import { User } from './models/User.js'
 
-let connecting = null
-
-export function connectDb() {
-  if (!process.env.MONGODB_URI) return Promise.reject(new Error('MONGODB_URI is not set'))
-  connecting ??= mongoose.connect(process.env.MONGODB_URI, { serverSelectionTimeoutMS: 8000 }).catch((err) => {
-    connecting = null // let the next request try again
-    throw err
-  })
-  return connecting
+let pending
+export async function connectDb() {
+  if (pending) return pending
+  if (mongoose.connection.readyState === 1) return
+  if (!process.env.MONGODB_URI) throw new Error('MONGODB_URI is required')
+  pending = (async () => {
+    try {
+      await mongoose.connect(process.env.MONGODB_URI, {
+        serverSelectionTimeoutMS: 5000, connectTimeoutMS: 5000, maxPoolSize: 10,
+      })
+      // Ensure concurrent signups cannot create duplicate emails.
+      await User.init()
+    } catch (error) {
+      await mongoose.disconnect()
+      throw error
+    }
+  })()
+  try { await pending } finally { pending = null }
 }
+
+// Existing local MongoDB launcher and diagnostics use this name.
+export const connectDatabase = connectDb
