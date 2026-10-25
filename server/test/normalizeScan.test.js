@@ -45,3 +45,35 @@ test('bill: unreadable lines are flagged and unknown enums fall back to other', 
   assert.deepEqual(scan.unclear, ['bill.items.0.description', 'bill.items.0.amountCents'])
   assert.deepEqual(normalizeBill({}).unclear, ['bill.items', 'bill.medisaveCents', 'bill.totalPayableCents'])
 })
+
+// Eastwater General Hospital (01_public_hospital_inpatient): lines printed as Gross / Subsidy / Net.
+const NET_BILL = {
+  clinic: 'Eastwater General Hospital',
+  place: 'hospital',
+  items: [
+    { description: 'Ward & Daily Treatment (6 days)', category: 'ward', amount: 483 },
+    { description: 'Surgery — Hemiarthroplasty', category: 'procedure', amount: 1487.5 },
+    { description: 'Implant — Bipolar Hip Prosthesis', category: 'procedure', amount: 1092 },
+    { description: 'Anaesthesia', category: 'procedure', amount: 336 },
+    { description: 'Investigations (Lab / X-Ray / ECG)', category: 'investigation', amount: 249.38 },
+    { description: 'Medications & Consumables', category: 'medication', amount: 188.41 },
+    { description: 'Rehabilitation (PT x4, OT x2)', category: 'procedure', amount: 147 },
+    { description: 'GST 9%', category: 'tax', amount: 358.5 },
+  ],
+  subsidies: [
+    { scheme: 'government', amount: 7397.51, includedInItems: true }, // already inside the net lines
+    { scheme: 'insurance', amount: 2850 },
+    { scheme: 'merdeka', amount: 217.09 },
+  ],
+  medisave: 1094.7,
+  totalPayable: 180,
+}
+
+test('bill with net lines: the subsidy inside them is kept but not subtracted again, so the total checks out', () => {
+  const { bill, unclear } = normalizeBill(NET_BILL)
+  assert.deepEqual(unclear, []) // 4341.79 − 2850 − 217.09 − 1094.70 = 180.00
+  assert.deepEqual(bill.subsidies.map((s) => [s.scheme, s.includedInItems]), [['government', true], ['insurance', false], ['merdeka', false]])
+  // Taking the government subsidy off again would not add up: flagged for the user to check.
+  const twice = normalizeBill({ ...NET_BILL, subsidies: NET_BILL.subsidies.map((s) => ({ ...s, includedInItems: false })) })
+  assert.ok(twice.unclear.includes('bill.totalPayableCents'))
+})

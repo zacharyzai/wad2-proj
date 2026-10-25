@@ -59,7 +59,8 @@ export function normalizeBill(raw = {}) {
   })
 
   const subsidies = list(raw.subsidies).map((line, i) => {
-    const subsidy = { scheme: oneOf(line?.scheme, SUBSIDY_SCHEMES) ?? 'other', amountCents: cents(line?.amount) }
+    // includedInItems: already taken off the (net) item amounts, so shown but never subtracted again.
+    const subsidy = { scheme: oneOf(line?.scheme, SUBSIDY_SCHEMES) ?? 'other', amountCents: cents(line?.amount), includedInItems: line?.includedInItems === true }
     if (subsidy.amountCents === null) unclear.push(`bill.subsidies.${i}.amountCents`)
     return subsidy
   })
@@ -81,7 +82,7 @@ export function normalizeBill(raw = {}) {
   } else if (!unclear.length) {
     // Cross-check the AI's arithmetic; if it doesn't add up, ask the user to confirm the total.
     const sum = (xs) => xs.reduce((t, x) => t + x.amountCents, 0)
-    if (sum(items) - sum(subsidies) - bill.medisaveCents !== bill.totalPayableCents) unclear.push('bill.totalPayableCents')
+    if (sum(items) - sum(subsidies.filter((s) => !s.includedInItems)) - bill.medisaveCents !== bill.totalPayableCents) unclear.push('bill.totalPayableCents')
   }
 
   return { type: 'bill', source: 'ai', unclear, bill }

@@ -15,6 +15,19 @@ test('NRIC/FIN: full, masked, OCR look-alikes and split across words', () => {
   assert.deepEqual(covered('G1234567 X'), ['G1234567', 'X'])
 })
 
+test('an NRIC whose check letter the reader got wrong or lost is still covered', () => {
+  assert.deepEqual(covered('NRIC S0000588)'), ['S0000588)']) // "J" read as ")"
+  assert.deepEqual(covered('Ref S0000588'), ['S0000588'])
+  assert.deepEqual(covered('Ward 54 / B2 Table 6B'), []) // ward and table codes are not NRICs
+})
+
+test('whoever pays is covered too: account holder, payer, next of kin', () => {
+  // Real reader output from a hospital bill (01_public_hospital_inpatient).
+  assert.deepEqual(covered('MediSave account holder: Ong Kok Leong (Son), NRIC S0000588)'), ['Ong', 'Kok', 'Leong', '(Son),', 'NRIC', 'S0000588)'])
+  assert.deepEqual(covered('Payer: Tan Mei Ling (Daughter)'), ['Tan', 'Mei', 'Ling', '(Daughter)'])
+  assert.deepEqual(covered('Next of kin: Lim Ah Beng'), ['Lim', 'Ah', 'Beng'])
+})
+
 test('labelled fields cover their value, on the same line or the next', () => {
   assert.deepEqual(covered('Name: TAN AH KOW'), ['TAN', 'AH', 'KOW'])
   assert.deepEqual(covered('Patient Name TAN AH KOW'), ['TAN', 'AH', 'KOW'])

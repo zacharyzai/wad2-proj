@@ -59,6 +59,7 @@ test('real profile signup, account editing, session restoration and protected sc
   await page.reload()
   await expect(page.getByTestId('account-name')).toContainText('Updated Browser Citizen')
   await page.getByTestId('account-logout').click()
+  await page.getByTestId('account-logout-yes').click() // asks first (H5)
 
   await page.goto('/signup')
   await fillSignup(page, email, password)

@@ -57,7 +57,8 @@ test('signed in before, but the server no longer accepts that login: off to Log 
   await page.addInitScript((user) => localStorage.setItem('user', JSON.stringify(user)), DEMO_USER)
   await page.route('**/api/auth/me', (route) => route.fulfill({ status: 401, json: { ok: false, error: { code: 'NOT_LOGGED_IN', message: 'Please log in' } } }))
   await page.goto('/account')
-  await expect(page).toHaveURL(/\/login/)
+  await expect(page).toHaveURL(/\/login\?expired=1$/)
+  await expect(page.getByTestId('login-error')).toHaveText(/You were logged out/) // says why (H1)
   expect(await page.evaluate(() => [localStorage.getItem('token'), localStorage.getItem('user')])).toEqual([null, null])
 })
 

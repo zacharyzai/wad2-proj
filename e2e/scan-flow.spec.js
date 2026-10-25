@@ -145,11 +145,64 @@ test('a bill photo on the medicine Scan asks "Was this meant for a medical bill?
 
 test('… and No says the photo doesn\'t match a medicine label, with ways to fix it', async ({ page }) => {
   await mockBillSentAsLabel(page)
+  await expect(page.getByTestId('scan-other-no')).toHaveText('No, it’s a medicine label') // says what "No" means (H2)
   await page.getByTestId('scan-other-no').click()
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('This photo doesn’t match a medicine label')
   await expect(page.getByRole('alert')).toContainText('Take a photo of the medicine label instead.')
   await expect(page.getByRole('button', { name: 'Upload a different photo' })).toBeVisible()
   await expect(page.getByTestId('scan-other-yes')).toHaveCount(0)
+})
+
+test('Confirm: leaving with corrections asks first; Keep checking stays, Throw away leaves (H3, H5)', async ({ page }) => {
+  await openSample(page, 'Metformin label')
+  await expect(page.locator('img[src="/samples/med-1.svg"]').first()).toBeAttached() // the sample's picture, to check against (H6)
+  await page.getByLabel('Medicine name').fill('Metformin XR')
+  await page.getByRole('button', { name: 'Back' }).click()
+  await expect(page.getByTestId('confirm-discard')).toContainText('Throw away your changes?')
+  await expect(page.getByTestId('confirm-keep')).toBeFocused()
+  await page.getByTestId('confirm-keep').click()
+  await expect(page).toHaveURL(/\/scan\/confirm$/)
+  await expect(page.getByLabel('Medicine name')).toHaveValue('Metformin XR') // nothing lost
+
+  await page.getByRole('link', { name: 'Ask', exact: true }).first().click() // a tab counts as leaving too
+  await expect(page.getByTestId('confirm-discard')).toBeVisible()
+  await page.getByTestId('confirm-discard-yes').click()
+  await expect(page).toHaveURL(/\/ask$/)
+})
+
+test('Confirm: no question when nothing changed, or after Looks correct', async ({ page }) => {
+  await openSample(page, 'Metformin label')
+  await page.getByRole('button', { name: 'Back' }).click()
+  await expect(page).toHaveURL(/\/scan$/)
+  await openSample(page, 'Metformin label')
+  await page.getByLabel('Medicine name').fill('Metformin XR')
+  await page.getByRole('button', { name: 'Looks correct' }).click()
+  await expect(page).toHaveURL(/\/scan\/explain$/)
+})
+
+test('Confirm: impossible doses are flagged with what to fix, and block Looks correct (H5)', async ({ page }) => {
+  await openSample(page, 'Metformin label')
+  const ok = page.getByRole('button', { name: 'Looks correct' })
+  await page.locator('#f-amount').fill('0')
+  await expect(page.getByText('This must be more than 0.')).toBeVisible()
+  await expect(ok).toBeDisabled()
+  await page.locator('#f-amount').fill('1')
+  await page.locator('#f-times').fill('20')
+  await expect(page.getByText('Times a day must be a whole number from 1 to 6.')).toBeVisible()
+  await page.locator('#f-times').fill('2')
+  await expect(ok).toBeEnabled()
+  // 2 times a day, but only Morning ticked.
+  await page.getByRole('button', { name: 'Evening' }).click()
+  await expect(page.getByText('You ticked 1 time of day, but it says 2 times a day.')).toBeVisible()
+  await expect(ok).toBeDisabled()
+  await page.getByRole('button', { name: 'Evening' }).click()
+  await expect(ok).toBeEnabled()
+})
+
+test('Scan errors can be read aloud (H10)', async ({ page }) => {
+  await page.route('**/api/scan', (route) => route.fulfill({ status: 503, json: { ok: false, error: { code: 'AI_UNAVAILABLE', message: 'down' } } }))
+  await openSample(page, 'Metformin label')
+  await expect(page.getByRole('button', { name: 'Read aloud' })).toBeVisible()
 })
 
 test('explanation follows the language switch', async ({ page }) => {

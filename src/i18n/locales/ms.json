@@ -39,11 +39,11 @@
   },
   "errors": {
     "AUTH_UNAVAILABLE": "Log masuk dan pendaftaran tidak tersedia buat sementara waktu. Sila cuba lagi nanti.",
-    "BAD_REQUEST": "Permintaan tidak sah. Sila cuba lagi.",
+    "BAD_REQUEST": "Kami tidak dapat menggunakannya. Sila cuba lagi.",
     "NOT_FOUND": "Kami tidak dapat menjumpainya.",
     "IMAGE_TOO_LARGE": "Gambar terlalu besar. Sila cuba gambar yang lebih kecil.",
     "UNREADABLE_IMAGE": "Gambar tidak dapat dibaca. Sila ambil semula di tempat yang terang.",
-    "RATE_LIMITED": "Terlalu banyak imbasan. Sila tunggu sebentar dan cuba lagi.",
+    "RATE_LIMITED": "Terlalu banyak cubaan sekarang. Sila tunggu beberapa minit, atau cuba contoh.",
     "AI_UNAVAILABLE": "Imbasan tidak tersedia sekarang. Cuba contoh dahulu.",
     "NOT_IMPLEMENTED": "Ciri ini akan datang.",
     "SERVER_ERROR": "Ada masalah. Sila cuba lagi.",
@@ -59,7 +59,8 @@
     "WRONG_DOCUMENT": "Itu bukan jenis dokumen yang boleh kami baca.",
     "LOOKS_LIKE_BILL": "Ini kelihatan seperti bil perubatan, bukan label ubat.",
     "LOOKS_LIKE_LABEL": "Ini kelihatan seperti label ubat, bukan bil perubatan.",
-    "MISMATCH": "Gambar ini tidak sepadan dengan apa yang anda pilih untuk diimbas."
+    "MISMATCH": "Gambar ini tidak sepadan dengan apa yang anda pilih untuk diimbas.",
+    "SESSION_ENDED": "Anda telah dilog keluar. Sila log masuk semula."
   },
   "home": {
     "title": "Apa yang anda ingin fahami?",
@@ -165,14 +166,15 @@
       "bill": {
         "title": "Ini kelihatan seperti bil perubatan",
         "question": "Anda memilih label ubat. Adakah ini sepatutnya bil perubatan?",
-        "yes": "Ya, baca sebagai bil"
+        "yes": "Ya, baca sebagai bil",
+        "no": "Tidak, ini label ubat"
       },
       "medication": {
         "title": "Ini kelihatan seperti label ubat",
         "question": "Anda memilih bil perubatan. Adakah ini sepatutnya label ubat?",
-        "yes": "Ya, baca sebagai label"
-      },
-      "no": "Tidak"
+        "yes": "Ya, baca sebagai label",
+        "no": "Tidak, ini bil"
+      }
     },
     "mismatch": {
       "medication": {
@@ -231,6 +233,17 @@
       "photo": "Gambar",
       "check": "Semak",
       "explain": "Terangkan"
+    },
+    "bad": {
+      "amount": "Nombor ini mesti lebih daripada 0.",
+      "times": "Kali sehari mesti nombor bulat dari 1 hingga 6.",
+      "timing": "Anda menanda {ticked} waktu, tetapi ia menyatakan {times} kali sehari. Tanda waktu yang betul, atau ubah nombornya."
+    },
+    "discard": {
+      "title": "Buang perubahan anda?",
+      "text": "Anda telah mengubah beberapa butiran. Jika anda keluar sekarang, perubahan itu akan hilang.",
+      "keep": "Teruskan menyemak",
+      "yes": "Buang dan keluar"
     }
   },
   "unit": {
@@ -324,7 +337,7 @@
   },
   "player": {
     "reading": "Dibaca dalam Bahasa Melayu",
-    "play": "Main",
+    "play": "Baca dengan kuat",
     "pause": "Jeda",
     "replay": "Main semula",
     "speed": "Kelajuan",
@@ -401,7 +414,10 @@
       "removed": "{name} dibuang",
       "undo": "Batal buang"
     },
-    "placeholder": "Tanya tentang ubat anda…"
+    "placeholder": "Tanya tentang ubat anda…",
+    "newChat": "Perbualan baharu",
+    "cleared": "Perbualan dipadam.",
+    "left": "{n} huruf lagi"
   },
   "common": {
     "retry": "Cuba lagi",
@@ -475,7 +491,11 @@
       "private": "Nama dan NRIC anda dihitamkan pada telefon sebelum apa-apa dibaca."
     },
     "promiseLabel": "Apa yang anda dapat",
-    "about": "Baru di sini? Lihat cara ia berfungsi"
+    "about": "Baru di sini? Lihat cara ia berfungsi",
+    "forgot": {
+      "title": "Lupa kata laluan?",
+      "text": "Kata laluan belum boleh ditetapkan semula dalam aplikasi. Tanya ahli keluarga yang membantu membuka akaun anda, atau buka akaun baharu dengan e-mel lain. Ubat yang disimpan di telefon ini kekal."
+    }
   },
   "landing": {
     "hero": {
@@ -561,7 +581,8 @@
       "charges": "Jumlah caj",
       "subsidies": "Subsidi",
       "medisave": "MediSave",
-      "subsidiesInsurance": "Subsidi & insurans"
+      "subsidiesInsurance": "Subsidi & insurans",
+      "chargesNet": "Caj selepas subsidi"
     },
     "charged": "Caj anda",
     "takenOff": "Ditolak daripada bil anda",
@@ -691,7 +712,8 @@
     },
     "basis": "Disemak dengan butiran akaun anda: lahir {year}, {status}.",
     "basisChange": "Ubah butiran saya",
-    "closeBill": "Tutup bil ini"
+    "closeBill": "Tutup bil ini",
+    "inLines": "Sudah ditolak daripada caj di atas"
   },
   "account": {
     "toast": "Tetapan disimpan",
@@ -704,7 +726,9 @@
     "edit": "Ubah butiran saya",
     "editTitle": "Ubah butiran anda",
     "save": "Simpan",
-    "cancel": "Batal"
+    "cancel": "Batal",
+    "logoutAsk": "Log keluar dari telefon atau komputer ini?",
+    "logoutNote": "Anda perlu e-mel dan kata laluan untuk log masuk semula."
   },
   "guide": {
     "open": "Cara guna aplikasi",

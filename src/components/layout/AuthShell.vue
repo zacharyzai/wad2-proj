@@ -119,6 +119,9 @@ const PROMISES = [
 .auth-check { display: flex; align-items: center; gap: 12px; min-height: var(--hit); font-size: 18px; font-weight: 600; cursor: pointer; }
 .auth-check input { width: 26px; height: 26px; flex: none; accent-color: var(--color-primary); }
 .auth-help { display: block; margin-top: var(--s-2); font-size: var(--fs-small); line-height: 1.45; color: var(--color-text-muted); }
+/* "Forgot your password?": a big, plain tap target that opens a short help text (Login). */
+.auth-forgot summary { display: inline-flex; align-items: center; min-height: var(--hit); font-size: 18px; font-weight: 700; color: var(--color-link); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.auth-forgot summary::-webkit-details-marker { display: none; }
 .auth-warn { display: flex; gap: 8px; align-items: flex-start; margin-top: var(--s-2); color: var(--color-danger-text); font-size: var(--fs-small); font-weight: 600; line-height: 1.45; }
 .auth-note { display: flex; gap: var(--s-2); margin: 0; font-size: var(--fs-small); line-height: 1.5; color: var(--color-text-muted); }
 .auth-note .icon { flex: none; margin-top: 1px; color: var(--color-primary-text); }

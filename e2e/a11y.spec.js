@@ -29,3 +29,16 @@ test('a new page opens at the top with its heading focused', async ({ page }) =>
   await page.getByRole('link', { name: 'Back' }).click()
   await expect(page.getByRole('heading', { level: 1, name: 'Check what we read' })).toBeFocused()
 })
+
+test('a page change starts the new page at the top straight away (no fade-in scrolled down, then a jump)', async ({ page, isMobile }) => {
+  test.skip(!isMobile, 'the phone tab bar')
+  await page.goto('/')
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
+  await page.mouse.wheel(0, 500)
+  await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(100)
+  await page.locator('.nav').getByRole('link', { name: 'Scan', exact: true }).click()
+  await expect.poll(() => page.evaluate(() => scrollY), { timeout: 150 }).toBe(0) // well before the 400ms fade ends
+  await expect(page.locator('.nav')).toHaveCSS('view-transition-name', 'tabs') // the tab bar stays on top of the page change
+  await page.goBack()
+  await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(100) // Back returns to where Home was
+})

@@ -70,7 +70,7 @@ const SCHEMAS = {
     place: E(BILL_PLACES),
     visitDate: S,
     items: { type: 'ARRAY', items: obj({ description: S, category: E(BILL_CATEGORIES), amount: N }) },
-    subsidies: { type: 'ARRAY', items: obj({ scheme: E(SUBSIDY_SCHEMES), amount: N }) },
+    subsidies: { type: 'ARRAY', items: obj({ scheme: E(SUBSIDY_SCHEMES), amount: N, includedInItems: { type: 'BOOLEAN' } }) },
     medisave: N,
     totalPayable: N,
   }),
@@ -103,11 +103,14 @@ Extract the bill.
 - items: each charge line with its description as printed, a category, and the amount in SGD dollars (e.g. 14.50).
   category: consultation (doctor or dentist fees), medication, investigation (lab tests, X-rays, scans), procedure
   (treatment, surgery, therapy, nursing, consumables), ward (ward, bed or room charges), tax (GST), otherwise other.
-  Do not list subtotals or totals as items.
+  Do not list subtotals or totals as items. If the bill gives each line a gross and a net (after subsidy) amount, use the
+  NET amount for every item, and mark the subsidy already taken off those lines with "includedInItems": true.
+  GST is its own "tax" item.
 - subsidies: each subsidy, deduction or claim that lowers what the patient pays (not MediSave). scheme: "government" for
   government/polyclinic/ward subsidy, "chas" for CHAS, "pioneer" for Pioneer Generation (PG), "merdeka" for Merdeka
   Generation (MG), "insurance" for MediShield Life, Integrated Shield, private or employer insurance, otherwise "other".
-  amount as a positive number.
+  amount as a positive number. includedInItems: true only for a subsidy already taken off the item amounts you listed
+  (net lines); otherwise false.
 - medisave: amount paid by MediSave in dollars, 0 if there is no MediSave line.
 - totalPayable: the final amount the patient pays in cash, card or NETS, in dollars.
 - visitDate as YYYY-MM-DD (the visit date, or the discharge date for a hospital stay). clinic: the clinic or hospital name.

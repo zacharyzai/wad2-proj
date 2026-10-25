@@ -87,3 +87,6 @@
   .toast-undo { left: auto; right: 32px; bottom: 32px; }
 }
 .name-error { color: var(--color-danger-text); font-weight: 600; }
+
+/* "New conversation": top right of the thread, out of the way of the answers. */
+.thread-tools { display: flex; justify-content: flex-end; }

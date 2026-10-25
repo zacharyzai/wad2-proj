@@ -14,4 +14,6 @@ export const MEDISAVE_STYLE = { icon: 'wallet', tone: 'rose' }
 
 // Money stays in integer cents for every sum; it only becomes dollars here, for display.
 export const money = (cents) => '$' + (cents / 100).toFixed(2)
-export const sumCents = (lines) => lines.reduce((total, line) => total + line.amountCents, 0)
+export const sumCents = (lines) => lines.reduce((total, line) => total + (line.amountCents ?? 0), 0)
+// Subsidies that still come off the charges. One already taken off each (net) line is shown, but not subtracted again.
+export const deducted = (subsidies) => subsidies.filter((s) => !s.includedInItems)

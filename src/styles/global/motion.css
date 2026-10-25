@@ -29,8 +29,16 @@
 ::view-transition-old(page) { animation: vt-out 110ms ease-in both; }
 ::view-transition-new(page) { animation: vt-in 300ms var(--ease-out) 90ms both; }
 ::view-transition-group(page-footer) { animation-duration: 380ms; animation-timing-function: var(--ease-out); }
+/* Phones: the bottom tab bar is its own layer above the page, so a page change never slides over it or covers it. */
+.nav { view-transition-name: tabs; }
+::view-transition-group(tabs), ::view-transition-old(tabs), ::view-transition-new(tabs) { animation: none; }
+::view-transition-old(tabs) { display: none; } /* only the new bar (new page highlighted), straight away */
 /* The sidebar and tab bar don't fade: they swap at once (only the highlighted item changes), so they never flicker pale. */
-::view-transition-old(root), ::view-transition-new(root) { animation: none; }
+::view-transition-old(root) { animation: none; }
+/* The new frame (on phones: the header at the top) appears once the old page has faded out (110ms), so it never shows
+   through the fading old page. The new page then fades in on top. */
+::view-transition-new(root) { animation: vt-show 0s 110ms both; }
+@keyframes vt-show { from { opacity: 0; } }
 ::view-transition-group(scan-photo) { animation-duration: 420ms; animation-timing-function: var(--ease-out); }
 @keyframes vt-out { to { opacity: 0; } }
 @keyframes vt-in { from { opacity: 0; transform: translateY(14px); } }

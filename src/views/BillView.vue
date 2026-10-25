@@ -13,7 +13,7 @@ import EmptyState from '../components/layout/EmptyState.vue'
 import LoadingState from '../components/layout/LoadingState.vue'
 import ErrorBanner from '../components/layout/ErrorBanner.vue'
 import AppIcon from '../components/layout/AppIcon.vue'
-import { CATEGORY_STYLE, SUBSIDY_STYLE, MEDISAVE_STYLE, money, sumCents } from '../components/bill/lines'
+import { CATEGORY_STYLE, SUBSIDY_STYLE, MEDISAVE_STYLE, money, sumCents, deducted } from '../components/bill/lines'
 import { citizenshipText } from '../utils/account'
 
 const { t, locale } = useI18n()
@@ -102,9 +102,10 @@ const takenOff = computed(() => {
       id: `subsidy-${i}`,
       ...SUBSIDY_STYLE,
       name: t(`scheme.${s.scheme}`),
-      tag: t(s.scheme === 'insurance' ? 'bill.tag.insurance' : 'bill.tag.subsidy'),
+      // Already inside the net charges: shown so people see it, but without a minus (it isn't taken off again).
+      tag: t(s.includedInItems ? 'bill.inLines' : s.scheme === 'insurance' ? 'bill.tag.insurance' : 'bill.tag.subsidy'),
       amountCents: s.amountCents,
-      minus: true,
+      minus: !s.includedInItems,
       text: t(`bill.explain.scheme.${s.scheme}`),
     })),
     {
@@ -156,14 +157,14 @@ const split = computed(() => {
   const charges = sumCents(b.items) || 1
   return [
     { key: 'pay', cents: b.totalPayableCents },
-    { key: 'subsidy', cents: sumCents(b.subsidies) },
+    { key: 'subsidy', cents: sumCents(deducted(b.subsidies)) },
     { key: 'medisave', cents: b.medisaveCents },
   ].filter((part) => part.cents > 0).map((part) => ({ ...part, pct: (part.cents / charges) * 100 }))
 })
 
 const summary = computed(() => [
-  [t('bill.summary.charges'), money(sumCents(bill.value.items))],
-  [t(bill.value.subsidies.some((x) => x.scheme === 'insurance') ? 'bill.summary.subsidiesInsurance' : 'bill.summary.subsidies'), '−' + money(sumCents(bill.value.subsidies))],
+  [t(bill.value.subsidies.some((x) => x.includedInItems) ? 'bill.summary.chargesNet' : 'bill.summary.charges'), money(sumCents(bill.value.items))],
+  [t(bill.value.subsidies.some((x) => x.scheme === 'insurance') ? 'bill.summary.subsidiesInsurance' : 'bill.summary.subsidies'), '−' + money(sumCents(deducted(bill.value.subsidies)))],
   [t('bill.summary.medisave'), '−' + money(bill.value.medisaveCents)],
 ])
 </script>

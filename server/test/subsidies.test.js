@@ -137,6 +137,11 @@ test('billPlace: from the place read off the bill; without one, polyclinic by na
   assert.ok(PLACES.includes('other'))
 })
 
+test('remaining bill: a subsidy already inside net lines is not taken off twice', () => {
+  const net = { items: [{ amountCents: 48300 }], subsidies: [{ scheme: 'government', amountCents: 89700, includedInItems: true }, { scheme: 'merdeka', amountCents: 1000 }] }
+  assert.equal(discountCents(net, 100), 47300) // 483.00 − 10.00, not max(0, 483 − 897 − 10)
+})
+
 test('hospital bill: what is on it is listed, schemes are shown as "may not apply here", and nothing is ever estimated', () => {
   const hospital = {
     clinic: 'Merlion Valley General Hospital',

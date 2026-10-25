@@ -36,8 +36,15 @@ const routes = [
 const router = createRouter({
   history: createWebHistory(),
   routes,
-  // Each page opens at the top; browser Back/Forward returns to where the user was.
-  scrollBehavior: (to, from, saved) => saved ?? (to.path === from.path ? false : { top: 0 }),
+  // Each page opens at the top; browser Back/Forward returns to where the user was. The scroll happens here, before the
+  // page change animation captures the new page (finishTransition), so it fades in already at the right place instead
+  // of fading in scrolled and then jumping.
+  scrollBehavior: (to, from, saved) => {
+    const position = saved ?? (to.path === from.path ? false : { top: 0 })
+    if (position) window.scrollTo({ left: position.left ?? 0, top: position.top ?? 0, behavior: 'instant' })
+    finishTransitionNow()
+    return false // already scrolled
+  },
 })
 
 // First visit on this device: "/" shows the welcome page once. The flag is set by LandingPage, and by any login or signup
@@ -60,7 +67,8 @@ router.beforeEach(async (to) => {
     // Signed in before: open straight away with the saved copy; the server check runs in the background,
     // and only a login the server refuses (expired, account removed) moves them to Login.
     restore().then(() => {
-      if (!authStore.user && !router.currentRoute.value.meta.public) router.replace({ name: 'login' })
+      // H1: say why they are here ("You were logged out"), instead of silently showing Login.
+      if (!authStore.user && !router.currentRoute.value.meta.public) router.replace({ name: 'login', query: { expired: '1' } })
     })
   } else {
     await restore()
@@ -91,6 +99,11 @@ router.beforeResolve((to, from) => {
     transition.finished.catch(() => {})
   })
 })
-router.afterEach(() => nextTick(() => (finishTransition?.(), (finishTransition = null))))
+function finishTransitionNow() {
+  finishTransition?.()
+  finishTransition = null
+}
+// Normally scrollBehavior finishes it (after scrolling). This is the fallback if it doesn't run.
+router.afterEach(() => nextTick(() => setTimeout(finishTransitionNow, 50)))
 
 export default router

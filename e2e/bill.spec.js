@@ -114,6 +114,28 @@ test.describe('breakdown', () => {
     await expect(rule(page, 'chas')).toContainText('May not apply at this kind of place.')
   })
 
+  test('a bill with net lines: the subsidy inside them is shown, not taken off again', async ({ page }) => {
+    // A checked scan of a Gross / Subsidy / Net hospital bill (as the server returns it).
+    const bill = {
+      clinic: 'Eastwater General Hospital', place: 'hospital', visitDate: '2026-10-15',
+      items: [{ description: 'Surgery — Hemiarthroplasty', category: 'procedure', amountCents: 148750 }, { description: 'GST 9%', category: 'tax', amountCents: 13388 }],
+      subsidies: [{ scheme: 'government', amountCents: 276250, includedInItems: true }, { scheme: 'merdeka', amountCents: 2138 }],
+      medisaveCents: 60000,
+      totalPayableCents: 100000,
+    }
+    await page.addInitScript(() => (window.__redactForTests = async (dataUrl) => ({ dataUrl, keep: [{ text: 'TOTAL' }], hits: [] })))
+    await page.route('**/api/scan', (route) => route.fulfill({ json: { ok: true, data: { type: 'bill', source: 'ai', unclear: [], bill } } }))
+    await page.goto('/bill/scan')
+    await page.getByTestId('upload-input').setInputFiles({ name: 'bill.png', mimeType: 'image/png', buffer: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', 'base64') })
+    await page.getByRole('button', { name: 'Scan', exact: true }).click()
+    await expect(page.getByText('Already taken off the charges above')).toBeVisible() // on Confirm, next to the subsidy
+    await page.getByRole('button', { name: 'Looks correct' }).click() // 1487.50 + 133.88 − 21.38 − 600.00 = 1000.00
+    await page.getByRole('link', { name: /See full breakdown/ }).click()
+    await expect(line(page, 'Government subsidy Already taken off the charges above \\$2,?762\\.50')).toBeVisible() // no minus
+    await expect(page.getByText('Charges after subsidy')).toBeVisible()
+    await expect(page.getByTestId('bill-total')).toContainText('$1000.00')
+  })
+
   test('after the breakdown, Home is one tap away', async ({ page }) => {
     await openSample(page, BEDOK)
     await page.getByTestId('bill-home').click()

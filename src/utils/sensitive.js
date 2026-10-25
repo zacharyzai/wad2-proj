@@ -12,6 +12,12 @@ const clean = (s) => s.replace(/^[^\p{L}\p{N}*•]+|[^\p{L}\p{N}*•]+$/gu, '')
 const DIGITS = { O: '0', o: '0', D: '0', Q: '0', I: '1', l: '1', '|': '1', i: '1', Z: '2', S: '5', s: '5', B: '8', G: '6' }
 function isNric(raw) {
   const s = clean(raw)
+  // The check letter is often misread as a bracket or bar ("S0000588J" read as "S0000588)"), which clean() strips:
+  // a prefix letter + 7 digits is still an NRIC. Covering one number too many is the safe side.
+  if (s.length === 8) {
+    const middle = [...s.slice(1)].map((c) => DIGITS[c] ?? c).join('')
+    return /^[STFGM]\d{7}$/i.test(s[0] + middle)
+  }
   if (s.length !== 9) return false
   const middle = [...s.slice(1, 8)].map((c) => DIGITS[c] ?? c).join('')
   const full = (s[0] + middle + s[8]).toUpperCase()
@@ -23,7 +29,8 @@ function isNric(raw) {
 const isPhone = (raw) => /^(\+?65)?[3689]\d{7}$/.test(raw.replace(/[\s()-]/g, ''))
 
 // Whatever follows these labels is covered. "patient" alone needs a colon, so bill lines like "Patient payable $4.20" survive.
-const LABEL = /^(patient'?s?\s*name|name|nric(\/fin)?|fin|ic\s*no\.?|id\s*no\.?|d\.?o\.?b\.?|date\s*of\s*birth|birth\s*date|(home\s*)?address|addr\.?|tel\.?|phone|mobile|hp|contact(\s*no\.?)?)$/i
+// Also the people around the patient (bills name whoever pays: "MediSave account holder: Ong Kok Leong (Son)").
+const LABEL = /^(patient'?s?\s*name|name|nric(\/fin)?|fin|ic\s*no\.?|id\s*no\.?|d\.?o\.?b\.?|date\s*of\s*birth|birth\s*date|(home\s*)?address|addr\.?|tel\.?|phone|mobile|hp|contact(\s*no\.?)?|(medisave\s*)?(account\s*)?holder|payer|paid\s*by|next\s*of\s*kin|nok|guardian)$/i
 const COLON_LABEL = /^(patient|pt\.?)$/i
 // Whole line is an address: "Blk 123 ...", "#04-56", "Singapore 520123", "S(520123)".
 const ADDRESS_LINE = /^(blk|block)\b|#\d{1,3}-\d{1,4}|singapore\s*\d{6}|\bS\(?\d{6}\)?(?!\S)/i

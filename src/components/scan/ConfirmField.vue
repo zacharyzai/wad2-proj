@@ -8,6 +8,7 @@ defineProps({
   // Set for a single input so the label is clickable; leave unset for button groups.
   for: { type: String, default: null },
   flagged: { type: Boolean, default: false },
+  note: { type: String, default: null }, // why it is flagged, when it isn't just unreadable ("Must be more than 0")
 })
 
 const { t } = useI18n()
@@ -20,7 +21,7 @@ const { t } = useI18n()
       <span v-if="flagged" class="badge badge-warning check"><AppIcon name="alert" :size="16" />{{ t('confirm.pleaseCheck') }}</span>
     </div>
     <slot />
-    <span v-if="flagged" class="field-note">{{ t('confirm.couldntRead') }}</span>
+    <span v-if="flagged" class="field-note">{{ note ?? t('confirm.couldntRead') }}</span>
   </div>
 </template>
 

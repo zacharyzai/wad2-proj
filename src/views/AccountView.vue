@@ -88,6 +88,8 @@ function notify(text, bad = false) {
 }
 onBeforeUnmount(() => clearTimeout(toastTimer))
 
+// H5: one stray tap must not log a senior out (logging back in needs the password, and there is no reset yet), so ask first.
+const askLeave = ref(false)
 function leave() {
   logout()
   router.push({ name: 'login' })
@@ -156,7 +158,15 @@ function leave() {
 
     <!-- The Beginner's guide again (on phones this is the only way back to it; desktop also has it in the sidebar). -->
     <button type="button" class="btn btn-outline" data-testid="account-guide" @click="openGuide"><AppIcon name="compass" />{{ t('guide.open') }}</button>
-    <BigButton variant="alt" data-testid="account-logout" @click="leave"><AppIcon name="logout" />{{ t('account.logout') }}</BigButton>
+    <BigButton v-if="!askLeave" variant="alt" data-testid="account-logout" @click="askLeave = true"><AppIcon name="logout" />{{ t('account.logout') }}</BigButton>
+    <div v-else class="alert alert-warning flex-column" role="alertdialog" aria-labelledby="leave-q" data-testid="account-logout-ask">
+      <strong id="leave-q">{{ t('account.logoutAsk') }}</strong>
+      <span>{{ t('account.logoutNote') }}</span>
+      <div class="d-flex flex-column flex-sm-row gap-3">
+        <button type="button" class="btn btn-primary" data-testid="account-logout-yes" @click="leave"><AppIcon name="logout" />{{ t('account.logout') }}</button>
+        <button type="button" class="btn btn-secondary" @click="askLeave = false">{{ t('account.cancel') }}</button>
+      </div>
+    </div>
 
     <!-- Always in the page, so screen readers announce what appears in it. -->
     <div class="toast-slot" role="status" aria-live="polite">
