@@ -1,11 +1,12 @@
 // Gemini is never called for real: global fetch is stubbed per test.
 import { test, afterEach } from 'node:test'
 import assert from 'node:assert/strict'
-import { extractScan, ScanError } from '../services/gemini.js'
+import { extractScan, forgetResting, ScanError } from '../services/gemini.js'
 
 const IMG = 'data:image/png;base64,AAAA'
 const realFetch = globalThis.fetch
 afterEach(() => {
+  forgetResting() // each test starts with every model fresh
   globalThis.fetch = realFetch
   process.env.GEMINI_API_KEY = 'test-key'
 })
@@ -78,14 +79,44 @@ test('falls back to the next model when one is overloaded, slow, out of quota or
   })
 
   for (const failure of [{ status: 503 }, { status: 500 }, { status: 429 }, { status: 404 }, new DOMException('slow', 'TimeoutError')]) {
+    forgetResting()
     const calls = replies(failure, OK)
     assert.equal((await extractScan('medication', IMG)).medication.name, 'Metformin')
     assert.deepEqual(calls, ['main', 'backup-1'])
   }
 
+  forgetResting()
   const calls = replies({ status: 503 }, { status: 503 }, OK)
   await extractScan('medication', IMG)
   assert.deepEqual(calls, ['main', 'backup-1', 'backup-2'])
+})
+
+test('a model that was just overloaded is tried last for a while, so the next scan goes straight to one that works', async (t) => {
+  process.env.GEMINI_MODEL = 'main'
+  process.env.GEMINI_FALLBACK_MODELS = 'backup-1, backup-2'
+  t.after(() => {
+    delete process.env.GEMINI_MODEL
+    delete process.env.GEMINI_FALLBACK_MODELS
+  })
+  let calls = replies({ status: 503 }, new DOMException('slow', 'TimeoutError'), OK)
+  await extractScan('medication', IMG)
+  assert.deepEqual(calls, ['main', 'backup-1', 'backup-2'])
+
+  calls = replies(OK)
+  await extractScan('medication', IMG)
+  assert.deepEqual(calls, ['backup-2']) // main and backup-1 are resting
+
+  calls = replies({ status: 503 }, OK) // the working one fails too: the resting ones are still tried, in their usual order
+  await extractScan('medication', IMG)
+  assert.deepEqual(calls, ['backup-2', 'main'])
+
+  // A bad request is our fault, not the model's: it doesn't send the model to the back.
+  forgetResting()
+  replies({ status: 400 })
+  await rejectsWith('AI_UNAVAILABLE')
+  calls = replies(OK)
+  await extractScan('medication', IMG)
+  assert.deepEqual(calls, ['main'])
 })
 
 test('no fallback for a bad request or key, or for an unreadable photo', async (t) => {
