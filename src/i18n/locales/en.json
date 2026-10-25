@@ -56,7 +56,10 @@
     "GOOGLE_NOT_CONNECTED": "Connect Google Calendar first.",
     "GOOGLE_DISCONNECTED": "Google Calendar was disconnected. Please connect it again.",
     "GOOGLE_UNAVAILABLE": "Google Calendar is not available right now. Please try again later.",
-    "WRONG_DOCUMENT": "That isn’t the kind of document we can read."
+    "WRONG_DOCUMENT": "That isn’t the kind of document we can read.",
+    "LOOKS_LIKE_BILL": "This looks like a medical bill, not a medicine label.",
+    "LOOKS_LIKE_LABEL": "This looks like a medicine label, not a medical bill.",
+    "MISMATCH": "This photo doesn’t match what you chose to scan."
   },
   "home": {
     "title": "What would you like to understand?",
@@ -156,6 +159,29 @@
       "medication": {
         "title": "This doesn’t look like a medicine label",
         "text": "The photo is clear, but it isn’t a medicine label. To read a bill, use the Bill page."
+      }
+    },
+    "other": {
+      "bill": {
+        "title": "This looks like a medical bill",
+        "question": "You chose a medicine label. Was this meant for a medical bill?",
+        "yes": "Yes, read it as a bill"
+      },
+      "medication": {
+        "title": "This looks like a medicine label",
+        "question": "You chose a medical bill. Was this meant for a medicine label?",
+        "yes": "Yes, read it as a label"
+      },
+      "no": "No"
+    },
+    "mismatch": {
+      "medication": {
+        "title": "This photo doesn’t match a medicine label",
+        "text": "It looks like a medical bill, so we can’t read it as a medicine label. Take a photo of the medicine label instead."
+      },
+      "bill": {
+        "title": "This photo doesn’t match a medical bill",
+        "text": "It looks like a medicine label, so we can’t read it as a bill. Take a photo of the bill instead."
       }
     }
   },

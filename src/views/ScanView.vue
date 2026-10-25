@@ -196,8 +196,21 @@ function cancel() {
 }
 
 const photoError = computed(() => PHOTO_ERRORS.includes(errorCode.value))
-// A clear photo of the wrong document (e.g. a hospital bill): say what we can read, keep the photo, no lighting tips.
-const wrongDoc = computed(() => errorCode.value === 'WRONG_DOCUMENT')
+// A clear photo of the wrong document: say so, keep the photo, no lighting tips. MISMATCH = they said it isn't the other kind either.
+const wrongDoc = computed(() => errorCode.value === 'WRONG_DOCUMENT' || errorCode.value === 'MISMATCH')
+const wrongDocKey = computed(() => (errorCode.value === 'MISMATCH' ? `scan.mismatch.${type.value}` : `scan.wrongDoc.${type.value}`))
+
+// A bill scanned as a medicine label (or a label as a bill): ask "Was this meant to be a bill?".
+// Yes reads the same covered photo as the other kind (no retaking); No says it can't be read as what they chose.
+const OTHER_KIND = { LOOKS_LIKE_BILL: 'bill', LOOKS_LIKE_LABEL: 'medication' }
+const otherKind = computed(() => OTHER_KIND[errorCode.value] ?? null)
+function readAsOther() {
+  const kind = otherKind.value
+  send(kind, () => scanImage(kind, photo.value))
+}
+function notOther() {
+  errorCode.value = 'MISMATCH'
+}
 const TIPS = [
   { key: 'light', icon: 'sun' },
   { key: 'flat', icon: 'scan' },
@@ -244,11 +257,16 @@ onMounted(() => {
 
   <div v-else-if="state === 'error'" class="cols rise">
     <div>
-      <span class="tile tile-warning err-tile"><AppIcon name="camera" :size="42" /></span>
-      <span class="badge badge-warning align-self-start"><AppIcon name="alert" :size="18" />{{ t('scan.errorTag') }}</span>
+      <!-- A question, not an error: calm tile, no "Error" badge. -->
+      <span v-if="otherKind" class="tile tile-soft err-tile"><AppIcon :name="otherKind === 'bill' ? 'receipt' : 'pill'" :size="42" /></span>
+      <template v-else>
+        <span class="tile tile-warning err-tile"><AppIcon name="camera" :size="42" /></span>
+        <span class="badge badge-warning align-self-start"><AppIcon name="alert" :size="18" />{{ t('scan.errorTag') }}</span>
+      </template>
       <div role="alert" class="d-flex flex-column gap-3">
-        <h1>{{ wrongDoc ? t(`scan.wrongDoc.${type}.title`) : t(`errors.${errorCode}`) }}</h1>
-        <p v-if="wrongDoc" class="lead-text">{{ t(`scan.wrongDoc.${type}.text`) }}</p>
+        <h1>{{ otherKind ? t(`scan.other.${otherKind}.title`) : wrongDoc ? t(`${wrongDocKey}.title`) : t(`errors.${errorCode}`) }}</h1>
+        <p v-if="otherKind" class="lead-text" data-testid="scan-other-question">{{ t(`scan.other.${otherKind}.question`) }}</p>
+        <p v-else-if="wrongDoc" class="lead-text">{{ t(`${wrongDocKey}.text`) }}</p>
         <p v-else-if="photoError" class="lead-text">{{ t('scan.photoHint') }}</p>
         <p v-else-if="photo" class="lead-text">{{ t('scan.photoKept') }}</p>
       </div>
@@ -261,7 +279,11 @@ onMounted(() => {
         </li>
       </ul>
       <img v-else-if="photo" :src="photo" :alt="t('scan.yourPhoto')" class="photo scan-preview" />
-      <template v-if="photoError || wrongDoc">
+      <template v-if="otherKind">
+        <button type="button" class="btn btn-primary" data-testid="scan-other-yes" @click="readAsOther"><AppIcon name="check" />{{ t(`scan.other.${otherKind}.yes`) }}</button>
+        <button type="button" class="btn btn-secondary" data-testid="scan-other-no" @click="notOther"><AppIcon name="x" />{{ t('scan.other.no') }}</button>
+      </template>
+      <template v-else-if="photoError || wrongDoc">
         <button type="button" class="btn btn-primary" @click="retake"><AppIcon name="camera" />{{ t('scan.retake') }}</button>
         <button type="button" class="btn btn-secondary" @click="upload.click()"><AppIcon name="upload" />{{ t('scan.uploadOther') }}</button>
         <button v-if="wrongDoc" type="button" class="btn btn-ghost" @click="state = 'idle'"><AppIcon name="sparkles" />{{ t('scan.useSample') }}</button>

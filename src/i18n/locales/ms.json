@@ -56,7 +56,10 @@
     "GOOGLE_NOT_CONNECTED": "Sambungkan Google Calendar dahulu.",
     "GOOGLE_DISCONNECTED": "Google Calendar telah terputus. Sila sambungkan semula.",
     "GOOGLE_UNAVAILABLE": "Google Calendar tidak tersedia sekarang. Sila cuba lagi nanti.",
-    "WRONG_DOCUMENT": "Itu bukan jenis dokumen yang boleh kami baca."
+    "WRONG_DOCUMENT": "Itu bukan jenis dokumen yang boleh kami baca.",
+    "LOOKS_LIKE_BILL": "Ini kelihatan seperti bil perubatan, bukan label ubat.",
+    "LOOKS_LIKE_LABEL": "Ini kelihatan seperti label ubat, bukan bil perubatan.",
+    "MISMATCH": "Gambar ini tidak sepadan dengan apa yang anda pilih untuk diimbas."
   },
   "home": {
     "title": "Apa yang anda ingin fahami?",
@@ -156,6 +159,29 @@
       "medication": {
         "title": "Ini tidak kelihatan seperti label ubat",
         "text": "Gambar ini jelas, tetapi ia bukan label ubat. Untuk membaca bil, gunakan halaman Bil."
+      }
+    },
+    "other": {
+      "bill": {
+        "title": "Ini kelihatan seperti bil perubatan",
+        "question": "Anda memilih label ubat. Adakah ini sepatutnya bil perubatan?",
+        "yes": "Ya, baca sebagai bil"
+      },
+      "medication": {
+        "title": "Ini kelihatan seperti label ubat",
+        "question": "Anda memilih bil perubatan. Adakah ini sepatutnya label ubat?",
+        "yes": "Ya, baca sebagai label"
+      },
+      "no": "Tidak"
+    },
+    "mismatch": {
+      "medication": {
+        "title": "Gambar ini tidak sepadan dengan label ubat",
+        "text": "Ia kelihatan seperti bil perubatan, jadi kami tidak boleh membacanya sebagai label ubat. Sila ambil gambar label ubat."
+      },
+      "bill": {
+        "title": "Gambar ini tidak sepadan dengan bil perubatan",
+        "text": "Ia kelihatan seperti label ubat, jadi kami tidak boleh membacanya sebagai bil. Sila ambil gambar bil."
       }
     }
   },

@@ -115,6 +115,43 @@ test('a clear photo that is not a medical bill says so, not "retake in good ligh
   await expect(page.getByRole('heading', { level: 2, name: /Try a sample/ })).toBeVisible()
 })
 
+// Medicine scan given a bill photo: the server answers LOOKS_LIKE_BILL; read as a bill, it answers with a bill.
+async function mockBillSentAsLabel(page) {
+  await page.addInitScript(() => (window.__redactForTests = async (dataUrl) => ({ dataUrl, keep: [{ text: 'TOTAL' }], hits: [] })))
+  const sent = []
+  await page.route('**/api/scan', async (route) => {
+    const body = route.request().postDataJSON()
+    if (body.sampleId) return route.continue()
+    sent.push(body.type)
+    if (body.type === 'medication') return route.fulfill({ status: 422, json: { ok: false, error: { code: 'LOOKS_LIKE_BILL', message: 'looks like a bill' } } })
+    const bill = await (await route.fetch({ postData: JSON.stringify({ sampleId: 'bill-1' }) })).json()
+    return route.fulfill({ json: { ok: true, data: { ...bill.data, source: 'ai' } } })
+  })
+  await page.goto('/scan')
+  await page.getByTestId('upload-input').setInputFiles({ name: 'bill.png', mimeType: 'image/png', buffer: TINY_PNG })
+  await page.getByRole('button', { name: 'Scan', exact: true }).click()
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('This looks like a medical bill')
+  await expect(page.getByTestId('scan-other-question')).toHaveText('You chose a medicine label. Was this meant for a medical bill?')
+  return sent
+}
+
+test('a bill photo on the medicine Scan asks "Was this meant for a medical bill?"; Yes reads the same photo as a bill', async ({ page }) => {
+  const sent = await mockBillSentAsLabel(page)
+  await page.getByTestId('scan-other-yes').click()
+  await expect(page).toHaveURL(/\/scan\/confirm$/)
+  await expect(page.getByText('SingHealth Polyclinics - Bedok')).toBeVisible() // the bill's Confirm, not a label's
+  expect(sent).toEqual(['medication', 'bill']) // no new photo: the same one, sent again as a bill
+})
+
+test('… and No says the photo doesn\'t match a medicine label, with ways to fix it', async ({ page }) => {
+  await mockBillSentAsLabel(page)
+  await page.getByTestId('scan-other-no').click()
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('This photo doesn’t match a medicine label')
+  await expect(page.getByRole('alert')).toContainText('Take a photo of the medicine label instead.')
+  await expect(page.getByRole('button', { name: 'Upload a different photo' })).toBeVisible()
+  await expect(page.getByTestId('scan-other-yes')).toHaveCount(0)
+})
+
 test('explanation follows the language switch', async ({ page }) => {
   await openSample(page, 'Metformin label')
   await page.getByRole('button', { name: 'Looks correct' }).click()

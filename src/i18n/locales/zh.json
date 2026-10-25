@@ -56,7 +56,10 @@
     "GOOGLE_NOT_CONNECTED": "请先连接 Google 日历。",
     "GOOGLE_DISCONNECTED": "Google 日历已断开连接。请重新连接。",
     "GOOGLE_UNAVAILABLE": "Google 日历暂时无法使用。请稍后再试。",
-    "WRONG_DOCUMENT": "这不是我们能读取的文件类型。"
+    "WRONG_DOCUMENT": "这不是我们能读取的文件类型。",
+    "LOOKS_LIKE_BILL": "这看起来是医疗账单，不是药物标签。",
+    "LOOKS_LIKE_LABEL": "这看起来是药物标签，不是医疗账单。",
+    "MISMATCH": "这张照片和您选择扫描的内容不符。"
   },
   "home": {
     "title": "您想了解什么？",
@@ -156,6 +159,29 @@
       "medication": {
         "title": "这看起来不是药物标签",
         "text": "照片很清楚，但这不是药物标签。要读取账单，请使用“账单”页面。"
+      }
+    },
+    "other": {
+      "bill": {
+        "title": "这看起来是医疗账单",
+        "question": "您选择的是药物标签。这张照片其实是要扫描医疗账单吗？",
+        "yes": "是的，当作账单读取"
+      },
+      "medication": {
+        "title": "这看起来是药物标签",
+        "question": "您选择的是医疗账单。这张照片其实是要扫描药物标签吗？",
+        "yes": "是的，当作标签读取"
+      },
+      "no": "不是"
+    },
+    "mismatch": {
+      "medication": {
+        "title": "这张照片和药物标签不符",
+        "text": "它看起来是医疗账单，所以无法当作药物标签读取。请改拍药物标签。"
+      },
+      "bill": {
+        "title": "这张照片和医疗账单不符",
+        "text": "它看起来是药物标签，所以无法当作账单读取。请改拍账单。"
       }
     }
   },
