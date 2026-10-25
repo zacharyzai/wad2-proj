@@ -1,3 +1,5 @@
 # tesseract.js only prints a donation message on install; nothing needs to run.
 allowBuilds:
   tesseract.js: false
+  argon2: true
+  mongodb-memory-server: true
