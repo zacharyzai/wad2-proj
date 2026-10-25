@@ -32,6 +32,7 @@ From the client, call `scanImage(type, image)` / `scanSample(id)` from `src/api/
 | `IMAGE_TOO_LARGE` | 413 | body over 4 MB |
 | `UNREADABLE_IMAGE` | 422 | the AI could not read the photo |
 | `WRONG_DOCUMENT` | 422 | the photo is clear but not the requested document: not a medical bill at all, or a bill sent as a medication label. The client says so instead of "retake in good light" |
+| `LOOKS_LIKE_BILL` / `LOOKS_LIKE_LABEL` | 422 | the photo is clearly the other kind (a bill sent as a label, or a label sent as a bill). The client asks "Was this meant to be a bill?": Yes sends the same covered photo again with the other `type`; No shows that it doesn't match |
 | `RATE_LIMITED` | 429 | too many scans per IP, or the daily AI cap was reached |
 | `NOT_IMPLEMENTED` | 501 | stub endpoint |
 | `AI_UNAVAILABLE` | 503 | Gemini is down or not configured |

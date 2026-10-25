@@ -143,6 +143,18 @@ test('a clear photo of the wrong kind of document says so, instead of "retake it
   await rejectsWith('UNREADABLE_IMAGE')
 })
 
+test('a bill scanned as a label (or a label as a bill) gets its own code, so the app can offer to read it as the other', async () => {
+  reply(200, geminiText({ readable: true, otherDocument: true, looksLike: 'bill' }))
+  await assert.rejects(extractScan('medication', IMG), (e) => e.code === 'LOOKS_LIKE_BILL' && e.status === 422)
+  reply(200, geminiText({ readable: true, otherDocument: true, looksLike: 'medication' }))
+  await assert.rejects(extractScan('bill', IMG), (e) => e.code === 'LOOKS_LIKE_LABEL')
+  // Something else entirely (or a label scanned as a label it isn't): the plain "wrong document".
+  reply(200, geminiText({ readable: true, otherDocument: true, looksLike: 'other' }))
+  await assert.rejects(extractScan('medication', IMG), (e) => e.code === 'WRONG_DOCUMENT')
+  reply(200, geminiText({ readable: true, otherDocument: true, looksLike: 'medication' }))
+  await assert.rejects(extractScan('medication', IMG), (e) => e.code === 'WRONG_DOCUMENT')
+})
+
 test('when every model fails: quota everywhere is RATE_LIMITED, anything else AI_UNAVAILABLE', async (t) => {
   process.env.GEMINI_FALLBACK_MODELS = 'backup-1'
   t.after(() => delete process.env.GEMINI_FALLBACK_MODELS)

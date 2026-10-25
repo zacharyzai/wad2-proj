@@ -50,6 +50,7 @@ const SCHEMAS = {
   medication: obj({
     readable: { type: 'BOOLEAN' },
     otherDocument: { type: 'BOOLEAN' },
+    looksLike: E(['medication', 'bill', 'other']),
     name: S,
     strength: S,
     doseAmount: N,
@@ -64,6 +65,7 @@ const SCHEMAS = {
   bill: obj({
     readable: { type: 'BOOLEAN' },
     otherDocument: { type: 'BOOLEAN' },
+    looksLike: E(['medication', 'bill', 'other']),
     clinic: S,
     place: E(BILL_PLACES),
     visitDate: S,
@@ -78,7 +80,9 @@ const RULES = `Rules:
 - Copy only what is printed. If a value is blurry, cut off or missing, use null. Never guess.
 - Set "readable" to false only if the photo is too unclear to read at all (blurry, dark, cut off).
 - Set "otherDocument" to true if the photo is readable but is not the requested kind of document (for example not a
-  medical bill at all, or a bill when a medicine label was asked for). Then leave every other field empty or null.
+  medical bill at all, or a bill when a medicine label was asked for). Then set "looksLike" to what it is: "bill" for any
+  medical bill, invoice or receipt, "medication" for a medicine label, otherwise "other"; and leave every other field
+  empty or null.
 - Never extract patient names, NRIC/FIN numbers, addresses or phone numbers.
 - Numbers must be numbers (e.g. 2, not "two").`
 
@@ -235,8 +239,13 @@ export async function extractScan(type, imageDataUrl) {
   if (!text) throw new ScanError(422, 'UNREADABLE_IMAGE', 'The photo could not be read')
 
   const raw = parseJson(text)
-  // A clear photo of the wrong kind of document must not be told to "retake it in good light".
-  if (raw.otherDocument === true) throw new ScanError(422, 'WRONG_DOCUMENT', `This is not a ${type === 'bill' ? 'medical bill' : 'medication label'}`)
+  // A clear photo of the wrong kind of document must not be told to "retake it in good light". A bill sent as a label (or
+  // the other way round) gets its own code, so the app can ask "was this meant to be a bill?" and read it as one.
+  if (raw.otherDocument === true) {
+    if (type === 'medication' && raw.looksLike === 'bill') throw new ScanError(422, 'LOOKS_LIKE_BILL', 'This looks like a medical bill, not a medication label')
+    if (type === 'bill' && raw.looksLike === 'medication') throw new ScanError(422, 'LOOKS_LIKE_LABEL', 'This looks like a medication label, not a medical bill')
+    throw new ScanError(422, 'WRONG_DOCUMENT', `This is not a ${type === 'bill' ? 'medical bill' : 'medication label'}`)
+  }
   if (raw.readable === false) throw new ScanError(422, 'UNREADABLE_IMAGE', 'The photo could not be read')
 
   return type === 'medication' ? normalizeMedication(raw) : normalizeBill(raw)

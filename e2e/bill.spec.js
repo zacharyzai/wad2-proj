@@ -114,6 +114,12 @@ test.describe('breakdown', () => {
     await expect(rule(page, 'chas')).toContainText('May not apply at this kind of place.')
   })
 
+  test('after the breakdown, Home is one tap away', async ({ page }) => {
+    await openSample(page, BEDOK)
+    await page.getByTestId('bill-home').click()
+    await expect(page).toHaveURL(/\/$/)
+  })
+
   test('tapping a line opens its explanation with read-aloud, one at a time', async ({ page }) => {
     await openSample(page, TAMPINES)
     const tests = line(page, 'HbA1c blood test')
@@ -296,7 +302,8 @@ test.describe('layout and accessibility', () => {
     const small = await main.evaluate((root) => {
       const shown = (el) => el.offsetWidth > 1 && el.offsetHeight > 1
       const targets = [...root.querySelectorAll('button, a, label.choice, input:not([type=radio])')].filter(shown)
-      const tooSmall = targets.filter((el) => el.getBoundingClientRect().height < 48).map((el) => el.outerHTML.slice(0, 80))
+      // 47.5: layout lands on fractions of a pixel, so a 48px button can measure 47.99
+      const tooSmall = targets.filter((el) => el.getBoundingClientRect().height < 47.5).map((el) => el.outerHTML.slice(0, 80))
       const texts = [...root.querySelectorAll('*')].filter((el) => shown(el) && [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim()))
       const tinyText = texts.filter((el) => parseFloat(getComputedStyle(el).fontSize) < 16).map((el) => el.outerHTML.slice(0, 80))
       return { tooSmall, tinyText }

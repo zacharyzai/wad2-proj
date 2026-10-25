@@ -237,7 +237,8 @@ const summary = computed(() => [
         </p>
         <div class="d-flex flex-column gap-3">
           <button type="button" class="btn btn-primary" data-testid="bill-done" @click="goBack"><AppIcon name="left" />{{ openedHere ? t('bill.closeBill') : t('nav.back') }}</button>
-          <RouterLink :to="{ name: 'bill-scan' }" class="btn btn-secondary"><AppIcon name="scan" />{{ t('bill.another') }}</RouterLink>
+          <RouterLink :to="{ name: 'home' }" class="btn btn-secondary" data-testid="bill-home"><AppIcon name="home" />{{ t('nav.home') }}</RouterLink>
+          <RouterLink :to="{ name: 'bill-scan' }" class="btn btn-outline"><AppIcon name="scan" />{{ t('bill.another') }}</RouterLink>
           <button type="button" class="btn btn-ghost" data-testid="bill-top" @click="toTop"><AppIcon name="up" />{{ t('nav.backTop') }}</button>
         </div>
       </div>
