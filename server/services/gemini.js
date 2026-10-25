@@ -24,8 +24,17 @@ const API = 'https://generativelanguage.googleapis.com/v1beta/models'
 const GROQ_API = 'https://api.groq.com/openai/v1/chat/completions'
 // One deadline for the whole scan, shared by the main model and its fallbacks.
 const TIMEOUT_MS = 25_000
-// A slow main model gives up early enough for a fallback to still answer in time.
-const FIRST_TRY_MS = 15_000
+// A slow model gives up early enough for a fallback to still answer in time.
+const FIRST_TRY_MS = 12_000
+// Always kept for the last model (Groq, a different company): when every Gemini model is overloaded and slow to say so,
+// the backup still gets its turn instead of the deadline running out first.
+const LAST_TRY_RESERVE_MS = 8_000
+// A model that was just overloaded, out of quota or too slow is tried last for 2 minutes, so the next scans go straight
+// to one that is working instead of waiting for it to fail again. Per server instance; it forgets on a cold start.
+const REST_MS = 2 * 60_000
+const restingUntil = new Map()
+const resting = (attempt) => (restingUntil.get(attempt.name) ?? 0) > Date.now()
+export const forgetResting = () => restingUntil.clear() // tests
 // Another model may succeed after these: overloaded/server error, per-model quota, retired model.
 // 400/403 mean our request or key is wrong, which no other model fixes.
 const TRY_NEXT = new Set([404, 429, 500, 503])
@@ -135,25 +144,32 @@ export async function firstReply(tries) {
 
   const deadline = Date.now() + TIMEOUT_MS
   const statuses = []
-  for (const [i, attempt] of tries.entries()) {
+  // Models that failed recently go to the back, in their usual order.
+  const order = [...tries.filter((a) => !resting(a)), ...tries.filter(resting)]
+  for (const [i, attempt] of order.entries()) {
     const left = deadline - Date.now()
     if (left <= 0) break
-    const isLast = i === tries.length - 1
+    const isLast = i === order.length - 1
+    const budget = isLast ? left : Math.min(FIRST_TRY_MS, left - LAST_TRY_RESERVE_MS)
+    if (budget < 1_500) continue // not worth starting: leave the time to the last model
     let res
     try {
-      res = await attempt.send(AbortSignal.timeout(isLast ? left : Math.min(left, FIRST_TRY_MS)))
+      res = await attempt.send(AbortSignal.timeout(budget))
     } catch (err) {
       console.error(`AI ${attempt.name} request failed:`, err.name)
+      restingUntil.set(attempt.name, Date.now() + REST_MS)
       continue
     }
     if (res.ok) {
-      if (i > 0) console.log(`AI answered with fallback ${attempt.name}`)
+      restingUntil.delete(attempt.name)
+      if (attempt !== tries[0]) console.log(`AI answered with fallback ${attempt.name}`)
       return attempt.text(await res.json()) || null
     }
     // Log the provider's error text (never the image or question) to debug prompt/schema/key/model problems.
     console.error(`AI ${attempt.name} error`, res.status, (await res.text()).slice(0, 500))
     statuses.push(res.status)
     if (!TRY_NEXT.has(res.status)) break
+    restingUntil.set(attempt.name, Date.now() + REST_MS)
   }
 
   if (statuses.length && statuses.every((s) => s === 429)) throw new ScanError(429, 'RATE_LIMITED', 'AI quota reached, please try again later')
