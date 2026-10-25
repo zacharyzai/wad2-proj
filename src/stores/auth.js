@@ -1,25 +1,49 @@
 // Who is logged in. Same pattern as stores/scan.js: one reactive object shared by every page.
 // "Remember me": the token lives in localStorage (kept for 30 days, renewed on every visit). Without it, in sessionStorage,
 // so closing the browser logs you out. api/client.js sends the token with every request.
+// A copy of the account details is kept next to the token, so a returning user opens the app instantly
+// while restore() checks with the server in the background. Logging out removes both.
 import { reactive } from 'vue'
 import { api, TOKEN_KEY, readToken } from '../api/client'
 
-function writeToken(value, remember) {
+const USER_KEY = 'user'
+
+function save(token, remember, user) {
   try {
-    localStorage.removeItem(TOKEN_KEY)
-    sessionStorage.removeItem(TOKEN_KEY)
-    if (value) (remember ? localStorage : sessionStorage).setItem(TOKEN_KEY, value)
+    for (const s of [localStorage, sessionStorage]) s.removeItem(TOKEN_KEY), s.removeItem(USER_KEY)
+    if (!token) return
+    const store = remember ? localStorage : sessionStorage
+    store.setItem(TOKEN_KEY, token)
+    store.setItem(USER_KEY, JSON.stringify(user))
   } catch {
     // Storage blocked (private mode): the user just has to log in again after a refresh.
   }
 }
 
+// The saved copy, only while there is a token to go with it.
+function savedUser() {
+  try {
+    if (!readToken()) return null
+    return JSON.parse(localStorage.getItem(USER_KEY) ?? sessionStorage.getItem(USER_KEY) ?? 'null')
+  } catch {
+    return null
+  }
+}
+
 export const authStore = reactive({
-  user: null, // { name, email, dob, citizenship, citizenSince } once we know who this is
+  user: savedUser(), // { name, email, dob, citizenship, citizenSince, income } once we know who this is
   checked: false, // true once we have asked the server (or found no token to ask with)
 })
 
 let pending = null
+
+const isRemembered = () => {
+  try {
+    return Boolean(localStorage.getItem(TOKEN_KEY))
+  } catch {
+    return false
+  }
+}
 
 // Called by the router guard. Asks GET /api/auth/me once per page load, so a refresh keeps you logged in.
 export function restore() {
@@ -31,8 +55,13 @@ export function restore() {
   pending ??= api('/auth/me').then((res) => {
     if (res.ok) {
       authStore.user = res.data.user
-      if (res.data.token) writeToken(res.data.token, true) // remembered: a fresh 30 days from today
-    } else if (res.error.code === 'NOT_LOGGED_IN') writeToken(null) // only a bad token logs you out, not a network blip
+      // Remembered logins get a fresh 30 days from today; either way the saved copy is updated.
+      save(res.data.token ?? readToken(), Boolean(res.data.token) || isRemembered(), res.data.user)
+    } else if (res.error.code === 'NOT_LOGGED_IN') {
+      // Only a bad token logs you out, not a network blip (then the saved copy keeps working).
+      save(null)
+      authStore.user = null
+    }
     authStore.checked = true
   })
   return pending
@@ -41,7 +70,7 @@ export function restore() {
 async function start(path, body, remember) {
   const res = await api(path, { method: 'POST', body: { ...body, remember } })
   if (res.ok) {
-    writeToken(res.data.token, remember)
+    save(res.data.token, remember, res.data.user)
     authStore.user = res.data.user
     authStore.checked = true
   }
@@ -55,12 +84,15 @@ export const signup = (email, password, profile, remember = true) => start('/aut
 // Account page: change name, date of birth or citizenship.
 export async function updateProfile(profile) {
   const res = await api('/auth/me', { method: 'PATCH', body: profile })
-  if (res.ok) authStore.user = res.data.user
+  if (res.ok) {
+    authStore.user = res.data.user
+    save(readToken(), isRemembered(), res.data.user)
+  }
   return res
 }
 
 export function logout() {
-  writeToken(null)
+  save(null)
   authStore.user = null
   authStore.checked = true
 }

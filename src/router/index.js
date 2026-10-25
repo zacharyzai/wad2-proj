@@ -40,7 +40,8 @@ const router = createRouter({
   scrollBehavior: (to, from, saved) => saved ?? (to.path === from.path ? false : { top: 0 }),
 })
 
-// First visit on this device: "/" shows the welcome page once (LandingPage sets the flag). Anyone with a login token skips it.
+// First visit on this device: "/" shows the welcome page once. The flag is set by LandingPage, and by any login or signup
+// below, so someone with an account who logs out lands on Login. Anyone with a login token skips it.
 export const WELCOME_KEY = 'seenWelcome'
 router.beforeEach((to) => {
   if (to.name !== 'home') return true
@@ -55,8 +56,24 @@ router.beforeEach((to) => {
 // Every page needs an account. Logged-out visitors go to Login, then back to the page they wanted;
 // logged-in people who open Login or Signup go Home instead.
 router.beforeEach(async (to) => {
-  await restore()
-  if (authStore.user) return to.meta.guestOnly ? { name: 'home' } : true
+  if (authStore.user) {
+    // Signed in before: open straight away with the saved copy; the server check runs in the background,
+    // and only a login the server refuses (expired, account removed) moves them to Login.
+    restore().then(() => {
+      if (!authStore.user && !router.currentRoute.value.meta.public) router.replace({ name: 'login' })
+    })
+  } else {
+    await restore()
+  }
+  if (authStore.user) {
+    // Has an account on this device: from now on, logged out means Login, not the welcome page.
+    try {
+      localStorage.setItem(WELCOME_KEY, '1')
+    } catch {
+      // Storage blocked: they may see the welcome page again, which is harmless.
+    }
+    return to.meta.guestOnly ? { name: 'home' } : true
+  }
   if (to.meta.public) return true
   return { name: 'login', query: to.fullPath === '/' ? {} : { next: to.fullPath } }
 })

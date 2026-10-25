@@ -1,9 +1,8 @@
-// Day/night mode. Follows the device setting until the user picks one; the pick is remembered on this device.
-// index.html sets the first value before the app loads, so the page never flashes white.
+// Day/night mode. Always starts in day mode (whatever the phone's setting); night mode only when the user switches it on,
+// and that pick is remembered on this device. index.html sets the first value before the app loads, so the page never flashes.
 import { ref } from 'vue'
 
 const STORAGE_KEY = 'theme'
-const system = window.matchMedia('(prefers-color-scheme: dark)')
 
 function saved() {
   try {
@@ -13,7 +12,7 @@ function saved() {
   }
 }
 
-export const theme = ref(saved() ?? (system.matches ? 'dark' : 'light'))
+export const theme = ref(saved() === 'dark' ? 'dark' : 'light')
 
 function apply() {
   document.documentElement.dataset.theme = theme.value
@@ -28,12 +27,5 @@ export function toggleTheme() {
     // Not critical; the choice just won't persist.
   }
 }
-
-// Until the user chooses, keep following the device (e.g. phones that switch at sunset).
-system.addEventListener('change', (e) => {
-  if (saved()) return
-  theme.value = e.matches ? 'dark' : 'light'
-  apply()
-})
 
 apply()

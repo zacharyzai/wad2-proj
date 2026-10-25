@@ -16,6 +16,8 @@ const CHOICES = [
 // Each list is shown twice in a row, so the loop is seamless: when the first copy has moved out, the second is in its place.
 const LABEL_LOOP = ['med-1', 'med-2', 'med-3', 'med-1', 'med-2', 'med-3']
 const RECEIPT_LOOP = ['bill-1', 'bill-2', 'bill-3', 'bill-1', 'bill-2', 'bill-3']
+// Each picture's real size (from its SVG), so the tiles keep their shape while the pictures load instead of growing.
+const SIZE = { 'med-1': 360, 'med-2': 360, 'med-3': 360, 'bill-1': 360, 'bill-2': 420, 'bill-3': 448 } // height when 480 wide
 
 const SAMPLES = [
   { id: 'med-1', key: 'med1' },
@@ -59,7 +61,7 @@ function onFile(event) {
 
       <!-- Desktop only: what a label looks like, so people know what to photograph. -->
       <figure class="hero-art" aria-hidden="true">
-        <img src="/samples/med-1.svg" alt="" class="hero-label" />
+        <img src="/samples/med-1.svg" alt="" class="hero-label" width="480" height="360" />
       </figure>
     </section>
 
@@ -75,11 +77,11 @@ function onFile(event) {
           </span>
           <!-- Decoration, so hidden from screen readers. Paused on hover/focus; still with reduced motion. -->
           <span v-if="c.type === 'medication'" class="labels" aria-hidden="true">
-            <span class="labels-track"><img v-for="(id, i) in LABEL_LOOP" :key="i" :src="`/samples/${id}.svg`" alt="" /></span>
+            <span class="labels-track"><img v-for="(id, i) in LABEL_LOOP" :key="i" :src="`/samples/${id}.svg`" alt="" width="480" :height="SIZE[id]" /></span>
           </span>
           <span v-else class="receipt" aria-hidden="true">
             <span class="receipt-slot"></span>
-            <span class="receipt-paper"><span class="receipt-track"><img v-for="(id, i) in RECEIPT_LOOP" :key="i" :src="`/samples/${id}.svg`" alt="" /></span></span>
+            <span class="receipt-paper"><span class="receipt-track"><img v-for="(id, i) in RECEIPT_LOOP" :key="i" :src="`/samples/${id}.svg`" alt="" width="480" :height="SIZE[id]" /></span></span>
           </span>
           <span class="chev"><AppIcon name="right" :size="22" /></span>
         </RouterLink>

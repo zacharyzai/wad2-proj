@@ -174,6 +174,8 @@ watch(
     document.removeEventListener('keydown', onKey)
     if (wasOpen) (returnFocus?.isConnected ? returnFocus : document.querySelector('main h1'))?.focus?.({ preventScroll: true })
   },
+  // immediate: on a first visit the guide is opened while the app starts, before this component exists.
+  { immediate: true },
 )
 watch(locale, stopVoice) // the step re-renders in the new language; old speech would be in the wrong one
 
