@@ -6,7 +6,14 @@
   border: 1px solid var(--color-border-strong); background: var(--color-card); color: var(--color-text); font: 600 19px var(--font-sans);
 }
 textarea.field-input { padding: 14px 16px; line-height: 1.45; }
-select.field-input { appearance: auto; }
+/* Dropdowns drawn by us, not the browser: the browser's own adds inner padding and a tiny arrow, so the text never lined up
+   with the text boxes beside them. Same padding and text as an input; a chevron in the text colour (night mode too). */
+select.field-input {
+  appearance: none; padding-right: 48px; text-overflow: ellipsis; cursor: pointer;
+  background-image: linear-gradient(45deg, transparent 50%, currentColor 50%), linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position: calc(100% - 26px) 52%, calc(100% - 19px) 52%; background-size: 7px 7px; background-repeat: no-repeat;
+}
+select.field-input::-ms-expand { display: none; }
 .field-input::placeholder { color: var(--color-text-muted); font-weight: 500; }
 .field-input:focus { outline: none; border-color: var(--color-primary); box-shadow: inset 0 0 0 1px var(--color-primary), var(--focus-ring); }
 .field-input.is-flagged { border: 2px solid var(--color-warning); background: var(--color-warning-bg); }

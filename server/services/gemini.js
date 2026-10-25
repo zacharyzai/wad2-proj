@@ -9,6 +9,7 @@ import {
   FREQUENCY_TYPES,
   BILL_CATEGORIES,
   SUBSIDY_SCHEMES,
+  BILL_PLACES,
 } from './normalizeScan.js'
 
 export class ScanError extends Error {
@@ -48,6 +49,7 @@ const obj = (properties) => ({ type: 'OBJECT', properties, required: Object.keys
 const SCHEMAS = {
   medication: obj({
     readable: { type: 'BOOLEAN' },
+    otherDocument: { type: 'BOOLEAN' },
     name: S,
     strength: S,
     doseAmount: N,
@@ -61,7 +63,9 @@ const SCHEMAS = {
   }),
   bill: obj({
     readable: { type: 'BOOLEAN' },
+    otherDocument: { type: 'BOOLEAN' },
     clinic: S,
+    place: E(BILL_PLACES),
     visitDate: S,
     items: { type: 'ARRAY', items: obj({ description: S, category: E(BILL_CATEGORIES), amount: N }) },
     subsidies: { type: 'ARRAY', items: obj({ scheme: E(SUBSIDY_SCHEMES), amount: N }) },
@@ -72,7 +76,9 @@ const SCHEMAS = {
 
 const RULES = `Rules:
 - Copy only what is printed. If a value is blurry, cut off or missing, use null. Never guess.
-- Set "readable" to false if the photo is not the requested document or is too unclear to read at all.
+- Set "readable" to false only if the photo is too unclear to read at all (blurry, dark, cut off).
+- Set "otherDocument" to true if the photo is readable but is not the requested kind of document (for example not a
+  medical bill at all, or a bill when a medicine label was asked for). Then leave every other field empty or null.
 - Never extract patient names, NRIC/FIN numbers, addresses or phone numbers.
 - Numbers must be numbers (e.g. 2, not "two").`
 
@@ -86,14 +92,21 @@ Extract the medicine on this label.
 - frequencyType: "daily" for a fixed daily pattern; "as_needed" for "when necessary"/PRN; "weekly"; "tapering" if the dose changes over days; otherwise "other".
 - rawInstruction: the dosing instruction exactly as printed. warnings: each caution line as printed (e.g. "May cause drowsiness").
 ${RULES}`,
-  bill: `You read SingHealth Polyclinics bills / tax invoices in Singapore.
+  bill: `You read medical bills, invoices and receipts in Singapore, from any medical place: polyclinic, GP clinic, dental clinic,
+specialist clinic, hospital (inpatient or outpatient), TCM, physiotherapy, laboratory or pharmacy.
 Extract the bill.
-- items: each charge line with its description as printed, a category, and the gross amount in SGD dollars (e.g. 14.50).
-- subsidies: each subsidy/deduction line. scheme: "government" for government/polyclinic subsidy, "chas" for CHAS,
-  "pioneer" for Pioneer Generation (PG), "merdeka" for Merdeka Generation (MG), otherwise "other". amount as a positive number.
+- place: polyclinic, gp, dental, specialist, hospital, tcm, pharmacy, lab, or other (e.g. physiotherapy).
+- items: each charge line with its description as printed, a category, and the amount in SGD dollars (e.g. 14.50).
+  category: consultation (doctor or dentist fees), medication, investigation (lab tests, X-rays, scans), procedure
+  (treatment, surgery, therapy, nursing, consumables), ward (ward, bed or room charges), tax (GST), otherwise other.
+  Do not list subtotals or totals as items.
+- subsidies: each subsidy, deduction or claim that lowers what the patient pays (not MediSave). scheme: "government" for
+  government/polyclinic/ward subsidy, "chas" for CHAS, "pioneer" for Pioneer Generation (PG), "merdeka" for Merdeka
+  Generation (MG), "insurance" for MediShield Life, Integrated Shield, private or employer insurance, otherwise "other".
+  amount as a positive number.
 - medisave: amount paid by MediSave in dollars, 0 if there is no MediSave line.
-- totalPayable: the final amount the patient pays in dollars.
-- visitDate as YYYY-MM-DD. clinic: the polyclinic name.
+- totalPayable: the final amount the patient pays in cash, card or NETS, in dollars.
+- visitDate as YYYY-MM-DD (the visit date, or the discharge date for a hospital stay). clinic: the clinic or hospital name.
 ${RULES}`,
 }
 
@@ -222,6 +235,8 @@ export async function extractScan(type, imageDataUrl) {
   if (!text) throw new ScanError(422, 'UNREADABLE_IMAGE', 'The photo could not be read')
 
   const raw = parseJson(text)
+  // A clear photo of the wrong kind of document must not be told to "retake it in good light".
+  if (raw.otherDocument === true) throw new ScanError(422, 'WRONG_DOCUMENT', `This is not a ${type === 'bill' ? 'medical bill' : 'medication label'}`)
   if (raw.readable === false) throw new ScanError(422, 'UNREADABLE_IMAGE', 'The photo could not be read')
 
   return type === 'medication' ? normalizeMedication(raw) : normalizeBill(raw)

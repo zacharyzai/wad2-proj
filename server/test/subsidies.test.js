@@ -127,10 +127,31 @@ test('every rule label and explanation exists in all four languages', () => {
 const GP_BILL = { clinic: 'Sunrise Family Clinic', items: [{ description: 'Consultation', category: 'consultation', amountCents: 3000 }], subsidies: [], medisaveCents: 0, totalPayableCents: 3000 }
 const ids = (list) => list.map((m) => m.rule.id)
 
-test('billPlace: polyclinic by name, anything else is a GP clinic', () => {
+test('billPlace: from the place read off the bill; without one, polyclinic by name, anything else a GP clinic', () => {
   assert.equal(billPlace(bill1.bill), 'polyclinic')
   assert.equal(billPlace(GP_BILL), 'chasClinic')
   assert.equal(billPlace({ ...GP_BILL, clinic: null }), 'chasClinic')
+  assert.equal(billPlace({ ...GP_BILL, place: 'polyclinic' }), 'polyclinic')
+  for (const place of ['gp', 'dental']) assert.equal(billPlace({ ...GP_BILL, place }), 'chasClinic')
+  for (const place of ['hospital', 'specialist', 'tcm', 'pharmacy', 'lab', 'other']) assert.equal(billPlace({ ...GP_BILL, place }), 'other')
+  assert.ok(PLACES.includes('other'))
+})
+
+test('hospital bill: what is on it is listed, schemes are shown as "may not apply here", and nothing is ever estimated', () => {
+  const hospital = {
+    clinic: 'Merlion Valley General Hospital',
+    place: 'hospital',
+    items: [{ description: 'Daily Ward Charges', category: 'ward', amountCents: 14000 }, { description: 'GST 9%', category: 'tax', amountCents: 8712 }],
+    subsidies: [{ scheme: 'government', amountCents: 68583 }, { scheme: 'pioneer', amountCents: 5276 }, { scheme: 'insurance', amountCents: 15000 }],
+    medisaveCents: 6000,
+    totalPayableCents: 10653,
+  }
+  const r = compareWithBill(hospital, citizen(1945), YEAR)
+  assert.equal(r.place, 'other')
+  assert.deepEqual(r.onBill.map((s) => s.scheme), ['government', 'pioneer', 'insurance'])
+  assert.equal(r.onBill.find((s) => s.scheme === 'insurance').rule, null) // no rule: just shown as on the bill
+  assert.ok(r.mayQualify.every((m) => m.here === false && m.amountCents === null))
+  assert.equal(r.estimateCents, null)
 })
 
 test('discountCents: percent of the bill after subsidies, whole cents', () => {

@@ -1,0 +1,73 @@
+{
+  "type": "bill",
+  "source": "sample",
+  "unclear": [],
+  "bill": {
+    "clinic": "Merlion Valley General Hospital",
+    "place": "hospital",
+    "visitDate": "2026-10-22",
+    "items": [
+      {
+        "description": "Daily Ward Charges (4 days x $35.00)",
+        "category": "ward",
+        "amountCents": 14000
+      },
+      {
+        "description": "Doctor's Daily Treatment Fees",
+        "category": "consultation",
+        "amountCents": 32000
+      },
+      {
+        "description": "Laboratory Investigations (FBC, CRP)",
+        "category": "investigation",
+        "amountCents": 18640
+      },
+      {
+        "description": "Radiology - Chest X-Ray",
+        "category": "investigation",
+        "amountCents": 6200
+      },
+      {
+        "description": "IV Ceftriaxone 1g x 8",
+        "category": "medication",
+        "amountCents": 9680
+      },
+      {
+        "description": "Oral Azithromycin 500mg x 3",
+        "category": "medication",
+        "amountCents": 2460
+      },
+      {
+        "description": "Consumables & Nursing Procedures",
+        "category": "procedure",
+        "amountCents": 5820
+      },
+      {
+        "description": "Inpatient Physiotherapy (2 sessions)",
+        "category": "procedure",
+        "amountCents": 8000
+      },
+      {
+        "description": "GST 9%",
+        "category": "tax",
+        "amountCents": 8712
+      }
+    ],
+    "subsidies": [
+      {
+        "scheme": "government",
+        "amountCents": 68583
+      },
+      {
+        "scheme": "pioneer",
+        "amountCents": 5276
+      },
+      {
+        "scheme": "insurance",
+        "amountCents": 15000
+      }
+    ],
+    "medisaveCents": 6000,
+    "totalPayableCents": 10653
+  }
+}

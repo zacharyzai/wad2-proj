@@ -31,6 +31,7 @@ From the client, call `scanImage(type, image)` / `scanSample(id)` from `src/api/
 | `NOT_FOUND` | 404 | unknown `sampleId` or API route |
 | `IMAGE_TOO_LARGE` | 413 | body over 4 MB |
 | `UNREADABLE_IMAGE` | 422 | the AI could not read the photo |
+| `WRONG_DOCUMENT` | 422 | the photo is clear but not the requested document: not a medical bill at all, or a bill sent as a medication label. The client says so instead of "retake in good light" |
 | `RATE_LIMITED` | 429 | too many scans per IP, or the daily AI cap was reached |
 | `NOT_IMPLEMENTED` | 501 | stub endpoint |
 | `AI_UNAVAILABLE` | 503 | Gemini is down or not configured |
@@ -84,6 +85,7 @@ All money is in **integer cents** (SGD). Never use float dollars.
 ```json
 {
   "clinic": "SingHealth Polyclinics - Bedok",
+  "place": "polyclinic",
   "visitDate": "2026-09-01",
   "items": [{ "description": "Consultation", "category": "consultation", "amountCents": 1450 }],
   "subsidies": [{ "scheme": "government", "amountCents": 870 }],
@@ -96,8 +98,9 @@ All money is in **integer cents** (SGD). Never use float dollars.
 |---|---|
 | `clinic`, `description` | string \| null |
 | `visitDate` | `YYYY-MM-DD` \| null |
-| `category` | `consultation` `medication` `investigation` `procedure` `other` |
-| `scheme` | `government` `chas` `pioneer` `merdeka` `other` |
+| `place` | `polyclinic` `gp` `dental` `specialist` `hospital` `tcm` `pharmacy` `lab` `other`, or `null` (older scans and samples: the Bill page then goes by the clinic name). Any medical bill is read; subsidy estimates are only for polyclinic, GP and dental bills |
+| `category` | `consultation` `medication` `investigation` `procedure` `ward` (ward, bed or room) `tax` (GST) `other` |
+| `scheme` | `government` `chas` `pioneer` `merdeka` `insurance` (MediShield Life, Integrated Shield, private or employer insurance) `other` |
 | `amountCents`, `medisaveCents`, `totalPayableCents` | integer \| null |
 
 Invariant (checked in tests for the fixtures): `sum(items) − sum(subsidies) − medisaveCents = totalPayableCents`.

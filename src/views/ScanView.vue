@@ -196,6 +196,8 @@ function cancel() {
 }
 
 const photoError = computed(() => PHOTO_ERRORS.includes(errorCode.value))
+// A clear photo of the wrong document (e.g. a hospital bill): say what we can read, keep the photo, no lighting tips.
+const wrongDoc = computed(() => errorCode.value === 'WRONG_DOCUMENT')
 const TIPS = [
   { key: 'light', icon: 'sun' },
   { key: 'flat', icon: 'scan' },
@@ -245,8 +247,9 @@ onMounted(() => {
       <span class="tile tile-warning err-tile"><AppIcon name="camera" :size="42" /></span>
       <span class="badge badge-warning align-self-start"><AppIcon name="alert" :size="18" />{{ t('scan.errorTag') }}</span>
       <div role="alert" class="d-flex flex-column gap-3">
-        <h1>{{ t(`errors.${errorCode}`) }}</h1>
-        <p v-if="photoError" class="lead-text">{{ t('scan.photoHint') }}</p>
+        <h1>{{ wrongDoc ? t(`scan.wrongDoc.${type}.title`) : t(`errors.${errorCode}`) }}</h1>
+        <p v-if="wrongDoc" class="lead-text">{{ t(`scan.wrongDoc.${type}.text`) }}</p>
+        <p v-else-if="photoError" class="lead-text">{{ t('scan.photoHint') }}</p>
         <p v-else-if="photo" class="lead-text">{{ t('scan.photoKept') }}</p>
       </div>
     </div>
@@ -258,9 +261,10 @@ onMounted(() => {
         </li>
       </ul>
       <img v-else-if="photo" :src="photo" :alt="t('scan.yourPhoto')" class="photo scan-preview" />
-      <template v-if="photoError">
+      <template v-if="photoError || wrongDoc">
         <button type="button" class="btn btn-primary" @click="retake"><AppIcon name="camera" />{{ t('scan.retake') }}</button>
         <button type="button" class="btn btn-secondary" @click="upload.click()"><AppIcon name="upload" />{{ t('scan.uploadOther') }}</button>
+        <button v-if="wrongDoc" type="button" class="btn btn-ghost" @click="state = 'idle'"><AppIcon name="sparkles" />{{ t('scan.useSample') }}</button>
       </template>
       <template v-else>
         <button type="button" class="btn btn-primary" @click="retry"><AppIcon name="replay" />{{ t('scan.tryAgain') }}</button>

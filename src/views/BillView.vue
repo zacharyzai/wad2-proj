@@ -1,4 +1,4 @@
-<!-- Owner: Lokesh. Bill breakdown: every line of a Singapore polyclinic or GP clinic bill with its category, and a tap-to-open plain explanation.
+<!-- Owner: Lokesh. Bill breakdown: every line of a medical bill (polyclinic, GP, dental, specialist, hospital, pharmacy...) with its category, and a tap-to-open plain explanation.
      Subsidies are checked from the account's date of birth and citizenship (no questions on this page); Back returns to where you came from. -->
 <script setup>
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
@@ -23,6 +23,7 @@ const SAMPLES = [
   { id: 'bill-1', key: 'bill1' },
   { id: 'bill-2', key: 'bill2' },
   { id: 'bill-3', key: 'bill3' },
+  { id: 'bill-4', key: 'bill4' },
 ]
 
 // Only a bill the user has checked on Confirm (or a built-in sample) is broken down.
@@ -101,7 +102,7 @@ const takenOff = computed(() => {
       id: `subsidy-${i}`,
       ...SUBSIDY_STYLE,
       name: t(`scheme.${s.scheme}`),
-      tag: t('bill.tag.subsidy'),
+      tag: t(s.scheme === 'insurance' ? 'bill.tag.insurance' : 'bill.tag.subsidy'),
       amountCents: s.amountCents,
       minus: true,
       text: t(`bill.explain.scheme.${s.scheme}`),
@@ -162,7 +163,7 @@ const split = computed(() => {
 
 const summary = computed(() => [
   [t('bill.summary.charges'), money(sumCents(bill.value.items))],
-  [t('bill.summary.subsidies'), '−' + money(sumCents(bill.value.subsidies))],
+  [t(bill.value.subsidies.some((x) => x.scheme === 'insurance') ? 'bill.summary.subsidiesInsurance' : 'bill.summary.subsidies'), '−' + money(sumCents(bill.value.subsidies))],
   [t('bill.summary.medisave'), '−' + money(bill.value.medisaveCents)],
 ])
 </script>

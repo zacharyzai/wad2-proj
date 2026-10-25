@@ -100,6 +100,8 @@ const KEEP = [
   /\b(allerg\w*|nose|itch\w*|rash|cough|cold|flu|sneez\w*|phlegm|sore throat|headache|aches?|gastric|gastritis|acid|reflux|constipation|diarrh?o?ea|vomit\w*|nausea|infection|inflammation|swelling|blood pressure|hypertension|cholesterol|diabetes|sugar|asthma|breathless\w*|wheez\w*|sleep|anxiety|gout|eczema)\b/i,
   /\b(qty|quantity|exp(iry)?|date|dispensed|pharmacy|polyclinic|clinic|hospital|pharmacist|rx)\b/i,
   /\b(consult\w*|subsid\w*|medisave|chas|payable|total|gst|invoice|bill|receipt|amount|paid|payment|balance|pioneer|merdeka|generation|medications?|investigations?|procedures?|charges?|fees?|cash|nets|less)\b/i,
+  // Hospital, specialist, dental and other medical bills. No ID words (bill no, admission no): those lines stay covered.
+  /\b(ward|room|bed|class|medishield|shield|insurance|insurer|claims?|deduct\w*|radiology|x-?ray|scan|laborator\w*|lab|physio\w*|therapy|nursing|consumables|dental|dentist|specialist|discharged?|admitted|tcm)\b/i,
 ]
 
 // Row geometry from the reader: a baseline (tilted on a tilted photo) plus how far letters reach above and below it.

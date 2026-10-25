@@ -15,8 +15,9 @@ export const UNKNOWN = 'unknown'
 const CHECKED_ON = '2026-10-21'
 const FIRST_YEAR = 1900
 
-// Where a scheme can be used. A bill can come from a polyclinic or a GP clinic, so each rule says where it applies.
-export const PLACES = ['polyclinic', 'chasClinic']
+// Where a scheme can be used. Each rule says where it applies. 'other' = hospital, specialist, TCM, pharmacy, lab and so on:
+// no rule here has a confirmed figure there, so the page lists what may apply (with its official link) and never estimates.
+export const PLACES = ['polyclinic', 'chasClinic', 'other']
 
 // Years must be whole numbers after 1900 and not in the future (heuristic audit, Bill checklist).
 export function validYear(year, thisYear = new Date().getFullYear()) {
@@ -131,8 +132,14 @@ export function checkRules(raw, thisYear) {
   return RULES.map((rule) => ({ rule, result: rule.eligible(answers) }))
 }
 
-// The contract has no clinic type, so the clinic name decides. Any other clinic is treated as a (possibly CHAS) GP clinic.
-export const billPlace = (bill) => (/polyclinic/i.test(bill.clinic ?? '') ? 'polyclinic' : 'chasClinic')
+// From the bill's `place` (read off the bill): GP and dental clinics are where CHAS works. Bills without one (older scans,
+// samples) fall back to the clinic name: a polyclinic, or else treated as a (possibly CHAS) GP clinic.
+export function billPlace(bill) {
+  if (bill.place === 'polyclinic') return 'polyclinic'
+  if (bill.place === 'gp' || bill.place === 'dental') return 'chasClinic'
+  if (bill.place) return 'other'
+  return /polyclinic/i.test(bill.clinic ?? '') ? 'polyclinic' : 'chasClinic'
+}
 
 const sumCents = (lines) => lines.reduce((total, line) => total + (line.amountCents ?? 0), 0)
 

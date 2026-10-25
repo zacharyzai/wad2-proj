@@ -5,6 +5,8 @@ export const CATEGORY_STYLE = {
   medication: { icon: 'pill', tone: 'blue' },
   investigation: { icon: 'zoom', tone: 'purple' },
   procedure: { icon: 'heart', tone: 'orange' },
+  ward: { icon: 'bed', tone: 'teal' },
+  tax: { icon: 'receipt', tone: 'grey' },
   other: { icon: 'tag', tone: 'grey' },
 }
 export const SUBSIDY_STYLE = { icon: 'shield', tone: 'green' }

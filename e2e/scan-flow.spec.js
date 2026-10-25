@@ -98,6 +98,23 @@ test('scan service errors offer retry and samples', async ({ page }) => {
   await expect(page.getByRole('heading', { level: 2, name: 'Nothing to scan? Try a sample' })).toBeVisible()
 })
 
+test('a clear photo that is not a medical bill says so, not "retake in good light"', async ({ page }) => {
+  await page.addInitScript(() => (window.__redactForTests = async (dataUrl) => ({ dataUrl, keep: [{ text: 'TOTAL' }], hits: [] })))
+  await page.route('**/api/scan', (route) =>
+    route.fulfill({ status: 422, json: { ok: false, error: { code: 'WRONG_DOCUMENT', message: 'This is not a medical bill' } } }),
+  )
+  await page.goto('/bill/scan')
+  await page.getByTestId('upload-input').setInputFiles({ name: 'holiday-photo.png', mimeType: 'image/png', buffer: TINY_PNG })
+  await page.getByRole('button', { name: 'Scan', exact: true }).click()
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('This doesn’t look like a medical bill')
+  await expect(page.getByRole('alert')).toContainText('it doesn’t look like a bill from a clinic, hospital or pharmacy')
+  await expect(page.getByText('good light')).toHaveCount(0) // no lighting advice for a clear photo
+  await expect(page.locator('.tips')).toHaveCount(0)
+  await expect(page.getByRole('button', { name: 'Upload a different photo' })).toBeVisible()
+  await page.getByRole('button', { name: 'Use a sample instead' }).click()
+  await expect(page.getByRole('heading', { level: 2, name: /Try a sample/ })).toBeVisible()
+})
+
 test('explanation follows the language switch', async ({ page }) => {
   await openSample(page, 'Metformin label')
   await page.getByRole('button', { name: 'Looks correct' }).click()
