@@ -9,6 +9,7 @@ import { scanStore } from '../stores/scan'
 import AppIcon from '../components/layout/AppIcon.vue'
 import LoadingState from '../components/layout/LoadingState.vue'
 import UploadDropzone from '../components/scan/UploadDropzone.vue'
+import ReadAloud from '../components/explain/ReadAloud.vue'
 
 const SAMPLES = [
   { id: 'med-1', type: 'medication', key: 'med1' },
@@ -132,10 +133,16 @@ function onFile(event) {
 }
 
 async function useFile(file) {
+  // H1: shrinking a big photo takes about a second on old phones; show that we're working, so nobody taps again.
+  coverView.value = null
+  readingType.value = type.value
+  covering.value = true
+  state.value = 'loading'
   try {
     photo.value = await compress(file)
   } catch {
     // The browser couldn't open the file (e.g. HEIC on a laptop, or not an image), so the server was never asked.
+    covering.value = false
     photo.value = null
     errorCode.value = 'UNSUPPORTED_FILE'
     state.value = 'error'
@@ -179,7 +186,8 @@ async function coverAndSend(docType) {
 }
 
 function trySample(sample) {
-  photo.value = null
+  // H6: the sample's picture goes to Confirm too, so there is something to check the fields against.
+  photo.value = `/samples/${sample.id}.svg`
   coverView.value = null
   send(sample.type, () => scanSample(sample.id))
 }
@@ -211,6 +219,17 @@ function readAsOther() {
 function notOther() {
   errorCode.value = 'MISMATCH'
 }
+
+// What the error screen says, in one place: shown, and read aloud on request (H10: seniors with low vision can hear it).
+const errorTitle = computed(() =>
+  otherKind.value ? t(`scan.other.${otherKind.value}.title`) : wrongDoc.value ? t(`${wrongDocKey.value}.title`) : t(`errors.${errorCode.value}`),
+)
+const errorText = computed(() => {
+  if (otherKind.value) return t(`scan.other.${otherKind.value}.question`)
+  if (wrongDoc.value) return t(`${wrongDocKey.value}.text`)
+  if (photoError.value) return t('scan.photoHint')
+  return photo.value ? t('scan.photoKept') : ''
+})
 const TIPS = [
   { key: 'light', icon: 'sun' },
   { key: 'flat', icon: 'scan' },
@@ -264,12 +283,10 @@ onMounted(() => {
         <span class="badge badge-warning align-self-start"><AppIcon name="alert" :size="18" />{{ t('scan.errorTag') }}</span>
       </template>
       <div role="alert" class="d-flex flex-column gap-3">
-        <h1>{{ otherKind ? t(`scan.other.${otherKind}.title`) : wrongDoc ? t(`${wrongDocKey}.title`) : t(`errors.${errorCode}`) }}</h1>
-        <p v-if="otherKind" class="lead-text" data-testid="scan-other-question">{{ t(`scan.other.${otherKind}.question`) }}</p>
-        <p v-else-if="wrongDoc" class="lead-text">{{ t(`${wrongDocKey}.text`) }}</p>
-        <p v-else-if="photoError" class="lead-text">{{ t('scan.photoHint') }}</p>
-        <p v-else-if="photo" class="lead-text">{{ t('scan.photoKept') }}</p>
+        <h1>{{ errorTitle }}</h1>
+        <p v-if="errorText" class="lead-text" :data-testid="otherKind ? 'scan-other-question' : null">{{ errorText }}</p>
       </div>
+      <ReadAloud :text="`${errorTitle}. ${errorText}`" />
     </div>
     <div>
       <ul v-if="photoError" class="card tips">
@@ -281,7 +298,7 @@ onMounted(() => {
       <img v-else-if="photo" :src="photo" :alt="t('scan.yourPhoto')" class="photo scan-preview" />
       <template v-if="otherKind">
         <button type="button" class="btn btn-primary" data-testid="scan-other-yes" @click="readAsOther"><AppIcon name="check" />{{ t(`scan.other.${otherKind}.yes`) }}</button>
-        <button type="button" class="btn btn-secondary" data-testid="scan-other-no" @click="notOther"><AppIcon name="x" />{{ t('scan.other.no') }}</button>
+        <button type="button" class="btn btn-secondary" data-testid="scan-other-no" @click="notOther"><AppIcon name="x" />{{ t(`scan.other.${otherKind}.no`) }}</button>
       </template>
       <template v-else-if="photoError || wrongDoc">
         <button type="button" class="btn btn-primary" @click="retake"><AppIcon name="camera" />{{ t('scan.retake') }}</button>

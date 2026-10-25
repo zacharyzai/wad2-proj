@@ -1,7 +1,7 @@
 <!-- Owner: Asher. From the Claude Design Confirm screen: the user checks and corrects what was read before anything uses it. -->
 <script setup>
-import { computed, reactive, ref, toRaw } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, nextTick, reactive, ref, toRaw, watch } from 'vue'
+import { onBeforeRouteLeave, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { scanStore } from '../stores/scan'
 import { rememberMedicine } from '../stores/medicines'
@@ -42,16 +42,62 @@ const required = computed(() => {
 
 // Contract invariant: items − subsidies − MediSave = total. If it doesn't add up, the total needs checking.
 const totalMismatch = computed(
-  () => draft.type === 'bill' && sum(draft.bill.items) - sum(draft.bill.subsidies) - (draft.bill.medisaveCents ?? 0) !== draft.bill.totalPayableCents,
+  () => draft.type === 'bill' && sum(draft.bill.items) - sum(draft.bill.subsidies.filter((s) => !s.includedInItems)) - (draft.bill.medisaveCents ?? 0) !== draft.bill.totalPayableCents,
 )
+
+// H5: values that can't be right (a dose of 0, 20 times a day, 3 times a day with 1 time ticked) are flagged too.
+const invalid = computed(() => {
+  const bad = {}
+  if (draft.type !== 'medication') return bad
+  const m = draft.medication
+  if (typeof m.doseAmount === 'number' && !(m.doseAmount > 0 && m.doseAmount <= 100)) bad['medication.doseAmount'] = t('confirm.bad.amount')
+  const times = m.timesPerDay
+  const timesOk = Number.isInteger(times) && times >= 1 && times <= 6
+  if (m.frequencyType === 'daily' && typeof times === 'number' && !timesOk) bad['medication.timesPerDay'] = t('confirm.bad.times')
+  const ticked = m.timing?.length ?? 0
+  if (m.frequencyType === 'daily' && timesOk && ticked && ticked !== times) bad['medication.timing'] = t('confirm.bad.timing', { ticked, times }, ticked)
+  return bad
+})
 
 const flagged = computed(() => {
   if (!scan) return []
   const empty = [...new Set([...draft.unclear, ...required.value])].filter((path) => isEmpty(get(path)))
+  for (const path of Object.keys(invalid.value)) if (!empty.includes(path)) empty.push(path)
   if (totalMismatch.value && !empty.includes('bill.totalPayableCents')) empty.push('bill.totalPayableCents')
   return empty
 })
 const needs = (path) => flagged.value.includes(path)
+// Why a field is flagged when it isn't simply empty (H5): the message says what to fix. null = the usual "We couldn't read this".
+const problem = (path) => invalid.value[path] ?? null
+
+// H6: on phones the photo is folded away; open it when something needs checking against it.
+showPhoto.value = flagged.value.length > 0
+
+// H3/H5: leaving with corrections (Back, Retake, a tab, the browser's Back) asks first instead of silently losing them.
+const original = JSON.stringify(scan ?? {})
+const changed = () => JSON.stringify(toRaw(draft)) !== original
+const askDiscard = ref(false)
+let leaveTo = null
+let done = false
+onBeforeRouteLeave((to) => {
+  if (done || leaveTo || !changed()) return true
+  leaveTo = to
+  askDiscard.value = true
+  return false
+})
+// The guard lets `leaveTo` through now that it's set.
+const discard = () => router.push(leaveTo)
+const discardBox = ref(null)
+watch(askDiscard, async (open) => {
+  if (!open) return
+  await nextTick()
+  discardBox.value?.scrollIntoView({ block: 'center', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })
+  discardBox.value?.querySelector('button')?.focus({ preventScroll: true })
+})
+function keepChecking() {
+  leaveTo = null
+  askDiscard.value = false
+}
 
 function toggleTiming(key) {
   const current = draft.medication.timing ?? []
@@ -72,6 +118,7 @@ function confirm() {
   }
   scanStore.current = draft
   scanStore.confirmed = true
+  done = true
   router.push({ name: 'explain' })
 }
 
@@ -90,6 +137,15 @@ const scanAgain = () => router.push({ name: draft.type === 'bill' ? 'bill-scan' 
       <div class="page-head">
         <h1>{{ t(`confirm.title.${draft.type}`) }}</h1>
         <p class="lead-text">{{ t(`confirm.lead.${draft.type}`) }}</p>
+      </div>
+    </div>
+
+    <div v-if="askDiscard" ref="discardBox" class="alert alert-warning flex-column" role="alertdialog" aria-labelledby="discard-q" aria-describedby="discard-text" data-testid="confirm-discard">
+      <strong id="discard-q">{{ t('confirm.discard.title') }}</strong>
+      <span id="discard-text">{{ t('confirm.discard.text') }}</span>
+      <div class="d-flex flex-column flex-sm-row gap-3">
+        <button type="button" class="btn btn-primary" data-testid="confirm-keep" @click="keepChecking">{{ t('confirm.discard.keep') }}</button>
+        <button type="button" class="btn btn-secondary" data-testid="confirm-discard-yes" @click="discard">{{ t('confirm.discard.yes') }}</button>
       </div>
     </div>
 
@@ -124,7 +180,7 @@ const scanAgain = () => router.push({ name: draft.type === 'bill' ? 'bill-scan' 
             <input id="f-strength" v-model.trim="draft.medication.strength" class="field-input" />
           </ConfirmField>
 
-          <ConfirmField :label="t('confirm.med.amount')" for="f-amount" :flagged="needs('medication.doseAmount')">
+          <ConfirmField :label="t('confirm.med.amount')" for="f-amount" :flagged="needs('medication.doseAmount')" :note="problem('medication.doseAmount')">
             <div class="d-flex gap-2">
               <input id="f-amount" v-model.number="draft.medication.doseAmount" type="number" inputmode="decimal" min="0" step="0.5" class="field-input amount" :class="{ 'is-flagged': needs('medication.doseAmount') }" />
               <select v-model="draft.medication.doseUnit" class="field-input" :aria-label="t('confirm.med.unit')">
@@ -141,10 +197,10 @@ const scanAgain = () => router.push({ name: draft.type === 'bill' ? 'bill-scan' 
           </ConfirmField>
 
           <template v-if="draft.medication.frequencyType === 'daily'">
-            <ConfirmField class="span2" :label="t('confirm.med.times')" for="f-times" :flagged="needs('medication.timesPerDay')">
+            <ConfirmField class="span2" :label="t('confirm.med.times')" for="f-times" :flagged="needs('medication.timesPerDay')" :note="problem('medication.timesPerDay')">
               <input id="f-times" v-model.number="draft.medication.timesPerDay" type="number" inputmode="numeric" min="1" max="6" class="field-input amount" :class="{ 'is-flagged': needs('medication.timesPerDay') }" />
             </ConfirmField>
-            <ConfirmField class="span2" :label="t('confirm.med.when')" :flagged="needs('medication.timing')">
+            <ConfirmField class="span2" :label="t('confirm.med.when')" :flagged="needs('medication.timing')" :note="problem('medication.timing')">
               <div class="d-flex flex-wrap gap-2">
                 <button v-for="key in TIMINGS" :key="key" type="button" class="choice" :aria-pressed="draft.medication.timing?.includes(key) ?? false" @click="toggleTiming(key)">
                   <AppIcon v-if="draft.medication.timing?.includes(key)" name="check" :size="18" :stroke="2.5" />{{ t(`timing.${key}`) }}
@@ -179,7 +235,7 @@ const scanAgain = () => router.push({ name: draft.type === 'bill' ? 'bill-scan' 
             </template>
 
             <template v-for="(subsidy, i) in draft.bill.subsidies" :key="`s${i}`">
-              <span class="row-label">{{ t(`scheme.${subsidy.scheme}`) }}</span>
+              <span class="row-label">{{ t(`scheme.${subsidy.scheme}`) }}<small v-if="subsidy.includedInItems" class="d-block text-muted-a11y">{{ t('bill.inLines') }}</small></span>
               <input type="number" inputmode="decimal" min="0" step="0.01" class="field-input" :class="{ 'is-flagged': needs(`bill.subsidies.${i}.amountCents`) }" :value="dollars(subsidy.amountCents)" :aria-label="t(`scheme.${subsidy.scheme}`)" @change="subsidy.amountCents = toCents($event.target.value)" />
             </template>
 

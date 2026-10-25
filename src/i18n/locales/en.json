@@ -39,11 +39,11 @@
   },
   "errors": {
     "AUTH_UNAVAILABLE": "Login and signup are temporarily unavailable. Please try again later.",
-    "BAD_REQUEST": "Something was wrong with that request. Please try again.",
+    "BAD_REQUEST": "We couldn’t use that. Please try again.",
     "NOT_FOUND": "We could not find that.",
     "IMAGE_TOO_LARGE": "The photo is too large. Please try a smaller photo.",
     "UNREADABLE_IMAGE": "We could not read this photo. Please retake it in good light.",
-    "RATE_LIMITED": "Too many scans. Please wait a while and try again.",
+    "RATE_LIMITED": "Too many tries right now. Please wait a few minutes, or try a sample.",
     "AI_UNAVAILABLE": "Scanning is not available right now. Try a sample instead.",
     "NOT_IMPLEMENTED": "This feature is coming soon.",
     "SERVER_ERROR": "Something went wrong. Please try again.",
@@ -59,7 +59,8 @@
     "WRONG_DOCUMENT": "That isn’t the kind of document we can read.",
     "LOOKS_LIKE_BILL": "This looks like a medical bill, not a medicine label.",
     "LOOKS_LIKE_LABEL": "This looks like a medicine label, not a medical bill.",
-    "MISMATCH": "This photo doesn’t match what you chose to scan."
+    "MISMATCH": "This photo doesn’t match what you chose to scan.",
+    "SESSION_ENDED": "You were logged out. Please log in again."
   },
   "home": {
     "title": "What would you like to understand?",
@@ -165,14 +166,15 @@
       "bill": {
         "title": "This looks like a medical bill",
         "question": "You chose a medicine label. Was this meant for a medical bill?",
-        "yes": "Yes, read it as a bill"
+        "yes": "Yes, read it as a bill",
+        "no": "No, it’s a medicine label"
       },
       "medication": {
         "title": "This looks like a medicine label",
         "question": "You chose a medical bill. Was this meant for a medicine label?",
-        "yes": "Yes, read it as a label"
-      },
-      "no": "No"
+        "yes": "Yes, read it as a label",
+        "no": "No, it’s a bill"
+      }
     },
     "mismatch": {
       "medication": {
@@ -231,6 +233,17 @@
       "photo": "Photo",
       "check": "Check",
       "explain": "Explain"
+    },
+    "bad": {
+      "amount": "This must be more than 0.",
+      "times": "Times a day must be a whole number from 1 to 6.",
+      "timing": "You ticked {ticked} time of day, but it says {times} times a day. Tick the right times, or change the number. | You ticked {ticked} times of day, but it says {times} times a day. Tick the right times, or change the number."
+    },
+    "discard": {
+      "title": "Throw away your changes?",
+      "text": "You changed some details. If you leave now, those changes are lost.",
+      "keep": "Keep checking",
+      "yes": "Throw away and leave"
     }
   },
   "unit": {
@@ -324,7 +337,7 @@
   },
   "player": {
     "reading": "Reading in English",
-    "play": "Play",
+    "play": "Read aloud",
     "pause": "Pause",
     "replay": "Replay",
     "speed": "Speed",
@@ -401,7 +414,10 @@
       "removed": "{name} removed",
       "undo": "Undo"
     },
-    "placeholder": "Ask about your medicine…"
+    "placeholder": "Ask about your medicine…",
+    "newChat": "New conversation",
+    "cleared": "Conversation cleared.",
+    "left": "{n} letters left"
   },
   "common": {
     "retry": "Try again",
@@ -475,7 +491,11 @@
       "private": "Your name and NRIC are blacked out on your phone before anything is read."
     },
     "promiseLabel": "What you get",
-    "about": "New here? See how it works"
+    "about": "New here? See how it works",
+    "forgot": {
+      "title": "Forgot your password?",
+      "text": "Passwords can’t be reset in the app yet. Ask the family member who helped set up your account, or create a new account with another email. The medicines saved on this phone stay."
+    }
   },
   "landing": {
     "hero": {
@@ -561,7 +581,8 @@
       "charges": "Total charges",
       "subsidies": "Subsidies",
       "medisave": "MediSave",
-      "subsidiesInsurance": "Subsidies & insurance"
+      "subsidiesInsurance": "Subsidies & insurance",
+      "chargesNet": "Charges after subsidy"
     },
     "charged": "What you were charged",
     "takenOff": "Taken off your bill",
@@ -691,7 +712,8 @@
     },
     "basis": "Checked with your account details: born {year}, {status}.",
     "basisChange": "Change my details",
-    "closeBill": "Close this bill"
+    "closeBill": "Close this bill",
+    "inLines": "Already taken off the charges above"
   },
   "account": {
     "toast": "Settings saved",
@@ -704,7 +726,9 @@
     "edit": "Edit my details",
     "editTitle": "Edit your details",
     "save": "Save",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "logoutAsk": "Log out of this phone or computer?",
+    "logoutNote": "You will need your email and password to log in again."
   },
   "guide": {
     "open": "How to use the app",

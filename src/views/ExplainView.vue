@@ -79,7 +79,7 @@ function bill(b) {
     title: t('explain.bill.title', { amount: money(pay) }),
     lines: [
       [t('explain.bill.charges'), money(charges)],
-      [t('explain.bill.subsidies'), '−' + money(sum(b.subsidies))],
+      [t('explain.bill.subsidies'), '−' + money(sum(b.subsidies.filter((s) => !s.includedInItems)))],
       [t('explain.bill.medisave'), '−' + money(b.medisaveCents)],
     ],
     paras: [t('explain.bill.p')],

@@ -48,8 +48,9 @@ watch(
 
 // After moving to another page, screen readers start at its heading instead of the top of the nav.
 const router = useRouter()
-router.afterEach(async (to, from) => {
-  if (!from.name || to.path === from.path) return // first load or only ?type= changed
+router.afterEach(async (to, from, failure) => {
+  // First load, only ?type= changed, or the move was stopped (e.g. Confirm asked "Throw away your changes?"): stay put.
+  if (failure || !from.name || to.path === from.path) return
   await nextTick()
   const h1 = document.querySelector('main h1')
   h1?.setAttribute('tabindex', '-1')

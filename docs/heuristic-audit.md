@@ -112,3 +112,95 @@ Tests (`e2e/ask-ux.spec.js`, run in Chromium and on iPhone):
 Ask has no Back to test, because it is a top-level tab.
 
 Open (not Zachary's files): findings 1, 2, 4–11, 14, 16, 17, 20 (Asher, Isaac, Lokesh), and finding 3 (needs Sheen Hern's `/api/tts`). Ask's own severity 1 items (15 fresh conversation, 18 character counter) are not fixed, as Step 2 says.
+
+---
+
+# Round 2: features built since 19 Oct (audit 25 Oct 2026)
+
+Done by walking each flow in the browser (phone and desktop, English and Chinese) and reading its code. Each fix has a Playwright test. Severity as above.
+
+## Scope
+
+| Flow | Audited |
+|---|---|
+| Login, Sign up, logged-out start-up | Yes |
+| Account: details, language, "Settings saved", Log out | Yes |
+| Start-up routing (new visitor → Welcome, account → Login, signed in → Home) | Yes |
+| Bill: any medical bill (hospital, dental, pharmacy...), insurance, Home after the breakdown | Yes |
+| Scan: wrong document, "Was this meant for a bill?" | Yes |
+| Welcome page, Beginner's guide | Yes |
+| Ask: remembers earlier turns, suggested questions | Yes |
+| Google Calendar | Backend only: there is no button yet (#R9) |
+
+## Findings
+
+| # | Heuristic | Where | Sev | Problem | Status |
+|---|---|---|---|---|---|
+| R1 | H9 Recover, H10 Help | Login | **3** | No "Forgot password?": a senior who forgets is stuck with no hint. | **Fixed (partly):** "Forgot your password?" explains what to do. A real reset needs an email service; future work. |
+| R2 | H1 Status | Start-up | 2 | When a saved login expires, the app moves to Login silently. | **Fixed:** "You were logged out. Please log in again." |
+| R3 | H5 Prevention | Account | 2 | Log out is one tap; logging back in needs the password, and there is no reset (R1). | **Fixed:** asks "Log out of this phone or computer?" first. |
+| R4 | H3 Control | Ask | 2 | No way to start over (old #15). Matters more now: earlier turns are sent with each question, so an old topic can steer new answers. | **Fixed:** "New conversation", with Undo for 8 seconds. |
+| R5 | H2 Real world, H6 | Scan question screen | 2 | "No" alone doesn't say what it means. | **Fixed:** "No, it's a medicine label" / "No, it's a bill". |
+| R6 | H5 Prevention | Ask composer | 1 | The 300-letter limit stops typing silently (old #18). | **Fixed:** "30 letters left" appears near the limit. |
+| R7 | H9 Recover | Scan, Bill | 3 | Before this week, a clear photo of the wrong document said "retake it in good light", and only polyclinic bills were read. | **Fixed this week:** wrong-document message; any medical bill; "Was this meant for a bill?" with Yes/No. |
+| R8 | H1 Status, H10 | Scan | 2 | When Gemini is overloaded a scan could wait 25 s, then fail. | **Fixed this week:** the backup always gets a turn; overloaded models rest for 2 minutes. |
+| R9 | H1 Status, H3 | Google Calendar | 3 | No Connect / Connected / Disconnect button, so users can't use it at all. | **Open (Isaac):** steps in `docs/google-contract.md`. |
+| R10 | H3 Control, H5 | Confirm | 3 | Old #1: Back / Retake throws away the user's corrections without asking. | **Fixed (round 3).** |
+| R11 | H5 Prevention | Confirm | 3 | Old #2: impossible doses pass (0 tablets, 20 times a day). | **Fixed (round 3).** |
+| R12 | H2 Real world | Bill (hospital) | 1 | Hospital bills get no subsidy estimate, only "may not apply here" with official links. Correct, since there are no official figures, but users may expect a number. | By design (never invent a figure). |
+| R13 | H3 Control | Account → Edit | 1 | Cancel drops the edits without asking. The form is short, so retyping is cheap. | Not fixed. |
+
+## Already good in the new features (no change)
+
+- **H1 Status:**
+  - Home opens instantly for returning users.
+  - "Settings saved" appears after every Account change, in the chosen language, and screen readers hear it.
+  - Scans show "covering your details", then "reading".
+- **H2 Real world:**
+  - Bills use the words printed on them.
+  - Lines are labelled Ward / room, GST, Insurance.
+  - The summary says "Subsidies & insurance" when there is a claim.
+- **H3 Control:**
+  - Home, Close and Back are all on the bill breakdown.
+  - The welcome page's moving parts can be stopped (tap a language or Bill / Medicine label).
+  - The Beginner's guide can be skipped any time.
+- **H4 Consistency:**
+  - The language follows the account on every device.
+  - The language switcher looks the same in the sidebar, Account and Login.
+- **H5 Prevention:**
+  - Sign-up shows every problem at once.
+  - Bill totals are checked against the lines, and anything that doesn't add up is marked "please check" (as with Groq's misread hospital bill).
+- **H6 Recognition:** samples on every page; suggested next questions in Ask.
+- **H8 Minimalist:** day mode by default; "What this means for you" stays closed until tapped.
+- **H9 Recover:** Undo for removing a medicine and for New conversation.
+
+---
+
+# Round 3: every feature, including round 1's open findings (25 Oct 2026)
+
+Each round 1 finding was checked again against today's code. Fixes are by Claude, in the owners' files (listed for their AI declarations). Each has a Playwright test.
+
+| Round 1 # | Heuristic | Where (owner) | Status today |
+|---|---|---|---|
+| 1 | H3, H5 | Confirm (Asher) | **Fixed.** Leaving with corrections by any route (Back, Retake, a tab, the browser's Back) asks "Throw away your changes?": Keep checking (focused) / Throw away and leave. No question if nothing changed or after Looks correct. |
+| 2 | H5 | Confirm (Asher) | **Fixed.** A dose of 0 or less, times a day outside 1–6, and ticked times that don't match times a day are flagged with what to fix ("You ticked 1 time of day, but it says 2 times a day"), and block Looks correct. |
+| 3 | H1, H10 | Read-aloud (Sheen Hern) | **Open.** Cloud TTS for Tamil and Malay needs `/api/tts`. |
+| 4 | H3 | Explain "Add to schedule" (Lokesh) | **Open** until the Schedule ships. |
+| 5 | H1 | Scan upload (Asher) | **Fixed.** The working state shows while a big photo is shrunk, so nobody taps twice. |
+| 6 | H6 | Samples on Confirm (Asher) | **Fixed.** The sample's picture goes to Confirm. |
+| 7 | H4 | Explain vs Ask (Asher, Zachary) | **Fixed.** Both say "Read aloud" (Explain keeps Pause while playing). |
+| 8 | H8 | Tamil tab labels (Isaac, Asher) | **Open, worse than in round 1:** 14px, so 5 Tamil tabs fit a 360px phone. Needs shorter Tamil labels from a native speaker. The icons carry the meaning meanwhile. |
+| 9 | H9 | Error wording (Asher) | **Fixed.** "We couldn't use that. Please try again." / "Too many tries right now. Please wait a few minutes, or try a sample." (no "1 minute": the daily cap uses the same code). |
+| 10 | H10 | First use (Isaac) | **Fixed** by the Beginner's guide. |
+| 11 | H10 | Scan errors (Asher) | **Fixed.** Every Scan error screen has Read aloud, saying the same title and text as the screen. |
+| 13 | H2 | Bill schemes (Lokesh) | **Fixed** by the Bill page explanations. |
+| 14 | H2, H9 | "Error" badge (Asher) | Partly: the "Was this meant for a bill?" question has no Error badge now; real errors keep it. |
+| 15, 18 | H3, H5 | Ask (Zachary) | **Fixed** in round 2. |
+| 16 | H4 | Unused layout components (Isaac) | Mostly resolved: BigButton, Card, ErrorBanner are used again (Account, Login). |
+| 17 | H4 | Scan labels | Resolved: Home "Scan a medication label", tab "Scan", Bill "Scan a bill". |
+| 19 | H7 | Caregiver shortcuts | **Open** until History/Share (Sheen Hern, Isaac). |
+| 20 | H6 | Confirm photo on phones (Asher) | **Fixed.** The photo opens by itself when a field needs checking. |
+
+Also fixed: after a stopped page change (Confirm's question), focus stays where it is instead of jumping to the page heading (`App.vue`, Isaac).
+
+**Not auditable yet (not built):** Schedule (Lokesh), History and Share (Sheen Hern, Isaac), caregiver tracking, the Google Calendar button (Isaac). Audit them once built, with the round 1 checklist above.

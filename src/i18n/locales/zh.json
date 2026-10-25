@@ -39,11 +39,11 @@
   },
   "errors": {
     "AUTH_UNAVAILABLE": "暂时无法登录或注册，请稍后再试。",
-    "BAD_REQUEST": "请求有误，请再试一次。",
+    "BAD_REQUEST": "我们无法使用这个。请再试一次。",
     "NOT_FOUND": "找不到相关内容。",
     "IMAGE_TOO_LARGE": "照片太大，请换一张较小的照片。",
     "UNREADABLE_IMAGE": "无法读取这张照片，请在光线充足的地方重拍。",
-    "RATE_LIMITED": "扫描次数太多，请稍后再试。",
+    "RATE_LIMITED": "现在尝试次数太多。请等几分钟，或先试试示例。",
     "AI_UNAVAILABLE": "目前无法扫描，请先试用示例。",
     "NOT_IMPLEMENTED": "此功能即将推出。",
     "SERVER_ERROR": "出了点问题，请再试一次。",
@@ -59,7 +59,8 @@
     "WRONG_DOCUMENT": "这不是我们能读取的文件类型。",
     "LOOKS_LIKE_BILL": "这看起来是医疗账单，不是药物标签。",
     "LOOKS_LIKE_LABEL": "这看起来是药物标签，不是医疗账单。",
-    "MISMATCH": "这张照片和您选择扫描的内容不符。"
+    "MISMATCH": "这张照片和您选择扫描的内容不符。",
+    "SESSION_ENDED": "您已退出登录。请重新登录。"
   },
   "home": {
     "title": "您想了解什么？",
@@ -165,14 +166,15 @@
       "bill": {
         "title": "这看起来是医疗账单",
         "question": "您选择的是药物标签。这张照片其实是要扫描医疗账单吗？",
-        "yes": "是的，当作账单读取"
+        "yes": "是的，当作账单读取",
+        "no": "不是，这是药物标签"
       },
       "medication": {
         "title": "这看起来是药物标签",
         "question": "您选择的是医疗账单。这张照片其实是要扫描药物标签吗？",
-        "yes": "是的，当作标签读取"
-      },
-      "no": "不是"
+        "yes": "是的，当作标签读取",
+        "no": "不是，这是账单"
+      }
     },
     "mismatch": {
       "medication": {
@@ -231,6 +233,17 @@
       "photo": "拍照",
       "check": "检查",
       "explain": "解释"
+    },
+    "bad": {
+      "amount": "这个数字必须大于 0。",
+      "times": "每天次数必须是 1 到 6 的整数。",
+      "timing": "您勾选了 {ticked} 个时间，但上面写每天 {times} 次。请勾选正确的时间，或改数字。"
+    },
+    "discard": {
+      "title": "要放弃您的修改吗？",
+      "text": "您改了一些资料。如果现在离开，这些修改会丢失。",
+      "keep": "继续检查",
+      "yes": "放弃并离开"
     }
   },
   "unit": {
@@ -324,7 +337,7 @@
   },
   "player": {
     "reading": "正在用中文朗读",
-    "play": "播放",
+    "play": "朗读",
     "pause": "暂停",
     "replay": "重播",
     "speed": "语速",
@@ -401,7 +414,10 @@
       "removed": "已删除 {name}",
       "undo": "撤销"
     },
-    "placeholder": "询问您的药物…"
+    "placeholder": "询问您的药物…",
+    "newChat": "新对话",
+    "cleared": "对话已清除。",
+    "left": "还可以输入 {n} 个字"
   },
   "common": {
     "retry": "再试一次",
@@ -475,7 +491,11 @@
       "private": "在读取之前，您的姓名和身份证号码会先在手机上被遮盖。"
     },
     "promiseLabel": "您可以获得",
-    "about": "第一次来？看看如何使用"
+    "about": "第一次来？看看如何使用",
+    "forgot": {
+      "title": "忘记密码了吗？",
+      "text": "目前还不能在应用里重设密码。请问帮您开设账户的家人，或用另一个电子邮件开设新账户。这部手机上保存的药物会保留。"
+    }
   },
   "landing": {
     "hero": {
@@ -561,7 +581,8 @@
       "charges": "总费用",
       "subsidies": "津贴",
       "medisave": "保健储蓄",
-      "subsidiesInsurance": "津贴和保险"
+      "subsidiesInsurance": "津贴和保险",
+      "chargesNet": "扣除津贴后的费用"
     },
     "charged": "收费项目",
     "takenOff": "从账单中扣除",
@@ -691,7 +712,8 @@
     },
     "basis": "已根据您的账户资料查看：出生于 {year} 年，{status}。",
     "basisChange": "修改我的资料",
-    "closeBill": "关闭此账单"
+    "closeBill": "关闭此账单",
+    "inLines": "已从上面的费用中扣除"
   },
   "account": {
     "toast": "设置已保存",
@@ -704,7 +726,9 @@
     "edit": "编辑我的资料",
     "editTitle": "编辑您的资料",
     "save": "保存",
-    "cancel": "取消"
+    "cancel": "取消",
+    "logoutAsk": "要在这部手机或电脑上退出登录吗？",
+    "logoutNote": "下次登录需要输入电子邮件和密码。"
   },
   "guide": {
     "open": "如何使用",

@@ -187,7 +187,27 @@ function undo() {
   removed.value = null
 }
 
+// H3: start over. The last few turns are sent with each question, so an old topic could steer new answers.
+// Undo for 8 seconds (one stray tap must not lose the conversation).
+const cleared = ref(null)
+const undoClearButton = ref(null)
+let clearTimer = null
+async function newChat() {
+  stopReading()
+  clearTimeout(clearTimer)
+  cleared.value = messages.splice(0)
+  clearTimer = setTimeout(() => (cleared.value = null), 8000)
+  await nextTick()
+  undoClearButton.value?.focus()
+}
+function undoClear() {
+  clearTimeout(clearTimer)
+  messages.push(...cleared.value)
+  cleared.value = null
+}
+
 onBeforeUnmount(() => {
+  clearTimeout(clearTimer)
   stopReading()
   recognition?.abort()
   clearTimeout(toastTimer)
@@ -266,6 +286,10 @@ onBeforeUnmount(() => {
         </div>
       </div>
     </section>
+
+    <div v-if="messages.length" class="thread-tools">
+      <button type="button" class="btn btn-ghost btn-sm" :disabled="loading" data-testid="ask-new" @click="newChat"><AppIcon name="plus" :size="20" />{{ t('ask.newChat') }}</button>
+    </div>
 
     <!-- The log role goes on a wrapper: on the <ol> itself it would hide the list from screen readers. -->
     <div v-if="messages.length" ref="thread" role="log" aria-live="polite" :aria-label="t('ask.title')" data-testid="ask-thread">
@@ -374,10 +398,17 @@ onBeforeUnmount(() => {
       <span role="status" class="mic-status">
         <template v-if="listening">{{ t('ask.mic.listening') }}</template>
         <template v-else-if="micError">{{ t('ask.mic.error') }}</template>
+        <!-- H5: say the limit is near instead of silently stopping the typing. -->
+        <template v-else-if="question.length > MAX - 50"><span data-testid="ask-left">{{ t('ask.left', { n: MAX - question.length }) }}</span></template>
       </span>
       <div v-if="!messages.length" class="starters stagger" role="group" :aria-label="t('ask.chipsLabel')">
         <button v-for="c in CHIPS" :key="c" type="button" class="chip" :disabled="loading" @click="ask(t(`ask.chips.${c}`), c)">{{ t(`ask.chips.${c}`) }}</button>
       </div>
+    </div>
+
+    <div v-if="cleared" class="toast-ahma toast-undo rise" role="status" data-testid="ask-cleared">
+      <span>{{ t('ask.cleared') }}</span>
+      <button ref="undoClearButton" type="button" class="btn btn-on-hero btn-sm" @click="undoClear">{{ t('ask.toast.undo') }}</button>
     </div>
 
     <!-- Undo for Remove. Polite, so screen readers hear it without being interrupted. -->

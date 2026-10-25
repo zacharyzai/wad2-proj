@@ -176,3 +176,31 @@ test('the AI\'s suggested next questions become chips, and follow-ups carry the 
   // No suggestions on this answer: the fixed follow-ups come back.
   await expect(follow.getByRole('button')).toHaveText(['When do I take my medicine?', 'What if I miss a dose?', 'What side effects to watch for?'])
 })
+
+test('New conversation starts over (earlier turns are no longer sent), with Undo (H3)', async ({ page }) => {
+  const sent = mockChat(page, [answer('Keep them dry.'), answer('Take it after food.')])
+  await page.goto('/ask')
+  await page.getByRole('button', { name: 'How do I store medicines?' }).click()
+  await expect(page.getByTestId('ask-answer')).toHaveCount(1)
+
+  await page.getByTestId('ask-new').click()
+  await expect(page.getByTestId('ask-answer')).toHaveCount(0)
+  await expect(page.getByTestId('ask-cleared')).toContainText('Conversation cleared.')
+  await page.getByTestId('ask-cleared').getByRole('button', { name: 'Undo' }).click()
+  await expect(page.getByTestId('ask-answer')).toHaveCount(1) // back
+
+  await page.getByTestId('ask-new').click()
+  await page.getByLabel('Or type your own question').fill('Can I take it with food?')
+  await page.getByLabel('Or type your own question').press('Enter')
+  await expect(page.getByTestId('ask-answer')).toHaveCount(1)
+  expect(sent[1].history).toEqual([]) // a fresh start: the old topic isn't sent
+})
+
+test('near the 300-letter limit, the box says how many are left instead of silently stopping (H5)', async ({ page }) => {
+  await page.goto('/ask')
+  const box = page.getByLabel('Or type your own question')
+  await box.fill('x'.repeat(240))
+  await expect(page.getByTestId('ask-left')).toHaveCount(0)
+  await box.fill('x'.repeat(270))
+  await expect(page.getByTestId('ask-left')).toHaveText('30 letters left')
+})

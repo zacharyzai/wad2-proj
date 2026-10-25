@@ -18,7 +18,8 @@ const password = ref('')
 const remember = ref(true) // stay logged in on this device for 30 days, renewed each visit
 const showPw = ref(false) // eye button flips the field between dots and letters
 const busy = ref(false)
-const errorCode = ref(null)
+// Sent here because a saved login stopped working: say so (H1) instead of a silent Login page.
+const errorCode = ref(route.query.expired ? 'SESSION_ENDED' : null)
 
 // Only follow ?next= if it is a path on our own site, so a crafted link cannot send people to another website.
 function destination() {
@@ -61,6 +62,12 @@ async function submit() {
           </button>
         </div>
       </div>
+
+      <!-- H9/H10: a forgotten password must not be a dead end. shortcut: no reset by email yet (needs an email service). -->
+      <details class="auth-forgot" data-testid="login-forgot">
+        <summary>{{ t('auth.forgot.title') }}</summary>
+        <p class="auth-help m-0">{{ t('auth.forgot.text') }}</p>
+      </details>
 
       <label class="auth-check">
         <input v-model="remember" type="checkbox" aria-describedby="login-remember-help" data-testid="login-remember" />

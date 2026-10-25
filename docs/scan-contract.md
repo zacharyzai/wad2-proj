@@ -89,7 +89,7 @@ All money is in **integer cents** (SGD). Never use float dollars.
   "place": "polyclinic",
   "visitDate": "2026-09-01",
   "items": [{ "description": "Consultation", "category": "consultation", "amountCents": 1450 }],
-  "subsidies": [{ "scheme": "government", "amountCents": 870 }],
+  "subsidies": [{ "scheme": "government", "amountCents": 870, "includedInItems": false }],
   "medisaveCents": 0,
   "totalPayableCents": 1400
 }
@@ -102,6 +102,7 @@ All money is in **integer cents** (SGD). Never use float dollars.
 | `place` | `polyclinic` `gp` `dental` `specialist` `hospital` `tcm` `pharmacy` `lab` `other`, or `null` (older scans and samples: the Bill page then goes by the clinic name). Any medical bill is read; subsidy estimates are only for polyclinic, GP and dental bills |
 | `category` | `consultation` `medication` `investigation` `procedure` `ward` (ward, bed or room) `tax` (GST) `other` |
 | `scheme` | `government` `chas` `pioneer` `merdeka` `insurance` (MediShield Life, Integrated Shield, private or employer insurance) `other` |
+| `includedInItems` | `true` when the bill gives each line a gross and a **net** amount: items then hold the net amounts and this subsidy is already inside them, so it is shown ("Already taken off the charges above") but never subtracted again. The check is items − subsidies not included − MediSave = total |
 | `amountCents`, `medisaveCents`, `totalPayableCents` | integer \| null |
 
 Invariant (checked in tests for the fixtures): `sum(items) − sum(subsidies) − medisaveCents = totalPayableCents`.

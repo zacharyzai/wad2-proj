@@ -144,7 +144,8 @@ export function billPlace(bill) {
 const sumCents = (lines) => lines.reduce((total, line) => total + (line.amountCents ?? 0), 0)
 
 // The bill after subsidies. MediSave is only a way of paying it, so it is not taken off here.
-const remainingCents = (bill) => Math.max(0, sumCents(bill.items) - sumCents(bill.subsidies))
+// A subsidy already inside net line amounts (includedInItems) isn't taken off again.
+const remainingCents = (bill) => Math.max(0, sumCents(bill.items) - sumCents(bill.subsidies.filter((s) => !s.includedInItems)))
 
 // "X% off remaining bill": a percent of the bill after subsidies. Integer cents, rounded to the nearest cent.
 export function discountCents(bill, percent) {

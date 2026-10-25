@@ -44,6 +44,7 @@ test.describe('logged out', () => {
     // A new tab is like opening the browser again: only a remembered login is still there.
     await page.getByRole('link', { name: 'Account' }).first().click()
     await page.getByTestId('account-logout').click()
+    await page.getByTestId('account-logout-yes').click() // asks first (H5)
     await page.getByTestId('login-email').fill(DEMO_USER.email)
     await page.getByTestId('login-password').fill('password123')
     await page.getByTestId('login-remember').uncheck()
@@ -104,6 +105,13 @@ test.describe('logged out', () => {
     })
   }
 
+  test('a forgotten password is not a dead end, and an ended login says why (H9, H1)', async ({ page }) => {
+    await page.goto('/login?expired=1')
+    await expect(page.getByTestId('login-error')).toHaveText(/You were logged out. Please log in again./)
+    await page.getByText('Forgot your password?').click()
+    await expect(page.getByTestId('login-forgot')).toContainText('Ask the family member who helped set up your account')
+  })
+
   test('login page has no missing translations in any language', async ({ page }) => {
     await page.goto('/login')
     for (const language of ['中文', 'BM', 'தமிழ்', 'EN']) {
@@ -143,6 +151,7 @@ test('Account shows the details, saves edits and logs out', async ({ page, isMob
   await expect(page.getByTestId('account-income')).toHaveCount(0)
 
   await page.getByTestId('account-logout').click()
+  await page.getByTestId('account-logout-yes').click() // asks first (H5)
   await expect(page).toHaveURL(/\/login$/)
   await page.goto('/scan')
   await expect(page).toHaveURL(/\/login\?next=/)
@@ -191,6 +200,15 @@ test('language: changing it on Account saves it, says "Settings saved", and so d
   await page.getByRole('button', { name: '中文', exact: true }).first().click()
   await expect.poll(() => patches.at(-1)).toEqual({ language: 'zh' })
   await page.getByRole('button', { name: 'EN', exact: true }).first().click()
+})
+
+test('Log out asks first, so one stray tap does not log a senior out (H5)', async ({ page }) => {
+  await page.goto('/account')
+  await page.getByTestId('account-logout').click()
+  await expect(page.getByTestId('account-logout-ask')).toContainText('Log out of this phone or computer?')
+  await page.getByRole('button', { name: 'Cancel' }).click()
+  await expect(page).toHaveURL(/\/account$/) // still logged in
+  await expect(page.getByTestId('account-logout')).toBeVisible()
 })
 
 test('the Bill page checks subsidies from the account, and links to Account to change the details', async ({ page }) => {
