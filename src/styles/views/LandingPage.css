@@ -18,13 +18,13 @@
   overflow-x: clip; /* falling items drift sideways past the edge */
   background: var(--l-bg);
   color: var(--l-ink);
-  font-family: 'Atkinson Hyperlegible', 'Noto Sans SC', 'Noto Sans Tamil', system-ui, sans-serif;
+  font-family: 'Atkinson Hyperlegible', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans CJK SC', 'Noto Sans SC', 'Tamil Sangam MN', 'Nirmala UI', 'Noto Sans Tamil', system-ui, sans-serif; /* Chinese and Tamil: the phone's own fonts */
   font-size: 19px;
   line-height: 1.5;
 }
 .landing a:not(.cta, .big-cta, .outline, .brand) { color: var(--l-accent-text); }
 .landing :focus-visible { outline: 3px solid var(--l-accent-text); outline-offset: 3px; }
-.serif { font-family: 'Young Serif', 'Noto Serif SC', 'Noto Sans Tamil', Georgia, serif; font-weight: 400; }
+.serif { font-family: 'Young Serif', 'Songti SC', 'STSong', 'Noto Serif CJK SC', 'Noto Serif SC', 'SimSun', 'Tamil Sangam MN', 'Nirmala UI', 'Noto Sans Tamil', Georgia, serif; font-weight: 400; }
 .strong { font-weight: 700; }
 .muted { color: var(--l-muted); }
 
