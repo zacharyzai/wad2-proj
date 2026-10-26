@@ -18,10 +18,10 @@ const { t } = useI18n()
   <div class="field" :class="{ flagged }" :role="$props.for ? null : 'group'" :aria-label="$props.for ? null : label">
     <div class="field-row">
       <component :is="$props.for ? 'label' : 'span'" :for="$props.for" class="field-label">{{ label }}</component>
-      <span v-if="flagged" class="badge badge-warning check"><AppIcon name="alert" :size="16" />{{ t('confirm.pleaseCheck') }}</span>
+      <Transition name="fc-fade"><span v-if="flagged" class="badge badge-warning check"><AppIcon name="alert" :size="16" />{{ t('confirm.pleaseCheck') }}</span></Transition>
     </div>
     <slot />
-    <span v-if="flagged" class="field-note">{{ note ?? t('confirm.couldntRead') }}</span>
+    <Transition name="fc-note"><div v-if="flagged" class="note-wrap"><span class="field-note">{{ note ?? t('confirm.couldntRead') }}</span></div></Transition>
   </div>
 </template>
 

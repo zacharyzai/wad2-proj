@@ -181,6 +181,23 @@ test('the reminder phone buzzes while Reminders is on; switching it off stops it
   await expect.poll(() => phone.evaluate((el) => getComputedStyle(el).animationName)).toBe('none')
 })
 
+test('the speaker rings wait until it has landed, and never freeze while it reads aloud', async ({ page }) => {
+  await page.addInitScript(() => {
+    window.speechSynthesis.getVoices = () => [{ lang: 'en-SG', name: 'English' }]
+    window.speechSynthesis.speak = () => {}
+  })
+  await page.goto('/welcome')
+  const speaker = page.getByTestId('landing-speak')
+  await expect(speaker).toHaveClass(/\bidle\b/) // still off screen: the three pulses wait
+  await speaker.dispatchEvent('click') // tapped before its face has fully appeared: reading aloud overrides the wait
+  await expect(speaker).toHaveClass(/\bringing\b/)
+  await expect(speaker).not.toHaveClass(/\bidle\b/)
+  await speaker.dispatchEvent('click') // stop
+  await page.locator('#listen').evaluate((el) => window.scrollTo(0, Math.max(el.offsetTop, el.offsetTop + el.offsetHeight - innerHeight)))
+  await expect(speaker).not.toHaveClass(/\bidle\b/)
+  await expect(speaker).not.toHaveClass(/\bringing\b/) // the last fast ring finished, back to resting
+})
+
 test('with reduced motion the chat stays as three messages and the phone is still', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' })
   await page.clock.install()

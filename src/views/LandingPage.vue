@@ -70,6 +70,8 @@ function pickScan(item) {
 // Read-aloud demo. shortcut: browser speech only (no cloud TTS fallback like ReadAloud); fine for a demo line.
 const voice = ref(byLocale())
 const speaking = ref(false)
+const ringing = ref(false) // fast rings: on with speaking, off at the next ring end after it stops
+const onRing = (e) => e.animationName.startsWith('ring') && !speaking.value && (ringing.value = false)
 // No speech at all, or no voice for this language (common for Tamil and Malay): say so instead of a silent button.
 const noVoice = ref(false)
 function pickVoice(i) {
@@ -98,7 +100,7 @@ function speak() {
   }
   synth.cancel()
   synth.speak(u)
-  speaking.value = true
+  speaking.value = ringing.value = true
 }
 
 // The Reminders switch also stops the phone buzzing (WCAG 2.2.2): reminders off, no reminder arrives.
@@ -172,7 +174,8 @@ const onVisibility = () => kickChat()
 // The phone and the chat only move while they are on screen.
 const phoneEl = ref(null)
 const phoneSeen = ref(false)
-const speakerSeen = ref(false) // set once its face has morphed in (frame), so the three pulses aren't spent while it is still falling
+const SPEAKER_IN = 0.9 // section progress when the speaker face has morphed in (its data-mb)
+const speakerSeen = ref(false) // set then (in frame), so the three pulses aren't spent while it is still falling
 const seen = new IntersectionObserver((entries) => {
   for (const e of entries) {
     if (e.target === phoneEl.value) phoneSeen.value = e.isIntersecting
@@ -232,7 +235,7 @@ function frame() {
   })
   const compact = !red && el.clientWidth < 1024
   syncChat(T[5]?.t ?? 0)
-  if ((T[3]?.t ?? 0) >= 0.9) speakerSeen.value = true // speaker-face morph end (data-mb)
+  if ((T[3]?.t ?? 0) >= SPEAKER_IN) speakerSeen.value = true
 
   el.querySelectorAll('[data-fall]').forEach((f) => {
     const d = f.dataset
@@ -496,8 +499,8 @@ onBeforeUnmount(() => {
               <span data-morph="out" data-ma="0.66" data-mb="0.84" class="capsule fill" :style="pill(VOICE_FALL[i].pill)" aria-hidden="true"></span>
             </button>
           </div>
-          <button type="button" class="speaker" :class="{ speaking, idle: !speakerSeen }" :aria-label="speaking ? t('landing.listen.stop') : t('landing.listen.read')" data-fall="3" data-a="0.26" data-b="0.74" data-r0="40" data-dx="0" data-testid="landing-speak" @click="speak">
-            <span data-morph="in" data-ma="0.74" data-mb="0.9" class="speaker-face"><AppIcon name="volume" :size="58" /></span>
+          <button type="button" class="speaker" :class="{ speaking, ringing, idle: !speakerSeen && !ringing }" :aria-label="speaking ? t('landing.listen.stop') : t('landing.listen.read')" data-fall="3" data-a="0.26" data-b="0.74" data-r0="40" data-dx="0" data-testid="landing-speak" @click="speak" @animationiteration="onRing">
+            <span data-morph="in" data-ma="0.74" :data-mb="SPEAKER_IN" class="speaker-face"><AppIcon name="volume" :size="58" /></span>
             <span data-morph="out" data-ma="0.72" data-mb="0.88" class="tablet fill big" aria-hidden="true"><span></span></span>
           </button>
           <div class="said" aria-live="polite">
