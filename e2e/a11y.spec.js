@@ -32,12 +32,24 @@ test('a new page opens at the top with its heading focused', async ({ page }) =>
 
 test('a page change starts the new page at the top straight away (no fade-in scrolled down, then a jump)', async ({ page, isMobile }) => {
   test.skip(!isMobile, 'the phone tab bar')
+  // Record where the page is scrolled at the moment the page-change animation captures the new page.
+  await page.addInitScript(() => {
+    const start = document.startViewTransition?.bind(document)
+    if (!start) return
+    document.startViewTransition = (update) => {
+      const transition = start(update)
+      transition.ready.then(() => (window.__scrollAtCapture = scrollY), () => {})
+      return transition
+    }
+  })
   await page.goto('/')
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
   await page.mouse.wheel(0, 500)
   await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(100)
   await page.locator('.nav').getByRole('link', { name: 'Scan', exact: true }).click()
-  await expect.poll(() => page.evaluate(() => scrollY), { timeout: 150 }).toBe(0) // well before the 400ms fade ends
+  await expect(page).toHaveURL(/\/scan$/)
+  // The new page was captured already at the top, so it fades in in place (not scrolled down, then jumping up).
+  await expect.poll(() => page.evaluate(() => window.__scrollAtCapture)).toBe(0)
   await expect(page.locator('.nav')).toHaveCSS('view-transition-name', 'tabs') // the tab bar stays on top of the page change
   await page.goBack()
   await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(100) // Back returns to where Home was

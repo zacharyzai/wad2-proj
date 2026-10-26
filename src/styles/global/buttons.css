@@ -7,7 +7,7 @@
   --bs-btn-disabled-opacity: 1; --bs-btn-disabled-bg: var(--color-surface-2); --bs-btn-disabled-color: var(--color-text-muted); --bs-btn-disabled-border-color: transparent;
   display: inline-flex; align-items: center; justify-content: center; gap: 12px; min-height: var(--h-btn);
   white-space: normal; text-decoration: none;
-  transition: transform var(--dur-fast) ease, box-shadow var(--dur) var(--ease-out), background-color var(--dur) var(--ease-out), color var(--dur) var(--ease-out);
+  transition: transform 160ms var(--ease-out), box-shadow var(--dur) var(--ease-out), background-color var(--dur) var(--ease-out), color var(--dur) var(--ease-out);
 }
 .btn:active:not(:disabled) { transform: scale(0.97); }
 .btn:disabled { box-shadow: none; cursor: not-allowed; pointer-events: auto; }
@@ -69,7 +69,7 @@
   display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: var(--z56, 56px); padding: 10px 16px;
   border: 1px solid var(--color-border-strong); border-radius: 16px; background: var(--color-card); color: var(--color-text);
   font: 600 18px / 1.3 var(--font-sans); text-align: center;
-  transition: background-color var(--dur) var(--ease-out), border-color var(--dur) var(--ease-out), transform var(--dur-fast) ease;
+  transition: background-color var(--dur) var(--ease-out), border-color var(--dur) var(--ease-out), transform 160ms var(--ease-out);
 }
 .choice:hover { border-color: var(--color-primary); }
 .choice:active { transform: scale(0.97); }
@@ -87,6 +87,6 @@
 
 /* On/off switch drawn inside a button (48px hit area) */
 .switch { position: relative; flex: none; width: var(--z52, 52px); height: 32px; border-radius: var(--r-pill); background: var(--color-border-strong); transition: background-color var(--dur) var(--ease-out); }
-.switch::after { content: ''; position: absolute; top: 4px; left: 4px; width: 24px; height: 24px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3); transition: transform var(--dur) var(--ease-spring); }
+.switch::after { content: ''; position: absolute; top: 4px; left: 4px; width: 24px; height: 24px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3); transition: transform 200ms var(--ease-out); } /* snaps and settles, no bounce past its stop */
 [aria-pressed='true'] > .switch { background: var(--color-primary); }
 [aria-pressed='true'] > .switch::after { transform: translateX(20px); }

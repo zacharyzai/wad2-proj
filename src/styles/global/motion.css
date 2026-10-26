@@ -26,8 +26,9 @@
 #main { position: relative; z-index: 1; }
 .cover-view, .photo.stick { view-transition-name: scan-photo; } /* the covered photo on Scan flies into its place on Confirm */
 /* Fade through: the old page is gone before the new one fades in, so the two never show on top of each other. */
-::view-transition-old(page) { animation: vt-out 110ms ease-in both; }
-::view-transition-new(page) { animation: vt-in 300ms var(--ease-out) 90ms both; }
+/* ~260ms in all: page changes happen many times a visit, so they stay quick (old page out 80ms, new in 200ms). */
+::view-transition-old(page) { animation: vt-out 80ms var(--ease-out) both; }
+::view-transition-new(page) { animation: vt-in 200ms var(--ease-out) 60ms both; }
 ::view-transition-group(page-footer) { animation-duration: 380ms; animation-timing-function: var(--ease-out); }
 /* Phones: the bottom tab bar is its own layer above the page, so a page change never slides over it or covers it. */
 .nav { view-transition-name: tabs; }
@@ -35,16 +36,17 @@
 ::view-transition-old(tabs) { display: none; } /* only the new bar (new page highlighted), straight away */
 /* The sidebar and tab bar don't fade: they swap at once (only the highlighted item changes), so they never flicker pale. */
 ::view-transition-old(root) { animation: none; }
-/* The new frame (on phones: the header at the top) appears once the old page has faded out (110ms), so it never shows
+/* The new frame (on phones: the header at the top) appears once the old page has faded out (80ms), so it never shows
    through the fading old page. The new page then fades in on top. */
-::view-transition-new(root) { animation: vt-show 0s 110ms both; }
+::view-transition-new(root) { animation: vt-show 0s 80ms both; }
 @keyframes vt-show { from { opacity: 0; } }
 ::view-transition-group(scan-photo) { animation-duration: 420ms; animation-timing-function: var(--ease-out); }
 @keyframes vt-out { to { opacity: 0; } }
-@keyframes vt-in { from { opacity: 0; transform: translateY(14px); } }
+@keyframes vt-in { from { opacity: 0; transform: translateY(8px); } }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; animation-delay: 0ms !important; transition-duration: 0.01ms !important; }
   .btn:active, .choice:active, .card-interactive:hover { transform: none !important; }
+  .card-interactive:active { scale: none !important; }
   .progress-ring > svg, .progress-ring__pulse { animation: none !important; }
 }

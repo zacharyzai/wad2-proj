@@ -82,6 +82,10 @@
     "what": "Apa yang boleh diimbas?",
     "ask": {
       "text": "Tanya soalan tentang ubat anda dalam bahasa anda sendiri."
+    },
+    "still": {
+      "pause": "Hentikan gambar bergerak",
+      "play": "Mainkan gambar bergerak"
     }
   },
   "scan": {
@@ -540,7 +544,7 @@
     "doses": {
       "kicker": "Jangan terlepas dos",
       "title": "Pagi, petang, malam. Semua teratur.",
-      "text": "Kami jadikan label ubat anda pelan harian yang mudah, ingatkan anda apabila tiba masanya, dan semak subsidi yang anda boleh dapat.",
+      "text": "Kami jadikan label ubat anda pelan harian yang mudah, dan ingatkan anda apabila tiba masanya.",
       "calendar": "Tambah ke Google Calendar",
       "calEvent": "Makan ubat pagi",
       "today": "Hari ini",
@@ -551,9 +555,8 @@
       "afternoonText": "1 biji selepas makan tengah hari",
       "night": "Malam · 9 malam",
       "nightText": "1 biji sebelum tidur",
-      "subsidy": "Penyemak subsidi",
-      "save": "Anda mungkin jimat",
-      "basis": "Berdasarkan umur dan kad CHAS anda"
+      "phoneApp": "Kalendar",
+      "now": "sekarang"
     },
     "ask": {
       "kicker": "Tanya apa sahaja",
@@ -561,7 +564,12 @@
       "text": "Taip atau sebut soalan anda dan dapatkan jawapan yang ringkas dan mesra dalam kata-kata mudah, pada bila-bila masa.",
       "q1": "Boleh saya makan ubat darah tinggi dengan kopi?",
       "a1": "Ya, kopi tidak apa-apa dengan ubat darah tinggi anda. Makan selepas sarapan, seperti biasa.",
-      "q2": "Terima kasih! Boleh bacakan untuk Ah Gong?"
+      "q2": "Terima kasih! Boleh bacakan untuk Ah Gong?",
+      "a2": "Sudah tentu. Tekan Baca dengan kuat di bawah jawapan saya, dan Ah Gong boleh dengar.",
+      "q3": "Bagaimana saya patut simpan ubat saya?",
+      "a3": "Simpan di tempat yang sejuk dan kering, jauh dari cahaya matahari dan jauh daripada capaian kanak-kanak.",
+      "q4": "Boleh saya berhenti makan ubat bila rasa lebih sihat?",
+      "a4": "Jangan berhenti sendiri. Tanya doktor atau ahli farmasi anda dahulu."
     },
     "note": "Ah Ma Ah Gong Can membantu anda faham. Doktor dan ahli farmasi anda tetap membuat keputusan.",
     "nav": {
@@ -722,7 +730,7 @@
     "details": "Butiran anda",
     "passwordNote": "Kata laluan tidak pernah dipaparkan.",
     "logout": "Log keluar",
-    "billNote": "Tarikh lahir dan kewarganegaraan anda akan diisi dalam soalan subsidi di halaman Bil.",
+    "billNote": "Tarikh lahir, kewarganegaraan dan pendapatan isi rumah anda digunakan untuk menyemak subsidi anda di halaman Bil.",
     "edit": "Ubah butiran saya",
     "editTitle": "Ubah butiran anda",
     "save": "Simpan",

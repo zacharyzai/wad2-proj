@@ -24,6 +24,15 @@ const SAMPLES = [
   { id: 'bill-1', key: 'bill1' },
 ]
 
+// The moving label strip and receipt: touch has no hover, so a button stops them (WCAG 2.2.2). Remembered on this device.
+const STILL_KEY = 'ahma-home-still'
+const still = ref(false)
+try { still.value = localStorage.getItem(STILL_KEY) === '1' } catch {}
+function toggleStill() {
+  still.value = !still.value
+  try { localStorage.setItem(STILL_KEY, still.value ? '1' : '0') } catch {}
+}
+
 const hour = new Date().getHours()
 const greet = hour < 12 ? 'morning' : hour < 18 ? 'afternoon' : 'evening'
 
@@ -47,7 +56,7 @@ function onFile(event) {
 
       <div class="hero-text">
         <div class="d-flex align-items-center gap-3">
-          <img src="/logo-512.png" alt="" class="logo-tile hero-logo" />
+          <img src="/logo-192.png" alt="" class="logo-tile hero-logo" width="72" height="72" /><!-- 192px: sharp at 72px on 2x screens, a third of the 512 file -->
           <span class="greet">{{ t(`home.greet.${greet}`) }}</span>
         </div>
         <h1 class="display">{{ t('home.title') }}</h1>
@@ -67,15 +76,18 @@ function onFile(event) {
 
     <!-- Bento: the two scans are the big tiles; Ask and the samples sit beside them. Stacks in the same order on phones. -->
     <section class="d-flex flex-column gap-3">
-      <h2 class="section-label">{{ t('home.what') }}</h2>
-      <div class="bento">
+      <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+        <h2 class="section-label">{{ t('home.what') }}</h2>
+        <button type="button" class="chip still-btn" data-testid="home-still" @click="toggleStill"><AppIcon :name="still ? 'play' : 'pause'" :size="20" />{{ still ? t('home.still.play') : t('home.still.pause') }}</button>
+      </div>
+      <div class="bento" :class="{ still }">
         <RouterLink v-for="c in CHOICES" :key="c.type" :to="{ name: c.type === 'bill' ? 'bill' : 'scan' }" class="card card-interactive tile-link" :class="`b-${c.type}`">
           <span class="tile tile-lg"><AppIcon :name="c.icon" :size="28" /></span>
           <span class="d-flex flex-column gap-1">
             <span class="choice-title">{{ t(`home.${c.key}.title`) }}</span>
             <span class="text-muted-a11y">{{ t(`home.${c.key}.text`) }}</span>
           </span>
-          <!-- Decoration, so hidden from screen readers. Paused on hover/focus; still with reduced motion. -->
+          <!-- Decoration, so hidden from screen readers. Paused on hover/focus or by the button above; still with reduced motion. -->
           <span v-if="c.type === 'medication'" class="labels" aria-hidden="true">
             <span class="labels-track"><img v-for="(id, i) in LABEL_LOOP" :key="i" :src="`/samples/${id}.svg`" alt="" width="480" :height="SIZE[id]" /></span>
           </span>

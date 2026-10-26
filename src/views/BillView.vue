@@ -13,7 +13,7 @@ import EmptyState from '../components/layout/EmptyState.vue'
 import LoadingState from '../components/layout/LoadingState.vue'
 import ErrorBanner from '../components/layout/ErrorBanner.vue'
 import AppIcon from '../components/layout/AppIcon.vue'
-import { CATEGORY_STYLE, SUBSIDY_STYLE, MEDISAVE_STYLE, money, sumCents, deducted } from '../components/bill/lines'
+import { CATEGORY_STYLE, SUBSIDY_STYLE, MEDISAVE_STYLE, money, minusMoney, sumCents, deducted } from '../components/bill/lines'
 import { citizenshipText } from '../utils/account'
 
 const { t, locale } = useI18n()
@@ -164,8 +164,8 @@ const split = computed(() => {
 
 const summary = computed(() => [
   [t(bill.value.subsidies.some((x) => x.includedInItems) ? 'bill.summary.chargesNet' : 'bill.summary.charges'), money(sumCents(bill.value.items))],
-  [t(bill.value.subsidies.some((x) => x.scheme === 'insurance') ? 'bill.summary.subsidiesInsurance' : 'bill.summary.subsidies'), '−' + money(sumCents(deducted(bill.value.subsidies)))],
-  [t('bill.summary.medisave'), '−' + money(bill.value.medisaveCents)],
+  [t(bill.value.subsidies.some((x) => x.scheme === 'insurance') ? 'bill.summary.subsidiesInsurance' : 'bill.summary.subsidies'), minusMoney(sumCents(deducted(bill.value.subsidies)))],
+  [t('bill.summary.medisave'), minusMoney(bill.value.medisaveCents)],
 ])
 </script>
 

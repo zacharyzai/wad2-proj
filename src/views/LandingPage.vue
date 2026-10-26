@@ -1,8 +1,9 @@
 <!-- Owner: Zachary. Welcome page for first-time visitors on this device (router sends "/" here once; see WELCOME_KEY).
      From the Claude Design "medicine falling from the sky" page: each section's items fall in as you scroll and become the feature.
-     Motion is tied to scroll only (no loops). Under 1024px items just fade and settle; with reduced motion everything is shown landed. -->
+     Motion is tied to scroll. A few demos also loop on their own (headline, scan card, reminder phone, chat); all but the
+     chat have a control that stops them, and the phone and chat wait while off screen. Under 1024px items just fade and settle; with reduced motion everything is shown landed. -->
 <script setup>
-import { onBeforeUnmount, onMounted, ref } from 'vue'
+import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { WELCOME_KEY } from '../router'
 import { setLocale } from '../i18n'
@@ -69,28 +70,121 @@ function pickScan(item) {
 // Read-aloud demo. shortcut: browser speech only (no cloud TTS fallback like ReadAloud); fine for a demo line.
 const voice = ref(byLocale())
 const speaking = ref(false)
+const ringing = ref(false) // fast rings: on with speaking, off at the next ring end after it stops
+const onRing = (e) => e.animationName.startsWith('ring') && !speaking.value && (ringing.value = false)
+// No speech at all, or no voice for this language (common for Tamil and Malay): say so instead of a silent button.
+const noVoice = ref(false)
 function pickVoice(i) {
   window.speechSynthesis?.cancel()
   voice.value = i
   speaking.value = false
+  noVoice.value = false
 }
 function speak() {
   const synth = window.speechSynthesis
-  if (speaking.value || !synth) return pickVoice(voice.value)
+  if (speaking.value) return pickVoice(voice.value)
   const L = LANGS[voice.value]
+  const voices = synth?.getVoices() ?? []
+  const match = voices.find((v) => v.lang.toLowerCase().startsWith(L.lang))
+  // An empty list can just mean the voices haven't loaded yet, so only a loaded list without a match counts as "none".
+  if (!synth || (voices.length && !match)) return (noVoice.value = true)
+  noVoice.value = false
   const u = new SpeechSynthesisUtterance(L.sample)
   u.lang = L.voice
   u.rate = 0.85
-  u.voice = synth.getVoices().find((v) => v.lang.toLowerCase().startsWith(L.lang)) || null
-  u.onend = u.onerror = () => (speaking.value = false)
+  if (typeof SpeechSynthesisVoice !== 'undefined' && match instanceof SpeechSynthesisVoice) u.voice = match // else the lang decides
+  u.onend = () => (speaking.value = false)
+  u.onerror = (e) => {
+    speaking.value = false
+    if (/unavailable|not-supported|synthesis-failed/.test(e.error ?? '')) noVoice.value = true
+  }
   synth.cancel()
   synth.speak(u)
-  speaking.value = true
+  speaking.value = ringing.value = true
 }
 
+// The Reminders switch also stops the phone buzzing (WCAG 2.2.2): reminders off, no reminder arrives.
 const remind = ref(true)
+// Lock-screen date: today, in the page language (only the time is made up).
+const phoneDate = () => new Date().toLocaleDateString(locale.value, { weekday: 'long', day: 'numeric', month: 'long' })
 const calendarUrl = () =>
   `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(t('landing.doses.calEvent'))}&details=${encodeURIComponent(t('landing.doses.morningText'))}&recur=RRULE%3AFREQ%3DDAILY`
+
+// ---- Ask: once the three messages have landed, the chat carries on by itself, one message at a time, round and round.
+// Bot answers show "typing" first. It waits while off screen or in a hidden tab, and starts over when you scroll back
+// above it. Never with reduced motion. Wording follows the chatbot's rules (chat.js).
+// No pause button, by the team's choice (WCAG 2.2.2 asks for one on content that moves for over 5 s).
+const LIVE = [{ key: 'a2' }, { key: 'q3', me: true }, { key: 'a3' }, { key: 'q4', me: true }, { key: 'a4' }, { key: 'q1', me: true }, { key: 'a1' }, { key: 'q2', me: true }]
+const CHAT_DONE = Math.max(...CHAT.map((m) => m.ma + 0.18)) // section progress when the last bubble has become a message (its morph-in end)
+const MAX_LIVE = 6 // older messages have long left the window by then
+const live = ref([])
+const chatWin = ref(null)
+const chatTrack = ref(null)
+let chatLanded = false
+let chatSeen = false
+let chatTimer = 0
+let liveStep = 0
+let liveId = 0
+const chatCanRun = () => chatLanded && chatSeen && !document.hidden && !reduceMq.matches
+const readMs = (key) => 1400 + 45 * t(`landing.ask.${key}`).length
+const later = (fn, ms) => (chatTimer = setTimeout(fn, ms))
+function kickChat(ms = 900) {
+  if (!chatTimer && chatCanRun()) later(chatStep, ms)
+}
+// The newest message sits at the bottom; everything above slides up to make room (FLIP on the whole track).
+async function slide(change) {
+  const track = chatTrack.value
+  const before = track?.getBoundingClientRect().top
+  change()
+  await nextTick()
+  const dy = track ? before - track.getBoundingClientRect().top : 0
+  if (dy) track.animate([{ transform: `translateY(${dy}px)` }, { transform: 'none' }], { duration: 460, easing: 'cubic-bezier(0.16, 1, 0.3, 1)' })
+}
+function chatStep() {
+  chatTimer = 0
+  if (!chatCanRun()) return
+  const win = chatWin.value
+  if (win && !live.value.length) win.style.height = `${win.offsetHeight}px` // the window keeps the size of the first three
+  if (live.value.length >= MAX_LIVE) live.value.shift() // off the top already, so nothing visible moves
+  const next = LIVE[liveStep++ % LIVE.length]
+  const id = ++liveId
+  if (next.me) {
+    slide(() => live.value.push({ id, ...next }))
+    return later(chatStep, readMs(next.key))
+  }
+  slide(() => live.value.push({ id, typing: true }))
+  later(() => {
+    slide(() => Object.assign(live.value.find((m) => m.id === id) ?? {}, { typing: false, key: next.key }))
+    later(chatStep, readMs(next.key) + 1000)
+  }, 1300)
+}
+function syncChat(t) {
+  const now = t >= CHAT_DONE
+  if (now === chatLanded) return
+  chatLanded = now
+  if (now) return kickChat(1400)
+  clearTimeout(chatTimer)
+  chatTimer = 0
+  live.value = []
+  liveStep = 0
+  if (chatWin.value) chatWin.value.style.height = ''
+}
+const onVisibility = () => kickChat()
+
+// The phone and the chat only move while they are on screen.
+const phoneEl = ref(null)
+const phoneSeen = ref(false)
+const SPEAKER_IN = 0.9 // section progress when the speaker face has morphed in (its data-mb)
+const speakerSeen = ref(false) // set then (in frame), so the three pulses aren't spent while it is still falling
+const seen = new IntersectionObserver((entries) => {
+  for (const e of entries) {
+    if (e.target === phoneEl.value) phoneSeen.value = e.isIntersecting
+    else {
+      chatSeen = e.isIntersecting
+      kickChat()
+    }
+  }
+})
 
 // ---- Top bar: links to each section, the one being read is highlighted; solid background once the page scrolls.
 const SECTIONS = ['scan', 'listen', 'doses', 'ask']
@@ -120,6 +214,9 @@ const docTop = (el) => {
   return y
 }
 
+// Sections a keyboard or screen-reader user has moved into: shown landed straight away, whatever the scroll position.
+const landed = new Set()
+
 function frame() {
   const el = root.value
   if (!el) return
@@ -134,9 +231,11 @@ function frame() {
     const top = docTop(s)
     const now = top - sy
     const endTop = Math.max(Math.min(0, H - s.offsetHeight), top - maxScroll)
-    T[s.dataset.sec] = { t: red ? 1 : clamp((H - now) / Math.max(1, H - endTop)), top, now }
+    T[s.dataset.sec] = { t: red || landed.has(s.dataset.sec) ? 1 : clamp((H - now) / Math.max(1, H - endTop)), top, now }
   })
   const compact = !red && el.clientWidth < 1024
+  syncChat(T[5]?.t ?? 0)
+  if ((T[3]?.t ?? 0) >= SPEAKER_IN) speakerSeen.value = true
 
   el.querySelectorAll('[data-fall]').forEach((f) => {
     const d = f.dataset
@@ -154,19 +253,21 @@ function frame() {
     const s = T[d.fall]
     const e = ease(clamp((s.t - +d.a) / (+d.b - +d.a)))
     if (e >= 1) {
-      f.style.transform = f.style.opacity = f.style.visibility = ''
+      f.style.transform = f.style.opacity = f.style.visibility = f.style.pointerEvents = ''
       return
     }
     if (compact) {
       // Small screens: fade in and settle 36px in place, never crossing other content.
       f.style.visibility = ''
       f.style.opacity = e.toFixed(3)
+      f.style.pointerEvents = e <= 0 ? 'none' : ''
       f.style.transform = `translate3d(0, ${(-(1 - e) * 36).toFixed(1)}px, 0) rotate(${(r0 * 0.15 * (1 - e)).toFixed(2)}deg)`
       return
     }
     // Desktop: start 180px above the screen, slow down as it lands, straighten from its tilt.
-    f.style.opacity = ''
-    f.style.visibility = e <= 0 ? 'hidden' : ''
+    // Not yet falling: see-through and click-through, but never visibility:hidden, so Tab and screen readers still reach it.
+    f.style.opacity = e <= 0 ? '0' : ''
+    f.style.pointerEvents = e <= 0 ? 'none' : ''
     const ty = -(1 - e) * (Math.max(s.now, 0) + docTop(f) - s.top + 180)
     f.style.transform = `translate3d(${(dx * (1 - e) ** 2).toFixed(1)}px, ${ty.toFixed(1)}px, 0) rotate(${(r0 * (1 - e)).toFixed(2)}deg)`
   })
@@ -193,6 +294,18 @@ function frame() {
 let raf = 0
 const onScroll = () => (raf ||= requestAnimationFrame(() => ((raf = 0), frame())))
 
+// Keyboard (Tab) or screen-reader focus inside a section that hasn't landed yet: land it now and bring it into view,
+// so nobody tabs onto an invisible button.
+// Only keyboard focus (:focus-visible): a tap also focuses, and scrolling under a finger mid-tap would lose the tap.
+function onFocusIn(event) {
+  const sec = event.target.closest?.('[data-sec]')?.dataset.sec
+  if (!sec || landed.has(sec) || reduceMq.matches || !event.target.matches(':focus-visible')) return
+  if (!event.target.closest('[data-fall], [data-morph]')) return
+  landed.add(sec)
+  frame()
+  event.target.scrollIntoView({ block: 'center', behavior: reduceMq.matches ? 'auto' : 'smooth' })
+}
+
 onMounted(() => {
   // Seen once: from now on "/" opens the normal Home page on this device.
   try {
@@ -202,19 +315,26 @@ onMounted(() => {
   }
   addEventListener('scroll', onScroll, { passive: true })
   addEventListener('scroll', updateNav, { passive: true })
+  root.value?.addEventListener('focusin', onFocusIn)
   updateNav()
   addEventListener('resize', onScroll)
   reduceMq.addEventListener('change', onScroll)
   frame()
   document.fonts?.ready.then(frame)
+  for (const target of [phoneEl.value, chatWin.value]) if (target) seen.observe(target)
+  document.addEventListener('visibilitychange', onVisibility)
 })
 
 onBeforeUnmount(() => {
   clearInterval(timer)
   clearInterval(scanTimer)
+  clearTimeout(chatTimer)
+  seen.disconnect()
+  document.removeEventListener('visibilitychange', onVisibility)
   cancelAnimationFrame(raf)
   removeEventListener('scroll', onScroll)
   removeEventListener('scroll', updateNav)
+  root.value?.removeEventListener('focusin', onFocusIn)
   removeEventListener('resize', onScroll)
   reduceMq.removeEventListener('change', onScroll)
   window.speechSynthesis?.cancel()
@@ -379,12 +499,13 @@ onBeforeUnmount(() => {
               <span data-morph="out" data-ma="0.66" data-mb="0.84" class="capsule fill" :style="pill(VOICE_FALL[i].pill)" aria-hidden="true"></span>
             </button>
           </div>
-          <button type="button" class="speaker" :class="{ speaking }" :aria-label="speaking ? t('landing.listen.stop') : t('landing.listen.read')" data-fall="3" data-a="0.26" data-b="0.74" data-r0="40" data-dx="0" data-testid="landing-speak" @click="speak">
-            <span data-morph="in" data-ma="0.74" data-mb="0.9" class="speaker-face"><AppIcon name="volume" :size="58" /></span>
+          <button type="button" class="speaker" :class="{ speaking, ringing, idle: !speakerSeen && !ringing }" :aria-label="speaking ? t('landing.listen.stop') : t('landing.listen.read')" data-fall="3" data-a="0.26" data-b="0.74" data-r0="40" data-dx="0" data-testid="landing-speak" @click="speak" @animationiteration="onRing">
+            <span data-morph="in" data-ma="0.74" :data-mb="SPEAKER_IN" class="speaker-face"><AppIcon name="volume" :size="58" /></span>
             <span data-morph="out" data-ma="0.72" data-mb="0.88" class="tablet fill big" aria-hidden="true"><span></span></span>
           </button>
           <div class="said" aria-live="polite">
             <span class="strong">{{ speaking ? t('landing.listen.hintSpeaking') : t('landing.listen.hint') }}</span>
+            <span v-if="noVoice" class="no-voice" data-testid="landing-no-voice">{{ t('player.unavailable') }}</span>
             <p :lang="LANGS[voice].lang" class="sample">“{{ LANGS[voice].sample }}”</p>
           </div>
         </div>
@@ -424,11 +545,21 @@ onBeforeUnmount(() => {
               </div>
               <div data-morph="out" data-ma="0.4" data-mb="0.56" class="blister" aria-hidden="true"><span v-for="n in 6" :key="n"></span></div>
             </div>
-            <div data-fall="4" data-a="0.66" data-b="0.97" data-r0="-10" data-dx="-40" class="subsidy">
-              <span class="sub-label">{{ t('landing.doses.subsidy') }}</span>
-              <span class="strong">{{ t('landing.doses.save') }}</span>
-              <span class="serif sub-amount">$120</span>
-              <span class="sub-basis">{{ t('landing.doses.basis') }}</span>
+            <!-- The morning dose arriving as a Calendar reminder on the phone: what "Add to Google Calendar" gives you today. -->
+            <div data-fall="4" data-a="0.66" data-b="0.97" data-r0="-10" data-dx="-40" class="phone-wrap" aria-hidden="true">
+              <div ref="phoneEl" class="phone" :class="{ off: !remind, idle: !phoneSeen }" data-testid="landing-phone">
+                <span class="side vol-up"></span><span class="side vol-down"></span><span class="side power"></span>
+                <span class="island"></span>
+                <span class="lock-date">{{ phoneDate() }}</span>
+                <span class="lock-time">8:00</span>
+                <div class="notif">
+                  <span class="notif-icon"><AppIcon name="calendar" :size="16" /></span>
+                  <div class="notif-app">{{ t('landing.doses.phoneApp') }}<span class="notif-now">{{ t('landing.doses.now') }}</span></div>
+                  <div class="strong notif-title">{{ t('landing.doses.calEvent') }}</div>
+                  <div class="notif-body">{{ t('landing.doses.morningText') }}</div>
+                </div>
+                <span class="home-bar"></span>
+              </div>
             </div>
           </div>
         </div>
@@ -442,15 +573,30 @@ onBeforeUnmount(() => {
           <h2 id="ask-title" class="title2 serif">{{ t('landing.ask.title') }}</h2>
           <p class="lede">{{ t('landing.ask.text') }}</p>
         </div>
-        <div class="demo col chat">
-          <div v-for="m in CHAT" :key="m.key" class="msg" :class="m.me ? 'me' : 'bot'" data-fall="5" :data-a="m.a" :data-b="m.b" :data-r0="m.r0" :data-dx="m.dx">
-            <span v-if="!m.me" class="avatar capsule" :style="pill('brand')" aria-hidden="true"></span>
-            <div class="bubble" data-morph="radius" :data-ma="m.ma" :data-mb="m.ma + 0.16">
-              <div data-morph="in" :data-ma="m.ma + 0.04" :data-mb="m.ma + 0.18">
-                <span v-if="!m.me" class="bot-name">{{ t('app.name') }}</span>
-                <p>{{ t(`landing.ask.${m.key}`) }}</p>
+        <div class="demo col chat-demo">
+          <div ref="chatWin" class="chat-win" :class="{ rolling: live.length }">
+            <div ref="chatTrack" class="chat">
+              <div v-for="m in CHAT" :key="m.key" class="msg" :class="m.me ? 'me' : 'bot'" data-fall="5" :data-a="m.a" :data-b="m.b" :data-r0="m.r0" :data-dx="m.dx">
+                <span v-if="!m.me" class="avatar capsule" :style="pill('brand')" aria-hidden="true"></span>
+                <div class="bubble" data-morph="radius" :data-ma="m.ma" :data-mb="m.ma + 0.16">
+                  <div data-morph="in" :data-ma="m.ma + 0.04" :data-mb="m.ma + 0.18">
+                    <span v-if="!m.me" class="bot-name">{{ t('app.name') }}</span>
+                    <p>{{ t(`landing.ask.${m.key}`) }}</p>
+                  </div>
+                  <span data-morph="out" :data-ma="m.ma + 0.02" :data-mb="m.ma + 0.16" class="capsule fill" :style="pill(m.pill)" aria-hidden="true"></span>
+                </div>
               </div>
-              <span data-morph="out" :data-ma="m.ma + 0.02" :data-mb="m.ma + 0.16" class="capsule fill" :style="pill(m.pill)" aria-hidden="true"></span>
+              <!-- The conversation carrying on: decoration for screen readers, which already have the first three messages. -->
+              <div v-for="m in live" :key="m.id" class="msg live" :class="m.me ? 'me' : 'bot'" aria-hidden="true">
+                <span v-if="!m.me" class="avatar capsule" :style="pill('brand')"></span>
+                <div class="bubble">
+                  <span v-if="m.typing" class="typing"><i></i><i></i><i></i></span>
+                  <div v-else class="said">
+                    <span v-if="!m.me" class="bot-name">{{ t('app.name') }}</span>
+                    <p>{{ t(`landing.ask.${m.key}`) }}</p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
