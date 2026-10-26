@@ -149,6 +149,48 @@ test('with reduced motion "Snap a photo" never swaps on its own', async ({ page 
   await expect(page.getByTestId('scan-face-label')).toHaveClass(/\bon\b/)
 })
 
+test('the Ask chat carries on by itself once it has landed; scrolling back above starts it over', async ({ page }) => {
+  await page.clock.install()
+  await page.goto('/welcome')
+  const live = page.locator('#ask .msg.live')
+  // On screen is reported in real time, so step the fake clock until the first bubble shows.
+  const stepUntil = async (check) => {
+    for (let i = 0; i < 60 && !(await check()); i++) await page.clock.runFor(100)
+  }
+  await page.locator('#ask .chat-win').evaluate((el) => el.scrollIntoView({ block: 'center' }))
+  await stepUntil(async () => (await live.count()) > 0)
+  await expect(live.locator('.typing')).toHaveCount(1) // a "typing" bubble first, then the answer
+  await page.clock.runFor(1400)
+  await expect(live.last()).toContainText('Tap Read aloud under my answer')
+  await page.clock.runFor(10000)
+  await expect(live.filter({ hasText: 'How should I keep my medicines?' })).toHaveCount(1)
+
+  await page.evaluate(() => window.scrollTo(0, 0))
+  await page.clock.runFor(500)
+  await expect(live).toHaveCount(0)
+})
+
+test('the reminder phone buzzes while Reminders is on; switching it off stops it', async ({ page }) => {
+  await page.goto('/welcome')
+  const phone = page.getByTestId('landing-phone')
+  // The whole section in view, so the plan card (and its switch) has landed.
+  await page.locator('#doses').evaluate((el) => window.scrollTo(0, Math.max(el.offsetTop, el.offsetTop + el.offsetHeight - innerHeight)))
+  await expect.poll(() => phone.evaluate((el) => getComputedStyle(el).animationName)).toMatch(/^buzz/) // scoped: Vue adds a suffix
+  await page.getByRole('switch', { name: 'Reminders' }).click()
+  await expect(phone).toHaveClass(/\boff\b/)
+  await expect.poll(() => phone.evaluate((el) => getComputedStyle(el).animationName)).toBe('none')
+})
+
+test('with reduced motion the chat stays as three messages and the phone is still', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await page.clock.install()
+  await page.goto('/welcome')
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight))
+  await page.clock.runFor(20000)
+  await expect(page.locator('#ask .msg.live')).toHaveCount(0)
+  expect(await page.getByTestId('landing-phone').evaluate((el) => getComputedStyle(el).animationName)).toBe('none')
+})
+
 test('read-aloud demo: pick a language, tap the speaker, tap again to stop', async ({ page }) => {
   // Fake speech so the test never depends on the machine's voices.
   await page.addInitScript(() => {
