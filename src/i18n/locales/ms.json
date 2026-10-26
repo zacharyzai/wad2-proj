@@ -540,7 +540,7 @@
     "doses": {
       "kicker": "Jangan terlepas dos",
       "title": "Pagi, petang, malam. Semua teratur.",
-      "text": "Kami jadikan label ubat anda pelan harian yang mudah, ingatkan anda apabila tiba masanya, dan semak subsidi yang anda boleh dapat.",
+      "text": "Kami jadikan label ubat anda pelan harian yang mudah, dan ingatkan anda apabila tiba masanya.",
       "calendar": "Tambah ke Google Calendar",
       "calEvent": "Makan ubat pagi",
       "today": "Hari ini",
@@ -550,10 +550,7 @@
       "afternoon": "Tengah hari · 1 petang",
       "afternoonText": "1 biji selepas makan tengah hari",
       "night": "Malam · 9 malam",
-      "nightText": "1 biji sebelum tidur",
-      "subsidy": "Penyemak subsidi",
-      "save": "Anda mungkin jimat",
-      "basis": "Berdasarkan umur dan kad CHAS anda"
+      "nightText": "1 biji sebelum tidur"
     },
     "ask": {
       "kicker": "Tanya apa sahaja",
@@ -722,7 +719,7 @@
     "details": "Butiran anda",
     "passwordNote": "Kata laluan tidak pernah dipaparkan.",
     "logout": "Log keluar",
-    "billNote": "Tarikh lahir dan kewarganegaraan anda akan diisi dalam soalan subsidi di halaman Bil.",
+    "billNote": "Tarikh lahir, kewarganegaraan dan pendapatan isi rumah anda digunakan untuk menyemak subsidi anda di halaman Bil.",
     "edit": "Ubah butiran saya",
     "editTitle": "Ubah butiran anda",
     "save": "Simpan",

@@ -540,7 +540,7 @@
     "doses": {
       "kicker": "Never miss a dose",
       "title": "Morning, afternoon, night. All sorted.",
-      "text": "We turn your medicine labels into a simple daily plan, remind you when it is time, and check which subsidies you can get.",
+      "text": "We turn your medicine labels into a simple daily plan, and remind you when it is time.",
       "calendar": "Add to Google Calendar",
       "calEvent": "Take morning medicine",
       "today": "Today",
@@ -550,10 +550,7 @@
       "afternoon": "Afternoon · 1 pm",
       "afternoonText": "1 pill after lunch",
       "night": "Night · 9 pm",
-      "nightText": "1 pill before bed",
-      "subsidy": "Subsidy checker",
-      "save": "You may save",
-      "basis": "Based on your age and CHAS card"
+      "nightText": "1 pill before bed"
     },
     "ask": {
       "kicker": "Ask anything",
@@ -722,7 +719,7 @@
     "details": "Your details",
     "passwordNote": "Your password is never shown.",
     "logout": "Log out",
-    "billNote": "Your date of birth and citizenship fill in the subsidy questions on the Bill page.",
+    "billNote": "Your date of birth, citizenship and household income are used to check your subsidies on the Bill page.",
     "edit": "Edit my details",
     "editTitle": "Edit your details",
     "save": "Save",

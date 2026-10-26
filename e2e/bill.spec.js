@@ -72,7 +72,7 @@ test.describe('breakdown', () => {
     await expect(line(page, 'Consultation Doctor visit \\$14\\.50')).toBeVisible()
     await expect(line(page, 'Metformin 500mg x 60 Medicine \\$8\\.20')).toBeVisible()
     await expect(line(page, 'Government subsidy Subsidy −\\$8\\.70')).toBeVisible()
-    await expect(line(page, 'MediSave From CPF MediSave −\\$0\\.00')).toBeVisible()
+    await expect(line(page, 'MediSave From CPF MediSave \\$0\\.00')).toBeVisible() // nothing taken off: "$0.00", never "−$0.00"
     await expect(page.getByTestId('bill-total')).toContainText('$14.00')
   })
 

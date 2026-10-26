@@ -120,7 +120,7 @@
 .corner.tr { top: 0; right: 0; border-top-width: 5px; border-right-width: 5px; border-top-right-radius: 18px; }
 .corner.bl { bottom: 0; left: 0; border-bottom-width: 5px; border-left-width: 5px; border-bottom-left-radius: 18px; }
 .corner.br { bottom: 0; right: 0; border-bottom-width: 5px; border-right-width: 5px; border-bottom-right-radius: 18px; }
-.bill { border-radius: 22px; display: grid; } /* both cards in one cell: the taller sets the height, so swapping never jumps */
+.bill { border-radius: 22px; display: grid; grid-template-columns: minmax(0, 1fr); } /* both cards in one cell: the taller sets the height, so swapping never jumps */
 /* One card: the bill or the medicine label. The one going fades and sinks a little; the new one rises into place. */
 .face { grid-area: 1 / 1; position: relative; padding: clamp(20px, 3vw, 28px); border-radius: 22px; transition: opacity 420ms cubic-bezier(0.2, 0.8, 0.2, 1) 120ms, transform 420ms cubic-bezier(0.2, 0.8, 0.2, 1) 120ms, visibility 0s; }
 .face:not(.on) { opacity: 0; transform: translateY(14px) scale(0.97); visibility: hidden; pointer-events: none; transition: opacity 220ms ease-in, transform 220ms ease-in, visibility 0s 220ms; }
@@ -135,12 +135,12 @@
 .scan-pick > button:hover { color: var(--l-ink); }
 .scan-pick > button[aria-pressed='true'] { background: var(--l-card); color: var(--l-ink); box-shadow: 0 6px 14px -8px var(--l-shadow); }
 .bill-plain { display: flex; flex-direction: column; }
-.bill-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-bottom: 12px; border-bottom: 2px solid var(--l-line); }
+.bill-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding-bottom: 12px; border-bottom: 2px solid var(--l-line); }
 .tag { font-size: 16px; font-weight: 700; padding: 5px 12px; border-radius: 999px; background: oklch(0.93 0.05 150); color: oklch(0.38 0.09 150); white-space: nowrap; }
 .bill-line { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; padding: 12px 0; border-bottom: 1px dashed oklch(0.87 0.022 70); font-size: 18px; line-height: 1.35; }
-.bill-line b { font-size: 19px; white-space: nowrap; }
+.bill-line b { font-size: 19px; text-align: right; } /* wraps on very narrow phones instead of leaving the card */
 .bill-line.paid { color: var(--l-green-text); border-bottom: 2px solid var(--l-line); }
-.bill-total { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding-top: 14px; font-size: 21px; }
+.bill-total { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px; padding-top: 14px; font-size: 21px; }
 .amount { font-size: clamp(36px, 3.4vw, 46px); line-height: 1; }
 .receipt { position: absolute; inset: 0; opacity: 0; border-radius: 22px; overflow: hidden; background: oklch(0.985 0.008 85); padding: clamp(20px, 3vw, 28px); font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 13px; line-height: 1.9; color: oklch(0.5 0.02 60); display: flex; flex-direction: column; }
 .receipt > div { display: flex; justify-content: space-between; gap: 8px; }
@@ -176,10 +176,10 @@
 /* 04 Doses: a blister pack becomes today's plan, pills drop into their slots, then the subsidy card lands. */
 .plan-wrap { width: 100%; max-width: 440px; display: flex; flex-direction: column; }
 .plan { border-radius: 26px; padding: 14px clamp(16px, 2.4vw, 24px) 8px; }
-.plan-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-bottom: 6px; }
+.plan-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding-bottom: 6px; }
 .today { font-size: 24px; }
-.switch-btn { display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 0 2px 0 10px; border: none; background: transparent; color: var(--l-ink); font-size: 18px; font-weight: 700; }
-.sw { position: relative; display: block; width: 54px; height: 32px; border-radius: 999px; background: oklch(0.6 0.02 70); transition: background-color 0.2s; }
+.switch-btn { display: flex; align-items: center; margin-left: auto; text-align: right; gap: 10px; min-height: 48px; padding: 0 2px 0 10px; border: none; background: transparent; color: var(--l-ink); font-size: 18px; font-weight: 700; }
+.sw { position: relative; display: block; flex: none; width: 54px; height: 32px; border-radius: 999px; background: oklch(0.6 0.02 70); transition: background-color 0.2s; }
 .sw::after { content: ''; position: absolute; top: 4px; left: 4px; width: 24px; height: 24px; border-radius: 50%; background: var(--l-card); box-shadow: 0 1px 3px oklch(0 0 0 / 0.3); transition: transform 0.2s; }
 .sw.on { background: oklch(0.5 0.11 150); }
 .sw.on::after { transform: translateX(22px); }
@@ -193,13 +193,11 @@
 .dose-text .muted { font-size: 18px; line-height: 1.35; }
 .slots { display: flex; gap: 8px; }
 .slot { display: grid; place-items: center; width: 46px; height: 46px; border-radius: 50%; background: oklch(0.94 0.012 75); box-shadow: inset 0 3px 6px oklch(0 0 0 / 0.1); }
+/* Very narrow phones: smaller pill slots and gaps, so the dose words keep room to read. */
+@media (max-width: 399.98px) { .dose { gap: 10px; } .slots { gap: 4px; } .slot { width: 38px; height: 38px; } .sun { width: 28px; height: 28px; margin: 0; } .slot .tablet.small { width: 30px; height: 30px; } }
 .tablet.small { width: 34px; height: 34px; box-shadow: 0 4px 8px -3px var(--l-shadow), inset 0 5px 8px oklch(1 0 0 / 0.5), inset 0 -4px 0 oklch(0 0 0 / 0.06); }
 .blister { position: absolute; inset: 0; opacity: 0; border-radius: 26px; background: linear-gradient(135deg, oklch(0.94 0.008 80), oklch(0.86 0.012 70) 50%, oklch(0.95 0.008 80)); display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); place-items: center; padding: 28px 16%; gap: 14px; }
 .blister span { width: 64px; height: 64px; border-radius: 50%; background: oklch(0.97 0.006 80); box-shadow: inset -4px -6px 10px oklch(0 0 0 / 0.08), 0 5px 10px oklch(0 0 0 / 0.08); }
-.subsidy { position: relative; z-index: 1; align-self: flex-end; width: min(88%, 300px); margin-top: -16px; padding: 18px 22px; border-radius: 22px; background: oklch(0.94 0.045 150); box-shadow: 0 30px 50px -26px oklch(0.35 0.06 45 / 0.5); display: flex; flex-direction: column; gap: 2px; font-size: 20px; }
-.sub-label { font-size: 18px; font-weight: 700; color: oklch(0.38 0.09 150); }
-.sub-amount { font-size: clamp(44px, 4vw, 54px); line-height: 1.05; }
-.sub-basis { font-size: 18px; color: oklch(0.38 0.04 140); line-height: 1.35; }
 
 /* 05 Ask: long capsules soften into chat bubbles; the biggest capsule becomes "Try me out". */
 .ask-sec { flex-direction: column; justify-content: center; }
