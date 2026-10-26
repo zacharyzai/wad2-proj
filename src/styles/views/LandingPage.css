@@ -167,9 +167,10 @@
 .speaker-face .icon { animation: breathe 2.6s ease-in-out 3; }
 /* Pulses three times once it is on screen, then rests; endless only while it is reading aloud. */
 .speaker.idle .speaker-face::before, .speaker.idle .speaker-face::after, .speaker.idle .speaker-face .icon { animation-play-state: paused; }
-.speaker.speaking .speaker-face::before, .speaker.speaking .speaker-face::after, .speaker.speaking .speaker-face .icon { animation-iteration-count: infinite; }
-.speaker.speaking .speaker-face::before, .speaker.speaking .speaker-face::after { animation-duration: 1.3s; }
-.speaker.speaking .speaker-face::after { animation-delay: 0.65s; }
+/* .ringing outlasts .speaking by up to one ring, so the last ring finishes growing instead of vanishing mid-way. */
+.speaker.ringing .speaker-face::before, .speaker.ringing .speaker-face::after, .speaker.ringing .speaker-face .icon { animation-iteration-count: infinite; }
+.speaker.ringing .speaker-face::before, .speaker.ringing .speaker-face::after { animation-duration: 1.3s; }
+.speaker.ringing .speaker-face::after { animation-delay: 0.65s; }
 @keyframes ring { from { transform: scale(1); opacity: 0.45; } to { transform: scale(1.55); opacity: 0; } }
 @keyframes breathe { 50% { scale: 1.1; } }
 .speaker.speaking .speaker-face { box-shadow: 0 0 0 12px oklch(0.52 0.16 35 / 0.28), 0 24px 40px -18px oklch(0.45 0.15 35 / 0.7); }

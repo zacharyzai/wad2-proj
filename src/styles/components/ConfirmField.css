@@ -1,5 +1,15 @@
 /* Scoped styles for ConfirmField.vue. A flagged field becomes an amber box with a "Please check" badge. */
 .field-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
-.field.flagged { padding: 16px; border: 2px solid var(--color-warning); border-radius: 18px; background: var(--color-warning-bg); }
+/* Every field has the box, see-through unless flagged, and the negative margin keeps it outside the layout:
+   fixing a field fades the amber away instead of the fields below jumping up. 8px, so two flagged side by side keep a gap. */
+.field { padding: 6px; margin: -8px; border: 2px solid transparent; border-radius: 18px; transition: background-color 200ms var(--ease-out), border-color 200ms var(--ease-out); }
+.field.flagged { border-color: var(--color-warning); background: var(--color-warning-bg); }
+.fc-fade-enter-active, .fc-fade-leave-active { transition: opacity 150ms var(--ease-out); }
+.fc-fade-enter-from, .fc-fade-leave-to { opacity: 0; }
+/* The note's line closes up smoothly (rare and small, so animating its row is fine). -8px cancels the field's gap. */
+.note-wrap { display: grid; grid-template-rows: 1fr; }
+.note-wrap > .field-note { min-height: 0; overflow: hidden; }
+.fc-note-enter-active, .fc-note-leave-active { transition: grid-template-rows 200ms var(--ease-out), margin-top 200ms var(--ease-out), opacity 150ms var(--ease-out); }
+.fc-note-enter-from, .fc-note-leave-to { grid-template-rows: 0fr; margin-top: -8px; opacity: 0; }
 .check { background: var(--color-card); }
 .field-note { color: var(--color-warning-text); font-size: 16px; line-height: 1.5; }

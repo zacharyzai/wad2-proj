@@ -31,7 +31,8 @@
 @keyframes receipt-feed { from { transform: translateY(-50%); } to { transform: translateY(0); } }
 
 .tile-link:hover :is(.labels-track, .receipt-track), .tile-link:focus-visible :is(.labels-track, .receipt-track) { animation-play-state: paused; }
-@media (prefers-reduced-motion: reduce) { .labels-track, .receipt-track { animation: none; } }
+.still :is(.labels-track, .receipt-track) { animation-play-state: paused; }
+@media (prefers-reduced-motion: reduce) { .labels-track, .receipt-track { animation: none; } .still-btn { display: none; } } /* nothing moves, so nothing to stop */
 .b-samples { display: flex; flex-direction: column; gap: 10px; padding: 20px; border-radius: var(--r-card); background: var(--color-surface-2); }
 .choice-title { font-size: var(--t20, 20px); font-weight: 700; line-height: 1.3; }
 .chev { width: var(--hit); height: var(--hit); border-radius: 50%; display: grid; place-items: center; flex: none; background: var(--color-surface-2); color: var(--color-primary-text); }

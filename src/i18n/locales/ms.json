@@ -82,6 +82,10 @@
     "what": "Apa yang boleh diimbas?",
     "ask": {
       "text": "Tanya soalan tentang ubat anda dalam bahasa anda sendiri."
+    },
+    "still": {
+      "pause": "Hentikan gambar bergerak",
+      "play": "Mainkan gambar bergerak"
     }
   },
   "scan": {
