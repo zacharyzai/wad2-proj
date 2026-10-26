@@ -172,6 +172,7 @@ const onVisibility = () => kickChat()
 // The phone and the chat only move while they are on screen.
 const phoneEl = ref(null)
 const phoneSeen = ref(false)
+const speakerSeen = ref(false) // set once its face has morphed in (frame), so the three pulses aren't spent while it is still falling
 const seen = new IntersectionObserver((entries) => {
   for (const e of entries) {
     if (e.target === phoneEl.value) phoneSeen.value = e.isIntersecting
@@ -231,6 +232,7 @@ function frame() {
   })
   const compact = !red && el.clientWidth < 1024
   syncChat(T[5]?.t ?? 0)
+  if ((T[3]?.t ?? 0) >= 0.9) speakerSeen.value = true // speaker-face morph end (data-mb)
 
   el.querySelectorAll('[data-fall]').forEach((f) => {
     const d = f.dataset
@@ -494,7 +496,7 @@ onBeforeUnmount(() => {
               <span data-morph="out" data-ma="0.66" data-mb="0.84" class="capsule fill" :style="pill(VOICE_FALL[i].pill)" aria-hidden="true"></span>
             </button>
           </div>
-          <button type="button" class="speaker" :class="{ speaking }" :aria-label="speaking ? t('landing.listen.stop') : t('landing.listen.read')" data-fall="3" data-a="0.26" data-b="0.74" data-r0="40" data-dx="0" data-testid="landing-speak" @click="speak">
+          <button type="button" class="speaker" :class="{ speaking, idle: !speakerSeen }" :aria-label="speaking ? t('landing.listen.stop') : t('landing.listen.read')" data-fall="3" data-a="0.26" data-b="0.74" data-r0="40" data-dx="0" data-testid="landing-speak" @click="speak">
             <span data-morph="in" data-ma="0.74" data-mb="0.9" class="speaker-face"><AppIcon name="volume" :size="58" /></span>
             <span data-morph="out" data-ma="0.72" data-mb="0.88" class="tablet fill big" aria-hidden="true"><span></span></span>
           </button>
@@ -548,7 +550,7 @@ onBeforeUnmount(() => {
                 <span class="lock-date">{{ phoneDate() }}</span>
                 <span class="lock-time">8:00</span>
                 <div class="notif">
-                  <span class="notif-icon"><AppIcon name="calendar" :size="20" /></span>
+                  <span class="notif-icon"><AppIcon name="calendar" :size="16" /></span>
                   <div class="notif-app">{{ t('landing.doses.phoneApp') }}<span class="notif-now">{{ t('landing.doses.now') }}</span></div>
                   <div class="strong notif-title">{{ t('landing.doses.calEvent') }}</div>
                   <div class="notif-body">{{ t('landing.doses.morningText') }}</div>
@@ -586,10 +588,10 @@ onBeforeUnmount(() => {
                 <span v-if="!m.me" class="avatar capsule" :style="pill('brand')"></span>
                 <div class="bubble">
                   <span v-if="m.typing" class="typing"><i></i><i></i><i></i></span>
-                  <template v-else>
+                  <div v-else class="said">
                     <span v-if="!m.me" class="bot-name">{{ t('app.name') }}</span>
                     <p>{{ t(`landing.ask.${m.key}`) }}</p>
-                  </template>
+                  </div>
                 </div>
               </div>
             </div>
