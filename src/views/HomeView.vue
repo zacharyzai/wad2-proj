@@ -47,7 +47,7 @@ function onFile(event) {
 
       <div class="hero-text">
         <div class="d-flex align-items-center gap-3">
-          <img src="/logo-512.png" alt="" class="logo-tile hero-logo" />
+          <img src="/logo-192.png" alt="" class="logo-tile hero-logo" width="72" height="72" /><!-- 192px: sharp at 72px on 2x screens, a third of the 512 file -->
           <span class="greet">{{ t(`home.greet.${greet}`) }}</span>
         </div>
         <h1 class="display">{{ t('home.title') }}</h1>
