@@ -18,13 +18,13 @@
   overflow-x: clip; /* falling items drift sideways past the edge */
   background: var(--l-bg);
   color: var(--l-ink);
-  font-family: 'Atkinson Hyperlegible', 'Noto Sans SC', 'Noto Sans Tamil', system-ui, sans-serif;
+  font-family: 'Atkinson Hyperlegible', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans CJK SC', 'Noto Sans SC', 'Tamil Sangam MN', 'Nirmala UI', 'Noto Sans Tamil', system-ui, sans-serif; /* Chinese and Tamil: the phone's own fonts */
   font-size: 19px;
   line-height: 1.5;
 }
 .landing a:not(.cta, .big-cta, .outline, .brand) { color: var(--l-accent-text); }
 .landing :focus-visible { outline: 3px solid var(--l-accent-text); outline-offset: 3px; }
-.serif { font-family: 'Young Serif', 'Noto Serif SC', 'Noto Sans Tamil', Georgia, serif; font-weight: 400; }
+.serif { font-family: 'Young Serif', 'Songti SC', 'STSong', 'Noto Serif CJK SC', 'Noto Serif SC', 'SimSun', 'Tamil Sangam MN', 'Nirmala UI', 'Noto Sans Tamil', Georgia, serif; font-weight: 400; }
 .strong { font-weight: 700; }
 .muted { color: var(--l-muted); }
 
@@ -42,7 +42,9 @@
 .paper { position: relative; background: var(--l-card); box-shadow: 0 30px 60px -30px oklch(0.35 0.06 45 / 0.5), 0 1px 0 oklch(0.87 0.022 70); }
 
 /* Buttons */
-.cta, .ghost, .outline, .hchip, .voice, .speaker, .big-cta, .switch-btn { font: inherit; cursor: pointer; text-decoration: none; transition: background-color 0.25s, color 0.25s; }
+.cta, .ghost, .outline, .hchip, .voice, .speaker, .big-cta, .switch-btn { font: inherit; cursor: pointer; text-decoration: none; transition: background-color 0.25s, color 0.25s, scale 160ms cubic-bezier(0.23, 1, 0.32, 1); }
+/* Press feedback uses `scale`, not `transform`, so it never fights the scroll engine's inline transforms. */
+.cta:active, .ghost:active, .outline:active, .hchip:active, .voice:active, .speaker:active, .big-cta:active, .switch-btn:active, .scan-pick > button:active { scale: 0.97; }
 .cta { display: inline-flex; align-items: center; min-height: 58px; padding: 0 30px; border-radius: 999px; background: var(--l-accent); color: var(--l-on-accent); font-size: 20px; font-weight: 700; box-shadow: 0 12px 24px -14px oklch(0.45 0.15 35 / 0.8); }
 .cta:hover { background: var(--l-accent-hover); color: var(--l-on-accent); }
 .ghost { min-height: 58px; padding: 0 26px; border: 2px solid oklch(0.28 0.035 45 / 0.3); border-radius: 999px; background: transparent; color: var(--l-ink); font-size: 20px; font-weight: 700; }
@@ -72,7 +74,7 @@
 @media (min-width: 1024px) { .lnav-links { display: flex; gap: 2px; margin: 0 auto; } .lnav-acts { margin-left: 0; } }
 @media (max-width: 560px) { .brand-name { display: none; } .landing .lnav-login { padding: 0 10px; } .cta.sm { padding: 0 16px; } }
 .sec { scroll-margin-top: 66px; } /* section titles land below the top bar */
-.brand { display: flex; align-items: center; gap: 12px; min-height: 48px; text-decoration: none; color: var(--l-ink); font-size: 22px; line-height: 1.1; }
+.brand { display: flex; align-items: center; justify-content: center; gap: 12px; min-height: 48px; min-width: 48px; text-decoration: none; color: var(--l-ink); font-size: 22px; line-height: 1.1; }
 .brand:hover { color: var(--l-ink); }
 .hero-body { flex: 1; display: flex; align-items: center; padding: 0 var(--l-gutter) clamp(40px, 8vh, 96px); }
 .hero-row { flex-wrap: wrap-reverse; gap: clamp(4px, 4vw, 72px); }
@@ -80,8 +82,8 @@
 .hero-text .lede { font-size: clamp(19px, 1.5vw, 22px); max-width: 31em; }
 .headline { margin: 0; display: grid; font-size: clamp(38px, 5.4vw, 80px); line-height: 1.08; letter-spacing: -0.01em; }
 /* All four headlines share one grid cell, so the heading keeps the height of the longest and nothing jumps. */
-.head { grid-area: 1 / 1; align-self: end; text-wrap: balance; opacity: 0; transform: translateY(16px); transition: opacity 0.7s ease, transform 0.7s ease; }
-.head.on { opacity: 1; transform: none; }
+.head { grid-area: 1 / 1; align-self: end; text-wrap: balance; opacity: 0; transform: translateY(16px); filter: blur(2px); transition: opacity 500ms cubic-bezier(0.23, 1, 0.32, 1), transform 500ms cubic-bezier(0.23, 1, 0.32, 1), filter 500ms cubic-bezier(0.23, 1, 0.32, 1); }
+.head.on { opacity: 1; transform: none; filter: none; } /* the blur blends the two overlapping headlines into one change */
 .head:lang(ta) { font-size: 0.6em; line-height: 1.4; }
 .hchips { display: flex; flex-wrap: wrap; gap: 8px; }
 .hchip { min-height: 48px; min-width: 48px; padding: 0 18px; border-radius: 999px; border: 2px solid oklch(0.28 0.035 45 / 0.22); background: transparent; color: var(--l-ink); font-size: 18px; font-weight: 700; }
@@ -120,27 +122,29 @@
 .corner.tr { top: 0; right: 0; border-top-width: 5px; border-right-width: 5px; border-top-right-radius: 18px; }
 .corner.bl { bottom: 0; left: 0; border-bottom-width: 5px; border-left-width: 5px; border-bottom-left-radius: 18px; }
 .corner.br { bottom: 0; right: 0; border-bottom-width: 5px; border-right-width: 5px; border-bottom-right-radius: 18px; }
-.bill { border-radius: 22px; display: grid; } /* both cards in one cell: the taller sets the height, so swapping never jumps */
+.bill { border-radius: 22px; display: grid; grid-template-columns: minmax(0, 1fr); } /* both cards in one cell: the taller sets the height, so swapping never jumps */
 /* One card: the bill or the medicine label. The one going fades and sinks a little; the new one rises into place. */
 .face { grid-area: 1 / 1; position: relative; padding: clamp(20px, 3vw, 28px); border-radius: 22px; transition: opacity 420ms cubic-bezier(0.2, 0.8, 0.2, 1) 120ms, transform 420ms cubic-bezier(0.2, 0.8, 0.2, 1) 120ms, visibility 0s; }
-.face:not(.on) { opacity: 0; transform: translateY(14px) scale(0.97); visibility: hidden; pointer-events: none; transition: opacity 220ms ease-in, transform 220ms ease-in, visibility 0s 220ms; }
+.face:not(.on) { opacity: 0; transform: translateY(14px) scale(0.97); visibility: hidden; pointer-events: none; transition: opacity 160ms cubic-bezier(0.23, 1, 0.32, 1), transform 160ms cubic-bezier(0.23, 1, 0.32, 1), visibility 0s 160ms; }
 .label-name { font-size: clamp(26px, 2.6vw, 32px); line-height: 1.15; padding: 14px 0 4px; }
 .for { font-size: 19px; font-weight: 700; text-align: right; }
 /* After each swap the new card is scanned again: a line sweeps from top to bottom once. */
-.rescan { position: absolute; left: -10px; right: -10px; top: 0; height: 4px; border-radius: 4px; opacity: 0; pointer-events: none; background: var(--l-accent); box-shadow: 0 0 18px 5px oklch(0.52 0.16 35 / 0.35); animation: rescan 1100ms cubic-bezier(0.45, 0, 0.25, 1) 160ms both; }
-@keyframes rescan { 0% { top: 0; opacity: 0; } 12% { opacity: 1; } 88% { opacity: 1; } 100% { top: calc(100% - 4px); opacity: 0; } }
+/* As tall as the card, so translate's % moves the line exactly down the card (no layout per frame). */
+.rescan { position: absolute; left: -10px; right: -10px; top: 0; bottom: 0; opacity: 0; pointer-events: none; animation: rescan 1100ms cubic-bezier(0.45, 0, 0.25, 1) 160ms both; }
+.rescan::before { content: ''; display: block; height: 4px; border-radius: 4px; background: var(--l-accent); box-shadow: 0 0 18px 5px oklch(0.52 0.16 35 / 0.35); }
+@keyframes rescan { 0% { translate: 0 0; opacity: 0; } 12% { opacity: 1; } 88% { opacity: 1; } 100% { translate: 0 calc(100% - 4px); opacity: 0; } }
 /* Bill / Medicine label: pick which one the frame shows. */
 .scan-pick { width: 100%; max-width: 440px; display: flex; gap: 4px; padding: 4px; border-radius: 18px; background: var(--l-sand); border: 1px solid var(--l-line); }
-.scan-pick > button { flex: 1 1 0; display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 52px; padding: 6px 12px; border: 0; border-radius: 14px; background: transparent; color: var(--l-muted); font-size: 18px; font-weight: 700; transition: background-color 0.25s, color 0.25s, box-shadow 0.25s; }
+.scan-pick > button { flex: 1 1 0; display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 52px; padding: 6px 12px; border: 0; border-radius: 14px; background: transparent; color: var(--l-muted); font-size: 18px; font-weight: 700; transition: background-color 0.25s, color 0.25s, box-shadow 0.25s, scale 160ms cubic-bezier(0.23, 1, 0.32, 1); }
 .scan-pick > button:hover { color: var(--l-ink); }
 .scan-pick > button[aria-pressed='true'] { background: var(--l-card); color: var(--l-ink); box-shadow: 0 6px 14px -8px var(--l-shadow); }
 .bill-plain { display: flex; flex-direction: column; }
-.bill-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-bottom: 12px; border-bottom: 2px solid var(--l-line); }
+.bill-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding-bottom: 12px; border-bottom: 2px solid var(--l-line); }
 .tag { font-size: 16px; font-weight: 700; padding: 5px 12px; border-radius: 999px; background: oklch(0.93 0.05 150); color: oklch(0.38 0.09 150); white-space: nowrap; }
 .bill-line { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; padding: 12px 0; border-bottom: 1px dashed oklch(0.87 0.022 70); font-size: 18px; line-height: 1.35; }
-.bill-line b { font-size: 19px; white-space: nowrap; }
+.bill-line b { font-size: 19px; text-align: right; } /* wraps on very narrow phones instead of leaving the card */
 .bill-line.paid { color: var(--l-green-text); border-bottom: 2px solid var(--l-line); }
-.bill-total { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding-top: 14px; font-size: 21px; }
+.bill-total { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px; padding-top: 14px; font-size: 21px; }
 .amount { font-size: clamp(36px, 3.4vw, 46px); line-height: 1; }
 .receipt { position: absolute; inset: 0; opacity: 0; border-radius: 22px; overflow: hidden; background: oklch(0.985 0.008 85); padding: clamp(20px, 3vw, 28px); font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 13px; line-height: 1.9; color: oklch(0.5 0.02 60); display: flex; flex-direction: column; }
 .receipt > div { display: flex; justify-content: space-between; gap: 8px; }
@@ -158,27 +162,33 @@
 .speaker:hover .speaker-face { background: var(--l-accent-hover); }
 /* The big listen button breathes and sends out rings, so it reads as "press me"; faster while it is speaking. */
 .speaker-face { z-index: 0; }
-.speaker-face::before, .speaker-face::after { content: ''; position: absolute; inset: 0; z-index: -1; border-radius: 50%; background: var(--l-accent); animation: ring 2.6s ease-out infinite; }
+.speaker-face::before, .speaker-face::after { content: ''; position: absolute; inset: 0; z-index: -1; border-radius: 50%; background: var(--l-accent); animation: ring 2.6s ease-out 3; }
 .speaker-face::after { animation-delay: 1.3s; }
-.speaker-face .icon { animation: breathe 2.6s ease-in-out infinite; }
-.speaker.speaking .speaker-face::before, .speaker.speaking .speaker-face::after { animation-duration: 1.3s; }
-.speaker.speaking .speaker-face::after { animation-delay: 0.65s; }
+.speaker-face .icon { animation: breathe 2.6s ease-in-out 3; }
+/* Pulses three times once it is on screen, then rests; endless only while it is reading aloud. */
+.speaker.idle .speaker-face::before, .speaker.idle .speaker-face::after, .speaker.idle .speaker-face .icon { animation-play-state: paused; }
+/* .ringing outlasts .speaking by up to one ring, so the last ring finishes growing instead of vanishing mid-way. */
+.speaker.ringing .speaker-face::before, .speaker.ringing .speaker-face::after, .speaker.ringing .speaker-face .icon { animation-iteration-count: infinite; }
+.speaker.ringing .speaker-face::before, .speaker.ringing .speaker-face::after { animation-duration: 1.3s; }
+.speaker.ringing .speaker-face::after { animation-delay: 0.65s; }
 @keyframes ring { from { transform: scale(1); opacity: 0.45; } to { transform: scale(1.55); opacity: 0; } }
 @keyframes breathe { 50% { scale: 1.1; } }
 .speaker.speaking .speaker-face { box-shadow: 0 0 0 12px oklch(0.52 0.16 35 / 0.28), 0 24px 40px -18px oklch(0.45 0.15 35 / 0.7); }
 .tablet.big { --c: oklch(0.89 0.1 88); --score: oklch(0.8 0.12 80); }
 .tablet.big > span { left: 18%; right: 18%; height: 5px; margin-top: -2.5px; }
 .said { width: 100%; max-width: 440px; display: flex; flex-direction: column; align-items: center; gap: 12px; padding-top: 6px; }
+/* Shown when this device has no voice for the chosen language: a calm note, not an error. */
+.no-voice { max-width: 28em; font-size: 17px; line-height: 1.45; text-align: center; color: var(--l-muted); }
 .sample { margin: 0; width: 100%; padding: 16px 20px; border-radius: 20px; background: var(--l-card); border: 2px solid var(--l-line); font-size: 20px; line-height: 1.5; text-align: center; text-wrap: pretty; }
 
 /* 04 Doses: a blister pack becomes today's plan, pills drop into their slots, then the subsidy card lands. */
 .plan-wrap { width: 100%; max-width: 440px; display: flex; flex-direction: column; }
 .plan { border-radius: 26px; padding: 14px clamp(16px, 2.4vw, 24px) 8px; }
-.plan-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-bottom: 6px; }
+.plan-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding-bottom: 6px; }
 .today { font-size: 24px; }
-.switch-btn { display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 0 2px 0 10px; border: none; background: transparent; color: var(--l-ink); font-size: 18px; font-weight: 700; }
-.sw { position: relative; display: block; width: 54px; height: 32px; border-radius: 999px; background: oklch(0.6 0.02 70); transition: background-color 0.2s; }
-.sw::after { content: ''; position: absolute; top: 4px; left: 4px; width: 24px; height: 24px; border-radius: 50%; background: var(--l-card); box-shadow: 0 1px 3px oklch(0 0 0 / 0.3); transition: transform 0.2s; }
+.switch-btn { display: flex; align-items: center; margin-left: auto; text-align: right; gap: 10px; min-height: 48px; padding: 0 2px 0 10px; border: none; background: transparent; color: var(--l-ink); font-size: 18px; font-weight: 700; }
+.sw { position: relative; display: block; flex: none; width: 54px; height: 32px; border-radius: 999px; background: oklch(0.6 0.02 70); transition: background-color 0.2s; }
+.sw::after { content: ''; position: absolute; top: 4px; left: 4px; width: 24px; height: 24px; border-radius: 50%; background: var(--l-card); box-shadow: 0 1px 3px oklch(0 0 0 / 0.3); transition: transform 200ms cubic-bezier(0.23, 1, 0.32, 1); }
 .sw.on { background: oklch(0.5 0.11 150); }
 .sw.on::after { transform: translateX(22px); }
 .dose { display: flex; align-items: center; gap: 14px; padding: 14px 0; border-top: 1px solid var(--l-line); }
@@ -191,17 +201,61 @@
 .dose-text .muted { font-size: 18px; line-height: 1.35; }
 .slots { display: flex; gap: 8px; }
 .slot { display: grid; place-items: center; width: 46px; height: 46px; border-radius: 50%; background: oklch(0.94 0.012 75); box-shadow: inset 0 3px 6px oklch(0 0 0 / 0.1); }
+/* Very narrow phones: smaller pill slots and gaps, so the dose words keep room to read. */
+@media (max-width: 399.98px) { .dose { gap: 10px; } .slots { gap: 4px; } .slot { width: 38px; height: 38px; } .sun { width: 28px; height: 28px; margin: 0; } .slot .tablet.small { width: 30px; height: 30px; } }
+/* The morning reminder arriving on the lock screen of a small phone shaped like an iPhone (no brand marks; small so
+   the plan card and phone fit one screen; the text is decoration, aria-hidden): it buzzes, the
+   Calendar notification drops in, stays, then goes; every 7 s. The Reminders switch turns it off; it waits while off screen (.idle). */
+.phone-wrap { position: relative; z-index: 1; align-self: flex-end; margin: -8px 6% 0 0; } /* tucks under the card without covering the Night row */
+.phone { position: relative; rotate: 4deg; width: 172px; aspect-ratio: 9 / 19.5; padding: 9px 9px 7px; border: 7px solid oklch(0.2 0.015 45); border-radius: 36px; background: linear-gradient(165deg, oklch(0.66 0.11 45), oklch(0.5 0.12 32) 55%, oklch(0.33 0.07 28)); box-shadow: 0 0 0 2px oklch(0.62 0.02 60), 0 40px 60px -30px var(--l-shadow); display: flex; flex-direction: column; align-items: center; color: oklch(0.99 0.005 80); animation: buzz 7s linear infinite; }
+/* Side buttons: volume up and down on the left, power on the right. */
+.side { position: absolute; width: 3px; border-radius: 2px; background: oklch(0.45 0.015 50); }
+.vol-up { left: -12px; top: 22%; height: 30px; }
+.vol-down { left: -12px; top: calc(22% + 38px); height: 30px; }
+.power { right: -12px; top: 28%; height: 48px; }
+.island { width: 36%; height: 18px; flex: none; border-radius: 999px; background: oklch(0.12 0.01 45); }
+.lock-date { margin-top: 12px; font-size: 13px; font-weight: 600; opacity: 0.92; }
+.lock-time { font: 600 52px / 1 system-ui, -apple-system, 'Segoe UI', sans-serif; letter-spacing: -0.02em; font-variant-numeric: lining-nums; }
+.notif { width: 100%; margin-top: auto; padding: 8px; border-radius: 16px; background: oklch(0.985 0.005 80 / 0.92); color: var(--l-ink); box-shadow: 0 12px 24px -14px oklch(0.2 0.04 40 / 0.6); display: grid; grid-template-columns: 26px minmax(0, 1fr); column-gap: 7px; row-gap: 1px; align-items: start; font-size: 14px; line-height: 1.25; animation: notif 7s cubic-bezier(0.16, 1, 0.3, 1) infinite; transition: opacity 0.25s, translate 0.25s; }
+.notif > :not(.notif-icon) { grid-column: 2; }
+.notif-icon { grid-row: 1 / span 3; display: grid; place-items: center; width: 26px; height: 26px; border-radius: 7px; background: var(--l-accent); color: var(--l-on-accent); }
+.notif-app { display: flex; flex-wrap: wrap; align-items: center; column-gap: 6px; color: var(--l-muted); font-weight: 600; }
+.notif-now { margin-left: auto; font-weight: 400; }
+.notif-title { font-size: 15px; }
+.notif-body { color: var(--l-muted); }
+.home-bar { flex: none; width: 38%; height: 4px; margin-top: 9px; border-radius: 999px; background: oklch(0.99 0.005 80 / 0.85); }
+/* Buzz lines either side of the phone, only while it vibrates. */
+.phone::before, .phone::after { content: ''; position: absolute; top: 40%; width: 12px; height: 40px; border: 3px solid transparent; border-radius: 50%; opacity: 0; animation: waves 7s linear infinite; }
+.phone::before { left: -30px; border-left-color: var(--l-accent); }
+.phone::after { right: -30px; border-right-color: var(--l-accent); }
+.phone.off, .phone.off::before, .phone.off::after, .phone.off .notif { animation: none; }
+.phone.off .notif { opacity: 0; translate: 0 -8px; }
+.phone.idle, .phone.idle::before, .phone.idle::after, .phone.idle .notif { animation-play-state: paused; }
+@keyframes buzz { 0%, 9%, 23%, 100% { transform: none; } 10%, 13%, 16%, 19%, 22% { transform: translateX(-3px) rotate(-2deg); } 11.5%, 14.5%, 17.5%, 20.5% { transform: translateX(3px) rotate(2deg); } }
+@keyframes waves { 0%, 9%, 25%, 100% { opacity: 0; } 11%, 21% { opacity: 1; } }
+@keyframes notif { 0%, 8% { opacity: 0; transform: translateY(-14px) scale(0.96); } 13%, 84% { opacity: 1; transform: none; } 88%, 100% { opacity: 0; transform: translateY(-8px) scale(0.98); } }
 .tablet.small { width: 34px; height: 34px; box-shadow: 0 4px 8px -3px var(--l-shadow), inset 0 5px 8px oklch(1 0 0 / 0.5), inset 0 -4px 0 oklch(0 0 0 / 0.06); }
 .blister { position: absolute; inset: 0; opacity: 0; border-radius: 26px; background: linear-gradient(135deg, oklch(0.94 0.008 80), oklch(0.86 0.012 70) 50%, oklch(0.95 0.008 80)); display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); place-items: center; padding: 28px 16%; gap: 14px; }
 .blister span { width: 64px; height: 64px; border-radius: 50%; background: oklch(0.97 0.006 80); box-shadow: inset -4px -6px 10px oklch(0 0 0 / 0.08), 0 5px 10px oklch(0 0 0 / 0.08); }
-.subsidy { position: relative; z-index: 1; align-self: flex-end; width: min(88%, 300px); margin-top: -16px; padding: 18px 22px; border-radius: 22px; background: oklch(0.94 0.045 150); box-shadow: 0 30px 50px -26px oklch(0.35 0.06 45 / 0.5); display: flex; flex-direction: column; gap: 2px; font-size: 20px; }
-.sub-label { font-size: 18px; font-weight: 700; color: oklch(0.38 0.09 150); }
-.sub-amount { font-size: clamp(44px, 4vw, 54px); line-height: 1.05; }
-.sub-basis { font-size: 18px; color: oklch(0.38 0.04 140); line-height: 1.35; }
 
 /* 05 Ask: long capsules soften into chat bubbles; the biggest capsule becomes "Try me out". */
 .ask-sec { flex-direction: column; justify-content: center; }
-.chat { align-items: stretch; gap: 16px; max-width: 480px; }
+.chat-demo { max-width: 480px; }
+/* The chat window keeps its first size; new messages arrive at the bottom and older ones slide up and fade out the top. */
+.chat-win { width: calc(100% + 16px); margin: 0 -8px -20px; padding: 0 8px 20px; display: flex; flex-direction: column; justify-content: flex-end; }
+.chat-win.rolling { overflow: hidden; mask-image: linear-gradient(to bottom, transparent, #000 72px); }
+.chat { display: flex; flex-direction: column; align-items: stretch; gap: 16px; }
+.msg.live { animation: msg-in 420ms cubic-bezier(0.16, 1, 0.3, 1) both; transform-origin: bottom left; }
+.msg.live.me { transform-origin: bottom right; }
+/* The answer replacing the typing dots fades in instead of popping. */
+.said { animation: said-in 200ms cubic-bezier(0.23, 1, 0.32, 1) both; }
+@keyframes said-in { from { opacity: 0; filter: blur(2px); } }
+@keyframes msg-in { from { opacity: 0; transform: translateY(10px) scale(0.97); } }
+.typing { display: flex; gap: 6px; padding: 8px 2px; }
+.typing i { width: 10px; height: 10px; border-radius: 50%; background: var(--l-muted); animation: typing 1s ease-in-out infinite; }
+.typing i:nth-child(2) { animation-delay: 0.15s; }
+.typing i:nth-child(3) { animation-delay: 0.3s; }
+@keyframes typing { 0%, 60%, 100% { opacity: 0.35; transform: none; } 30% { opacity: 1; transform: translateY(-4px); } }
 .msg { position: relative; }
 .msg.me { align-self: flex-end; max-width: 86%; }
 .msg.bot { display: flex; align-items: flex-end; gap: 12px; max-width: 94%; }
@@ -224,4 +278,5 @@
   .hero-art .fly, .hero-art .bottle, .speaker-face::before, .speaker-face::after, .speaker-face .icon { animation: none; }
   .speaker-face::before, .speaker-face::after { opacity: 0; }
   .rescan { display: none; }
+  .phone, .phone::before, .phone::after, .notif { animation: none; }
 }

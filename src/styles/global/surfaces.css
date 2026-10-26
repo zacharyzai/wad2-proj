@@ -1,7 +1,9 @@
 /* Owner: Isaac. Cards, hero, icon tiles and photo frames. Depth comes from soft shadows, not outlines. */
 .card { --bs-card-bg: var(--color-card); --bs-card-border-color: var(--color-border); --bs-card-border-radius: var(--r-card); --bs-card-color: var(--color-text); padding: var(--s-5); box-shadow: var(--shadow-card); }
-.card-interactive { transition: transform var(--dur) var(--ease-out), box-shadow var(--dur) var(--ease-out); cursor: pointer; text-decoration: none; }
-.card-interactive:hover { transform: translateY(-2px); box-shadow: var(--shadow-hover); color: var(--color-text); }
+/* Lifts on mouse hover only (a tap would leave it stuck lifted); presses in on tap or click (`scale`, so it never fights the lift). */
+.card-interactive { transition: transform var(--dur) var(--ease-out), box-shadow var(--dur) var(--ease-out), scale 160ms var(--ease-out); cursor: pointer; text-decoration: none; }
+@media (hover: hover) and (pointer: fine) { .card-interactive:hover { transform: translateY(-2px); box-shadow: var(--shadow-hover); color: var(--color-text); } }
+.card-interactive:active { scale: 0.98; }
 .card-result { position: relative; overflow: hidden; background: var(--gradient-result); }
 .card-tint { background: var(--color-tint); border-color: var(--color-tint-strong); }
 .card-warning { background: var(--color-warning-bg); border-color: var(--color-warning-border); }

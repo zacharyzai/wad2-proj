@@ -14,10 +14,11 @@ const props = defineProps({
 defineEmits(['toggle'])
 
 const { t } = useI18n()
-const amount = computed(() => (props.line.minus ? '−' : '') + money(props.line.amountCents))
+const takenOff = computed(() => props.line.minus && props.line.amountCents > 0) // nothing taken off: no minus, not "taken off"
+const amount = computed(() => (takenOff.value ? '−' : '') + money(props.line.amountCents))
 // Spoken as words ("$8.70 taken off"), since a minus sign isn't read the same way by every voice.
 const speech = computed(() => {
-  const said = props.line.minus ? t('bill.takenOffAmount', { amount: money(props.line.amountCents) }) : money(props.line.amountCents)
+  const said = takenOff.value ? t('bill.takenOffAmount', { amount: money(props.line.amountCents) }) : money(props.line.amountCents)
   return `${props.line.name}. ${said}. ${props.line.text}`
 })
 const panelId = computed(() => `line-${props.line.id}`)
