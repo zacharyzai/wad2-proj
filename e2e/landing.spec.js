@@ -86,11 +86,12 @@ test('the headline changes language on its own; tapping a language stops it and 
   await expect(headline(page)).toHaveText('看懂您的医药账单')
 })
 
-test('items fall in with scroll and go back up when scrolling back', async ({ page, isMobile }) => {
+test('items fall in with scroll and go back up when scrolling back', async ({ page }) => {
   await page.goto('/welcome')
-  // Below the fold: not landed yet (desktop: hidden above the screen; phone: faded out).
-  if (isMobile) await expect(billCard(page)).toHaveCSS('opacity', '0')
-  else await expect(billCard(page)).toHaveCSS('visibility', 'hidden')
+  // Below the fold: not landed yet, so see-through and click-through (never visibility:hidden: keyboards and screen readers still reach it).
+  await expect(billCard(page)).toHaveCSS('opacity', '0')
+  await expect(billCard(page)).toHaveCSS('pointer-events', 'none')
+  await expect(billCard(page)).not.toHaveCSS('visibility', 'hidden')
 
   // Fully played: its top at the top of the screen, or its bottom at the bottom if it is taller than the screen (phones).
   await page.locator('#scan').evaluate((el) => window.scrollTo(0, Math.max(el.offsetTop, el.offsetTop + el.offsetHeight - innerHeight)))
@@ -152,6 +153,7 @@ test('read-aloud demo: pick a language, tap the speaker, tap again to stop', asy
   // Fake speech so the test never depends on the machine's voices.
   await page.addInitScript(() => {
     window.__spoken = []
+    window.speechSynthesis.getVoices = () => [{ lang: 'ta-IN', name: 'Tamil' }, { lang: 'en-SG', name: 'English' }] // this device has a Tamil voice
     window.speechSynthesis.speak = (u) => window.__spoken.push({ text: u.text, lang: u.lang })
   })
   await page.emulateMedia({ reducedMotion: 'reduce' })
@@ -177,3 +179,30 @@ for (const colorScheme of ['light', 'dark']) {
     expect(violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target).join(' | ')}`)).toEqual([])
   })
 }
+
+test('desktop: Tab reaches buttons in sections not yet scrolled to; the section lands and comes into view', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'desktop scroll animation')
+  await page.goto('/welcome')
+  const speaker = page.getByTestId('landing-speak')
+  await expect(speaker).not.toHaveCSS('visibility', 'hidden') // reachable by keyboard and screen readers, even before it falls in
+  await page.getByTestId('landing-listen').getByRole('button', { name: 'தமிழ்' }).focus() // the button just before it
+  await page.keyboard.press('Tab') // keyboard focus, as a keyboard user moves through the page
+  await expect(speaker).toBeFocused()
+  await expect(speaker).toBeInViewport()
+  await expect(speaker).toHaveCSS('opacity', '1') // landed, not invisible
+  await expect(speaker).toHaveCSS('pointer-events', 'auto')
+})
+
+test('read-aloud demo: a device with no voice for the language says so instead of doing nothing', async ({ page }) => {
+  await page.addInitScript(() => {
+    window.speechSynthesis.getVoices = () => [{ lang: 'en-US', name: 'English' }]
+    window.speechSynthesis.speak = () => {}
+  })
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await page.goto('/welcome')
+  await page.getByTestId('landing-listen').getByRole('button', { name: 'தமிழ்' }).click()
+  await page.getByTestId('landing-speak').click()
+  await expect(page.getByTestId('landing-no-voice')).toHaveText('Read-aloud in this language is not available on this device yet.')
+  await page.getByTestId('landing-listen').getByRole('button', { name: 'English' }).click() // a language it has: the note goes
+  await expect(page.getByTestId('landing-no-voice')).toHaveCount(0)
+})

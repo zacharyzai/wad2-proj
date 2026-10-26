@@ -69,20 +69,32 @@ function pickScan(item) {
 // Read-aloud demo. shortcut: browser speech only (no cloud TTS fallback like ReadAloud); fine for a demo line.
 const voice = ref(byLocale())
 const speaking = ref(false)
+// No speech at all, or no voice for this language (common for Tamil and Malay): say so instead of a silent button.
+const noVoice = ref(false)
 function pickVoice(i) {
   window.speechSynthesis?.cancel()
   voice.value = i
   speaking.value = false
+  noVoice.value = false
 }
 function speak() {
   const synth = window.speechSynthesis
-  if (speaking.value || !synth) return pickVoice(voice.value)
+  if (speaking.value) return pickVoice(voice.value)
   const L = LANGS[voice.value]
+  const voices = synth?.getVoices() ?? []
+  const match = voices.find((v) => v.lang.toLowerCase().startsWith(L.lang))
+  // An empty list can just mean the voices haven't loaded yet, so only a loaded list without a match counts as "none".
+  if (!synth || (voices.length && !match)) return (noVoice.value = true)
+  noVoice.value = false
   const u = new SpeechSynthesisUtterance(L.sample)
   u.lang = L.voice
   u.rate = 0.85
-  u.voice = synth.getVoices().find((v) => v.lang.toLowerCase().startsWith(L.lang)) || null
-  u.onend = u.onerror = () => (speaking.value = false)
+  if (typeof SpeechSynthesisVoice !== 'undefined' && match instanceof SpeechSynthesisVoice) u.voice = match // else the lang decides
+  u.onend = () => (speaking.value = false)
+  u.onerror = (e) => {
+    speaking.value = false
+    if (/unavailable|not-supported|synthesis-failed/.test(e.error ?? '')) noVoice.value = true
+  }
   synth.cancel()
   synth.speak(u)
   speaking.value = true
@@ -120,6 +132,9 @@ const docTop = (el) => {
   return y
 }
 
+// Sections a keyboard or screen-reader user has moved into: shown landed straight away, whatever the scroll position.
+const landed = new Set()
+
 function frame() {
   const el = root.value
   if (!el) return
@@ -134,7 +149,7 @@ function frame() {
     const top = docTop(s)
     const now = top - sy
     const endTop = Math.max(Math.min(0, H - s.offsetHeight), top - maxScroll)
-    T[s.dataset.sec] = { t: red ? 1 : clamp((H - now) / Math.max(1, H - endTop)), top, now }
+    T[s.dataset.sec] = { t: red || landed.has(s.dataset.sec) ? 1 : clamp((H - now) / Math.max(1, H - endTop)), top, now }
   })
   const compact = !red && el.clientWidth < 1024
 
@@ -154,19 +169,21 @@ function frame() {
     const s = T[d.fall]
     const e = ease(clamp((s.t - +d.a) / (+d.b - +d.a)))
     if (e >= 1) {
-      f.style.transform = f.style.opacity = f.style.visibility = ''
+      f.style.transform = f.style.opacity = f.style.visibility = f.style.pointerEvents = ''
       return
     }
     if (compact) {
       // Small screens: fade in and settle 36px in place, never crossing other content.
       f.style.visibility = ''
       f.style.opacity = e.toFixed(3)
+      f.style.pointerEvents = e <= 0 ? 'none' : ''
       f.style.transform = `translate3d(0, ${(-(1 - e) * 36).toFixed(1)}px, 0) rotate(${(r0 * 0.15 * (1 - e)).toFixed(2)}deg)`
       return
     }
     // Desktop: start 180px above the screen, slow down as it lands, straighten from its tilt.
-    f.style.opacity = ''
-    f.style.visibility = e <= 0 ? 'hidden' : ''
+    // Not yet falling: see-through and click-through, but never visibility:hidden, so Tab and screen readers still reach it.
+    f.style.opacity = e <= 0 ? '0' : ''
+    f.style.pointerEvents = e <= 0 ? 'none' : ''
     const ty = -(1 - e) * (Math.max(s.now, 0) + docTop(f) - s.top + 180)
     f.style.transform = `translate3d(${(dx * (1 - e) ** 2).toFixed(1)}px, ${ty.toFixed(1)}px, 0) rotate(${(r0 * (1 - e)).toFixed(2)}deg)`
   })
@@ -193,6 +210,18 @@ function frame() {
 let raf = 0
 const onScroll = () => (raf ||= requestAnimationFrame(() => ((raf = 0), frame())))
 
+// Keyboard (Tab) or screen-reader focus inside a section that hasn't landed yet: land it now and bring it into view,
+// so nobody tabs onto an invisible button.
+// Only keyboard focus (:focus-visible): a tap also focuses, and scrolling under a finger mid-tap would lose the tap.
+function onFocusIn(event) {
+  const sec = event.target.closest?.('[data-sec]')?.dataset.sec
+  if (!sec || landed.has(sec) || reduceMq.matches || !event.target.matches(':focus-visible')) return
+  if (!event.target.closest('[data-fall], [data-morph]')) return
+  landed.add(sec)
+  frame()
+  event.target.scrollIntoView({ block: 'center', behavior: reduceMq.matches ? 'auto' : 'smooth' })
+}
+
 onMounted(() => {
   // Seen once: from now on "/" opens the normal Home page on this device.
   try {
@@ -202,6 +231,7 @@ onMounted(() => {
   }
   addEventListener('scroll', onScroll, { passive: true })
   addEventListener('scroll', updateNav, { passive: true })
+  root.value?.addEventListener('focusin', onFocusIn)
   updateNav()
   addEventListener('resize', onScroll)
   reduceMq.addEventListener('change', onScroll)
@@ -215,6 +245,7 @@ onBeforeUnmount(() => {
   cancelAnimationFrame(raf)
   removeEventListener('scroll', onScroll)
   removeEventListener('scroll', updateNav)
+  root.value?.removeEventListener('focusin', onFocusIn)
   removeEventListener('resize', onScroll)
   reduceMq.removeEventListener('change', onScroll)
   window.speechSynthesis?.cancel()
@@ -385,6 +416,7 @@ onBeforeUnmount(() => {
           </button>
           <div class="said" aria-live="polite">
             <span class="strong">{{ speaking ? t('landing.listen.hintSpeaking') : t('landing.listen.hint') }}</span>
+            <span v-if="noVoice" class="no-voice" data-testid="landing-no-voice">{{ t('player.unavailable') }}</span>
             <p :lang="LANGS[voice].lang" class="sample">“{{ LANGS[voice].sample }}”</p>
           </div>
         </div>

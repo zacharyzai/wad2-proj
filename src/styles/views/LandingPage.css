@@ -72,7 +72,7 @@
 @media (min-width: 1024px) { .lnav-links { display: flex; gap: 2px; margin: 0 auto; } .lnav-acts { margin-left: 0; } }
 @media (max-width: 560px) { .brand-name { display: none; } .landing .lnav-login { padding: 0 10px; } .cta.sm { padding: 0 16px; } }
 .sec { scroll-margin-top: 66px; } /* section titles land below the top bar */
-.brand { display: flex; align-items: center; gap: 12px; min-height: 48px; text-decoration: none; color: var(--l-ink); font-size: 22px; line-height: 1.1; }
+.brand { display: flex; align-items: center; justify-content: center; gap: 12px; min-height: 48px; min-width: 48px; text-decoration: none; color: var(--l-ink); font-size: 22px; line-height: 1.1; }
 .brand:hover { color: var(--l-ink); }
 .hero-body { flex: 1; display: flex; align-items: center; padding: 0 var(--l-gutter) clamp(40px, 8vh, 96px); }
 .hero-row { flex-wrap: wrap-reverse; gap: clamp(4px, 4vw, 72px); }
@@ -169,6 +169,8 @@
 .tablet.big { --c: oklch(0.89 0.1 88); --score: oklch(0.8 0.12 80); }
 .tablet.big > span { left: 18%; right: 18%; height: 5px; margin-top: -2.5px; }
 .said { width: 100%; max-width: 440px; display: flex; flex-direction: column; align-items: center; gap: 12px; padding-top: 6px; }
+/* Shown when this device has no voice for the chosen language: a calm note, not an error. */
+.no-voice { max-width: 28em; font-size: 17px; line-height: 1.45; text-align: center; color: var(--l-muted); }
 .sample { margin: 0; width: 100%; padding: 16px 20px; border-radius: 20px; background: var(--l-card); border: 2px solid var(--l-line); font-size: 20px; line-height: 1.5; text-align: center; text-wrap: pretty; }
 
 /* 04 Doses: a blister pack becomes today's plan, pills drop into their slots, then the subsidy card lands. */
