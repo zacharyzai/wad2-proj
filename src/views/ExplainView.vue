@@ -15,6 +15,7 @@ const scan = scanStore.confirmed ? scanStore.current : null
 if (!scan) router.replace({ name: scanStore.current ? 'confirm' : 'scan' })
 
 const money = (cents) => '$' + (cents / 100).toFixed(2)
+const minusMoney = (cents) => (cents > 0 ? '−' : '') + money(cents ?? 0) // never "−$0.00"
 const sum = (xs) => xs.reduce((total, x) => total + x.amountCents, 0)
 // Dose numbers always stay as digits, in every language.
 const byValue = (a, b) => a - b
@@ -79,8 +80,8 @@ function bill(b) {
     title: t('explain.bill.title', { amount: money(pay) }),
     lines: [
       [t('explain.bill.charges'), money(charges)],
-      [t('explain.bill.subsidies'), '−' + money(sum(b.subsidies.filter((s) => !s.includedInItems)))],
-      [t('explain.bill.medisave'), '−' + money(b.medisaveCents)],
+      [t('explain.bill.subsidies'), minusMoney(sum(b.subsidies.filter((s) => !s.includedInItems)))],
+      [t('explain.bill.medisave'), minusMoney(b.medisaveCents)],
     ],
     paras: [t('explain.bill.p')],
     q: t('explain.check.billQ'),

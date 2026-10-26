@@ -456,12 +456,6 @@ onBeforeUnmount(() => {
               </div>
               <div data-morph="out" data-ma="0.4" data-mb="0.56" class="blister" aria-hidden="true"><span v-for="n in 6" :key="n"></span></div>
             </div>
-            <div data-fall="4" data-a="0.66" data-b="0.97" data-r0="-10" data-dx="-40" class="subsidy">
-              <span class="sub-label">{{ t('landing.doses.subsidy') }}</span>
-              <span class="strong">{{ t('landing.doses.save') }}</span>
-              <span class="serif sub-amount">$120</span>
-              <span class="sub-basis">{{ t('landing.doses.basis') }}</span>
-            </div>
           </div>
         </div>
       </div>
