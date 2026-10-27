@@ -91,7 +91,8 @@ router.beforeEach(async (to) => {
 let finishTransition = null
 router.beforeResolve((to, from) => {
   // Skipped while the Beginner's guide is open: the guide moves its own glow and bubble between pages.
-  if (!from.name || to.path === from.path || guide.open || !document.startViewTransition || matchMedia('(prefers-reduced-motion: reduce)').matches) return
+  // Log in ↔ Sign up is a tab switch inside the same screen: it swaps at once instead of fading the whole screen.
+  if (!from.name || to.path === from.path || guide.open || (to.meta.guestOnly && from.meta.guestOnly) || !document.startViewTransition || matchMedia('(prefers-reduced-motion: reduce)').matches) return
   return new Promise((resolve) => {
     const transition = document.startViewTransition(() => new Promise((done) => ((finishTransition = done), resolve())))
     // Skipped transitions (window resized, tab hidden) still swap the page; they only reject these promises.

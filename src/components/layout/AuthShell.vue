@@ -2,6 +2,12 @@
      Left: a warm "paper" story (big serif greeting, a fanned real label and bill, three promises). Right: a plain sheet
      with the language and night-mode switches, the Log in / Create account tabs and the form (the slot).
      Phones: switches, greeting, the dose chip, form, then the promises. -->
+<script>
+// Module state, shared by Login and Sign up: the papers' entrance and the chip's languages play once per visit,
+// so switching tabs doesn't replay them (that reads as a flicker).
+let introPlayed = false
+</script>
+
 <script setup>
 import { ref, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useRoute } from 'vue-router'
@@ -26,7 +32,9 @@ const CHIP_LANGS = ['en', 'zh', 'ms', 'ta']
 const chipText = (l) => t('explain.med.title', { amount: 1, unit: t('unit.tablet', 1, { locale: l }), times: 2 }, { plural: 2, locale: l })
 const reduceMq = matchMedia('(prefers-reduced-motion: reduce)')
 const order = CHIP_LANGS.filter((l) => l !== locale.value)
-const chipLang = ref(reduceMq.matches ? locale.value : order[0])
+const intro = !introPlayed && !reduceMq.matches
+introPlayed = true
+const chipLang = ref(intro ? order[0] : locale.value)
 let timer
 const stopChip = () => { clearTimeout(timer); timer = null; chipLang.value = locale.value }
 const nextChip = () => {
@@ -37,14 +45,14 @@ const nextChip = () => {
 }
 watch(locale, stopChip)
 onMounted(() => {
-  if (!reduceMq.matches) timer = setTimeout(nextChip, 2000)
+  if (intro) timer = setTimeout(nextChip, 2000)
   document.addEventListener('visibilitychange', stopChip)
 })
 onBeforeUnmount(() => { clearTimeout(timer); document.removeEventListener('visibilitychange', stopChip) })
 </script>
 
 <template>
-  <div class="auth" :class="`lang-${locale}`">
+  <div class="auth" :class="[`lang-${locale}`, { 'no-intro': !intro }]">
     <div class="auth-top">
       <div class="segmented auth-langs" role="group" :aria-label="t('nav.language')">
         <button v-for="(label, code) in LANGS" :key="code" type="button" :lang="code" :aria-pressed="locale === code" @click="setLocale(code)">{{ label }}</button>
@@ -195,6 +203,7 @@ onBeforeUnmount(() => { clearTimeout(timer); document.removeEventListener('visib
 }
 /* Short laptop screens: the papers make way so the promises still fit in the panel. */
 @media (min-width: 992px) and (max-height: 560px) { .auth-papers { display: none; } } /* only very short windows drop them */
+.no-intro :is(.paper, .paper-chip, .paper-scan) { animation: none; }
 @keyframes paper-in { from { opacity: 0; translate: 0 24px; } }
 @keyframes paper-scan { 0% { opacity: 1; translate: 0 -100%; } 85% { opacity: 1; translate: 0 0; } 100% { opacity: 0; translate: 0 0; } }
 </style>
