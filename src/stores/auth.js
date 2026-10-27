@@ -4,6 +4,7 @@
 // A copy of the account details is kept next to the token, so a returning user opens the app instantly
 // while restore() checks with the server in the background. Logging out removes both.
 // The app language is part of the account: logging in on any device uses it, and changing it anywhere saves it.
+// A language picked while logged out (Login, Sign up, welcome page) wins at login and becomes the account's.
 import { reactive, watch } from 'vue'
 import { api, TOKEN_KEY, readToken } from '../api/client'
 import i18n, { setLocale } from '../i18n'
@@ -75,7 +76,8 @@ async function start(path, body, remember) {
   if (res.ok) {
     save(res.data.token, remember, res.data.user)
     authStore.user = res.data.user
-    useAccountLanguage(res.data.user)
+    useAccountLanguage(res.data.user, pickedLoggedOut)
+    pickedLoggedOut = false
     authStore.checked = true
   }
   return res // { ok, data } or { ok: false, error: { code } }
@@ -109,16 +111,21 @@ export async function saveLanguage(language) {
   return res
 }
 
-// Logged in: switch to the account's language. Accounts from before languages were saved get this device's language.
-function useAccountLanguage(user) {
-  if (!user.language) saveLanguage(i18n.global.locale.value)
+// Logged in: switch to the account's language, unless they just picked one on the way in (then that one is saved).
+// Accounts from before languages were saved get this device's language.
+let pickedLoggedOut = false
+function useAccountLanguage(user, keepPicked = false) {
+  if (!user.language || (keepPicked && user.language !== i18n.global.locale.value)) saveLanguage(i18n.global.locale.value)
   else if (user.language !== i18n.global.locale.value) setLocale(user.language)
 }
 
 // The language switcher anywhere (sidebar, phone header, welcome page) changes the account's language too.
 watch(
   () => i18n.global.locale.value,
-  (language) => authStore.user && authStore.user.language !== language && saveLanguage(language),
+  (language) => {
+    if (!authStore.user) pickedLoggedOut = true
+    else if (authStore.user.language !== language) saveLanguage(language)
+  },
 )
 
 export function logout() {

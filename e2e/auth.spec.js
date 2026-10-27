@@ -185,6 +185,21 @@ test('language: logging in on a new device switches to the account language', as
   await page.close()
 })
 
+test('language: picked on the login page wins over the account language, and is saved to the account', async ({ browser }) => {
+  const page = await browser.newPage({ storageState: { cookies: [], origins: [] } })
+  await mockAuth(page, { ...DEMO_USER, language: 'zh' })
+  const patches = []
+  page.on('request', (r) => r.url().includes('/api/auth/me') && r.method() === 'PATCH' && patches.push(r.postDataJSON()))
+  await page.addInitScript(() => localStorage.getItem('locale') || localStorage.setItem('locale', 'zh')) // this device was in Chinese
+  await page.goto('/login')
+  await page.getByRole('button', { name: 'EN', exact: true }).click()
+  await fillLogin(page)
+  await expect(page).toHaveURL(/\/$/)
+  await expect(page.locator('html')).toHaveAttribute('lang', 'en')
+  await expect.poll(() => patches).toEqual([{ language: 'en' }])
+  await page.close()
+})
+
 test('language: changing it on Account saves it, says "Settings saved", and so does the switcher anywhere else', async ({ page }) => {
   const patches = []
   page.on('request', (r) => r.url().includes('/api/auth/me') && r.method() === 'PATCH' && patches.push(r.postDataJSON()))
