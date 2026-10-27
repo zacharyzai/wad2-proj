@@ -408,7 +408,9 @@
       "start": "Cakap",
       "stop": "Berhenti",
       "listening": "Sedang mendengar…",
-      "error": "Tidak dapat mendengar. Cuba lagi atau taip."
+      "error": "Tidak dapat mendengar. Cuba lagi atau taip.",
+      "noLang": "Bercakap dalam bahasa ini tidak berfungsi dalam pelayar ini. Sila taip, atau cuba Google Chrome.",
+      "blocked": "Mikrofon disekat. Benarkan dalam tetapan pelayar, atau taip."
     },
     "toast": {
       "removed": "{name} dibuang",

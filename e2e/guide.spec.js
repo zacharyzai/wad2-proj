@@ -146,6 +146,7 @@ test('it can be opened again any time: sidebar on desktop, Account on every scre
 test('the speaker reads the step and can be stopped', async ({ page }) => {
   await page.addInitScript(() => {
     window.__spoken = []
+    window.speechSynthesis.getVoices = () => [{ lang: 'en-SG', name: 'English' }]
     window.speechSynthesis.speak = (u) => window.__spoken.push({ text: u.text, lang: u.lang })
   })
   await page.goto('/')
@@ -157,6 +158,16 @@ test('the speaker reads the step and can be stopped', async ({ page }) => {
   ])
   await speak.click()
   await expect(speak).toHaveAttribute('aria-pressed', 'false')
+})
+
+test('no speaker when this device has no voice for the language (no English voice reading Tamil as "dot")', async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem('locale', 'ta')
+    window.speechSynthesis.getVoices = () => [{ lang: 'en-SG', name: 'English' }]
+  })
+  await page.goto('/')
+  await expect(guide(page)).toBeVisible()
+  await expect(page.getByTestId('guide-speak')).toHaveCount(0)
 })
 
 for (const colorScheme of ['light', 'dark']) {

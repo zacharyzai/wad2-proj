@@ -13,6 +13,13 @@ function load() {
   }
 }
 
+// This device's voices (they load a moment after the page in Chrome). Only speak with a voice that really is the language:
+// given just a lang it has no voice for, the browser reads with its English voice (Tamil comes out as "dot").
+const synth = typeof window !== 'undefined' && 'speechSynthesis' in window ? window.speechSynthesis : null
+export const voices = ref(synth?.getVoices() ?? [])
+synth?.addEventListener?.('voiceschanged', () => (voices.value = synth.getVoices()))
+export const voiceFor = (lang) => voices.value.find((v) => v.lang.toLowerCase().startsWith(lang))
+
 export const speechRate = ref(load())
 watch(speechRate, (rate) => {
   try {

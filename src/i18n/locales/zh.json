@@ -408,7 +408,9 @@
       "start": "说话",
       "stop": "停止",
       "listening": "正在听…",
-      "error": "没听清楚。请再试或输入。"
+      "error": "没听清楚。请再试或输入。",
+      "noLang": "此浏览器不支持用这种语言说话。请打字，或改用 Google Chrome。",
+      "blocked": "麦克风被阻止了。请在浏览器设置中允许，或者打字。"
     },
     "toast": {
       "removed": "已删除 {name}",

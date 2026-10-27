@@ -117,18 +117,20 @@ function stopReading() {
 const Recognition = typeof window !== 'undefined' && (window.SpeechRecognition || window.webkitSpeechRecognition)
 const REC_LANG = { en: 'en-SG', zh: 'zh-CN', ms: 'ms-MY', ta: 'ta-IN' }
 const listening = ref(false)
-const micError = ref(false)
+const micError = ref(null) // which ask.mic message to show
+// The browser's speech service decides which languages work (Safari and iPhones often have no Tamil or Malay): say so.
+const MIC_ERRORS = { 'language-not-supported': 'noLang', 'not-allowed': 'blocked', 'service-not-allowed': 'blocked' }
 let recognition = null
 
 function toggleMic() {
   if (listening.value) return recognition.stop()
-  micError.value = false
+  micError.value = null
   recognition = new Recognition()
   recognition.lang = REC_LANG[locale.value]
   recognition.interimResults = false
   recognition.maxAlternatives = 1
   recognition.onresult = (e) => (question.value = e.results[0][0].transcript.slice(0, MAX))
-  recognition.onerror = (e) => (micError.value = e.error !== 'aborted')
+  recognition.onerror = (e) => (micError.value = e.error === 'aborted' ? null : (MIC_ERRORS[e.error] ?? 'error'))
   recognition.onend = () => {
     listening.value = false
     input.value?.focus()
@@ -137,7 +139,7 @@ function toggleMic() {
     recognition.start()
     listening.value = true
   } catch {
-    micError.value = true
+    micError.value = 'error'
   }
 }
 
@@ -397,7 +399,7 @@ onBeforeUnmount(() => {
       </form>
       <span role="status" class="mic-status">
         <template v-if="listening">{{ t('ask.mic.listening') }}</template>
-        <template v-else-if="micError">{{ t('ask.mic.error') }}</template>
+        <template v-else-if="micError">{{ t(`ask.mic.${micError}`) }}</template>
         <!-- H5: say the limit is near instead of silently stopping the typing. -->
         <template v-else-if="question.length > MAX - 50"><span data-testid="ask-left">{{ t('ask.left', { n: MAX - question.length }) }}</span></template>
       </span>
