@@ -82,10 +82,6 @@
     "what": "What can I scan?",
     "ask": {
       "text": "Ask a question about your medicine, in your own language."
-    },
-    "still": {
-      "pause": "Stop moving pictures",
-      "play": "Play moving pictures"
     }
   },
   "scan": {
