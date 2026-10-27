@@ -408,7 +408,9 @@
       "start": "Speak",
       "stop": "Stop",
       "listening": "Listening…",
-      "error": "Couldn’t hear you. Try again or type."
+      "error": "Couldn’t hear you. Try again or type.",
+      "noLang": "Speaking in this language doesn't work in this browser. Please type, or try Google Chrome.",
+      "blocked": "The microphone is blocked. Allow it in your browser settings, or type."
     },
     "toast": {
       "removed": "{name} removed",

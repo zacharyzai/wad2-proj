@@ -9,12 +9,12 @@ import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { guide, STEPS, currentStep, endGuide, nextStep, openGuide } from '../../stores/guide'
+import { voiceFor } from '../../stores/speech'
 import GuideArt from './GuideArt.vue'
 import AppIcon from '../layout/AppIcon.vue'
 
 const { t, locale } = useI18n()
 const router = useRouter()
-const VOICE = { en: 'en-SG', zh: 'zh-CN', ms: 'ms-MY', ta: 'ta-IN' }
 const PAD = 8 // space between the glow and the button
 const GAP = 18 // space between the glow and the speech bubble
 
@@ -28,15 +28,17 @@ const reading = ref(false)
 const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches
 let returnFocus = null
 
-// ---- read aloud ----
+// ---- read aloud (the speaker only shows when this device has a voice for the language) ----
+const voice = computed(() => voiceFor(locale.value))
 function stopVoice() {
   if ('speechSynthesis' in window) speechSynthesis.cancel()
   reading.value = false
 }
 function speak() {
-  if (reading.value || !('speechSynthesis' in window)) return stopVoice()
+  if (reading.value || !voice.value) return stopVoice()
   const u = new SpeechSynthesisUtterance(`${say('t')}. ${say('b')}`)
-  u.lang = VOICE[locale.value] ?? 'en-SG'
+  if (typeof SpeechSynthesisVoice !== 'undefined' && voice.value instanceof SpeechSynthesisVoice) u.voice = voice.value
+  u.lang = voice.value.lang
   u.rate = 0.9
   u.onend = u.onerror = () => (reading.value = false)
   speechSynthesis.cancel()
@@ -222,7 +224,7 @@ onBeforeUnmount(() => {
     <div class="scrim" aria-hidden="true"></div>
     <div ref="panel" class="card-g" role="dialog" aria-modal="true" aria-labelledby="guide-title" aria-describedby="guide-text" data-testid="guide">
       <div class="top">
-        <button type="button" class="speak" :aria-pressed="reading" :aria-label="reading ? t('guide.stop') : t('guide.listen')" data-testid="guide-speak" @click="speak">
+        <button v-if="voice" type="button" class="speak" :aria-pressed="reading" :aria-label="reading ? t('guide.stop') : t('guide.listen')" data-testid="guide-speak" @click="speak">
           <AppIcon :name="reading ? 'pause' : 'volume'" :size="24" />
         </button>
         <span class="step-text" aria-live="polite">{{ t('guide.step', { n: guide.step, total: STEPS.length }) }}</span>
@@ -252,7 +254,7 @@ onBeforeUnmount(() => {
       <div :key="step.id" class="bubble-in">
         <div class="top">
           <span class="step-text" aria-live="polite">{{ t('guide.step', { n: guide.step, total: STEPS.length }) }}</span>
-          <button type="button" class="speak sm" :aria-pressed="reading" :aria-label="reading ? t('guide.stop') : t('guide.listen')" @click="speak">
+          <button v-if="voice" type="button" class="speak sm" :aria-pressed="reading" :aria-label="reading ? t('guide.stop') : t('guide.listen')" @click="speak">
             <AppIcon :name="reading ? 'pause' : 'volume'" :size="20" />
           </button>
           <button type="button" class="g-skip sm" data-testid="guide-skip" @click="end('skip')">{{ t('guide.skip') }}<AppIcon name="x" :size="18" :stroke="2.5" /></button>

@@ -36,6 +36,7 @@ function fakeSpeech(page, { recognition = true } = {}) {
         start() {
           window.__recLang = this.lang
           setTimeout(() => {
+            if (window.__recError) return this.onerror?.({ error: window.__recError }), this.onend?.()
             this.onresult?.({ results: [[{ transcript: window.__heard }]] })
             this.onend?.()
           }, 50)
@@ -60,6 +61,16 @@ test('the mic fills the text box in the app language and does not send', async (
   await expect(page.getByLabel('Atau taip soalan anda sendiri')).toHaveValue('Bila saya patut makan ubat ini')
   expect(await page.evaluate(() => window.__recLang)).toBe('ms-MY')
   expect(asked).toBe(0)
+})
+
+test('a browser that cannot hear Tamil says so, instead of "couldn\'t hear you"', async ({ page }) => {
+  await fakeSpeech(page)
+  await page.goto('/ask')
+  await page.getByRole('button', { name: 'தமிழ்' }).click()
+  await page.evaluate(() => (window.__recError = 'language-not-supported'))
+  await page.getByTestId('ask-mic').click()
+  await expect(page.getByText('இந்த உலாவியில் இந்த மொழியில் பேச முடியாது', { exact: false })).toBeVisible()
+  expect(await page.evaluate(() => window.__recLang)).toBe('ta-IN')
 })
 
 test('no mic button when the browser has no speech recognition', async ({ page }) => {
