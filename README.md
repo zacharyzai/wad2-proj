@@ -69,8 +69,8 @@ Tap **Ask** and type or say a question ("Can I take it with food?"). Answers com
 | On-phone covering of personal details | ✅ |
 | Ask chatbot | ✅ |
 | Accounts, Remember me, language on the account | ✅ |
-| Google Calendar reminders | Backend ready and tested. The Connect button on the Account page is coming |
-| Medicine schedule with dose ticks | Coming |
+| Google Calendar reminders | ✅ Connect, Disconnect and automatic sync on the Schedule page |
+| Medicine schedule with dose ticks | ✅ Ticks saved to your account; "when necessary", weekly and tapering medicines go to your pharmacist, never scheduled |
 | Caregiver view (a family member sees whether today's doses were taken, with the senior's approval) | Coming |
 | Scan history and WhatsApp share links | Coming |
 
@@ -78,7 +78,7 @@ Tap **Ask** and type or say a question ("Can I take it with food?"). Answers com
 
 - **Photos are never stored.** Personal details are covered on your phone first; only the covered photo is sent, to read the text, and then it's discarded. We keep extracted text only.
 - **You always check** what was read before anything uses it. Unclear fields are flagged, never guessed.
-- **Explanations come from human-checked templates**, not free AI text. The coming medicine schedule uses our own rules, not AI.
+- **Explanations come from human-checked templates**, not free AI text. The medicine schedule uses our own rules, not AI.
 - **Not medical advice.** The app never tells you to change a dose. "When necessary" and tapering medicines are sent to your pharmacist, not scheduled.
 - **Passwords are hashed**; your login stays on your device.
 

@@ -790,5 +790,100 @@
     "begin": "Show me around",
     "tapHint": "Tap the glowing button",
     "there": "Take me there"
+  },
+  "schedule": {
+    "lead": "Tick each dose when you take it. Your ticks are saved to your account.",
+    "empty": {
+      "title": "No medicines yet",
+      "text": "Scan and check a medicine label. Its doses will show here as a daily timetable."
+    },
+    "today": "Today",
+    "noneToday": "No doses to take today.",
+    "noneTodayNeedDays": "No doses yet. Tell us how many days to take your medicine for, below.",
+    "progress": "{done} of {total} doses taken",
+    "allDone": "All of today’s doses are taken. Well done!",
+    "taken": "Taken",
+    "tickLabel": "Taken: {name}, {time}",
+    "tickFailed": "That tick was not saved. Please try again.",
+    "saved": "Schedule saved",
+    "removed": "{name} removed",
+    "undo": "Undo",
+    "meds": {
+      "title": "My medicines",
+      "until": "{start} to {end}",
+      "starts": "Starts {date}",
+      "ended": "Finished {date}",
+      "needDays": "How many days is this medicine for?",
+      "needDaysHelp": "Check the label or ask your pharmacist. We add it to your timetable once you tell us.",
+      "setDays": "Add number of days",
+      "setDaysOne": "Add number of days for {name}",
+      "remove": "Remove",
+      "removeOne": "Remove {name}",
+      "change": "Change",
+      "changeOne": "Change {name}",
+      "daysTimes": "Days and times",
+      "daysTimesOne": "Days and times for {name}"
+    },
+    "form": {
+      "title": "Change {name}",
+      "days": "Number of days",
+      "daysHelp": "How many days to take it for, counting the start date.",
+      "start": "Start date",
+      "times": "Time for each dose",
+      "save": "Save",
+      "cancel": "Cancel",
+      "bad": {
+        "days": "Enter a whole number of days from 1 to {max}.",
+        "start": "Choose a start date.",
+        "time": "Enter a time, for example 8:00 am."
+      }
+    },
+    "pharm": {
+      "title": "Check with your pharmacist",
+      "text": "These medicines are not taken at the same times every day, for example only when needed, once a week, or a reducing dose. We do not put them on your timetable. Ask your pharmacist when to take them."
+    },
+    "calendar": {
+      "title": "Reminders in Google Calendar",
+      "text": "Connect Google Calendar and each dose shows in your calendar with an alert, so your phone reminds you even when this app is closed.",
+      "connect": "Connect Google Calendar",
+      "reconnect": "Connect again",
+      "connected": "Connected",
+      "events": "No doses in your calendar yet. | {n} dose is in your calendar. | {n} doses are in your calendar.",
+      "alerts": "Check that your calendar alerts are on.",
+      "missing": "Not in your calendar yet: {names}. Add the number of days above to add it.",
+      "updated": "Calendar updated",
+      "failed": "Your calendar was not updated. We will try again when you next change your schedule.",
+      "disconnect": "Disconnect Google Calendar",
+      "removeAsk": "Also remove your doses from Google Calendar?",
+      "removeYes": "Yes, remove them",
+      "removeNo": "No, keep them",
+      "cancel": "Cancel",
+      "disconnected": "Google Calendar disconnected",
+      "result": {
+        "connected": "Google Calendar connected",
+        "cancelled": "Google Calendar was not connected.",
+        "failed": "We could not connect Google Calendar. Please try again."
+      }
+    },
+    "fix": {
+      "button": "Fix what we read",
+      "buttonOne": "Fix what we read for {name}",
+      "lead": "Change anything that doesn’t match the label. The number of days, your ticks and calendar reminders stay as they are.",
+      "cancel": "Cancel",
+      "done": "{name} updated"
+    },
+    "slot": {
+      "now": "Take now",
+      "later": "Later today",
+      "earlier": "Not ticked yet",
+      "done": "All taken",
+      "missed": "If you missed a dose, ask your pharmacist what to do."
+    },
+    "early": {
+      "title": "This dose is for later today",
+      "text": "{name} is for {time}. Have you already taken it?",
+      "yes": "Yes, I took it",
+      "no": "Not yet"
+    }
   }
 }

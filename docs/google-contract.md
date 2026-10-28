@@ -42,6 +42,8 @@ At most 20 entries, 6 doses each, 366 days. Times are Singapore local `HH:MM`; t
 
 ## Client flow (Isaac)
 
+Built on the Schedule page by Lokesh: `src/components/schedule/CalendarSync.vue` (steps 1–6; tests in `e2e/schedule.spec.js`). The payload comes from `syncEntries()` in `src/rules/schedule.js`, tested against `checkEntries`. Reuse the component if Account needs the button too. Step 7 is not built yet.
+
 1. Show the state from `GET /api/google/status`: **Connect Google Calendar** / **Connected · Disconnect**.
 2. Connect: `POST /api/google/connect` with `{ next: route.path }`, then `location.href = data.url`.
 3. Back on the page, read `?google=` and show a short message (`connected`, `cancelled`, `failed`), then remove it from the address.
