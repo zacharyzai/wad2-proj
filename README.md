@@ -119,6 +119,8 @@ pnpm dev      # app on http://localhost:5173 (sends /api to the API)
 
 ### Database
 
+Confirmed scan history backend: `POST/GET /api/history` and `GET/DELETE /api/history/:id`. See [docs/history-contract.md](docs/history-contract.md) for the payload, ownership rules and frontend handoff. The Confirm save action and History pages are not wired to these endpoints yet.
+
 Follow [docs/atlas.md](docs/atlas.md) for team access. `pnpm atlas:configure` writes your `.env`; `pnpm db:check` checks the connection. `pnpm server:local` uses a throwaway local database instead.
 
 Create or reset the 5 demo accounts (safe to run again):
