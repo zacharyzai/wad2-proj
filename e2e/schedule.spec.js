@@ -526,8 +526,10 @@ test('in the morning: the morning band says "Take now", the evening and bedtime 
   await noAxeViolations(page)
 
   // Night mode: the same colours, darker, still readable.
-  await page.evaluate(() => localStorage.setItem('theme', 'dark'))
-  await page.reload()
+  // Chosen on the Account page, as a person would: the account's choice wins over anything stored on the device.
+  await page.goto('/account')
+  await page.getByTestId('account-theme').getByRole('button', { name: 'Night' }).click()
+  await page.goto('/schedule')
   await expect(band(page, '08:00')).toHaveAttribute('data-state', 'now')
   // Really the night colours: every band's background is dark, not the light one with dark cards inside.
   for (const time of ['08:00', '18:00', '21:00']) {

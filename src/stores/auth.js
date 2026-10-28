@@ -5,9 +5,11 @@
 // while restore() checks with the server in the background. Logging out removes both.
 // The app language is part of the account: logging in on any device uses it, and changing it anywhere saves it.
 // A language picked while logged out (Login, Sign up, welcome page) wins at login and becomes the account's.
+// Day/night mode works the same way: picked on Sign up or the Account page, saved to the account, used on every device.
 import { reactive, watch } from 'vue'
 import { api, TOKEN_KEY, readToken } from '../api/client'
 import i18n, { setLocale } from '../i18n'
+import { setTheme, themeChoice } from '../theme'
 
 const USER_KEY = 'user'
 
@@ -59,6 +61,7 @@ export function restore() {
     if (res.ok) {
       authStore.user = res.data.user
       useAccountLanguage(res.data.user)
+      useAccountTheme(res.data.user)
       // Remembered logins get a fresh 30 days from today; either way the saved copy is updated.
       save(res.data.token ?? readToken(), Boolean(res.data.token) || isRemembered(), res.data.user)
     } else if (res.error.code === 'NOT_LOGGED_IN') {
@@ -77,6 +80,7 @@ async function start(path, body, remember) {
     save(res.data.token, remember, res.data.user)
     authStore.user = res.data.user
     useAccountLanguage(res.data.user, pickedLoggedOut)
+    useAccountTheme(res.data.user)
     pickedLoggedOut = false
     authStore.checked = true
   }
@@ -85,9 +89,10 @@ async function start(path, body, remember) {
 
 export const login = (email, password, remember = true) => start('/auth/login', { email, password }, remember)
 // profile = { name, dob, citizenship, citizenSince }
-// The language in use when they sign up (picked on the welcome page or above the form) becomes the account's language.
+// The language in use when they sign up (picked on the welcome page or above the form) becomes the account's language,
+// and the day/night choice on the form becomes the account's theme.
 export const signup = (email, password, profile, remember = true) =>
-  start('/auth/signup', { ...profile, email, password, language: i18n.global.locale.value }, remember)
+  start('/auth/signup', { ...profile, email, password, language: i18n.global.locale.value, theme: themeChoice.value }, remember)
 
 // Account page: change name, date of birth or citizenship.
 export async function updateProfile(profile) {
@@ -109,6 +114,24 @@ export async function saveLanguage(language) {
     save(readToken(), isRemembered(), res.data.user)
   }
   return res
+}
+
+// Save a new day/night choice to the account. The page changes straight away (setTheme); this only remembers it.
+export async function saveTheme(theme) {
+  if (!authStore.user) return null
+  authStore.user = { ...authStore.user, theme }
+  const res = await api('/auth/me', { method: 'PATCH', body: { theme } })
+  if (res.ok) {
+    authStore.user = res.data.user
+    save(readToken(), isRemembered(), res.data.user)
+  }
+  return res
+}
+
+// Logged in: use the account's day/night choice. Accounts that never chose one get this device's choice saved.
+function useAccountTheme(user) {
+  if (!user.theme) saveTheme(themeChoice.value)
+  else setTheme(user.theme)
 }
 
 // Logged in: switch to the account's language, unless they just picked one on the way in (then that one is saved).

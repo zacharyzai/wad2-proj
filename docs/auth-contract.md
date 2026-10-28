@@ -14,10 +14,10 @@ All answers use the usual envelope: `{ ok: true, data }` or `{ ok: false, error:
 
 | Method | Path | Body | Answer |
 |---|---|---|---|
-| POST | `/api/auth/signup` | `{ name, email, password, dob, citizenship, citizenSince, income, remember, language }` | `{ token, user }` · `400 BAD_REQUEST` · `409 EMAIL_TAKEN` |
+| POST | `/api/auth/signup` | `{ name, email, password, dob, citizenship, citizenSince, income, remember, language, theme }` | `{ token, user }` · `400 BAD_REQUEST` · `409 EMAIL_TAKEN` |
 | POST | `/api/auth/login` | `{ email, password, remember }` | `{ token, user }` · `401 WRONG_LOGIN` (same for unknown email and wrong password) |
 | GET | `/api/auth/me` | (token) | `{ user }`, plus a fresh `token` when the login is remembered · `401 NOT_LOGGED_IN` |
-| PATCH | `/api/auth/me` | `{ name, dob, citizenship, citizenSince, income, language? }`, or `{ language }` alone | `{ user }` · `400` · `401` |
+| PATCH | `/api/auth/me` | `{ name, dob, citizenship, citizenSince, income, language?, theme? }`, or `{ language }` / `{ theme }` alone | `{ user }` · `400` · `401` |
 
 - `user` = `{ name, email, dob, citizenship, citizenSince, income }`. The password hash never leaves the server.
 - `dob`: `'YYYY-MM-DD'`, a real date from 1900 to today.
@@ -43,3 +43,6 @@ shortcut: logging out only deletes the token on that device; a copied token stay
 
 `user.language` is `en`, `zh`, `ms`, `ta`, or `null` (accounts from before this field). Signup saves the language in use (picked on the welcome page or above the form). On login and every visit the app switches to the account's language; a `null` account gets the device's current language saved. Changing the language anywhere while logged in (sidebar, phone header, Account page) sends `PATCH /api/auth/me { language }`. The Account page shows "Settings saved" after each save.
 
+## Day / night mode
+
+`user.theme` is `light` (day), `dark` (night), `system` (follow the phone or computer's own setting), or `null` (not chosen yet). New visitors start in day mode, whatever the device is set to. Sign up sends the choice made on the form; the Account page changes it with `PATCH /api/auth/me { theme }`. On login and every visit the app uses the account's theme; a `null` account gets the device's current choice saved. The device also remembers it (`localStorage.theme`), so the login page and the first paint use it before the account is known.

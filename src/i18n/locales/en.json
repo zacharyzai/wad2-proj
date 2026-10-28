@@ -15,7 +15,6 @@
     "language": "Language",
     "account": "Account",
     "main": "Main",
-    "night": "Night mode",
     "skip": "Skip to main content",
     "ask": "Ask",
     "backTop": "Back to top"
@@ -747,7 +746,15 @@
     "save": "Save",
     "cancel": "Cancel",
     "logoutAsk": "Log out of this phone or computer?",
-    "logoutNote": "You will need your email and password to log in again."
+    "logoutNote": "You will need your email and password to log in again.",
+    "theme": {
+      "title": "Day or night mode",
+      "light": "Day",
+      "dark": "Night",
+      "system": "Same as my phone",
+      "note": "Night mode has a dark background, easier on the eyes in a dark room. “Same as my phone” follows your phone or computer’s own setting.",
+      "later": "You can change this any time on your Account page."
+    }
   },
   "guide": {
     "open": "How to use the app",

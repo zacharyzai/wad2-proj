@@ -85,7 +85,7 @@ test.describe('logged out', () => {
     await page.getByTestId('signup-income').selectOption('1501to2300')
     await page.getByTestId('signup-submit').click()
     expect((await sent).postDataJSON()).toEqual({
-      name: 'Lim Ah Huat', email: 'ahhuat@example.com', password: 'password123', dob: '1958-11-02', citizenship: 'became', citizenSince: 1975, income: '1501to2300', remember: true, language: 'en',
+      name: 'Lim Ah Huat', email: 'ahhuat@example.com', password: 'password123', dob: '1958-11-02', citizenship: 'became', citizenSince: 1975, income: '1501to2300', remember: true, language: 'en', theme: 'light',
     })
     await expect(page).toHaveURL(/\/scan$/)
   })
@@ -189,7 +189,8 @@ test('language: picked on the login page wins over the account language, and is 
   const page = await browser.newPage({ storageState: { cookies: [], origins: [] } })
   await mockAuth(page, { ...DEMO_USER, language: 'zh' })
   const patches = []
-  page.on('request', (r) => r.url().includes('/api/auth/me') && r.method() === 'PATCH' && patches.push(r.postDataJSON()))
+  // Language saves only: an account with no day/night choice also gets this device's saved (e2e/theme.spec.js).
+  page.on('request', (r) => r.url().includes('/api/auth/me') && r.method() === 'PATCH' && 'language' in r.postDataJSON() && patches.push(r.postDataJSON()))
   await page.addInitScript(() => localStorage.getItem('locale') || localStorage.setItem('locale', 'zh')) // this device was in Chinese
   await page.goto('/login')
   await page.getByRole('button', { name: 'EN', exact: true }).click()
@@ -202,7 +203,8 @@ test('language: picked on the login page wins over the account language, and is 
 
 test('language: changing it on Account saves it, says "Settings saved", and so does the switcher anywhere else', async ({ page }) => {
   const patches = []
-  page.on('request', (r) => r.url().includes('/api/auth/me') && r.method() === 'PATCH' && patches.push(r.postDataJSON()))
+  // Language saves only: an account with no day/night choice also gets this device's saved (e2e/theme.spec.js).
+  page.on('request', (r) => r.url().includes('/api/auth/me') && r.method() === 'PATCH' && 'language' in r.postDataJSON() && patches.push(r.postDataJSON()))
   await page.goto('/account')
   await expect.poll(() => patches).toEqual([{ language: 'en' }]) // an account with no language yet gets this device's
   await page.getByTestId('account-language').getByRole('button', { name: 'Bahasa Melayu' }).click()

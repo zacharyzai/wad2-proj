@@ -4,7 +4,6 @@ import { nextTick, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { setLocale } from './i18n'
-import { theme, toggleTheme } from './theme'
 import AppIcon from './components/layout/AppIcon.vue'
 import GuideDialog from './components/guide/GuideDialog.vue'
 import { maybeShowGuide, openGuide } from './stores/guide'
@@ -98,14 +97,6 @@ router.afterEach(async (to, from, failure) => {
           </button>
         </div>
       </div>
-
-      <!-- Icon only in the phone header; a labelled row with a switch in the desktop sidebar. -->
-      <button type="button" class="night" :aria-pressed="theme === 'dark'" :aria-label="t('nav.night')" :title="t('nav.night')" @click="toggleTheme">
-        <AppIcon :name="theme === 'dark' ? 'sun' : 'moon'" :size="22" class="night-phone" />
-        <AppIcon name="moon" :size="22" class="night-desk" />
-        <span class="night-label" aria-hidden="true">{{ t('nav.night') }}</span>
-        <span class="switch night-desk" aria-hidden="true"></span>
-      </button>
 
       <!-- Everyone has an account, so this is always Account (logged-out visitors are sent to Log in by the router). -->
       <RouterLink to="/account" class="acct" data-guide="/account" :aria-label="t('nav.account')" :aria-current="isOn('/account') ? 'page' : null">

@@ -4,11 +4,13 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>Ah Ma Ah Gong Can</title>
-    <!-- Night mode before first paint (no flash). Same rule as src/theme.js: day mode unless the user switched night mode on. -->
+    <!-- Night mode before first paint (no flash). Same rule as src/theme.js: day mode unless they picked night, or
+         "same as my phone" and the device is dark. -->
     <script>
       try {
         var t = localStorage.getItem('theme')
       } catch (e) {}
+      if (t === 'system') t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
       document.documentElement.dataset.theme = t === 'dark' ? 'dark' : 'light'
     </script>
     <link rel="icon" type="image/svg+xml" href="/logo.svg" />
