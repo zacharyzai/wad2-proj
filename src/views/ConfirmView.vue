@@ -8,6 +8,8 @@ import { rememberMedicine, replaceMedicine } from '../stores/medicines'
 import ConfirmField from '../components/scan/ConfirmField.vue'
 import AppIcon from '../components/layout/AppIcon.vue'
 import { DOSE_UNITS, TIMINGS, WITH_FOOD, FREQUENCY_TYPES } from '../../server/services/normalizeScan.js'
+import { billGap, linesTotal, sectionsOff } from '../rules/billCheck'
+import { money } from '../components/bill/lines'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -22,7 +24,6 @@ const showPhoto = ref(false)
 // goes back to Schedule, keeping its days, ticks and calendar reminders. `savedId` lives on the scan, so a new scan clears it.
 const fixing = Boolean(scan?.savedId)
 
-const sum = (xs) => xs.reduce((total, x) => total + (x.amountCents ?? 0), 0)
 const dollars = (cents) => (cents == null ? '' : (cents / 100).toFixed(2))
 const toCents = (value) => (value === '' ? null : Math.round(Number(value) * 100))
 const get = (path) => path.split('.').reduce((obj, key) => obj?.[key], draft)
@@ -43,10 +44,11 @@ const required = computed(() => {
   ]
 })
 
-// Contract invariant: items − subsidies − MediSave = total. If it doesn't add up, the total needs checking.
-const totalMismatch = computed(
-  () => draft.type === 'bill' && sum(draft.bill.items) - sum(draft.bill.subsidies.filter((s) => !s.includedInItems)) - (draft.bill.medisaveCents ?? 0) !== draft.bill.totalPayableCents,
-)
+// Lines that don't add up to the total (one misread digit is enough) don't stop anyone: the total is copied from the bill.
+// A note says how far off they are and which printed subtotal they miss, so a careful reader knows where to look.
+const gap = computed(() => (draft.type === 'bill' && !needs('bill.totalPayableCents') ? billGap(draft.bill) : null))
+const offSections = computed(() => (gap.value ? sectionsOff(draft.bill) : []))
+const offLine = (item) => offSections.value.some((s) => s.section.toLowerCase() === (item.section ?? '').trim().toLowerCase())
 
 // H5: values that can't be right (a dose of 0, 20 times a day, 3 times a day with 1 time ticked) are flagged too.
 const invalid = computed(() => {
@@ -66,7 +68,6 @@ const flagged = computed(() => {
   if (!scan) return []
   const empty = [...new Set([...draft.unclear, ...required.value])].filter((path) => isEmpty(get(path)))
   for (const path of Object.keys(invalid.value)) if (!empty.includes(path)) empty.push(path)
-  if (totalMismatch.value && !empty.includes('bill.totalPayableCents')) empty.push('bill.totalPayableCents')
   return empty
 })
 const needs = (path) => flagged.value.includes(path)
@@ -244,7 +245,7 @@ const scanAgain = () => router.push({ name: fixing ? 'schedule' : draft.type ===
             <span class="fw-bold">{{ t('confirm.bill.amount') }}</span>
             <template v-for="(item, i) in draft.bill.items" :key="`i${i}`">
               <input v-model.trim="item.description" class="field-input" :class="{ 'is-flagged': needs(`bill.items.${i}.description`) }" :aria-label="t('confirm.bill.itemN', { n: i + 1 })" />
-              <input type="number" inputmode="decimal" min="0" step="0.01" class="field-input" :class="{ 'is-flagged': needs(`bill.items.${i}.amountCents`) }" :value="dollars(item.amountCents)" :aria-label="t('confirm.bill.amountOf', { item: item.description ?? i + 1 })" @change="item.amountCents = toCents($event.target.value)" />
+              <input type="number" inputmode="decimal" min="0" step="0.01" class="field-input" :class="{ 'is-flagged': needs(`bill.items.${i}.amountCents`), 'is-check': offLine(item) }" :value="dollars(item.amountCents)" :aria-label="t('confirm.bill.amountOf', { item: item.description ?? i + 1 })" @change="item.amountCents = toCents($event.target.value)" />
               <span v-if="needs(`bill.items.${i}.description`) || needs(`bill.items.${i}.amountCents`)" class="span2 note">{{ t('confirm.bill.smudged') }}</span>
             </template>
 
@@ -258,7 +259,14 @@ const scanAgain = () => router.push({ name: fixing ? 'schedule' : draft.type ===
 
             <label for="f-total" class="row-label total">{{ t('confirm.bill.total') }}</label>
             <input id="f-total" type="number" inputmode="decimal" min="0" step="0.01" class="field-input total" :class="{ 'is-flagged': needs('bill.totalPayableCents') }" :value="dollars(draft.bill.totalPayableCents)" @change="draft.bill.totalPayableCents = toCents($event.target.value)" />
-            <span v-if="needs('bill.totalPayableCents')" class="span2 note">{{ totalMismatch ? t('confirm.bill.mismatch') : t('confirm.bill.smudged') }}</span>
+            <span v-if="needs('bill.totalPayableCents')" class="span2 note">{{ t('confirm.bill.smudged') }}</span>
+            <p v-else-if="gap" class="span2 gap-note m-0" data-testid="confirm-gap">
+              <AppIcon name="info" :size="22" />
+              <span>
+                {{ t('confirm.bill.gap', { lines: money(linesTotal(draft.bill)), total: money(draft.bill.totalPayableCents) }) }}
+                <template v-for="s in offSections" :key="s.section"> {{ t('confirm.bill.gapWhere', { section: s.section, printed: money(s.printedCents) }) }}</template>
+              </span>
+            </p>
           </div>
         </div>
 

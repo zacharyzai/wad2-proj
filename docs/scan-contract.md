@@ -89,10 +89,11 @@ All money is in **integer cents** (SGD). Never use float dollars.
   "clinic": "SingHealth Polyclinics - Bedok",
   "place": "polyclinic",
   "visitDate": "2026-09-01",
-  "items": [{ "description": "Consultation", "category": "consultation", "amountCents": 1450 }],
+  "items": [{ "description": "Consultation", "category": "consultation", "amountCents": 1450, "section": null }],
   "subsidies": [{ "scheme": "government", "amountCents": 870, "includedInItems": false }],
   "medisaveCents": 0,
-  "totalPayableCents": 1400
+  "totalPayableCents": 1400,
+  "subtotals": []
 }
 ```
 
@@ -105,13 +106,17 @@ All money is in **integer cents** (SGD). Never use float dollars.
 | `scheme` | `government` `chas` `pioneer` `merdeka` `insurance` (MediShield Life, Integrated Shield, private or employer insurance) `paid` (a deposit or earlier payment, taken off what is still due) `other` |
 | `includedInItems` | `true` when the bill gives each line a gross and a **net** amount: items then hold the net amounts and this subsidy is already inside them, so it is shown ("Already taken off the charges above") but never subtracted again. The check is items − subsidies not included − MediSave = total |
 | `amountCents`, `medisaveCents`, `totalPayableCents` | integer \| null |
+| `section` (item) | the heading the line is printed under (`"Medications List"`), or `null`. AI scans only; samples leave it out |
+| `subtotals` | `[{ section, amountCents }]`: subtotals printed under a group of lines, matched to items by `section`. Optional (`[]` or missing) |
 
 Invariant (checked in tests for the fixtures): `sum(items) − sum(subsidies) − medisaveCents = totalPayableCents`.
+
+AI scans may not meet it: one misread digit is enough. Then the **printed total is kept** (it is what the person pays, and usually the clearest number on the page), and `src/rules/billCheck.js` works out the gap (`billGap`) and which printed subtotal its lines miss (`sectionsOff`). Before answering, the server reads such a bill once more, pointed at that section, if there is time and daily quota left; the second reading is used only if it adds up and keeps the same total. Confirm and the Bill page then say how far off the lines are and where to look, without blocking.
 
 ## Which fields get flagged as `unclear` (AI scans)
 AI output goes through `server/services/normalizeScan.js`: invalid values become `null`, unknown fields are dropped, and dollars are converted to cents.
 - Medication: `name`, `doseAmount` and `frequencyType` are required. `timesPerDay` is also required when `frequencyType` is `daily`. Optional fields (`strength`, `doseUnit`, `timing`, `withFood`) can be null just because the label doesn't say, so they are not flagged.
-- Bill: any item with no description or amount, any subsidy with no amount, a missing `medisaveCents` or `totalPayableCents`, no items at all, or totals that don't add up (then `bill.totalPayableCents` is flagged).
+- Bill: any item with no description or amount, any subsidy with no amount, a missing `medisaveCents` or `totalPayableCents`, or no items at all. Lines that don't add up to the total are **not** flagged (see the invariant above).
 
 ## Privacy
 

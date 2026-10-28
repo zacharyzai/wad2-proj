@@ -11,6 +11,10 @@
 .bill-grid { display: grid; grid-template-columns: minmax(0, 1fr) 140px; gap: 10px 8px; align-items: center; }
 .span2 { grid-column: 1 / -1; }
 .note { color: var(--color-warning-text); font-weight: 700; }
+/* Lines that don't add up: a calm note (it doesn't block), and a dashed edge on the lines in the group that is off. */
+.gap-note { display: flex; gap: 10px; padding: 12px 14px; border-radius: var(--r-sm); background: var(--color-link-bg); border: 1px solid var(--color-link-border); color: var(--color-text); }
+.gap-note > :first-child { flex: none; color: var(--color-link); }
+.field-input.is-check { border: 2px dashed var(--color-warning); }
 .row-label { padding-left: 4px; }
 .total { font-weight: 800; font-size: var(--t20, 20px); }
 label.total { padding-top: 10px; border-top: 1px dashed var(--color-border-strong); }

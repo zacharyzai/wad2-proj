@@ -234,7 +234,8 @@
       "smudged": "Sila semak: bahagian ini sukar dibaca dalam gambar.",
       "medisave": "Dibayar oleh MediSave",
       "total": "Jumlah yang anda bayar",
-      "mismatch": "Sila semak: jumlah-jumlah ini tidak sama dengan jumlah keseluruhan."
+      "gap": "Baris-baris ini berjumlah {lines}, bukan {total}. Satu amaun mungkin tersilap baca, tetapi jumlah keseluruhan disalin terus daripada bil anda, jadi anda boleh teruskan.",
+      "gapWhere": "Jika anda mahu menyemak, lihat baris di bawah “{section}”: bil menyatakan jumlahnya {printed}."
     },
     "steps": {
       "label": "Langkah",
@@ -731,7 +732,12 @@
     "basis": "Disemak dengan butiran akaun anda: lahir {year}, {status}.",
     "basisChange": "Ubah butiran saya",
     "closeBill": "Tutup bil ini",
-    "inLines": "Sudah ditolak daripada caj di atas"
+    "inLines": "Sudah ditolak daripada caj di atas",
+    "gap": {
+      "title": "Caj-caj ini tidak sepadan",
+      "text": "Jumlahnya {lines}, tetapi jumlah bil anda ialah {total}. Satu amaun mungkin tersilap baca. Amaun yang anda bayar di sini ialah amaun yang dicetak pada bil anda.",
+      "subsidy": "Anggaran subsidi menggunakan baris-baris ini, jadi ia mungkin sedikit berbeza."
+    }
   },
   "account": {
     "toast": "Tetapan disimpan",
