@@ -7,6 +7,7 @@
     "strength": "500 mg",
     "doseAmount": 1,
     "doseUnit": "tablet",
+    "quantity": 60,
     "timesPerDay": 2,
     "timing": ["morning", "evening"],
     "withFood": "after",

@@ -1,8 +1,9 @@
-// Owner: Lokesh. Schedule page: today's doses with a tick each, Edit (number of days, times), Remove + Undo, and the
-// pharmacist list for medicines we never schedule. Medicines go into this browser's storage before the page loads;
+// Owner: Lokesh (updated by Claude for the tabbed redesign). Schedule page: Today (a tick for each dose), This week, My medicines
+// (Edit number of days and times, Remove + Undo, the pharmacist list) and Reminders (Google Calendar). Medicines go into this browser's storage before the page loads;
 // /api/doses is answered by a small in-memory stand-in for the server (no database needed).
 import AxeBuilder from '@axe-core/playwright'
 import { test, expect } from './fixtures.js'
+import { useSampleLabel } from './helpers/auth.js'
 
 const TODAY = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Singapore' }).format(new Date())
 const medicine = (id, fields, schedule) => ({
@@ -56,7 +57,14 @@ const tick = (page, name, time) => page.getByRole('button', { name: new RegExp(`
 
 // Each medicine's options open from its one "Change" button: Days and times, Fix what we read, Remove.
 const OPTIONS = { days: (name) => `Days and times for ${name}`, fix: (name) => `Fix what we read for ${name}`, remove: (name) => `Remove ${name}` }
+// The tabs are links to ?view=week | meds | reminders; Today has none.
+async function toTab(page, view) {
+  if (page.url().includes('view=reminders')) await page.getByRole('link', { name: 'Back to schedule' }).click() // no tabs on Reminders
+  await page.getByTestId(`tab-${view}`).click()
+  await expect(page).toHaveURL(view === 'today' ? /\/schedule$/ : new RegExp(`view=${view}`))
+}
 async function pick(page, name, option) {
+  if (!page.url().includes('view=meds')) await toTab(page, 'meds') // medicines are managed on My medicines
   const change = page.getByRole('button', { name: `Change ${name}`, exact: true })
   await change.click()
   await expect(change).toHaveAttribute('aria-expanded', 'true')
@@ -70,7 +78,8 @@ async function noAxeViolations(page) {
 test('with no medicines, says so and offers a label scan', async ({ page }) => {
   await mockDoses(page)
   await page.goto('/schedule')
-  await expect(page.getByRole('heading', { level: 1, name: 'Medicine schedule' })).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1, name: 'Your medicines today' })).toBeVisible()
+  await expect(page.getByRole('navigation', { name: 'Medicine schedule' })).toHaveCount(0) // no tabs with nothing to show
   await expect(page.getByRole('heading', { name: 'No medicines yet' })).toBeVisible()
   await page.getByRole('link', { name: 'Scan a medicine label' }).click()
   await expect(page).toHaveURL(/\/scan\?type=medication$/)
@@ -81,9 +90,10 @@ test('a daily medicine asks for the number of days, then shows at its times', as
   await seed(page, [METFORMIN])
   await page.goto('/schedule')
 
-  // Not silently left out: it says what is missing.
+  // Not silently left out: Today says what is missing and links to it.
+  await expect(page.getByTestId('schedule-none-today')).toContainText('Tell us how many days')
+  await page.getByTestId('schedule-none-today').getByRole('link', { name: 'My medicines' }).click()
   await expect(page.getByTestId('schedule-need-days')).toContainText('How many days is this medicine for?')
-  await expect(page.getByTestId('schedule-none-today')).toBeVisible()
   await page.getByRole('button', { name: 'Add number of days for Metformin 500 mg' }).click()
   await expect(page.getByLabel('Number of days', { exact: true })).toBeFocused()
   await expect(page.getByLabel('Start date')).toHaveValue(TODAY)
@@ -103,21 +113,23 @@ test('a daily medicine asks for the number of days, then shows at its times', as
   await expect(page.getByRole('button', { name: 'Change Metformin 500 mg' })).toBeFocused()
 
   // Morning and evening, from the label, in time order.
+  await toTab(page, 'today')
   const today = page.getByTestId('schedule-today')
   await expect(today.getByRole('heading', { level: 3 })).toHaveText([/^Morning · 8:00\sAM$/i, /^Evening · 6:00\sPM$/i])
   await expect(tick(page, 'Metformin 500 mg', '8:00\\sAM')).toHaveAttribute('aria-pressed', 'false')
   await expect(today.getByTestId('dose-m1-morning')).toContainText('1 tablet · After food')
-  await expect(page.getByTestId('schedule-progress')).toHaveText('0 of 2 doses taken')
+  await expect(page.getByTestId('schedule-progress-words')).toHaveText('0 of 2 doses taken')
 
   // Change a time: the dose moves, keeping its id.
   await pick(page, 'Metformin 500 mg', 'days')
   await page.getByTestId('schedule-time-morning').fill('07:30')
   await page.getByTestId('schedule-save').click()
+  await toTab(page, 'today')
   await expect(today.getByRole('heading', { level: 3 }).first()).toHaveText(/^Morning · 7:30\sAM$/i)
   await expect(today.getByTestId('dose-m1-morning')).toBeVisible()
 
   // Saved with the medicine, so it is still there after a reload.
-  await page.reload()
+  await page.goto('/schedule?view=meds')
   await expect(page.getByTestId('med-m1')).toContainText('7:30')
 })
 
@@ -130,7 +142,7 @@ test('ticks are saved to the server and are still there after a reload; keyboard
   const evening = tick(page, 'Metformin 500 mg', '6:00\\sPM')
   await morning.click()
   await expect(morning).toHaveAttribute('aria-pressed', 'true')
-  await expect(page.getByTestId('schedule-progress')).toHaveText('1 of 2 doses taken')
+  await expect(page.getByTestId('schedule-progress-words')).toHaveText('1 of 2 doses taken')
   expect(sent).toEqual([{ method: 'POST', doseId: 'm1-morning', date: TODAY }])
 
   await page.reload()
@@ -140,7 +152,7 @@ test('ticks are saved to the server and are still there after a reload; keyboard
   await evening.focus()
   await page.keyboard.press('Space')
   await expect(evening).toHaveAttribute('aria-pressed', 'true')
-  await expect(page.getByTestId('schedule-progress')).toHaveText('All of today’s doses are taken. Well done!')
+  await expect(page.getByTestId('schedule-progress-words')).toHaveText('All of today’s doses are taken. Well done!')
 
   // Untick.
   await morning.press('Enter')
@@ -162,6 +174,8 @@ test('"when necessary" medicines go to the pharmacist list and never get times',
   await mockDoses(page)
   await seed(page, [PANADOL, SCHEDULED])
   await page.goto('/schedule')
+  await expect(page.getByRole('button', { name: /^Taken: Panadol/ })).toHaveCount(0) // never on Today
+  await toTab(page, 'meds')
   const pharmacist = page.getByTestId('schedule-pharmacist')
   await expect(pharmacist.getByRole('heading', { name: 'Check with your pharmacist' })).toBeVisible()
   await expect(pharmacist).toContainText('Panadol')
@@ -180,25 +194,23 @@ test('"when necessary" medicines go to the pharmacist list and never get times',
   await expect(page.getByTestId('schedule-manage')).toContainText('Days and times')
 })
 
-test('desktop: Today on the left, the medicines in a narrower panel on the right; phones: one column, Today first', async ({ page, isMobile }) => {
-  await mockDoses(page)
-  await seed(page, [PANADOL, SCHEDULED])
+test('tabs: Today, This week and My medicines are pages of their own; time cards sit side by side on desktop, one column on phones', async ({ page, isMobile }) => {
+  await mockDoses(page, { at: '07:30' })
+  await seed(page, [PANADOL, SCHEDULED, BEDTIME])
   await page.goto('/schedule')
-  const today = await page.getByTestId('schedule-today').boundingBox()
-  const meds = await page.getByTestId('schedule-meds').boundingBox()
-  const pharmacist = await page.getByTestId('schedule-pharmacist').boundingBox()
-  if (isMobile) {
-    expect(meds.y).toBeGreaterThan(today.y + today.height - 1) // below Today
-    expect(pharmacist.y).toBeGreaterThan(meds.y)
-    expect(Math.abs(meds.x - today.x)).toBeLessThan(2)
-  } else {
-    expect(meds.x).toBeGreaterThan(today.x + today.width - 1) // beside Today
-    expect(meds.width).toBeLessThan(today.width)
-    expect(Math.abs(meds.y - today.y)).toBeLessThan(2)
-    expect(pharmacist.x).toBe(meds.x) // the pharmacist list under the medicines, in the same panel
-  }
-  // Never wider than the screen.
-  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
+  const tabs = page.getByRole('navigation', { name: 'Medicine schedule' }).getByRole('link')
+  await expect(tabs).toHaveText(['Today', 'This week', 'My medicines'])
+  await expect(tabs.first()).toHaveAttribute('aria-current', 'page')
+  const [morning, evening] = await Promise.all(['08:00', '18:00'].map((time) => page.getByTestId(`slot-${time}`).boundingBox()))
+  if (isMobile) expect(evening.y).toBeGreaterThan(morning.y + morning.height - 1) // one column
+  else expect(Math.abs(evening.y - morning.y)).toBeLessThan(2) // side by side
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true) // never wider than the screen
+
+  await toTab(page, 'meds')
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('My medicines')
+  await expect(tabs.nth(2)).toHaveAttribute('aria-current', 'page')
+  await page.goBack() // the browser's Back returns to Today
+  await expect(page.getByTestId('schedule-today')).toBeVisible()
 })
 
 test('Remove takes a medicine off, and Undo puts it back', async ({ page }) => {
@@ -209,11 +221,11 @@ test('Remove takes a medicine off, and Undo puts it back', async ({ page }) => {
   await expect(page.getByTestId('schedule-undo')).toContainText('Metformin 500 mg removed')
   await expect(page.getByRole('button', { name: 'Undo' })).toBeFocused()
   await expect(page.getByTestId('med-m1')).toHaveCount(0)
-  await expect(page.getByTestId('schedule-today').getByRole('button')).toHaveCount(0)
 
   await page.getByRole('button', { name: 'Undo' }).click()
   await expect(page.getByTestId('med-m1')).toBeVisible()
   await expect(page.getByRole('button', { name: 'Change Metformin 500 mg' })).toBeFocused() // not lost to the top of the page
+  await toTab(page, 'today')
   await expect(tick(page, 'Metformin 500 mg', '8:00\\sAM')).toBeVisible()
 
   // Removing the last one brings back the empty page.
@@ -234,6 +246,13 @@ test('no accessibility problems: ticks, the edit form and the pharmacist list', 
   await page.getByLabel('Number of days', { exact: true }).fill('')
   await page.getByTestId('schedule-save').click() // with an error showing
   await expect(page.getByText('Enter a whole number of days from 1 to 366.')).toBeVisible()
+  await noAxeViolations(page)
+
+  await toTab(page, 'week')
+  await expect(page.getByTestId('week-summary')).toContainText('doses taken so far this week')
+  await noAxeViolations(page)
+  await page.goto('/schedule?view=reminders')
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Reminders')
   await noAxeViolations(page)
 })
 
@@ -259,12 +278,13 @@ test('a label misread as "when needed" is fixed without rescanning, and moves on
   await page.getByLabel('Times a day').fill('2')
   await page.getByRole('button', { name: 'Looks correct' }).click()
 
-  await expect(page).toHaveURL(/\/schedule$/)
+  await expect(page).toHaveURL(/\/schedule\?view=meds$/) // back on My medicines, at its Change button
   await expect(page.getByTestId('schedule-toast')).toHaveText('Panadol updated')
   await expect(page.getByRole('button', { name: 'Change Panadol' })).toBeFocused()
   await expect(page.getByTestId('schedule-pharmacist')).toHaveCount(0)
   await expect(page.getByTestId('schedule-meds')).toContainText('Panadol')
   // Its number of days was kept, so it is on today's list straight away.
+  await toTab(page, 'today')
   await expect(tick(page, 'Panadol', '8:00\\sAM')).toBeVisible()
   await expect(tick(page, 'Panadol', '9:00\\sPM')).toBeVisible()
   // Said once: not again after a reload.
@@ -286,12 +306,14 @@ test('fixing the dose keeps the same doses, so today\'s ticks stay; Cancel chang
   await page.getByLabel('Amount each time').fill('3')
   await page.getByRole('button', { name: 'Cancel' }).click()
   await page.getByTestId('confirm-discard-yes').click()
-  await expect(page).toHaveURL(/\/schedule$/)
-  await expect(page.getByTestId('dose-m1-morning')).toContainText('1 tablet · After food')
+  await expect(page).toHaveURL(/\/schedule/)
+  await expect(page.getByTestId('med-m1')).toContainText('1 tablet · After food')
 
   await pick(page, 'Metformin 500 mg', 'fix')
   await page.getByLabel('Amount each time').fill('2')
   await page.getByRole('button', { name: 'Looks correct' }).click()
+  await expect(page.getByTestId('med-m1')).toContainText('2 tablets · After food')
+  await toTab(page, 'today')
   await expect(page.getByTestId('dose-m1-morning')).toContainText('2 tablets · After food')
   await expect(morning).toHaveAttribute('aria-pressed', 'true') // same dose id, so the tick is still there
 })
@@ -299,7 +321,7 @@ test('fixing the dose keeps the same doses, so today\'s ticks stay; Cancel chang
 test('a medicine typed in Ask can be filled in from its label and scheduled', async ({ page }) => {
   await mockDoses(page)
   await seed(page, [{ id: 'm9', source: 'typed', sample: false, medication: { name: 'Lipitor', rawInstruction: 'one at night' } }])
-  await page.goto('/schedule')
+  await page.goto('/schedule?view=meds')
   await expect(page.getByTestId('schedule-pharmacist')).toContainText('Lipitor')
   await pick(page, 'Lipitor', 'fix')
   await expect(page.getByText('2 fields need checking')).toBeVisible() // amount and how often (it was only typed in)
@@ -346,7 +368,7 @@ test('connected: the whole schedule goes to Google Calendar after an edit, once,
   await mockDoses(page)
   const google = await mockGoogle(page)
   await seed(page, [PANADOL, METFORMIN])
-  await page.goto('/schedule')
+  await page.goto('/schedule?view=reminders') // the calendar card lives on Reminders
 
   const calendar = page.getByTestId('schedule-calendar')
   await expect(calendar.getByTestId('calendar-connected')).toHaveText('Connected')
@@ -355,10 +377,13 @@ test('connected: the whole schedule goes to Google Calendar after an edit, once,
   await expect(calendar.getByTestId('calendar-missing')).toHaveText('Not in your calendar yet: Metformin 500 mg. Add the number of days above to add it.')
   expect(google.syncs).toHaveLength(1)
 
+  await page.getByRole('link', { name: 'Back to schedule' }).click()
+  await toTab(page, 'meds')
   await page.getByRole('button', { name: 'Add number of days for Metformin 500 mg' }).click()
   await page.getByLabel('Number of days', { exact: true }).fill('30')
   await page.getByTestId('schedule-save').click()
-  await expect(page.getByTestId('schedule-toast')).toHaveText('Calendar updated')
+  await expect(page.getByTestId('schedule-toast')).toHaveText('Calendar updated') // the card heard it, out of sight
+  await page.getByTestId('schedule-reminders-link').click()
   await expect(calendar.getByTestId('calendar-missing')).toHaveCount(0)
   expect(google.syncs).toHaveLength(2)
   // Every medicine, the flagged one too, never just the changed one.
@@ -378,7 +403,7 @@ test('connected: the whole schedule goes to Google Calendar after an edit, once,
   await pick(page, 'Panadol', 'remove')
   await page.getByRole('button', { name: 'Undo' }).click()
   await page.waitForTimeout(2000)
-  await page.reload()
+  await page.goto('/schedule?view=reminders')
   await expect(calendar.getByTestId('calendar-connected')).toBeVisible()
   await page.waitForTimeout(2000)
   expect(google.syncs).toHaveLength(2)
@@ -393,12 +418,12 @@ test('access removed in Google: Reconnect, not an error page; back from Google i
   await mockDoses(page)
   const google = await mockGoogle(page, { failSyncs: ['GOOGLE_DISCONNECTED'] })
   await seed(page, [SCHEDULED])
-  await page.goto('/schedule')
+  await page.goto('/schedule?view=reminders')
 
   const calendar = page.getByTestId('schedule-calendar')
   await expect(calendar).toContainText('Google Calendar was disconnected. Please connect it again.')
   await calendar.getByTestId('calendar-reconnect').click()
-  await expect(page).toHaveURL(/\/schedule$/) // back from "Google", with ?google=connected tidied away
+  await expect(page).toHaveURL(/\/schedule\?view=reminders$/) // back from "Google" on Reminders, ?google=connected tidied away
   expect(google.connects).toEqual([{ next: '/schedule' }])
   await expect(calendar.getByTestId('calendar-connected')).toBeVisible()
   await expect.poll(() => google.syncs.length).toBe(2)
@@ -409,7 +434,7 @@ test('not connected: a Connect button, and edits send nothing', async ({ page })
   await mockDoses(page)
   const google = await mockGoogle(page, { connected: false })
   await seed(page, [SCHEDULED])
-  await page.goto('/schedule')
+  await page.goto('/schedule?view=reminders')
   await expect(page.getByTestId('calendar-connect')).toHaveText('Connect Google Calendar')
   await pick(page, 'Metformin 500 mg', 'days')
   await page.getByLabel('Number of days', { exact: true }).fill('10')
@@ -433,7 +458,7 @@ test('back from Google: connected, said no, or failed, each with a short message
   for (const [result, message] of [['cancelled', 'Google Calendar was not connected.'], ['failed', 'We could not connect Google Calendar. Please try again.']]) {
     await page.goto(`/schedule?google=${result}`)
     await expect(page.getByTestId('schedule-toast')).toHaveText(message)
-    await expect(page).toHaveURL(/\/schedule$/)
+    await expect(page).toHaveURL(/\/schedule\?view=reminders$/) // tidied, and on Reminders where the card is
   }
 })
 
@@ -441,7 +466,7 @@ test('Disconnect asks whether to remove the doses from the calendar too', async 
   await mockDoses(page)
   const google = await mockGoogle(page)
   await seed(page, [SCHEDULED])
-  await page.goto('/schedule')
+  await page.goto('/schedule?view=reminders')
   await page.getByRole('button', { name: 'Disconnect Google Calendar' }).click()
   await expect(page.getByRole('alertdialog')).toContainText('Also remove your doses from Google Calendar?')
   await expect(page.getByRole('button', { name: 'Yes, remove them' })).toBeFocused() // focus moves into the question
@@ -464,6 +489,7 @@ test('removing the last medicine still reaches Google, so its reminders are dele
   await expect(page.getByRole('heading', { name: 'No medicines yet' })).toBeVisible()
   await expect.poll(() => google.syncs.length, { timeout: 5000 }).toBe(2)
   expect(google.syncs[1].entries).toEqual([])
+  await page.goto('/schedule?view=reminders')
   await expect(page.getByTestId('calendar-connected')).toBeVisible() // Disconnect stays reachable
 })
 
@@ -487,7 +513,7 @@ test('left open past midnight: the new day starts unticked, and ticks are saved 
   const sent = await mockDoses(page, { at: null })
   await seed(page, [medicine('m1', {}, { startDate: '2026-10-20', days: 30, times: {} })])
   await page.goto('/schedule')
-  const today = page.getByTestId('schedule-today')
+  const today = page.getByTestId('schedule-date')
   const morning = tick(page, 'Metformin 500 mg', '8:00\\sAM')
   await expect(today).toContainText('October 27')
   await morning.click()
@@ -520,8 +546,8 @@ test('in the morning: the morning band says "Take now", the evening and bedtime 
     await expect(band(page, time)).toHaveAttribute('data-state', 'later')
     await expect(band(page, time).getByTestId('slot-state')).toHaveText('Later today')
   }
-  // Each time of day has its own colour.
-  const colours = await Promise.all(['08:00', '18:00', '21:00'].map((time) => band(page, time).evaluate((el) => getComputedStyle(el).borderColor)))
+  // Each time of day has its own colour (its icon tile, like a pill-box compartment).
+  const colours = await Promise.all(['08:00', '18:00', '21:00'].map((time) => band(page, time).locator('.slot-tile').evaluate((el) => getComputedStyle(el).backgroundColor)))
   expect(new Set(colours).size).toBe(3)
   await noAxeViolations(page)
 
@@ -531,9 +557,9 @@ test('in the morning: the morning band says "Take now", the evening and bedtime 
   await page.getByTestId('account-theme').getByRole('button', { name: 'Night' }).click()
   await page.goto('/schedule')
   await expect(band(page, '08:00')).toHaveAttribute('data-state', 'now')
-  // Really the night colours: every band's background is dark, not the light one with dark cards inside.
+  // Really the night colours: every card and its time-of-day tile is dark, not the light one.
   for (const time of ['08:00', '18:00', '21:00']) {
-    const [r, g, b] = (await band(page, time).evaluate((el) => getComputedStyle(el).backgroundColor)).match(/\d+/g).map(Number)
+    const [r, g, b] = (await band(page, time).locator('.slot-tile').evaluate((el) => getComputedStyle(el).backgroundColor)).match(/\d+/g).map(Number)
     expect(r + g + b, time).toBeLessThan(200)
   }
   await noAxeViolations(page)
@@ -585,4 +611,35 @@ test('ticking a dose more than 2 hours early asks first; "Not yet" leaves it unt
   await evening.click()
   await expect(evening).toHaveAttribute('aria-pressed', 'false')
   await expect(page.getByRole('alertdialog')).toHaveCount(0)
+})
+
+// --- How long a pack lasts: "Qty: 60 tablets", 1 tablet twice a day -> 30 days, from our own sums (supplyDays) -----------------
+
+test('a label that says how many tablets goes on the timetable for as long as they last, with the sums shown', async ({ page }) => {
+  await mockDoses(page)
+  await useSampleLabel(page, 'Metformin label') // Qty: 60 tablets, 1 tablet twice a day
+  await expect(page.getByLabel('Amount in the pack')).toHaveValue('60') // checked on Confirm like everything else
+  await page.getByRole('button', { name: 'Looks correct' }).click()
+
+  await page.goto('/schedule')
+  await expect(tick(page, 'Metformin 500 mg', '8:00\\sAM')).toBeVisible() // on today's list, no "how many days?" first
+  await expect(page.getByTestId('schedule-need-days-link')).toHaveCount(0)
+  await toTab(page, 'meds')
+  const card = page.getByTestId('schedule-meds')
+  await expect(card.getByTestId('med-supply')).toHaveText('From the label: 60 tablets, 2 tablets a day, so it lasts 30 days.')
+  await expect(card.getByText(/ to /)).toBeVisible() // its end date, 30 days from today
+  // Still the person's call: Days and times shows the same 30, and can be changed.
+  await pick(page, 'Metformin 500 mg', 'days')
+  await expect(page.getByLabel('Number of days', { exact: true })).toHaveValue('30')
+})
+
+test('changing the amount on Confirm changes the days; leaving it empty means Schedule asks', async ({ page }) => {
+  await mockDoses(page)
+  await useSampleLabel(page, 'Metformin label')
+  await page.getByLabel('Amount in the pack').fill('')
+  await page.getByLabel('Amount in the pack').blur()
+  await page.getByRole('button', { name: 'Looks correct' }).click()
+  await page.goto('/schedule?view=meds')
+  await expect(page.getByTestId('schedule-need-days')).toContainText('How many days is this medicine for?')
+  await expect(page.getByTestId('med-supply')).toHaveCount(0)
 })

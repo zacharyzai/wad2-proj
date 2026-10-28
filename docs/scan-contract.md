@@ -74,6 +74,7 @@ Shared fields:
 | `name`, `strength`, `rawInstruction` | string \| null |
 | `doseAmount` | number \| null (**always digits**, never translated) |
 | `doseUnit` | `tablet` `capsule` `ml` `puff` `drop` `other` \| null |
+| `quantity` | number \| null: how much was given, in the dose's unit (`"Qty: 60 tablets"` → `60`). Optional. With the dose and times a day, the Schedule works out how many days it lasts (`supplyDays` in `src/rules/schedule.js`, our own rule) |
 | `timesPerDay` | number \| null |
 | `timing` | array of `morning` `afternoon` `evening` `bedtime`, or null when the label doesn't say |
 | `withFood` | `before` `after` `with` `any` \| null |

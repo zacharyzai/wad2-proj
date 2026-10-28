@@ -39,6 +39,8 @@ export function normalizeMedication(raw = {}) {
     strength: str(raw.strength),
     doseAmount: num(raw.doseAmount),
     doseUnit: oneOf(raw.doseUnit, DOSE_UNITS),
+    // How much was given ("Qty: 60 tablets" -> 60), in the dose's unit. Optional: many labels don't say.
+    quantity: num(raw.quantity) || null,
     timesPerDay: posInt(raw.timesPerDay),
     timing: timing.length ? timing : null,
     withFood: oneOf(raw.withFood, WITH_FOOD),
@@ -47,7 +49,7 @@ export function normalizeMedication(raw = {}) {
     warnings: Array.isArray(raw.warnings) ? raw.warnings.map(str).filter(Boolean) : [],
   }
 
-  // Optional fields (strength, doseUnit, timing, withFood) may be null simply because the label doesn't say.
+  // Optional fields (strength, doseUnit, quantity, timing, withFood) may be null simply because the label doesn't say.
   const required = ['name', 'doseAmount', 'frequencyType']
   if (medication.frequencyType === 'daily') required.push('timesPerDay')
   const unclear = required.filter((k) => medication[k] === null).map((k) => `medication.${k}`)

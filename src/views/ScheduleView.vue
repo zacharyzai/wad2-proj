@@ -1,24 +1,36 @@
-<!-- Owner: Lokesh. Medicine schedule: today's doses with a tick for each, the medicines on the timetable (Edit, Remove), and the
-     ones we never schedule (when necessary, weekly, tapering), which go to the pharmacist instead.
+<!-- Owner: Lokesh (redesigned by Claude from the Claude Design "Schedule" screens, declared in README.txt). Medicine schedule in
+     three tabs and a Reminders page, each its own address (?view=week | meds | reminders), so Back works:
+       Today        what's due now, the day's progress, and a big tick row for every dose, grouped by time of day
+       This week    Monday to Sunday at a glance (components/schedule/WeekView.vue)
+       My medicines each medicine with Change (days and times, fix what we read, remove) and the pharmacist list
+       Reminders    Google Calendar alerts (components/schedule/CalendarSync.vue) and the day's dose times
      Times come from src/rules/schedule.js (our own rules, never AI). Ticks are saved to the account: docs/doses-contract.md -->
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { medicines, setSchedule, forgetMedicine, restoreMedicine, scanFromMedicine } from '../stores/medicines'
 import { scanStore } from '../stores/scan'
-import { buildSchedule, dosesOn, doseSlots, todayInSingapore, timeInSingapore, timeStates, tooEarly, validDate, validDays, validTime, MAX_DAYS } from '../rules/schedule'
+import { buildSchedule, dosesOn, doseSlots, supplyDays, todayInSingapore, timeInSingapore, timeStates, tooEarly, validDate, validDays, validTime, MAX_DAYS } from '../rules/schedule'
 import { dosesTaken, setDoseTaken } from '../api/client'
-import PageHeader from '../components/layout/PageHeader.vue'
 import EmptyState from '../components/layout/EmptyState.vue'
 import ErrorBanner from '../components/layout/ErrorBanner.vue'
 import AppIcon from '../components/layout/AppIcon.vue'
 import CalendarSync from '../components/schedule/CalendarSync.vue'
+import WeekView from '../components/schedule/WeekView.vue'
 
 const SLOT_ICONS = { morning: 'sunrise', afternoon: 'sun', evening: 'sunset', bedtime: 'bed' } // same as Explain
 
 const { t, locale } = useI18n()
 const router = useRouter()
+const route = useRoute()
+
+// Which tab: in the address, so Back returns to it and a link can open it. Unknown values show Today.
+const VIEWS = ['today', 'week', 'meds', 'reminders']
+// Back from Google (?google=connected) opens Reminders, where the calendar card is; CalendarSync then tidies the address.
+const view = computed(() => (route.query.google !== undefined ? 'reminders' : VIEWS.includes(route.query.view) ? route.query.view : 'today'))
+const TABS = ['today', 'week', 'meds']
+const viewLink = (v) => ({ query: v === 'today' ? {} : { view: v } })
 
 // Every medicine with its ScheduleEntry. Flagged ones (no daily timetable) go to the pharmacist section.
 const rows = computed(() => medicines.map((medicine) => ({ medicine, entry: buildSchedule(medicine, medicine.schedule ?? {}) })))
@@ -37,6 +49,14 @@ const timeText = (hhmm) => {
 const doseText = ({ count, unit, food }) =>
   [count != null && `${count} ${t(`unit.${unit ?? 'other'}`, count)}`, food && t(`food.${food}`)].filter(Boolean).join(' · ')
 const timesText = (entry) => entry.doses.map((d) => timeText(d.time)).join(', ')
+// "From the label: 60 tablets, 2 tablets a day, so it lasts 30 days." Only when supplyDays can do the sums.
+const amountText = (n, unit) => `${n} ${t(`unit.${unit ?? 'other'}`, n)}`
+function supplyText(medication) {
+  const days = supplyDays(medication)
+  if (!days) return null
+  const perDay = medication.doseAmount * doseSlots(medication).length
+  return t('schedule.supply', { qty: amountText(medication.quantity, medication.doseUnit), per: amountText(perDay, medication.doseUnit), days }, days)
+}
 
 function dateStatus(entry) {
   if (today.value < entry.startDate) return { kind: 'later', text: t('schedule.meds.starts', { date: dateText(entry.startDate) }) }
@@ -61,6 +81,18 @@ const groups = computed(() => {
   return list.map((g, i) => ({ ...g, state: states[i] }))
 })
 const allTaken = (g) => g.doses.every((d) => taken.has(d.id))
+// The time that's due and not yet ticked: shown at the top of Today with one "I've taken it" for all its doses.
+const dueGroup = computed(() => (ticksReady.value ? groups.value.find((g) => g.state === 'now' && !allTaken(g)) : null))
+const takeAll = (g) => g.doses.filter((d) => !taken.has(d.id)).forEach((d) => toggle(d, true))
+// "Next: Metformin at 6:00 PM": the first untaken dose that isn't due yet.
+const nextDose = computed(() => groups.value.filter((g) => g.state === 'later').flatMap((g) => g.doses).find((d) => !taken.has(d.id)))
+const RING = 2 * Math.PI * 30 // the progress ring's circumference (r = 30)
+// Reminders page: each time of day in use, with its time (from the medicines on the timetable).
+const doseTimes = computed(() => {
+  const byTime = new Map()
+  for (const r of timetable.value) for (const d of r.entry.doses) byTime.set(d.time, d.id.slice(r.medicine.id.length + 1))
+  return [...byTime].sort(([a], [b]) => a.localeCompare(b)).map(([time, slot]) => ({ time, slot }))
+})
 // What the band's label says. Taken is taken, whatever the time; a missed one says "Not ticked yet", never "take it now".
 function bandStatus(g) {
   if (allTaken(g)) return { kind: 'done', text: t('schedule.slot.done') }
@@ -162,7 +194,7 @@ async function openEdit({ medicine, entry }) {
   editing.value = medicine.id
   tried.value = false
   Object.assign(form, {
-    days: medicine.schedule?.days ?? '',
+    days: medicine.schedule?.days ?? supplyDays(medicine.medication) ?? '', // a label with a quantity fills it in
     startDate: medicine.schedule?.startDate ?? today.value,
     times: Object.fromEntries(entry.doses.map((d) => [d.id.slice(medicine.id.length + 1), d.time])),
   })
@@ -247,51 +279,89 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="page schedule">
-    <PageHeader :title="t('pages.schedule')">{{ t('schedule.lead') }}</PageHeader>
+    <!-- Reminders is its own page with a way back; the three tabs share one header. -->
+    <template v-if="view === 'reminders'">
+      <RouterLink :to="viewLink('today')" class="btn btn-ghost back-link align-self-start"><AppIcon name="left" />{{ t('schedule.back') }}</RouterLink>
+      <header class="head">
+        <h1>{{ t('schedule.rem.title') }}</h1>
+        <p class="lead m-0">{{ t('schedule.rem.lead') }}</p>
+      </header>
+    </template>
+    <template v-else>
+      <header class="head head-row">
+        <div class="d-flex flex-column gap-1">
+          <span class="date" data-testid="schedule-date">{{ dateText(today, { weekday: 'long', day: 'numeric', month: 'long' }) }}</span>
+          <h1>{{ t(`schedule.title.${view}`) }}</h1>
+        </div>
+        <div class="head-acts">
+          <RouterLink :to="{ name: 'scan', query: { type: 'medication' } }" class="btn btn-primary btn-sm"><AppIcon name="plus" />{{ t('schedule.add') }}</RouterLink>
+          <RouterLink v-if="medicines.length" :to="viewLink('reminders')" class="btn btn-secondary btn-sm" data-testid="schedule-reminders-link"><AppIcon name="clock" />{{ t('schedule.rem.title') }}</RouterLink>
+        </div>
+      </header>
+      <!-- The three views are pages of their own (links, so Back and a shared link work), drawn as one segmented control. -->
+      <nav v-if="medicines.length" class="tabs" :aria-label="t('pages.schedule')">
+        <RouterLink v-for="v in TABS" :key="v" :to="viewLink(v)" class="tab" :aria-current="view === v ? 'page' : null" :data-testid="`tab-${v}`">{{ t(`schedule.tab.${v}`) }}</RouterLink>
+      </nav>
+    </template>
 
-    <EmptyState v-if="!medicines.length" :title="t('schedule.empty.title')" :text="t('schedule.empty.text')" icon="calendar">
+    <EmptyState v-if="!medicines.length && view !== 'reminders'" :title="t('schedule.empty.title')" :text="t('schedule.empty.text')" icon="calendar">
       <RouterLink :to="{ name: 'scan', query: { type: 'medication' } }" class="btn btn-primary"><AppIcon name="scan" />{{ t('soon.scanMed') }}</RouterLink>
     </EmptyState>
 
-    <!-- Desktop: Today is the main column; the medicines, the pharmacist list and Google Calendar sit in a narrower panel
-         beside it. Phones: one column in that same order, Today first. -->
-    <div class="sched-grid" :class="{ empty: !medicines.length }">
-    <template v-if="medicines.length">
-      <!-- Today: a timeline of the day, the part people come back to several times a day -->
-      <section class="card gap-3 g-today" aria-labelledby="today-title" data-testid="schedule-today">
-        <div class="today-head">
-          <h2 id="today-title">{{ t('schedule.today') }}</h2>
-          <span class="text-muted-a11y">{{ dateText(today, { weekday: 'long', day: 'numeric', month: 'long' }) }}</span>
-        </div>
-        <ErrorBanner v-if="loadError" :code="loadError" retryable @retry="loadTicks" />
+    <!-- ===== Today ===== -->
+    <section v-else-if="view === 'today'" class="d-flex flex-column gap-4" aria-labelledby="today-title" data-testid="schedule-today">
+      <h2 id="today-title" class="visually-hidden">{{ t('schedule.today') }}</h2>
+      <ErrorBanner v-if="loadError" :code="loadError" retryable @retry="loadTicks" />
 
-        <p v-if="!todayDoses.length" class="text-muted-a11y m-0" data-testid="schedule-none-today">
-          {{ t(needDays.length ? 'schedule.noneTodayNeedDays' : 'schedule.noneToday') }}
-        </p>
-        <template v-else>
-          <p class="progress-line m-0" data-testid="schedule-progress">
-            <AppIcon :name="doneCount === todayDoses.length ? 'checkCircle' : 'clock'" />
-            {{ doneCount === todayDoses.length ? t('schedule.allDone') : t('schedule.progress', { done: doneCount, total: todayDoses.length }) }}
-          </p>
-          <!-- The words above say it; the bar only shows it. -->
-          <div class="day-progress" aria-hidden="true"><span :style="{ width: `${(doneCount / todayDoses.length) * 100}%` }"></span></div>
-          <!-- One band per time of day, each with its own colour and icon (like the compartments of a pill box), the word always
-               beside them. The band that's due says "Take now"; later ones are toned down and say "Later today". -->
-          <div
+      <p v-if="!todayDoses.length" class="card m-0 text-muted-a11y" data-testid="schedule-none-today">
+        {{ t(needDays.length ? 'schedule.noneTodayNeedDays' : 'schedule.noneToday') }}
+        <RouterLink v-if="needDays.length" :to="viewLink('meds')" class="d-block mt-2 fw-bold">{{ t('schedule.tab.meds') }}</RouterLink>
+      </p>
+      <template v-else>
+        <!-- What's due now: the one thing to do, with a button that ticks every dose of that time. Never for a missed dose. -->
+        <section v-if="dueGroup" class="due" :class="`slot-${dueGroup.slot ?? 'other'}`" aria-labelledby="due-title" data-testid="schedule-due">
+          <div class="d-flex align-items-start gap-3">
+            <span class="slot-tile lg" aria-hidden="true"><AppIcon :name="SLOT_ICONS[dueGroup.slot] ?? 'clock'" :size="26" /></span>
+            <div class="d-flex flex-column gap-1 min-w-0">
+              <h2 id="due-title" class="due-title">{{ dueGroup.doses.length === 1 ? t('schedule.due.one', { name: dueGroup.doses[0].label }) : t('schedule.due.many', { n: dueGroup.doses.length }) }}</h2>
+              <p class="m-0">{{ t('schedule.due.text', { time: timeText(dueGroup.time) }) }}</p>
+            </div>
+          </div>
+          <ul v-if="dueGroup.doses.length > 1" class="due-list">
+            <li v-for="d in dueGroup.doses" :key="d.id"><strong>{{ d.label }}</strong> <span class="text-muted-a11y">{{ doseText(d.instruction) }}</span></li>
+          </ul>
+          <button type="button" class="btn btn-primary" data-testid="schedule-due-take" @click="takeAll(dueGroup)"><AppIcon name="check" />{{ t('schedule.due.take') }}</button>
+        </section>
+
+        <!-- The day's progress: the words say it, the ring only shows it. -->
+        <div class="progress-card" data-testid="schedule-progress">
+          <svg class="ring" viewBox="0 0 72 72" aria-hidden="true">
+            <circle cx="36" cy="36" r="30" class="ring-track" />
+            <circle cx="36" cy="36" r="30" class="ring-fill" :class="{ full: doneCount === todayDoses.length }" :stroke-dasharray="RING" :stroke-dashoffset="RING * (1 - doneCount / todayDoses.length)" />
+            <text x="36" y="36" class="ring-num" text-anchor="middle" dominant-baseline="central">{{ doneCount }}/{{ todayDoses.length }}</text>
+          </svg>
+          <div class="d-flex flex-column gap-1 min-w-0">
+            <strong class="progress-words" data-testid="schedule-progress-words">{{ doneCount === todayDoses.length ? t('schedule.allDone') : t('schedule.progress', { done: doneCount, total: todayDoses.length }) }}</strong>
+            <span v-if="nextDose" class="text-muted-a11y">{{ t('schedule.next', { name: nextDose.label, time: timeText(nextDose.time) }) }}</span>
+          </div>
+        </div>
+
+        <!-- One card per time of day, coloured like a pill-box compartment, the word and icon always beside the colour. -->
+        <div class="slot-grid">
+          <section
             v-for="g in groups"
             :key="g.time"
-            class="slot-group"
+            class="slot-card"
             :class="[`slot-${g.slot ?? 'other'}`, `is-${g.state}`]"
+            :aria-labelledby="`slot-title-${g.time}`"
             :data-testid="`slot-${g.time}`"
             :data-state="g.state"
           >
             <div class="slot-head">
-              <h3 class="slot-time">
-                <span class="tile slot-icon"><AppIcon :name="SLOT_ICONS[g.slot] ?? 'clock'" :size="24" /></span>
-                <span class="slot-text">
-                  <template v-if="g.slot"><span class="slot-name">{{ t(`timing.${g.slot}`) }}</span><span class="visually-hidden"> · </span></template>
-                  <span class="slot-clock">{{ timeText(g.time) }}</span>
-                </span>
+              <span class="slot-tile" aria-hidden="true"><AppIcon :name="SLOT_ICONS[g.slot] ?? 'clock'" :size="24" /></span>
+              <h3 :id="`slot-title-${g.time}`" class="slot-name">
+                <template v-if="g.slot">{{ t(`timing.${g.slot}`) }}<span class="visually-hidden"> · </span></template>
+                <span class="slot-clock">{{ timeText(g.time) }}</span>
               </h3>
               <span class="badge slot-state" :class="`state-${bandStatus(g).kind}`" data-testid="slot-state">
                 <AppIcon v-if="bandStatus(g).kind === 'done'" name="checkCircle" :size="18" />{{ bandStatus(g).text }}
@@ -300,23 +370,27 @@ onBeforeUnmount(() => {
             <!-- Never "take it now" for a missed dose: that is the pharmacist's call. -->
             <p v-if="g.state === 'earlier' && !allTaken(g)" class="slot-note m-0">{{ t('schedule.slot.missed') }}</p>
             <ul class="doses">
-              <li v-for="d in g.doses" :key="d.id" class="dose" :class="{ done: taken.has(d.id) }" :data-testid="`dose-${d.id}`">
-                <span class="dose-info">
-                  <span class="dose-name">{{ d.label }}</span>
-                  <span class="text-muted-a11y">{{ doseText(d.instruction) }}</span>
-                </span>
-                <!-- One label that never changes ("Taken"), with aria-pressed carrying yes/no: the standard toggle pattern. -->
-                <button
-                  type="button"
-                  class="choice tick"
-                  :data-tick="d.id"
-                  :aria-pressed="taken.has(d.id)"
-                  :aria-label="t('schedule.tickLabel', { name: d.label, time: timeText(d.time) })"
-                  :disabled="!ticksReady"
-                  @click="toggle(d)"
-                >
-                  <AppIcon :name="taken.has(d.id) ? 'checkCircle' : 'circle'" :size="24" />{{ t('schedule.taken') }}
-                </button>
+              <li v-for="d in g.doses" :key="d.id" :data-testid="`dose-${d.id}`">
+                <!-- The tick. The button holds only the medicine's name (so what's seen is what's spoken: WCAG 2.5.3) and its click area
+                     stretches over the whole row, a big target for unsteady hands. aria-pressed says taken or not; the amount and
+                     the word under it are plain text beside it. -->
+                <div class="dose" :class="{ done: taken.has(d.id), busy: !ticksReady }">
+                  <span class="box" aria-hidden="true"><AppIcon name="check" :size="26" :stroke="3" /></span>
+                  <span class="dose-info">
+                    <button
+                      type="button"
+                      class="dose-btn"
+                      :data-tick="d.id"
+                      :aria-pressed="taken.has(d.id)"
+                      :aria-label="t('schedule.tickLabel', { name: d.label, time: timeText(d.time) })"
+                      :aria-describedby="`dose-detail-${d.id}`"
+                      :disabled="!ticksReady"
+                      @click="toggle(d)"
+                    >{{ d.label }}</button>
+                    <span :id="`dose-detail-${d.id}`" class="dose-detail">{{ doseText(d.instruction) }}</span>
+                    <span class="dose-word" aria-hidden="true"><AppIcon v-if="taken.has(d.id)" name="check" :size="16" :stroke="3" />{{ taken.has(d.id) ? t('schedule.taken') : t('schedule.tapWhenTaken') }}</span>
+                  </span>
+                </div>
                 <div v-if="confirming === d.id" class="early alert alert-warning flex-column" role="alertdialog" :aria-labelledby="`early-title-${d.id}`" :aria-describedby="`early-text-${d.id}`" data-testid="schedule-early">
                   <strong :id="`early-title-${d.id}`">{{ t('schedule.early.title') }}</strong>
                   <span :id="`early-text-${d.id}`">{{ t('schedule.early.text', { name: d.label, time: timeText(d.time) }) }}</span>
@@ -327,20 +401,32 @@ onBeforeUnmount(() => {
                 </div>
               </li>
             </ul>
-          </div>
-        </template>
-      </section>
+          </section>
+        </div>
+      </template>
 
-      <!-- My medicines: compact rows with one "Change" each, so the list never competes with the Taken buttons -->
-      <section v-if="timetable.length" class="card gap-3 g-meds" aria-labelledby="meds-title" data-testid="schedule-meds">
-        <h2 id="meds-title" class="side-title">{{ t('schedule.meds.title') }}</h2>
-        <ul class="med-list">
-          <li v-for="r in timetable" :key="r.medicine.id" class="med-row" :data-testid="`med-${r.medicine.id}`">
+      <!-- Medicines still waiting for their number of days: one line here, the form is in My medicines. -->
+      <RouterLink v-if="needDays.length && todayDoses.length" :to="viewLink('meds')" class="alert alert-warning need-link" data-testid="schedule-need-days-link">
+        <AppIcon name="alert" /><span>{{ t('schedule.needDaysCount', { n: needDays.length }, needDays.length) }}</span><AppIcon name="right" class="ms-auto" />
+      </RouterLink>
+    </section>
+
+    <!-- ===== This week ===== -->
+    <WeekView v-else-if="view === 'week'" :entries="entries" :today="today" :now="nowTime" :taken-today="taken" :flagged="flagged" />
+
+    <!-- ===== My medicines ===== -->
+    <div v-else-if="view === 'meds'" class="d-flex flex-column gap-4">
+      <section v-if="timetable.length" aria-labelledby="meds-title" data-testid="schedule-meds">
+        <h2 id="meds-title" class="visually-hidden">{{ t('schedule.meds.title') }}</h2>
+        <ul class="med-grid">
+          <li v-for="r in timetable" :key="r.medicine.id" class="card med-card" :data-testid="`med-${r.medicine.id}`">
             <div class="med-line">
+              <span class="tile tile-soft" aria-hidden="true"><AppIcon name="pill" :size="24" /></span>
               <span class="med-info">
                 <span class="med-name">{{ r.entry.label }}</span>
                 <span class="text-muted-a11y">{{ doseText(r.entry.instruction) }}</span>
                 <span class="med-times"><AppIcon name="clock" :size="18" />{{ timesText(r.entry) }}</span>
+                <span v-if="supplyText(r.medicine.medication)" class="med-supply" data-testid="med-supply"><AppIcon name="pill" :size="18" />{{ supplyText(r.medicine.medication) }}</span>
                 <span v-if="r.entry.endDate" class="badge align-self-start" :class="{ 'badge-teal': dateStatus(r.entry).kind === 'now' }">{{ dateStatus(r.entry).text }}</span>
               </span>
               <button
@@ -352,7 +438,7 @@ onBeforeUnmount(() => {
                 :aria-label="t('schedule.meds.changeOne', { name: r.entry.label })"
                 @click="toggleManage(r.medicine.id)"
               >
-                {{ t('schedule.meds.change') }}<AppIcon :name="managing === r.medicine.id ? 'up' : 'down'" :size="18" />
+                <AppIcon name="pencil" :size="20" />{{ t('schedule.meds.change') }}
               </button>
             </div>
 
@@ -365,7 +451,7 @@ onBeforeUnmount(() => {
             <form v-if="editing === r.medicine.id" :id="`edit-${r.medicine.id}`" class="edit-form" novalidate :aria-label="t('schedule.form.title', { name: r.entry.label })" @submit.prevent="save(r.medicine.id)">
               <div class="field">
                 <label :for="`days-${r.medicine.id}`" class="field-label">{{ t('schedule.form.days') }}</label>
-                <span :id="`days-help-${r.medicine.id}`" class="field-help">{{ t('schedule.form.daysHelp') }}</span>
+                <span :id="`days-help-${r.medicine.id}`" class="field-help">{{ t('schedule.form.daysHelp') }}<template v-if="supplyText(r.medicine.medication)"> {{ supplyText(r.medicine.medication) }}</template></span>
                 <input
                   :id="`days-${r.medicine.id}`"
                   v-model="form.days"
@@ -397,20 +483,20 @@ onBeforeUnmount(() => {
               <fieldset class="field times">
                 <legend class="field-label">{{ t('schedule.form.times') }}</legend>
                 <div class="time-grid">
-                <div v-for="slot in editSlots" :key="slot" class="field">
-                  <label :for="`time-${r.medicine.id}-${slot}`" class="time-label"><AppIcon :name="SLOT_ICONS[slot]" :size="20" />{{ t(`timing.${slot}`) }}</label>
-                  <input
-                    :id="`time-${r.medicine.id}-${slot}`"
-                    v-model="form.times[slot]"
-                    type="time"
-                    class="field-input"
-                    :class="{ 'is-error': shown(slot) }"
-                    :aria-invalid="Boolean(shown(slot))"
-                    :aria-describedby="shown(slot) ? `time-error-${r.medicine.id}-${slot}` : null"
-                    :data-testid="`schedule-time-${slot}`"
-                  />
-                  <p v-if="shown(slot)" :id="`time-error-${r.medicine.id}-${slot}`" class="field-error" role="alert">{{ shown(slot) }}</p>
-                </div>
+                  <div v-for="slot in editSlots" :key="slot" class="field">
+                    <label :for="`time-${r.medicine.id}-${slot}`" class="time-label"><AppIcon :name="SLOT_ICONS[slot]" :size="20" />{{ t(`timing.${slot}`) }}</label>
+                    <input
+                      :id="`time-${r.medicine.id}-${slot}`"
+                      v-model="form.times[slot]"
+                      type="time"
+                      class="field-input"
+                      :class="{ 'is-error': shown(slot) }"
+                      :aria-invalid="Boolean(shown(slot))"
+                      :aria-describedby="shown(slot) ? `time-error-${r.medicine.id}-${slot}` : null"
+                      :data-testid="`schedule-time-${slot}`"
+                    />
+                    <p v-if="shown(slot)" :id="`time-error-${r.medicine.id}-${slot}`" class="field-error" role="alert">{{ shown(slot) }}</p>
+                  </div>
                 </div>
               </fieldset>
               <div class="d-flex flex-column flex-sm-row gap-3">
@@ -430,15 +516,20 @@ onBeforeUnmount(() => {
       </section>
 
       <!-- Never scheduled: when necessary, weekly, tapering, or a label we couldn't turn into daily times. -->
-      <section v-if="flagged.length" class="card card-warning gap-3 g-pharm" aria-labelledby="pharm-title" data-testid="schedule-pharmacist">
-        <h2 id="pharm-title" class="side-title d-flex align-items-center gap-3"><span class="tile tile-warning"><AppIcon name="users" :size="22" /></span>{{ t('schedule.pharm.title') }}</h2>
-        <p class="m-0">{{ t('schedule.pharm.text') }}</p>
-        <ul class="med-list">
-          <li v-for="r in flagged" :key="r.medicine.id" class="med-row" :data-testid="`med-${r.medicine.id}`">
+      <section v-if="flagged.length" class="card card-warning pharm" aria-labelledby="pharm-title" data-testid="schedule-pharmacist">
+        <div class="d-flex align-items-start gap-3">
+          <span class="tile tile-warning" aria-hidden="true"><AppIcon name="users" :size="24" /></span>
+          <div class="d-flex flex-column gap-1">
+            <h2 id="pharm-title" class="h3 m-0">{{ t('schedule.pharm.title') }}</h2>
+            <p class="m-0">{{ t('schedule.pharm.text') }}</p>
+          </div>
+        </div>
+        <ul class="pharm-list">
+          <li v-for="r in flagged" :key="r.medicine.id" class="pharm-row" :data-testid="`med-${r.medicine.id}`">
             <div class="med-line">
               <span class="med-info">
-                <span class="med-name">{{ r.entry.label }}</span>
                 <span v-if="r.medicine.medication.frequencyType && r.medicine.medication.frequencyType !== 'daily'" class="badge badge-warning align-self-start">{{ t(`freq.${r.medicine.medication.frequencyType}`) }}</span>
+                <span class="med-name">{{ r.entry.label }}</span>
                 <span v-if="r.medicine.medication.rawInstruction" class="text-muted-a11y" :lang="r.medicine.source === 'label' ? 'en' : null">“{{ r.medicine.medication.rawInstruction }}”</span>
               </span>
               <button
@@ -450,7 +541,7 @@ onBeforeUnmount(() => {
                 :aria-label="t('schedule.meds.changeOne', { name: r.entry.label })"
                 @click="toggleManage(r.medicine.id)"
               >
-                {{ t('schedule.meds.change') }}<AppIcon :name="managing === r.medicine.id ? 'up' : 'down'" :size="18" />
+                <AppIcon name="pencil" :size="20" />{{ t('schedule.meds.change') }}
               </button>
             </div>
             <!-- No Days and times here (nothing to schedule). Fix is for a label we misread, e.g. "twice a day" read as "when needed". -->
@@ -461,10 +552,25 @@ onBeforeUnmount(() => {
           </li>
         </ul>
       </section>
-    </template>
+    </div>
 
-    <!-- Outside the v-if on purpose: removing the last medicine must still reach Google, so its reminders are deleted. -->
-    <CalendarSync class="g-cal" :entries="entries" @notify="notify" />
+    <!-- ===== Reminders ===== -->
+    <!-- One calendar card, always mounted (hidden off this page): every edit or Remove still reaches Google, even removing
+         the last medicine (its reminders are deleted), and switching tabs doesn't ask Google again. -->
+    <div v-show="view === 'reminders'" class="rem-grid">
+      <CalendarSync class="g-cal" :entries="entries" @notify="notify" />
+      <section v-if="doseTimes.length" class="card d-flex flex-column gap-2" aria-labelledby="times-title" data-testid="schedule-times">
+        <h2 id="times-title" class="h3 m-0">{{ t('schedule.rem.times') }}</h2>
+        <ul class="time-list">
+          <li v-for="d in doseTimes" :key="d.time">
+            <span class="slot-tile sm" :class="`slot-${d.slot}`" aria-hidden="true"><AppIcon :name="SLOT_ICONS[d.slot] ?? 'clock'" :size="20" /></span>
+            <span class="flex-grow-1">{{ t(`timing.${d.slot}`) }}</span>
+            <strong class="tnum">{{ timeText(d.time) }}</strong>
+          </li>
+        </ul>
+        <p class="m-0 text-muted-a11y">{{ t('schedule.rem.timesHelp') }}</p>
+        <RouterLink :to="viewLink('meds')" class="btn btn-outline btn-sm align-self-start">{{ t('schedule.tab.meds') }}<AppIcon name="right" :size="18" /></RouterLink>
+      </section>
     </div>
 
     <!-- Always in the page, so screen readers announce what appears in it. -->
@@ -483,4 +589,5 @@ onBeforeUnmount(() => {
   </div>
 </template>
 
+<style src="../styles/views/ScheduleSlots.css"></style>
 <style scoped src="../styles/views/ScheduleView.css"></style>

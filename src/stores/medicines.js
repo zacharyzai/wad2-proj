@@ -2,6 +2,7 @@
 // Extracted text only (contract fields), never photos.
 // shortcut: kept in this browser only; move to the user's account (Sheen Hern's history API) once login exists.
 import { reactive, toRaw, watch } from 'vue'
+import { supplyDays, todayInSingapore } from '../rules/schedule.js'
 
 const KEY = 'medicines'
 const MAX = 10 // same limit as the server
@@ -27,6 +28,13 @@ watch(medicines, (list) => {
   }
 })
 
+// A label that says how much was given ("Qty: 60 tablets") goes straight onto the timetable from today, for as long as it
+// lasts (supplyDays: our own sums, shown on Schedule, and the days can be changed there). Otherwise Schedule asks.
+const fromLabel = (medication) => {
+  const days = supplyDays(medication)
+  return days ? { schedule: { startDate: todayInSingapore(), days, times: {} } } : {}
+}
+
 const same = (a, b) => a.name.trim().toLowerCase() === b.name.trim().toLowerCase() && (a.strength ?? '') === (b.strength ?? '')
 
 // Re-adding a medicine replaces the old entry, so a re-scanned label updates its instructions.
@@ -42,7 +50,7 @@ export function rememberMedicine(medication, source, sample = false) {
     source,
     sample,
     medication: copy,
-    ...(previous?.schedule ? { schedule: previous.schedule } : {}),
+    ...(previous?.schedule ? { schedule: previous.schedule } : fromLabel(copy)),
   })
   medicines.splice(MAX)
 }
@@ -57,6 +65,7 @@ export function replaceMedicine(id, medication) {
   const entry = medicines[index]
   entry.medication = copy
   entry.source = 'label'
+  if (!entry.schedule?.days) Object.assign(entry, fromLabel(copy)) // e.g. "when needed" fixed to twice a day: now it has days
   // Corrected into the name of another saved medicine: keep this one (it has the schedule being fixed), drop the copy.
   for (let i = medicines.length - 1; i >= 0; i--) if (i !== medicines.indexOf(entry) && same(medicines[i].medication, copy)) medicines.splice(i, 1)
 }
@@ -64,7 +73,7 @@ export function replaceMedicine(id, medication) {
 // What Confirm needs to open a saved medicine: every contract field present (typed ones have only a name and
 // instructions), nothing to flag beyond the usual required fields, no photo, and `savedId` saying which one to replace.
 export function scanFromMedicine(entry) {
-  const blank = { name: null, strength: null, doseAmount: null, doseUnit: null, timesPerDay: null, timing: null, withFood: null, frequencyType: null, rawInstruction: null, warnings: [] }
+  const blank = { name: null, strength: null, doseAmount: null, doseUnit: null, quantity: null, timesPerDay: null, timing: null, withFood: null, frequencyType: null, rawInstruction: null, warnings: [] }
   return { type: 'medication', source: entry.sample ? 'sample' : entry.source, unclear: [], medication: { ...blank, ...structuredClone(toRaw(entry.medication)) }, savedId: entry.id }
 }
 
