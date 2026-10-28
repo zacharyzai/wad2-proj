@@ -1,5 +1,5 @@
-// Day/night mode: Day, Night or Same as my phone, chosen on Sign up or the Account page and saved to the account.
-// Day mode until they choose, even on a device set to dark. The auth API is mocked (see helpers/auth.js).
+// Day/night mode: Day, Night or Same as my phone, asked once on Home after signing up (before the guide) and changed on
+// the Account page; saved to the account. Day mode until they choose, even on a device set to dark. Auth API mocked (helpers/auth.js).
 import { test, expect } from './fixtures.js'
 import { DEMO_USER, mockAuth, login } from './helpers/auth.js'
 
@@ -52,13 +52,10 @@ test('logging in on a new device uses the account’s day/night choice', async (
   await page.close()
 })
 
-test('Sign up: the choice changes the page as they tap and is sent with the signup', async ({ browser }) => {
-  const page = await browser.newPage({ storageState: { cookies: [], origins: [] } })
+test('after signing up, Home asks day or night first, then the Beginner’s guide opens', async ({ browser }) => {
+  const page = await browser.newPage({ storageState: { cookies: [], origins: [] } }) // a new device: the guide not seen yet
   await mockAuth(page)
   await page.goto('/signup')
-  await page.getByTestId('signup-theme').getByRole('button', { name: 'Night' }).click()
-  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
-
   const sent = page.waitForRequest('**/api/auth/signup')
   await page.getByTestId('signup-name').fill('Lim Ah Huat')
   await page.getByTestId('signup-email').fill('ahhuat@example.com')
@@ -66,6 +63,35 @@ test('Sign up: the choice changes the page as they tap and is sent with the sign
   await page.getByTestId('signup-dob').fill('1958-11-02')
   await page.getByTestId('signup-citizenship').selectOption('pr')
   await page.getByTestId('signup-submit').click()
-  expect((await sent).postDataJSON().theme).toBe('dark')
+  expect((await sent).postDataJSON().theme).toBeUndefined() // not asked on the form
+
+  const ask = page.getByTestId('theme-prompt')
+  await expect(ask).toBeVisible()
+  await expect(page.getByTestId('guide')).toHaveCount(0) // the guide waits its turn
+  await ask.getByRole('button', { name: 'Night' }).click()
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark') // they see it before deciding
+
+  const saved = page.waitForRequest((r) => r.url().endsWith('/api/auth/me') && r.method() === 'PATCH' && r.postDataJSON()?.theme === 'dark')
+  await page.getByTestId('theme-prompt-next').click()
+  await saved
+  await expect(ask).toHaveCount(0)
+  await expect(page.getByTestId('guide')).toBeVisible()
+
+  await page.reload() // chosen once: not asked again
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
+  await expect(page.getByTestId('theme-prompt')).toHaveCount(0)
   await page.close()
+})
+
+test('Esc on the day/night question keeps day mode, saves it, and moves on', async ({ page }) => {
+  await mockAuth(page, { ...DEMO_USER, theme: null }) // an account from before this setting
+  await page.goto('/')
+  await expect(page.getByTestId('theme-prompt')).toBeVisible()
+  expect(await page.getByTestId('theme-prompt').evaluate((d) => d.matches(':modal'))).toBe(true) // a real pop-up over the page, even on the first page
+  await expect(page.getByTestId('theme-prompt').locator('[data-theme-choice="light"]')).toBeFocused() // focus starts inside
+  const saved = page.waitForRequest((r) => r.url().endsWith('/api/auth/me') && r.method() === 'PATCH' && r.postDataJSON()?.theme === 'light')
+  await page.keyboard.press('Escape')
+  await saved
+  await expect(page.getByTestId('theme-prompt')).toHaveCount(0)
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light')
 })

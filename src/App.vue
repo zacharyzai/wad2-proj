@@ -6,6 +6,7 @@ import { useI18n } from 'vue-i18n'
 import { setLocale } from './i18n'
 import AppIcon from './components/layout/AppIcon.vue'
 import GuideDialog from './components/guide/GuideDialog.vue'
+import ThemePrompt from './components/guide/ThemePrompt.vue'
 import { maybeShowGuide, openGuide } from './stores/guide'
 
 const { t, locale } = useI18n()
@@ -114,6 +115,7 @@ router.afterEach(async (to, from, failure) => {
       </footer>
     </div>
   </div>
+  <ThemePrompt />
   <GuideDialog />
 </template>
 
