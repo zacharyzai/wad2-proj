@@ -7,6 +7,7 @@
     "strength": "5 mg",
     "doseAmount": 1,
     "doseUnit": "tablet",
+    "quantity": 30,
     "timesPerDay": 1,
     "timing": ["morning"],
     "withFood": "any",

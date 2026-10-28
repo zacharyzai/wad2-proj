@@ -1,0 +1,26 @@
+/* Schedule page (not scoped, so This week's component shares it; every rule sits under .schedule).
+   Time-of-day colours, like the compartments of a pill box. Always with the word and icon, never colour alone.
+   --band: background, --edge: border, --ink: text and icons on --band (AA), --soft: the paler band for "Later today".
+   Written out, not mixed, so contrast checkers can measure them. */
+.schedule {
+  --band-morning: #fff4d6; --soft-morning: #fffaeb; --edge-morning: #e7c35f; --ink-morning: #6b4f00;
+  --band-afternoon: #ffeadb; --soft-afternoon: #fff5ee; --edge-afternoon: #eeb084; --ink-afternoon: #8a3f0b;
+  --band-evening: #f1eafb; --soft-evening: #f8f4fd; --edge-evening: #c4abe8; --ink-evening: #553187;
+  --band-bedtime: #e6eefb; --soft-bedtime: #f2f6fd; --edge-bedtime: #a9c0ea; --ink-bedtime: #1d4380;
+}
+:root[data-theme='dark'] .schedule {
+  --band-morning: #2a2413; --soft-morning: #211f17; --edge-morning: #6b5a24; --ink-morning: #f3d27a;
+  --band-afternoon: #2d1f15; --soft-afternoon: #231d19; --edge-afternoon: #6e4526; --ink-afternoon: #ffb98a;
+  --band-evening: #231c31; --soft-evening: #1f1e2a; --edge-evening: #554277; --ink-evening: #cdb5f2;
+  --band-bedtime: #162136; --soft-bedtime: #18212c; --edge-bedtime: #36527f; --ink-bedtime: #a9c6f2;
+}
+.schedule .slot-morning { --band: var(--band-morning); --soft: var(--soft-morning); --edge: var(--edge-morning); --ink: var(--ink-morning); }
+.schedule .slot-afternoon { --band: var(--band-afternoon); --soft: var(--soft-afternoon); --edge: var(--edge-afternoon); --ink: var(--ink-afternoon); }
+.schedule .slot-evening { --band: var(--band-evening); --soft: var(--soft-evening); --edge: var(--edge-evening); --ink: var(--ink-evening); }
+.schedule .slot-bedtime { --band: var(--band-bedtime); --soft: var(--soft-bedtime); --edge: var(--edge-bedtime); --ink: var(--ink-bedtime); }
+.schedule .slot-other { --band: var(--color-surface-2); --soft: var(--color-card); --edge: var(--color-border-strong); --ink: var(--color-text); }
+
+/* The icon tile that names a time of day: the compartment's colour, its ink on top. */
+.schedule .slot-tile { width: 44px; height: 44px; flex: none; display: inline-grid; place-items: center; border-radius: 13px; background: var(--band); color: var(--ink); border: 1px solid var(--edge); }
+.schedule .slot-tile.lg { width: 52px; height: 52px; border-radius: 16px; background: var(--color-card); }
+.schedule .slot-tile.sm { width: 40px; height: 40px; border-radius: 12px; }

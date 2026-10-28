@@ -1,7 +1,7 @@
 // Owner: Lokesh. Schedule rules for the Schedule page and Google sync (src/rules/schedule.js). Entry shape: docs/google-contract.md.
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { buildSchedule, dosesOn, doseSlots, addDays, validTime, validDays, validDate, todayInSingapore, timeInSingapore, timeStates, tooEarly, syncEntries, MAX_DAYS } from '../../src/rules/schedule.js'
+import { weekOf, weekSummary, supplyDays, buildSchedule, dosesOn, doseSlots, addDays, validTime, validDays, validDate, todayInSingapore, timeInSingapore, timeStates, tooEarly, syncEntries, MAX_DAYS } from '../../src/rules/schedule.js'
 import med1 from '../fixtures/med-1.json' with { type: 'json' }
 import en from '../../src/i18n/locales/en.json' with { type: 'json' }
 import zh from '../../src/i18n/locales/zh.json' with { type: 'json' }
@@ -210,7 +210,7 @@ test('Fix what we read: the corrected details replace the same medicine, keeping
 
   // Opened on Confirm: every contract field present, nothing extra flagged, and which medicine to replace.
   const scan = scanFromMedicine(lipitor)
-  assert.deepEqual(scan.medication, { name: 'Lipitor', strength: null, doseAmount: null, doseUnit: null, timesPerDay: null, timing: null, withFood: null, frequencyType: null, rawInstruction: 'one at night', warnings: [] })
+  assert.deepEqual(scan.medication, { name: 'Lipitor', strength: null, doseAmount: null, doseUnit: null, quantity: null, timesPerDay: null, timing: null, withFood: null, frequencyType: null, rawInstruction: 'one at night', warnings: [] })
   assert.deepEqual([scan.type, scan.source, scan.unclear, scan.savedId], ['medication', 'typed', [], lipitor.id])
   assert.equal(scanFromMedicine(panadol).source, 'sample')
 
@@ -260,4 +260,47 @@ test('timeInSingapore uses Singapore time, not the device time zone', () => {
   assert.equal(timeInSingapore(new Date('2026-10-27T17:30:00Z')), '01:30')
   assert.equal(timeInSingapore(new Date('2026-10-27T00:05:00Z')), '08:05')
   assert.equal(timeInSingapore(new Date('2026-10-27T15:59:00Z')), '23:59')
+})
+
+test('This week: Monday to Sunday; each time of day is taken, missed (time passed, not all ticked) or coming up', () => {
+  assert.deepEqual(weekOf('2026-10-28'), ['2026-10-26', '2026-10-27', '2026-10-28', '2026-10-29', '2026-10-30', '2026-10-31', '2026-11-01'])
+  assert.equal(weekOf('2026-11-01')[0], '2026-10-26') // a Sunday belongs to the week before
+  const medicine = { id: 'm1', medication: { name: 'Metformin', strength: '500 mg', frequencyType: 'daily', timesPerDay: 2, doseAmount: 1 } }
+  const entries = [buildSchedule(medicine, { startDate: '2026-10-27', days: 30 })] // starts on Tuesday
+  const ticks = { '2026-10-27': ['m1-morning'], '2026-10-28': ['m1-morning'] }
+  const week = weekSummary(entries, '2026-10-28', '14:00', (date) => new Set(ticks[date] ?? []))
+  assert.deepEqual(week.rows.map((r) => [r.slot, r.cells.map((c) => c.state)]), [
+    ['morning', ['none', 'ok', 'ok', 'up', 'up', 'up', 'up']],
+    ['bedtime', ['none', 'miss', 'up', 'up', 'up', 'up', 'up']], // tonight's 9 pm hasn't come yet
+  ])
+  assert.deepEqual([week.done, week.due], [2, 3])
+  assert.deepEqual(week.missed, [{ date: '2026-10-27', slot: 'bedtime', time: '21:00', label: 'Metformin 500 mg' }])
+  // The day's last time stays due until midnight, as on Today ("Take now"); a day still loading (null) counts nothing as taken.
+  const late = weekSummary(entries, '2026-10-28', '23:30', (date) => (date === '2026-10-27' ? null : new Set(ticks[date] ?? [])))
+  assert.deepEqual(late.rows.map((r) => r.cells[1].state), ['miss', 'miss'])
+  assert.equal(late.rows[1].cells[2].state, 'up')
+})
+
+test('how long a pack lasts: quantity ÷ (amount each time × times a day), whole days only, never guessed', () => {
+  const daily = { frequencyType: 'daily', doseAmount: 1, timesPerDay: 2 }
+  assert.equal(supplyDays({ ...daily, quantity: 60 }), 30) // "Qty: 60 tablets, 1 tablet twice a day"
+  assert.equal(supplyDays({ ...daily, quantity: 31 }), 15) // the spare tablet doesn't make a 16th day
+  assert.equal(supplyDays({ frequencyType: 'daily', doseAmount: 5, timing: ['morning', 'afternoon', 'bedtime'], quantity: 100 }), 6) // syrup, ml
+  assert.equal(supplyDays({ frequencyType: 'daily', doseAmount: 0.5, timesPerDay: 1, quantity: 30 }), 60) // half a tablet
+  assert.equal(supplyDays({ frequencyType: 'daily', doseAmount: 0.1, timesPerDay: 1, quantity: 0.3 }), 3) // no floating-point slip to 2
+  // Nothing to go on, not daily, or not even a day's worth: no number, so Schedule asks instead.
+  for (const m of [{ ...daily, quantity: null }, { ...daily, quantity: 60, doseAmount: null }, { frequencyType: 'as_needed', doseAmount: 2, quantity: 20 }, { ...daily, doseAmount: 2, quantity: 3 }]) assert.equal(supplyDays(m), null)
+})
+
+test('a checked label with a quantity goes on the timetable from today for as long as it lasts; one without waits for days', () => {
+  medicines.splice(0)
+  rememberMedicine({ name: 'Metformin', strength: '500 mg', doseAmount: 1, doseUnit: 'tablet', quantity: 60, frequencyType: 'daily', timesPerDay: 2, warnings: [] }, 'label')
+  rememberMedicine({ name: 'Amlodipine', strength: '5 mg', doseAmount: 1, doseUnit: 'tablet', quantity: null, frequencyType: 'daily', timesPerDay: 1, warnings: [] }, 'label')
+  const [amlodipine, metformin] = medicines
+  assert.deepEqual(metformin.schedule, { startDate: todayInSingapore(), days: 30, times: {} })
+  assert.equal(amlodipine.schedule, undefined)
+  // Scanning the same label again keeps the days already set (and so its ticks and reminders).
+  setSchedule(metformin.id, { startDate: '2026-10-01', days: 45, times: {} })
+  rememberMedicine({ name: 'Metformin', strength: '500 mg', doseAmount: 1, doseUnit: 'tablet', quantity: 90, frequencyType: 'daily', timesPerDay: 2, warnings: [] }, 'label')
+  assert.equal(medicines[0].schedule.days, 45)
 })

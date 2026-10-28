@@ -120,7 +120,7 @@ function confirm() {
     if (fixing) {
       replaceMedicine(draft.savedId, draft.medication)
       done = true
-      return router.push({ name: 'schedule', state: { fixedId: draft.savedId } })
+      return router.push({ name: 'schedule', query: { view: 'meds' }, state: { fixedId: draft.savedId } }) // back to its Change button
     }
     // Ask (the chatbot) answers about the medicines the user has checked.
     rememberMedicine(draft.medication, 'label', draft.source === 'sample')
@@ -131,7 +131,8 @@ function confirm() {
   router.push({ name: 'explain' })
 }
 
-const scanAgain = () => router.push({ name: fixing ? 'schedule' : draft.type === 'bill' ? 'bill-scan' : 'scan' })
+// Cancelling a fix returns to My medicines, where it was opened from.
+const scanAgain = () => router.push(fixing ? { name: 'schedule', query: { view: 'meds' } } : { name: draft.type === 'bill' ? 'bill-scan' : 'scan' })
 </script>
 
 <template>
@@ -203,6 +204,14 @@ const scanAgain = () => router.push({ name: fixing ? 'schedule' : draft.type ===
                 <option v-for="unit in DOSE_UNITS" :key="unit" :value="unit">{{ t(`unit.${unit}`, 2) }}</option>
               </select>
             </div>
+          </ConfirmField>
+          <!-- Optional: how much was given. With the dose and times a day, Schedule works out how many days it lasts. -->
+          <ConfirmField :label="t('confirm.med.quantity')" for="f-qty">
+            <div class="d-flex align-items-center gap-2">
+              <input id="f-qty" type="number" inputmode="decimal" min="0" step="1" class="field-input amount" :value="draft.medication.quantity ?? ''" aria-describedby="f-qty-help" @change="draft.medication.quantity = Number($event.target.value) > 0 ? Number($event.target.value) : null" />
+              <span class="fw-semibold">{{ t(`unit.${draft.medication.doseUnit ?? 'other'}`, 2) }}</span>
+            </div>
+            <span id="f-qty-help" class="field-help">{{ t('confirm.med.quantityHelp') }}</span>
           </ConfirmField>
           <ConfirmField :label="t('confirm.med.howOften')" for="f-freq" :flagged="needs('medication.frequencyType')">
             <select id="f-freq" v-model="draft.medication.frequencyType" class="field-input" :class="{ 'is-flagged': needs('medication.frequencyType') }">

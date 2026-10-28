@@ -24,37 +24,57 @@
     "lead": "Orang yang menjemput anda. Ketik nama untuk lihat ubat hari ini.",
     "emptyTitle": "Belum ada sesiapa dipautkan",
     "emptyText": "Minta ibu bapa atau saudara anda buka Akaun dalam aplikasi dan ketik \"Jemput penjaga\". Mereka boleh hantar pautan melalui WhatsApp.",
-    "nTaken": "{n} sudah diambil", "nMissed": "{n} terlepas", "nUpcoming": "{n} akan datang",
+    "nTaken": "{n} sudah diambil",
+    "nMissed": "{n} terlepas",
+    "nUpcoming": "{n} akan datang",
     "todayFor": "{name}: hari ini",
-    "goneTitle": "Anda tidak lagi dapat melihat orang ini", "goneText": "Mereka mungkin telah membuang pautan. Jika ini silap, minta jemputan baharu.",
+    "goneTitle": "Anda tidak lagi dapat melihat orang ini",
+    "goneText": "Mereka mungkin telah membuang pautan. Jika ini silap, minta jemputan baharu.",
     "missedBanner": "{name} belum mengambil {n} dos hari ini. Anda mungkin mahu menelefon mereka.",
     "allTaken": "{name} sudah mengambil semua dos setakat ini hari ini.",
-    "noDoses": "Tiada ubat dalam jadual", "noDosesText": "{name} belum menambah sebarang ubat ke jadual.",
-    "updated": "Dikemas kini {time}", "refresh": "Muat semula",
-    "status": { "taken": "Sudah diambil", "missed": "Terlepas", "upcoming": "Akan datang" }
+    "noDoses": "Tiada ubat dalam jadual",
+    "noDosesText": "{name} belum menambah sebarang ubat ke jadual.",
+    "updated": "Dikemas kini {time}",
+    "refresh": "Muat semula",
+    "status": {
+      "taken": "Sudah diambil",
+      "missed": "Terlepas",
+      "upcoming": "Akan datang"
+    }
   },
   "invite": {
     "title": "{name} mahu anda menjadi penjaganya",
-    "seeTitle": "Anda akan nampak", "see1": "Masa ubat mereka untuk hari ini.", "see2": "Sama ada setiap dos sudah diambil, terlepas atau akan datang.",
-    "notTitle": "Anda tidak akan nampak", "not1": "Imbasan, gambar, bil atau butiran akaun mereka.",
+    "seeTitle": "Anda akan nampak",
+    "see1": "Masa ubat mereka untuk hari ini.",
+    "see2": "Sama ada setiap dos sudah diambil, terlepas atau akan datang.",
+    "notTitle": "Anda tidak akan nampak",
+    "not1": "Imbasan, gambar, bil atau butiran akaun mereka.",
     "removeAnytime": "{name} boleh membuang anda pada bila-bila masa.",
     "needAccount": "Log masuk dengan akaun penjaga anda untuk menerima.",
-    "login": "Log masuk", "signup": "Buat akaun penjaga", "accept": "Terima dan jaga {name}",
+    "login": "Log masuk",
+    "signup": "Buat akaun penjaga",
+    "accept": "Terima dan jaga {name}",
     "seniorAccount": "Ini akaun warga emas, jadi tidak boleh menjadi penjaga. Untuk menjadi penjaga, buat akaun kedua dan pilih \"Penjaga\".",
-    "goneTitle": "Jemputan ini tidak lagi tersedia", "goneText": "Ia mungkin sudah tamat tempoh atau sudah digunakan. Minta pautan baharu."
+    "goneTitle": "Jemputan ini tidak lagi tersedia",
+    "goneText": "Ia mungkin sudah tamat tempoh atau sudah digunakan. Minta pautan baharu."
   },
   "careCard": {
     "title": "Penjaga anda",
     "intro": "Penjaga boleh melihat sama ada anda sudah makan ubat hari ini, supaya mereka boleh menelefon jika anda terlupa.",
     "none": "Belum ada sesiapa yang boleh melihat ubat anda.",
-    "since": "Sejak {date}", "remove": "Buang",
-    "removeAsk": "Berhenti benarkan {name} melihat ubat anda?", "removeYes": "Ya, buang", "keep": "Simpan",
+    "since": "Sejak {date}",
+    "remove": "Buang",
+    "removeAsk": "Berhenti benarkan {name} melihat ubat anda?",
+    "removeYes": "Ya, buang",
+    "keep": "Simpan",
     "invite": "Jemput penjaga",
     "inviteTitle": "Sebelum anda hantar pautan",
     "inviteSee": "Penjaga akan nampak: nama anda, masa ubat anda hari ini, dan sama ada setiap dos sudah diambil, terlepas atau akan datang.",
     "inviteNot": "Mereka tidak akan nampak: imbasan, gambar, bil atau butiran akaun anda. Anda boleh membuang mereka pada bila-bila masa.",
     "inviteExpiry": "Pautan hanya boleh digunakan sekali dan tamat selepas 7 hari.",
-    "create": "Buat pautan", "linkReady": "Pautan anda sudah sedia", "linkLabel": "Pautan jemputan",
+    "create": "Buat pautan",
+    "linkReady": "Pautan anda sudah sedia",
+    "linkLabel": "Pautan jemputan",
     "shareMessage": "Sila jadi penjaga saya di Ah Ma Ah Gong Can:"
   },
   "pages": {
@@ -72,9 +92,9 @@
     "welcome": "Selamat datang",
     "billScan": "Imbas bil perubatan",
     "account": "Akaun anda",
-    "shared": "Jemputan penjaga", 
-    "care": "Warga emas saya", 
-    "careSenior": "Ubat hari ini", 
+    "shared": "Jemputan penjaga",
+    "care": "Warga emas saya",
+    "careSenior": "Ubat hari ini",
     "sharedScan": "Ringkasan dikongsi"
   },
   "errors": {
@@ -265,7 +285,9 @@
       "times": "Berapa kali sehari",
       "when": "Bila",
       "food": "Sebelum atau selepas makan",
-      "other": "Arahan lain pada label (satu setiap baris)"
+      "other": "Arahan lain pada label (satu setiap baris)",
+      "quantity": "Jumlah dalam pek",
+      "quantityHelp": "Seperti pada label, contohnya Qty: 60. Kami gunakannya untuk mengira berapa hari ubat ini cukup. Biarkan kosong jika label tidak menyatakannya."
     },
     "bill": {
       "item": "Item",
@@ -491,25 +513,44 @@
   },
   "history": {
     "lead": "Label ubat dan bil yang anda simpan, yang terbaru di atas.",
-    "filter": "Papar", "filterAll": "Semua", "filterMed": "Ubat", "filterBill": "Bil",
-    "saved": "Disimpan {date}", "youPaid": "Anda membayar {amount}", "sharing": "Pautan dihidupkan",
-    "replay": "Dengar semula", "share": "Kongsi", "delete": "Padam",
+    "filter": "Papar",
+    "filterAll": "Semua",
+    "filterMed": "Ubat",
+    "filterBill": "Bil",
+    "saved": "Disimpan {date}",
+    "youPaid": "Anda membayar {amount}",
+    "sharing": "Pautan dihidupkan",
+    "replay": "Dengar semula",
+    "share": "Kongsi",
+    "delete": "Padam",
     "shareTitle": "Kongsi imbasan ini?",
     "shareMed": "Orang yang ada pautan akan nampak: nama ubat, kekuatan, dos, masa dan sebarang amaran.",
     "shareBill": "Orang yang ada pautan akan nampak: jumlah yang anda bayar dan caj.",
     "shareNever": "Mereka tidak akan nampak nama, e-mel, tarikh lahir atau gambar anda.",
     "shareExpiry": "Pautan tamat selepas 30 hari. Anda boleh berhenti berkongsi pada bila-bila masa.",
-    "shareCreate": "Buat pautan", "linkReady": "Pautan anda sudah sedia", "linkLabel": "Pautan kongsi",
-    "expires": "Sah sehingga {date}", "whatsapp": "Hantar di WhatsApp", "copy": "Salin pautan", "copied": "Disalin", "unshare": "Berhenti berkongsi",
+    "shareCreate": "Buat pautan",
+    "linkReady": "Pautan anda sudah sedia",
+    "linkLabel": "Pautan kongsi",
+    "expires": "Sah sehingga {date}",
+    "whatsapp": "Hantar di WhatsApp",
+    "copy": "Salin pautan",
+    "copied": "Disalin",
+    "unshare": "Berhenti berkongsi",
     "shareMessage": "Ringkasan daripada Ah Ma Ah Gong Can:",
-    "deleteTitle": "Padam imbasan ini?", "deleteText": "Ia akan dibuang daripada sejarah anda. Pautan yang anda buat untuknya akan berhenti berfungsi.",
-    "deleteYes": "Ya, padam", "keep": "Simpan", "deleted": "Imbasan dipadam.",
-    "loadMore": "Papar imbasan lebih lama", "noneOfType": "Belum ada yang seperti ini.",
-    "emptyTitle": "Belum ada imbasan disimpan", "emptyText": "Imbasan yang anda simpan akan disenaraikan di sini, supaya anda boleh mendengarnya semula atau berkongsi."
+    "deleteTitle": "Padam imbasan ini?",
+    "deleteText": "Ia akan dibuang daripada sejarah anda. Pautan yang anda buat untuknya akan berhenti berfungsi.",
+    "deleteYes": "Ya, padam",
+    "keep": "Simpan",
+    "deleted": "Imbasan dipadam.",
+    "loadMore": "Papar imbasan lebih lama",
+    "noneOfType": "Belum ada yang seperti ini.",
+    "emptyTitle": "Belum ada imbasan disimpan",
+    "emptyText": "Imbasan yang anda simpan akan disenaraikan di sini, supaya anda boleh mendengarnya semula atau berkongsi."
   },
   "shared": {
     "lead": "Seseorang berkongsi ini dengan anda. Anda hanya boleh membacanya.",
-    "goneTitle": "Pautan ini tidak lagi tersedia", "goneText": "Mungkin ia sudah tamat tempoh, atau orang yang berkongsi telah berhenti berkongsi.",
+    "goneTitle": "Pautan ini tidak lagi tersedia",
+    "goneText": "Mungkin ia sudah tamat tempoh, atau orang yang berkongsi telah berhenti berkongsi.",
     "note": "Ini ringkasan apa yang tertulis pada label atau bil. Sentiasa sahkan dengan doktor atau ahli farmasi anda.",
     "open": "Buka Ah Ma Ah Gong Can"
   },
@@ -547,7 +588,10 @@
       "other": "Bukan warganegara atau PR"
     },
     "role": "Saya ialah…",
-    "roles": { "senior": "Warga emas", "caregiver": "Penjaga" },
+    "roles": {
+      "senior": "Warga emas",
+      "caregiver": "Penjaga"
+    },
     "roleHelp": {
       "senior": "Saya mengambil ubat dan mahu faham label dan bil saya.",
       "caregiver": "Saya menjaga ibu bapa atau saudara dan mahu tahu sama ada mereka sudah makan ubat."
@@ -983,6 +1027,49 @@
       "text": "{name} untuk {time}. Adakah anda sudah mengambilnya?",
       "yes": "Ya, sudah ambil",
       "no": "Belum lagi"
-    }
+    },
+    "title": {
+      "today": "Ubat anda hari ini",
+      "week": "Minggu ini",
+      "meds": "Ubat saya"
+    },
+    "tab": {
+      "today": "Hari ini",
+      "week": "Minggu ini",
+      "meds": "Ubat saya"
+    },
+    "add": "Tambah ubat",
+    "back": "Kembali ke jadual",
+    "tapWhenTaken": "Tekan selepas ambil ubat",
+    "next": "Seterusnya: {name} pada {time}",
+    "needDaysCount": "{n} ubat perlukan bilangan hari | {n} ubat perlukan bilangan hari",
+    "due": {
+      "one": "Masa untuk {name}",
+      "many": "Masa untuk {n} ubat",
+      "text": "Ambil ubat pada {time}, kemudian tekan butang.",
+      "take": "Saya sudah ambil"
+    },
+    "week": {
+      "sum": "{done} daripada {due} dos sudah diambil setakat ini minggu ini",
+      "loading": "Menyemak tanda minggu ini",
+      "range": "{start} hingga {end}",
+      "caption": "Dos anda minggu ini, mengikut waktu",
+      "cell": "{day}, {slot}: {state}",
+      "state": {
+        "ok": "Sudah ambil",
+        "miss": "Terlepas",
+        "up": "Akan datang"
+      },
+      "missedTitle": "Terlepas minggu ini",
+      "noneMissed": "Tiada yang terlepas minggu ini.",
+      "notDaily": "Bukan setiap hari"
+    },
+    "rem": {
+      "title": "Peringatan",
+      "lead": "Telefon anda akan mengingatkan anda melalui Google Calendar, walaupun aplikasi ini ditutup.",
+      "times": "Waktu dos anda",
+      "timesHelp": "Untuk menukar waktu, buka Ubat saya dan pilih Ubah."
+    },
+    "supply": "Daripada label: {qty}, {per} sehari, jadi ia cukup untuk {days} hari. | Daripada label: {qty}, {per} sehari, jadi ia cukup untuk {days} hari."
   }
 }

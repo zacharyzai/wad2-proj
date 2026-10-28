@@ -80,6 +80,17 @@ export function doseSlots(medication = {}) {
   return Number.isInteger(medication.timesPerDay) ? SLOTS_PER_DAY[medication.timesPerDay] ?? null : null
 }
 
+// How many whole days the medicine given lasts: quantity ÷ (amount each time × times a day). "Qty: 60 tablets, 1 tablet twice a
+// day" -> 30. A spare part-day is dropped, so it never promises more than there is. null when the label leaves anything out,
+// the medicine isn't daily, or it wouldn't last a day. Shown with its sums (supplySums), and the user can change the days.
+export function supplyDays(medication = {}) {
+  const perDay = doseSlots(medication)?.length
+  const { quantity, doseAmount } = medication
+  if (!perDay || !(quantity > 0) || !(doseAmount > 0)) return null
+  const days = Math.floor(quantity / (doseAmount * perDay) + 1e-9) // 1e-9: 0.3 ÷ 0.1 is 2.9999999999999996 in floating point
+  return validDays(days) ? days : null
+}
+
 export function buildSchedule(medicine, { startDate, days, times = {} } = {}) {
   const medication = medicine?.medication ?? {}
   const slots = doseSlots(medication)
@@ -112,4 +123,44 @@ export function dosesOn(entries, date) {
     .filter((e) => !e.flagged && e.startDate && e.endDate && e.startDate <= date && date <= e.endDate)
     .flatMap((e) => e.doses.map((dose) => ({ id: dose.id, slot: dose.id.slice(e.medicineId.length + 1), time: dose.time, medicineId: e.medicineId, label: e.label, instruction: e.instruction })))
     .sort((a, b) => a.time.localeCompare(b.time) || a.label.localeCompare(b.label))
+}
+
+// Monday to Sunday of the week `date` is in (Singapore days, as everywhere here).
+export function weekOf(date) {
+  const monday = addDays(date, -((new Date(`${date}T00:00:00Z`).getUTCDay() + 6) % 7))
+  return Array.from({ length: 7 }, (_, i) => addDays(monday, i))
+}
+
+// The week at a glance (Schedule, This week). One row per time of day; a cell per day says how that time went:
+// 'ok' every dose ticked, 'miss' not all ticked and its time has passed, 'up' still to come, 'none' nothing due.
+// takenOn(date) gives that day's ticked dose ids (a Set), or null while unknown. A time today counts as passed once
+// timeStates calls it 'earlier', the same moment Today starts saying "Not ticked yet".
+// done/due count doses up to now; `missed` lists each passed, unticked dose, oldest first.
+export function weekSummary(entries, today, now, takenOn) {
+  const days = weekOf(today)
+  const todayTimes = [...new Set(dosesOn(entries, today).map((d) => d.time))]
+  const passedToday = new Map(todayTimes.map((time, i) => [time, timeStates(todayTimes, now)[i] === 'earlier']))
+  const perDay = days.map((date) => ({ date, doses: dosesOn(entries, date), taken: takenOn(date) }))
+  const slots = TIMINGS.filter((slot) => perDay.some((d) => d.doses.some((dose) => dose.slot === slot)))
+  let done = 0
+  let due = 0
+  const missed = []
+  const rows = slots.map((slot) => ({
+    slot,
+    cells: perDay.map(({ date, doses, taken }) => {
+      const here = doses.filter((dose) => dose.slot === slot)
+      if (!here.length) return { date, state: 'none' }
+      if (date > today) return { date, state: 'up' }
+      const ticked = here.filter((dose) => taken?.has(dose.id))
+      const passed = date < today || here.every((dose) => passedToday.get(dose.time))
+      done += ticked.length
+      due += passed ? here.length : ticked.length
+      if (ticked.length === here.length) return { date, state: 'ok' }
+      if (!passed) return { date, state: 'up' }
+      for (const dose of here) if (!taken?.has(dose.id)) missed.push({ date, slot, time: dose.time, label: dose.label })
+      return { date, state: 'miss' }
+    }),
+  }))
+  missed.sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time))
+  return { days, rows, done, due, missed }
 }

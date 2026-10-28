@@ -58,6 +58,7 @@ const SCHEMAS = {
     strength: S,
     doseAmount: N,
     doseUnit: E(DOSE_UNITS),
+    quantity: N,
     timesPerDay: { type: 'INTEGER', nullable: true },
     timing: { type: 'ARRAY', items: { type: 'STRING', enum: TIMINGS }, nullable: true },
     withFood: E(WITH_FOOD),
@@ -94,6 +95,8 @@ const PROMPTS = {
   medication: `You read Singapore pharmacy medication labels for elderly patients.
 Extract the medicine on this label.
 - doseAmount: amount per dose (e.g. "Take 2 tablets" -> 2). doseUnit: tablet, capsule, ml, puff, drop or other.
+- quantity: how much was given, in the same unit as the dose ("Qty: 60 tablets" -> 60, "100 ml" -> 100). null if the
+  label doesn't say, or gives it in another unit (e.g. "2 boxes").
 - timesPerDay: doses per day for a fixed daily schedule ("twice a day" -> 2, "every morning" -> 1).
 - timing: only the times of day the label explicitly states ("morning and night" -> ["morning","bedtime"]); otherwise null.
 - withFood: "before" / "after" / "with" food, "any" if the label says with or without food, null if not stated.
