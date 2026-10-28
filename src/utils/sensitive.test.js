@@ -28,6 +28,18 @@ test('whoever pays is covered too: account holder, payer, next of kin', () => {
   assert.deepEqual(covered('Next of kin: Lim Ah Beng'), ['Lim', 'Ah', 'Beng'])
 })
 
+test('a Payer or Name heading a table: the names in the rows below are covered, not the column headings', () => {
+  // Real reader output from a Yishun Health interim bill (payer table).
+  assert.deepEqual(
+    covered('Payer Adjustment Payment Amount Due', 'LAU YOONG KEE 000 0.00 0.00', 'TAN AH KOW 0.00 15,000.00 95.698 13', 'Please note that the amount 10 be borne by the different parties have yet to be determined.'), // "to" read as 10
+    ['LAU', 'YOONG', 'KEE', 'TAN', 'AH', 'KOW'],
+  )
+  assert.deepEqual(covered('Name Relationship', 'Ong Kok Leong Son'), ['Ong', 'Kok', 'Leong', 'Son'])
+  assert.deepEqual(covered('Payer Amount', 'Nur Aisyah binte Abdul Rahman 0.00'), ['Nur', 'Aisyah', 'binte', 'Abdul', 'Rahman'])
+  // A label with its value on the same line is unchanged.
+  assert.deepEqual(covered('Payer Tan Mei Ling'), ['Tan', 'Mei', 'Ling'])
+})
+
 test('labelled fields cover their value, on the same line or the next', () => {
   assert.deepEqual(covered('Name: TAN AH KOW'), ['TAN', 'AH', 'KOW'])
   assert.deepEqual(covered('Patient Name TAN AH KOW'), ['TAN', 'AH', 'KOW'])
@@ -89,6 +101,11 @@ test('keep-list: only medicine and bill lines are shown; names, addresses and un
     'MediSave',
     'Total payable $4.20',
   ])
+})
+
+test('keep-list: amounts whose decimal point the reader lost, and implant lines, are shown (Yishun Health bill)', () => {
+  const { keep } = planRedaction(lines('Orthopaedic Services / Appliances 161', 'Implant 23.011 69', 'Non Standard Medications 504 70', 'LAU YOONG KEE', 'TO: Blk 123 Yishun'))
+  assert.deepEqual(keep.map((k) => k.text), ['Orthopaedic Services / Appliances 161', 'Implant 23.011 69', 'Non Standard Medications 504 70'])
 })
 
 test('keep-list: hospital bill lines are shown; admission number, doctor and payer lines stay black', () => {

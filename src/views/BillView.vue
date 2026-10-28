@@ -103,7 +103,7 @@ const takenOff = computed(() => {
       ...SUBSIDY_STYLE,
       name: t(`scheme.${s.scheme}`),
       // Already inside the net charges: shown so people see it, but without a minus (it isn't taken off again).
-      tag: t(s.includedInItems ? 'bill.inLines' : s.scheme === 'insurance' ? 'bill.tag.insurance' : 'bill.tag.subsidy'),
+      tag: t(s.includedInItems ? 'bill.inLines' : s.scheme === 'insurance' ? 'bill.tag.insurance' : s.scheme === 'paid' ? 'bill.tag.paid' : 'bill.tag.subsidy'),
       amountCents: s.amountCents,
       minus: !s.includedInItems,
       text: t(`bill.explain.scheme.${s.scheme}`),

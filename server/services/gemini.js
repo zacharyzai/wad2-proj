@@ -107,14 +107,17 @@ Extract the bill.
   (e.g. "MediShield Life -6,120.00", "Integrated Plan Payout (24,074.86)", "MediSave -1,500.00") lowers what is paid and
   goes in subsidies or medisave instead. If the bill gives each line a gross and a net (after subsidy) amount, use the
   NET amount for every item, and mark the subsidy already taken off those lines with "includedInItems": true.
-  GST is its own "tax" item.
+  GST is its own "tax" item, unless the bill says GST is already included in the charges (e.g. "GST at 7% is included
+  in this bill"): then do not list it at all.
 - subsidies: each subsidy, deduction or claim that lowers what the patient pays (not MediSave). scheme: "government" for
   government/polyclinic/ward subsidy, "chas" for CHAS, "pioneer" for Pioneer Generation (PG), "merdeka" for Merdeka
-  Generation (MG), "insurance" for MediShield Life, Integrated Shield, private or employer insurance, otherwise "other".
+  Generation (MG), "insurance" for MediShield Life, Integrated Shield, private or employer insurance, "paid" for money
+  already paid earlier (a deposit, or a payment shown in a payer or payment table), otherwise "other".
   amount as a positive number, even when printed with a minus sign. includedInItems: true only for a subsidy already taken off the item amounts you listed
   (net lines); otherwise false.
 - medisave: amount paid by MediSave in dollars, as a positive number, 0 if there is no MediSave line.
-- totalPayable: the final amount the patient pays in cash, card or NETS, in dollars.
+- totalPayable: the final amount the patient still pays in cash, card or NETS, in dollars (the amount due after
+  deposits and earlier payments; on an interim bill, the amount due shown).
 - visitDate as YYYY-MM-DD (the visit date, or the discharge date for a hospital stay). Singapore dates are written
   day first: 07/10/2026 is 7 October 2026, so "2026-10-07". clinic: the clinic or hospital name.
 ${RULES}`,
