@@ -14,6 +14,7 @@ import Card from '../components/layout/Card.vue'
 import BigButton from '../components/layout/BigButton.vue'
 import ErrorBanner from '../components/layout/ErrorBanner.vue'
 import AppIcon from '../components/layout/AppIcon.vue'
+import CaregiverCard from '../components/care/CaregiverCard.vue'
 
 const CITIZENSHIPS = ['birth', 'became', 'pr', 'other']
 const today = new Date().toISOString().slice(0, 10)
@@ -34,6 +35,7 @@ const dobText = computed(() => {
 const rows = computed(() => [
   { key: 'name', label: t('auth.name'), value: user.value.name || '—' },
   { key: 'email', label: t('auth.email'), value: user.value.email || '—' },
+  { key: 'role', label: t('auth.role'), value: t(`auth.roles.${user.value.role ?? 'senior'}`) },
   { key: 'dob', label: t('auth.dob'), value: dobText.value },
   { key: 'citizenship', label: t('auth.citizenship'), value: citizenshipText(t, user.value) },
   ...(isCitizen(user.value.citizenship) ? [{ key: 'income', label: t('bill.q.income'), value: incomeText(t, user.value) }] : []),
@@ -157,6 +159,9 @@ function leave() {
         </div>
       </form>
     </Card>
+    
+    <!-- Seniors only: who can see my doses, and Invite a caregiver. -->
+    <CaregiverCard v-if="(user.role ?? 'senior') !== 'caregiver'" />
 
     <Card :title="t('nav.language')">
       <p class="text-muted-a11y m-0">{{ t('account.languageNote') }}</p>

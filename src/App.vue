@@ -1,6 +1,6 @@
 <!-- Owner: Isaac (app shell). From the Claude Design screens: phone header + bottom tabs, desktop sidebar (≥992px). One set of elements, re-laid out by CSS. -->
 <script setup>
-import { nextTick, watch } from 'vue'
+import { computed, nextTick, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { setLocale } from './i18n'
@@ -8,6 +8,7 @@ import AppIcon from './components/layout/AppIcon.vue'
 import GuideDialog from './components/guide/GuideDialog.vue'
 import ThemePrompt from './components/guide/ThemePrompt.vue'
 import { maybeShowGuide, openGuide } from './stores/guide'
+import { authStore } from './stores/auth'
 
 const { t, locale } = useI18n()
 const route = useRoute()
@@ -22,7 +23,9 @@ const NAV = [
   { to: '/bill', key: 'nav.bill', icon: 'receipt' },
   { to: '/ask', key: 'nav.ask', icon: 'chat' },
   { to: '/history', key: 'nav.history', icon: 'history' },
+  { to: '/care', key: 'nav.care', icon: 'users', caregiverOnly: true },
 ]
+const navItems = computed(() => NAV.filter((item) => !item.caregiverOnly || authStore.user?.role === 'caregiver'))
 // Prefix match so /scan/confirm and /scan/explain keep Scan highlighted; Home only on '/'.
 const isOn = (to) => (to === '/' ? route.path === '/' : route.path.startsWith(to))
 
@@ -71,7 +74,7 @@ router.afterEach(async (to, from, failure) => {
 
       <nav class="nav" :aria-label="t('nav.main')">
         <RouterLink
-          v-for="item in NAV"
+          v-for="item in navItems"
           :key="item.to"
           :to="item.to"
           :data-guide="item.to"

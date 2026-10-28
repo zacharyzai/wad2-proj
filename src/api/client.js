@@ -50,3 +50,23 @@ export const googleDisconnect = (removeEvents) => api('/google/disconnect', { me
 
 // Read-aloud audio for devices with no voice for the language: { audio } (base64 WAV). Takes about 6 s.
 export const readAloudAudio = (text, lang) => api('/tts', { method: 'POST', body: { text, lang } })
+
+
+// History and share links (Isaac's pages). Assumed contract until Sheen Hern's API lands: docs/history-contract.md
+export const listScans = (page = 1) => api(`/history?page=${page}`)
+export const getScan = (id) => api(`/history/${encodeURIComponent(id)}`)
+export const saveScan = (scan) => api('/history', { method: 'POST', body: { scan } })
+export const deleteScan = (id) => api(`/history/${encodeURIComponent(id)}`, { method: 'DELETE' })
+export const createShare = (scanId) => api('/share', { method: 'POST', body: { scanId } })
+export const revokeShare = (token) => api(`/share/${encodeURIComponent(token)}`, { method: 'DELETE' })
+export const getShared = (token) => api(`/share/${encodeURIComponent(token)}`)
+
+
+// Caregiver tracking (Isaac's pages). Assumed contract until Sheen Hern's /api/care exists: docs/care-contract.md
+export const createInvite = () => api('/care/invites', { method: 'POST' }) // senior: { token, expiresAt }
+export const getInvite = (token) => api(`/care/invites/${encodeURIComponent(token)}`) // public: { senior: { name }, expiresAt }
+export const acceptInvite = (token) => api(`/care/invites/${encodeURIComponent(token)}/accept`, { method: 'POST' }) // caregiver: { seniorId }
+export const careSeniors = () => api('/care/seniors') // caregiver: { seniors: [{ id, name, today: { taken, missed, upcoming } }] }
+export const careToday = (seniorId) => api(`/care/seniors/${encodeURIComponent(seniorId)}/today`) // { senior: { id, name }, doses: [...] }
+export const myCaregivers = () => api('/care/caregivers') // senior: { caregivers: [{ id, name, since }] }
+export const removeCareLink = (linkId) => api(`/care/links/${encodeURIComponent(linkId)}`, { method: 'DELETE' })
