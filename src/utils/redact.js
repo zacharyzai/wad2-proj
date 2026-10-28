@@ -16,6 +16,13 @@ function getWorker() {
   return worker
 }
 
+// Called when the Scan page opens, so the reader (~5 MB, once) is ready before the photo is taken.
+// Skipped when the phone asks to save data; then it downloads on the first photo as before. Errors wait for that too.
+export function warmUp() {
+  if (navigator.connection?.saveData) return
+  getWorker().catch(() => {})
+}
+
 function loadImage(src) {
   return new Promise((resolve, reject) => {
     const img = new Image()
