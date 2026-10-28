@@ -78,9 +78,10 @@ test('oversized body is 413 IMAGE_TOO_LARGE', async () => {
   assert.equal((await res.json()).error.code, 'IMAGE_TOO_LARGE')
 })
 
-test('stub routes answer 501', async () => {
+test('history without a login is refused', async () => {
   const res = await fetch(`${base}/api/history`)
-  assert.equal(res.status, 501)
+  assert.equal(res.status, 401)
+  assert.equal((await res.json()).error.code, 'NOT_LOGGED_IN')
 })
 
 test('scanning without a login is refused before anything else runs', async () => {
