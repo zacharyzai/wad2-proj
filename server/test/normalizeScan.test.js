@@ -1,6 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { normalizeMedication, normalizeBill } from '../services/normalizeScan.js'
+import { normalizeMedication, normalizeBill, addsUp } from '../services/normalizeScan.js'
+import { billGap, sectionsOff } from '../../src/rules/billCheck.js'
 
 test('medication: clean label has nothing unclear and drops unknown fields', () => {
   const scan = normalizeMedication({
@@ -24,7 +25,7 @@ test('medication: as-needed does not require timesPerDay', () => {
   assert.deepEqual(scan.unclear, [])
 })
 
-test('bill: dollars become integer cents and totals are cross-checked', () => {
+test('bill: dollars become integer cents, and totals that do not add up keep the printed total (with the gap)', () => {
   const raw = {
     items: [{ description: 'Consultation', category: 'consultation', amount: 14.5 }, { description: 'Meds', category: 'medication', amount: 8.2 }],
     subsidies: [{ scheme: 'government', amount: 8.7 }],
@@ -36,7 +37,11 @@ test('bill: dollars become integer cents and totals are cross-checked', () => {
   assert.deepEqual(ok.bill.items.map((i) => i.amountCents), [1450, 820])
 
   const wrong = normalizeBill({ ...raw, totalPayable: 99 })
-  assert.deepEqual(wrong.unclear, ['bill.totalPayableCents'])
+  assert.deepEqual(wrong.unclear, []) // not unclear: Confirm and the Bill page say how far off the lines are
+  assert.equal(wrong.bill.totalPayableCents, 9900)
+  assert.equal(billGap(wrong.bill), 1400 - 9900)
+  assert.equal(addsUp(wrong), false)
+  assert.equal(addsUp(ok), true)
 })
 
 test('bill: unreadable lines are flagged and unknown enums fall back to other', () => {
@@ -73,9 +78,54 @@ test('bill with net lines: the subsidy inside them is kept but not subtracted ag
   const { bill, unclear } = normalizeBill(NET_BILL)
   assert.deepEqual(unclear, []) // 4341.79 − 2850 − 217.09 − 1094.70 = 180.00
   assert.deepEqual(bill.subsidies.map((s) => [s.scheme, s.includedInItems]), [['government', true], ['insurance', false], ['merdeka', false]])
-  // Taking the government subsidy off again would not add up: flagged for the user to check.
+  // Taking the government subsidy off again would not add up: the gap says so.
   const twice = normalizeBill({ ...NET_BILL, subsidies: NET_BILL.subsidies.map((s) => ({ ...s, includedInItems: false })) })
-  assert.ok(twice.unclear.includes('bill.totalPayableCents'))
+  assert.equal(billGap(twice.bill), -739751)
+})
+
+// HMI Managed Healthcare Clinic tax invoice (28 Oct 2026): two sections with printed subtotals, GST added, a corporate
+// benefit in brackets. Read once with $14.50 as $14.00, so the medications didn't add up.
+const HMI = (fexofen = 14.5) => ({
+  clinic: 'HMI Managed Healthcare Clinic',
+  items: [
+    { description: 'Tele - Consultation with [HMI Managed Healthcare Clinic]', category: 'consultation', amount: 8, section: 'Consultation Fees' },
+    { description: 'Surcharge', category: 'other', amount: 20, section: 'Consultation Fees' },
+    { description: 'Subtotal', category: 'other', amount: 28, section: 'Consultation Fees' }, // a subtotal listed as a charge
+    { description: 'PROCEPTIN-20 CAPSULE 20MG', category: 'medication', amount: 9.57, section: 'Medications List' },
+    { description: 'ETORICOXIB ALVOGEN FILM-COATED TABLET 90MG', category: 'medication', amount: 23.14, section: 'Medications List' },
+    { description: 'MAC-EXTRA LOZENGE (HEXYLRESORCINOL)', category: 'medication', amount: 6.7, section: 'Medications List' },
+    { description: 'ILIADIN ADULT NASAL DROPS 0.05% (10ML) (NON CLAIMABLE )', category: 'medication', amount: 12.6, section: 'Medications List' },
+    { description: 'FEXOFEN FILM-COATED TABLET 180MG', category: 'medication', amount: fexofen, section: 'Medications List' },
+    { description: 'HELIXIR COUGH SYRUP (100ML)', category: 'medication', amount: 9.75, section: 'Medications List' },
+    { description: 'STENAC 600MG (ACETYLCYSTEINE)', category: 'medication', amount: 7.5, section: 'Medications List' },
+    { description: 'GST (9%)', category: 'tax', amount: 10.06, section: null },
+    { description: 'Corporate Benefit', category: 'other', amount: '(86.29)', section: null },
+  ],
+  subtotals: [{ section: 'Medications List', amount: 83.76 }],
+  subsidies: [],
+  medisave: 0,
+  totalPayable: 35.53,
+})
+
+test('HMI bill: adds up when read right; "NON CLAIMABLE" stays a charge; printed subtotals are kept', () => {
+  const scan = normalizeBill(HMI())
+  assert.deepEqual(scan.unclear, [])
+  assert.equal(scan.bill.items.length, 10) // the subtotal and the corporate benefit are not charges
+  assert.ok(scan.bill.items.some((i) => /NON CLAIMABLE/.test(i.description))) // "claim" inside a word is not a deduction
+  assert.deepEqual(scan.bill.subsidies, [{ scheme: 'other', amountCents: 8629, includedInItems: false }])
+  assert.deepEqual(scan.bill.subtotals, [{ section: 'Medications List', amountCents: 8376 }, { section: 'Consultation Fees', amountCents: 2800 }])
+  assert.equal(billGap(scan.bill), 0)
+  assert.deepEqual(sectionsOff(scan.bill), [])
+  assert.equal(addsUp(scan), true)
+})
+
+test('HMI bill misread ($14.50 as $14.00): the printed total stays, the gap and the section to check are known', () => {
+  const scan = normalizeBill(HMI(14))
+  assert.deepEqual(scan.unclear, [])
+  assert.equal(scan.bill.totalPayableCents, 3553)
+  assert.equal(billGap(scan.bill), -50) // the lines come to 50 cents less than the bill's total
+  assert.deepEqual(sectionsOff(scan.bill), [{ section: 'Medications List', printedCents: 8376, linesCents: 8326 }])
+  assert.equal(addsUp(scan), false)
 })
 
 // The Orchid Crest statement (fictional private hospital): 8 charges + GST = 33,194.86; MediShield Life, the Integrated

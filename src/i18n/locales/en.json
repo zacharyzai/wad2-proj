@@ -234,7 +234,8 @@
       "smudged": "Please check: this part is hard to read on the photo.",
       "medisave": "Paid by MediSave",
       "total": "Total you pay",
-      "mismatch": "Please check: the amounts don’t add up to this total."
+      "gap": "These lines add up to {lines}, not {total}. One amount may have been misread, but the total is copied from your bill, so you can carry on.",
+      "gapWhere": "If you want to check, look at the lines under “{section}”: the bill says they come to {printed}."
     },
     "steps": {
       "label": "Steps",
@@ -731,7 +732,12 @@
     "basis": "Checked with your account details: born {year}, {status}.",
     "basisChange": "Change my details",
     "closeBill": "Close this bill",
-    "inLines": "Already taken off the charges above"
+    "inLines": "Already taken off the charges above",
+    "gap": {
+      "title": "These charges don’t quite add up",
+      "text": "They come to {lines}, but your bill’s total is {total}. One amount may have been misread. The amount you pay shown here is the one printed on your bill.",
+      "subsidy": "Subsidy estimates use these lines, so they may be slightly off."
+    }
   },
   "account": {
     "toast": "Settings saved",

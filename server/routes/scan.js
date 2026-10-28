@@ -47,7 +47,8 @@ router.post('/', scanRateLimit, async (req, res) => {
   }
 
   try {
-    res.json({ ok: true, data: await extractScan(type, image) })
+    // A bill that doesn't add up may be read once more: that reading counts against the daily cap too.
+    res.json({ ok: true, data: await extractScan(type, image, { canRecheck: () => takeDailyQuota() }) })
   } catch (err) {
     if (err instanceof ScanError) return sendError(res, err.status, err.code, err.message)
     throw err // Express 5 forwards it to the error handler in app.js
