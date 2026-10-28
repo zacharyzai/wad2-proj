@@ -1,6 +1,6 @@
 <!-- Owner: Asher. From the Claude Design Scan screens: choose, camera/upload, samples, processing and unclear-photo states. -->
 <script setup>
-import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { scanImage, scanSample } from '../api/client'
@@ -32,12 +32,25 @@ const covering = ref(false) // loading, step 1: blacking out personal details on
 // The photo shown while it is covered, so people watch their details being blacked out: { original, covered }.
 const coverView = ref(null)
 const REVEAL_MS = 1100 // matches the cover-wipe animation in ScanView.css
+// One limit for a whole scan, tap to answer: covering gets up to 12 s of it, the request the rest (the server's AI stops
+// at 16 s, server/services/gemini.js). Past it, a TIMEOUT error with Try again instead of waiting on.
+const SCAN_LIMIT_MS = 30_000
+const COVER_LIMIT_MS = 12_000
+const SLOW_MS = 15_000 // then the wait text says it is slower than usual, and when we will stop
 const readingType = ref(type.value)
 const errorCode = ref(null)
 const photo = ref(null)
 const camera = ref(null)
 const upload = ref(null)
 let lastRequest = null
+const slow = ref(false)
+let slowTimer
+watch(state, (s) => {
+  clearTimeout(slowTimer)
+  slow.value = false
+  if (s === 'loading') slowTimer = setTimeout(() => (slow.value = true), SLOW_MS)
+})
+onBeforeUnmount(() => clearTimeout(slowTimer))
 let run = 0 // bumped by Cancel so a late reply is ignored
 
 // Keeps the upload well under the 4 MB API limit (contract asks for about 1 MB).
@@ -108,12 +121,13 @@ async function retake() {
 
 onBeforeUnmount(stopCamera)
 
-async function send(docType, request) {
+// request(ms) makes the call with that time limit. Try again gives it a fresh full limit.
+async function send(docType, request, limit = SCAN_LIMIT_MS) {
   const id = ++run
   lastRequest = { docType, request }
   readingType.value = docType
   state.value = 'loading'
-  const res = await request()
+  const res = await request(limit)
   if (id !== run) return
   if (!res.ok) {
     errorCode.value = res.error.code
@@ -157,14 +171,18 @@ async function useFile(file) {
 let coverDocType = null
 async function coverAndSend(docType) {
   const id = ++run
+  const deadline = Date.now() + SCAN_LIMIT_MS
   coverDocType = docType
+  lastRequest = null // Try again covers again until a covered photo has been sent
   readingType.value = docType
   covering.value = true
   state.value = 'loading'
   coverView.value = { original: photo.value, covered: null }
   let covered = null
+  let tooSlow = false
+  const timeUp = new Promise((resolve) => setTimeout(() => resolve((tooSlow = true) && null), COVER_LIMIT_MS))
   try {
-    covered = await (window.__redactForTests ?? redactImage)(photo.value)
+    covered = await Promise.race([(window.__redactForTests ?? redactImage)(photo.value), timeUp])
   } catch {
     // Reader could not load (offline, very old phone) or crashed: fail closed.
   }
@@ -172,7 +190,7 @@ async function coverAndSend(docType) {
   if (!covered || !covered.keep.length) {
     covering.value = false
     // Nothing that looks like a label or bill was found: the covered photo would be all black, so don't send it.
-    errorCode.value = covered ? 'UNREADABLE_IMAGE' : 'COVER_FAILED'
+    errorCode.value = covered ? 'UNREADABLE_IMAGE' : tooSlow ? 'TIMEOUT' : 'COVER_FAILED'
     state.value = 'error'
     return
   }
@@ -182,18 +200,18 @@ async function coverAndSend(docType) {
   await new Promise((done) => setTimeout(done, matchMedia('(prefers-reduced-motion: reduce)').matches ? 300 : REVEAL_MS))
   if (id !== run) return
   covering.value = false
-  send(docType, () => scanImage(docType, photo.value))
+  send(docType, (ms) => scanImage(docType, photo.value, ms), deadline - Date.now())
 }
 
 function trySample(sample) {
   // H6: the sample's picture goes to Confirm too, so there is something to check the fields against.
   photo.value = `/samples/${sample.id}.svg`
   coverView.value = null
-  send(sample.type, () => scanSample(sample.id))
+  send(sample.type, (ms) => scanSample(sample.id, ms))
 }
 
 function retry() {
-  if (errorCode.value === 'COVER_FAILED') return coverAndSend(coverDocType)
+  if (errorCode.value === 'COVER_FAILED' || !lastRequest) return coverAndSend(coverDocType)
   send(lastRequest.docType, lastRequest.request)
 }
 
@@ -214,7 +232,7 @@ const OTHER_KIND = { LOOKS_LIKE_BILL: 'bill', LOOKS_LIKE_LABEL: 'medication' }
 const otherKind = computed(() => OTHER_KIND[errorCode.value] ?? null)
 function readAsOther() {
   const kind = otherKind.value
-  send(kind, () => scanImage(kind, photo.value))
+  send(kind, (ms) => scanImage(kind, photo.value, ms))
 }
 function notOther() {
   errorCode.value = 'MISMATCH'
@@ -269,7 +287,16 @@ onMounted(() => {
       <span class="progress-ring__core"><AppIcon :name="readingType === 'bill' ? 'receipt' : 'pill'" :size="40" /></span>
     </div>
     <LoadingState :label="covering ? t('scan.covering') : t(`scan.reading.${readingType}`)" />
-    <p class="lead-text">{{ t('scan.wait') }}</p>
+    <!-- A photo goes through two steps: covered on this phone, then read. Samples only have the second. -->
+    <ol v-if="coverView" class="scan-steps" data-testid="scan-steps">
+      <li :class="covering ? 'now' : 'done'" :aria-current="covering ? 'step' : null">
+        <span class="step-mark" aria-hidden="true"><AppIcon v-if="!covering" name="check" :size="18" :stroke="3" /><template v-else>1</template></span>{{ t('scan.steps.cover') }}
+      </li>
+      <li :class="covering ? 'next' : 'now'" :aria-current="covering ? null : 'step'">
+        <span class="step-mark" aria-hidden="true">2</span>{{ t(`scan.steps.read.${readingType}`) }}
+      </li>
+    </ol>
+    <p class="lead-text" data-testid="scan-wait">{{ slow ? t('scan.slow') : t('scan.wait') }}</p>
     <span class="reassure-pill"><AppIcon name="shield" :size="20" class="text-teal" />{{ t('scan.neverStored') }}</span>
     <button type="button" class="btn btn-ghost" @click="cancel">{{ t('scan.cancel') }}</button>
   </div>

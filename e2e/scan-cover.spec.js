@@ -46,3 +46,37 @@ test('a photo with nothing that looks like a label is not sent (it would be all 
   await expect(page.getByRole('button', { name: 'Upload a different photo' })).toBeVisible() // the photo tips, as for any unclear photo
   expect(apiCalls).toBe(0)
 })
+
+test('covering that never finishes stops at 12 s with "taking too long", and Try again covers again', async ({ page }) => {
+  await mockImageScan(page, { cover: 'hang' })
+  let apiCalls = 0
+  page.on('request', (r) => r.url().includes('/api/scan') && apiCalls++)
+  await page.clock.install()
+  await page.goto('/scan')
+  await upload(page)
+  const steps = page.getByTestId('scan-steps')
+  await expect(steps.locator('li').first()).toHaveAttribute('aria-current', 'step') // step 1 of 2: covering
+  await page.clock.runFor(12_500)
+  await expect(page.getByRole('alert')).toContainText('This is taking too long, so we stopped.')
+  expect(apiCalls).toBe(0)
+  await page.evaluate(() => (window.__redactForTests = async (dataUrl) => ({ dataUrl, keep: [{ text: 'TAKE 1 TABLET' }], hits: [] })))
+  await page.getByRole('button', { name: 'Try again' }).click()
+  await page.clock.runFor(2_000) // the cover reveal
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Check what we read')
+  expect(apiCalls).toBe(1)
+})
+
+test('while reading, step 2 is shown, and a slow read says so and when it will stop', async ({ page }) => {
+  await mockImageScan(page)
+  await page.route('**/api/scan', () => {}) // the server never answers
+  await page.clock.install()
+  await page.goto('/scan')
+  await upload(page)
+  await page.clock.runFor(2_000) // covered, then the reveal
+  const steps = page.getByTestId('scan-steps').locator('li')
+  await expect(steps.nth(1)).toHaveAttribute('aria-current', 'step')
+  await expect(steps.nth(0)).toHaveClass(/done/)
+  await expect(page.getByTestId('scan-wait')).toHaveText('This usually takes about 10 seconds.')
+  await page.clock.runFor(14_000)
+  await expect(page.getByTestId('scan-wait')).toHaveText('This is taking longer than usual. We will stop after 30 seconds so you can try again.')
+})

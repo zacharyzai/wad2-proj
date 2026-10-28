@@ -14,23 +14,26 @@ function authHeader() {
   const token = readToken()
   return token ? { authorization: `Bearer ${token}` } : {}
 }
-export async function api(path, { method = 'GET', body } = {}) {
+// timeout (ms): give up and return TIMEOUT instead of waiting as long as the server takes.
+export async function api(path, { method = 'GET', body, timeout } = {}) {
   try {
     const res = await fetch(`/api${path}`, {
       method,
+      signal: timeout ? AbortSignal.timeout(Math.max(1, timeout)) : undefined,
       headers: { ...(body ? { 'content-type': 'application/json' } : {}), ...authHeader() },
       body: body ? JSON.stringify(body) : undefined,
     })
     return await res.json()
-  } catch {
+  } catch (err) {
+    if (err?.name === 'TimeoutError') return { ok: false, error: { code: 'TIMEOUT', message: 'The server took too long' } }
     // Offline, server down, or a non-JSON response (e.g. a hosting error page).
     return { ok: false, error: { code: 'NETWORK_ERROR', message: 'Could not reach the server' } }
   }
 }
 
 // Contract: docs/scan-contract.md
-export const scanImage = (type, image) => api('/scan', { method: 'POST', body: { type, image } })
-export const scanSample = (sampleId) => api('/scan', { method: 'POST', body: { sampleId } })
+export const scanImage = (type, image, timeout) => api('/scan', { method: 'POST', body: { type, image }, timeout })
+export const scanSample = (sampleId, timeout) => api('/scan', { method: 'POST', body: { sampleId }, timeout })
 
 // Contract: docs/chat-contract.md
 export const askMedicine = (medicines, question, lang, history = []) => api('/chat', { method: 'POST', body: { medicines, question, lang, history } })

@@ -38,6 +38,7 @@ From the client, call `scanImage(type, image)` / `scanSample(id)` from `src/api/
 | `AI_UNAVAILABLE` | 503 | Gemini is down or not configured |
 | `SERVER_ERROR` | 500 | unexpected server error |
 | `NETWORK_ERROR` | none | set by the client only: server unreachable or non-JSON response |
+| `TIMEOUT` | none | set by the client only: the scan passed its 30 s limit (covering on the phone, or the request) |
 
 Show errors with `t('errors.' + error.code)`.
 
