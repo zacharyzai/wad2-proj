@@ -16,6 +16,13 @@ function getWorker() {
   return worker
 }
 
+// Called when the Scan page opens, so the reader (~5 MB, once) is ready before the photo is taken.
+// Skipped when the phone asks to save data; then it downloads on the first photo as before. Errors wait for that too.
+export function warmUp() {
+  if (navigator.connection?.saveData) return
+  getWorker().catch(() => {})
+}
+
 function loadImage(src) {
   return new Promise((resolve, reject) => {
     const img = new Image()
@@ -27,16 +34,44 @@ function loadImage(src) {
 
 // Tesseract reads best with text about 30px tall and strong contrast; phone photos of small labels are often below that.
 const READ_SIDE = 2400
-function forReading(img) {
+const NORMAL = 'grayscale(1) contrast(1.5)'
+// Light text on a dark box (a "Balance Due" bar, a coloured header) is invisible to the reader; inverted, it is dark on light.
+const INVERTED = 'grayscale(1) invert(1)' // no contrast boost: it washes a mid-dark box (purple, teal) out to blank
+function forReading(img, filter = NORMAL) {
   const scale = Math.min(2, Math.max(1, READ_SIDE / Math.max(img.naturalWidth, img.naturalHeight)))
   const canvas = document.createElement('canvas')
   canvas.width = Math.round(img.naturalWidth * scale)
   canvas.height = Math.round(img.naturalHeight * scale)
   const ctx = canvas.getContext('2d')
-  ctx.filter = 'grayscale(1) contrast(1.5)' // ignored where unsupported; reading still works, just less well
+  ctx.filter = filter // ignored where unsupported; reading still works, just less well
   ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
   return { canvas, scale }
 }
+
+// Whether the photo has dark areas big enough to hold light text (a coloured total bar, a header band). Checked on a
+// 120 px copy: more than 1% of it darker than mid-grey. A plain white bill skips the second reading (half the time).
+function hasDarkAreas(img) {
+  const w = 120
+  const h = Math.max(1, Math.round((img.naturalHeight / img.naturalWidth) * w))
+  const canvas = document.createElement('canvas')
+  canvas.width = w
+  canvas.height = h
+  const ctx = canvas.getContext('2d', { willReadFrequently: true })
+  ctx.drawImage(img, 0, 0, w, h)
+  const px = ctx.getImageData(0, 0, w, h).data
+  let dark = 0
+  for (let i = 0; i < px.length; i += 4) if (0.3 * px[i] + 0.59 * px[i + 1] + 0.11 * px[i + 2] < 110) dark++
+  return dark / (w * h) > 0.01
+}
+
+// One reading of the photo: Tesseract's lines, in reading-canvas pixels (scale × the photo).
+export async function readLines(img, filter = NORMAL) {
+  const { canvas, scale } = forReading(img, filter)
+  const ocr = await getWorker()
+  const { data } = await ocr.recognize(canvas, {}, { blocks: true, text: true })
+  return { lines: (data.blocks ?? []).flatMap((block) => block.paragraphs.flatMap((p) => p.lines)), text: data.text, scale }
+}
+export { loadImage }
 
 /**
  * @param dataUrl the (already compressed) JPEG data URL
@@ -46,11 +81,14 @@ function forReading(img) {
 export async function redactImage(dataUrl) {
   const started = performance.now()
   const img = await loadImage(dataUrl)
-  const { canvas: reading, scale } = forReading(img)
-  const ocr = await getWorker()
-  const { data } = await ocr.recognize(reading, {}, { blocks: true, text: true })
-  const lines = (data.blocks ?? []).flatMap((block) => block.paragraphs.flatMap((p) => p.lines))
-  const { keep, hits } = planRedaction(lines)
+  // Two readings: as it is, and inverted (finds light text on dark boxes). Each goes through the rules on its own; a strip
+  // either one keeps is shown, and every word either one flags is blacked out (so hiding is never weaker than one reading).
+  const first = await readLines(img)
+  const { scale, text } = first
+  const a = planRedaction(first.lines)
+  const b = hasDarkAreas(img) ? planRedaction((await readLines(img, INVERTED)).lines) : { keep: [], hits: [] }
+  const keep = [...a.keep, ...b.keep]
+  const hits = [...a.hits, ...b.hits]
 
   const canvas = document.createElement('canvas')
   canvas.width = img.naturalWidth
@@ -82,5 +120,5 @@ export async function redactImage(dataUrl) {
     }
     ctx.restore()
   }
-  return { dataUrl: canvas.toDataURL('image/jpeg', 0.8), keep, hits, text: data.text, ms: Math.round(performance.now() - started) }
+  return { dataUrl: canvas.toDataURL('image/jpeg', 0.8), keep, hits, text, ms: Math.round(performance.now() - started) }
 }

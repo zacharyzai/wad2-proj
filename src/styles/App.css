@@ -52,6 +52,9 @@
   .navi.on .navi-icon { background: var(--color-primary); color: #fff; }
   .navi.on::after { display: none; }
   .lang-ta .navi { font-size: 17px; }
+  /* "How to use the app" is the longest sidebar label (Tamil needs two lines), so it wraps instead of running out of the button. */
+  .guide-link { white-space: normal; line-height: 1.3; padding-block: 8px; }
+  .guide-link .navi-label { min-width: 0; }
 
   .lang-box { margin-top: auto; display: flex; flex-direction: column; gap: 10px; }
   .lang-box .section-label { padding: 0 4px; }
