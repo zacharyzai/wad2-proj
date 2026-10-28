@@ -790,5 +790,100 @@
     "begin": "带我看看",
     "tapHint": "点击发光的按钮",
     "there": "带我过去"
+  },
+  "schedule": {
+    "lead": "每次服药后打勾。打勾记录会保存在您的账户里。",
+    "empty": {
+      "title": "还没有药物",
+      "text": "扫描并核对药物标签后，服药时间会在这里排成每日时间表。"
+    },
+    "today": "今天",
+    "noneToday": "今天没有要吃的药。",
+    "noneTodayNeedDays": "还没有服药时间。请在下面告诉我们这药要吃几天。",
+    "progress": "已服 {done} / {total} 次",
+    "allDone": "今天的药都吃完了，做得好！",
+    "taken": "已服",
+    "tickLabel": "已服：{name}，{time}",
+    "tickFailed": "刚才的打勾没有保存，请再试一次。",
+    "saved": "时间表已保存",
+    "removed": "已移除 {name}",
+    "undo": "撤销",
+    "meds": {
+      "title": "我的药物",
+      "until": "{start} 至 {end}",
+      "starts": "{date} 开始",
+      "ended": "{date} 已结束",
+      "needDays": "这药要吃几天？",
+      "needDaysHelp": "请看标签或问药剂师。告诉我们后，就会加入您的时间表。",
+      "setDays": "填写天数",
+      "setDaysOne": "填写 {name} 的天数",
+      "remove": "移除",
+      "removeOne": "移除 {name}",
+      "change": "更改",
+      "changeOne": "更改 {name}",
+      "daysTimes": "天数和时间",
+      "daysTimesOne": "{name} 的天数和时间"
+    },
+    "form": {
+      "title": "修改 {name}",
+      "days": "天数",
+      "daysHelp": "要吃几天（包括开始那天）。",
+      "start": "开始日期",
+      "times": "每次服药时间",
+      "save": "保存",
+      "cancel": "取消",
+      "bad": {
+        "days": "请输入 1 到 {max} 之间的整数天数。",
+        "start": "请选择开始日期。",
+        "time": "请输入时间，例如 上午8:00。"
+      }
+    },
+    "pharm": {
+      "title": "请问药剂师",
+      "text": "这些药不是每天固定时间吃的，例如需要时才用、每周一次或逐渐减量。我们不会把它们放进时间表。请问药剂师什么时候吃。"
+    },
+    "calendar": {
+      "title": "Google 日历提醒",
+      "text": "连接 Google 日历后，每次服药都会出现在您的日历里并有提醒，即使关掉这个应用，手机也会提醒您。",
+      "connect": "连接 Google 日历",
+      "reconnect": "重新连接",
+      "connected": "已连接",
+      "events": "日历里有 {n} 次服药提醒。",
+      "alerts": "请确认日历的提醒已打开。",
+      "missing": "还没加入日历：{names}。请在上面填写天数，就会加入。",
+      "updated": "日历已更新",
+      "failed": "日历没有更新。下次您修改时间表时会再试。",
+      "disconnect": "断开 Google 日历",
+      "removeAsk": "也要从 Google 日历里删除服药提醒吗？",
+      "removeYes": "要，删除",
+      "removeNo": "不要，保留",
+      "cancel": "取消",
+      "disconnected": "已断开 Google 日历",
+      "result": {
+        "connected": "Google 日历已连接",
+        "cancelled": "Google 日历没有连接。",
+        "failed": "无法连接 Google 日历。请再试一次。"
+      }
+    },
+    "fix": {
+      "button": "修改读取内容",
+      "buttonOne": "修改 {name} 的读取内容",
+      "lead": "请修改与标签不一致的地方。天数、打勾记录和日历提醒都会保留。",
+      "cancel": "取消",
+      "done": "已更新 {name}"
+    },
+    "slot": {
+      "now": "现在吃",
+      "later": "今天稍后",
+      "earlier": "还没打勾",
+      "done": "都吃了",
+      "missed": "如果漏吃了，请问药剂师该怎么办。"
+    },
+    "early": {
+      "title": "这次是今天稍后才吃的",
+      "text": "{name} 是 {time} 吃的。您已经吃了吗？",
+      "yes": "是，我吃了",
+      "no": "还没"
+    }
   }
 }

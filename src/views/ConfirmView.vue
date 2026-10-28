@@ -4,7 +4,7 @@ import { computed, nextTick, reactive, ref, toRaw, watch } from 'vue'
 import { onBeforeRouteLeave, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { scanStore } from '../stores/scan'
-import { rememberMedicine } from '../stores/medicines'
+import { rememberMedicine, replaceMedicine } from '../stores/medicines'
 import ConfirmField from '../components/scan/ConfirmField.vue'
 import AppIcon from '../components/layout/AppIcon.vue'
 import { DOSE_UNITS, TIMINGS, WITH_FOOD, FREQUENCY_TYPES } from '../../server/services/normalizeScan.js'
@@ -18,6 +18,9 @@ if (!scan) router.replace({ name: 'scan' })
 const draft = reactive(scan ? structuredClone(toRaw(scan)) : {})
 const photo = scanStore.photo
 const showPhoto = ref(false)
+// Lokesh: "Fix what we read" on Schedule opens a saved medicine here (no photo). Looks correct replaces that medicine and
+// goes back to Schedule, keeping its days, ticks and calendar reminders. `savedId` lives on the scan, so a new scan clears it.
+const fixing = Boolean(scan?.savedId)
 
 const sum = (xs) => xs.reduce((total, x) => total + (x.amountCents ?? 0), 0)
 const dollars = (cents) => (cents == null ? '' : (cents / 100).toFixed(2))
@@ -113,6 +116,11 @@ function confirm() {
   if (draft.type === 'medication') {
     // Number inputs give '' when cleared; the contract uses null.
     for (const key of Object.keys(draft.medication)) if (draft.medication[key] === '') draft.medication[key] = null
+    if (fixing) {
+      replaceMedicine(draft.savedId, draft.medication)
+      done = true
+      return router.push({ name: 'schedule', state: { fixedId: draft.savedId } })
+    }
     // Ask (the chatbot) answers about the medicines the user has checked.
     rememberMedicine(draft.medication, 'label', draft.source === 'sample')
   }
@@ -122,12 +130,12 @@ function confirm() {
   router.push({ name: 'explain' })
 }
 
-const scanAgain = () => router.push({ name: draft.type === 'bill' ? 'bill-scan' : 'scan' })
+const scanAgain = () => router.push({ name: fixing ? 'schedule' : draft.type === 'bill' ? 'bill-scan' : 'scan' })
 </script>
 
 <template>
   <div v-if="scan" class="page">
-    <ol class="steps" :aria-label="t('confirm.steps.label')">
+    <ol v-if="!fixing" class="steps" :aria-label="t('confirm.steps.label')">
       <li class="done"><AppIcon name="checkCircle" :size="18" />{{ t('confirm.steps.photo') }}</li>
       <li class="now" aria-current="step">{{ t('confirm.steps.check') }}</li>
       <li>{{ t('confirm.steps.explain') }}</li>
@@ -136,7 +144,7 @@ const scanAgain = () => router.push({ name: draft.type === 'bill' ? 'bill-scan' 
       <button type="button" class="back" :aria-label="t('nav.back')" @click="scanAgain"></button>
       <div class="page-head">
         <h1>{{ t(`confirm.title.${draft.type}`) }}</h1>
-        <p class="lead-text">{{ t(`confirm.lead.${draft.type}`) }}</p>
+        <p class="lead-text">{{ fixing ? t('schedule.fix.lead') : t(`confirm.lead.${draft.type}`) }}</p>
       </div>
     </div>
 
@@ -170,6 +178,12 @@ const scanAgain = () => router.push({ name: draft.type === 'bill' ? 'bill-scan' 
           <div v-if="flagged.length" class="alert alert-warning"><AppIcon name="alert" />{{ t('confirm.needsCheck', flagged.length) }}</div>
           <div v-else class="alert alert-success" data-testid="all-filled"><AppIcon name="checkCircle" />{{ t('confirm.allFilled', { ok: t('confirm.ok') }) }}</div>
         </div>
+
+        <!-- Fixing a saved medicine: the label's own words stay in view, so "How to take it" is changed against the label,
+             never just to get reminders for a "when needed" medicine. -->
+        <p v-if="fixing && draft.medication.rawInstruction" class="alert alert-note m-0" data-testid="confirm-label-says">
+          <AppIcon name="info" /><span :lang="draft.source === 'typed' ? null : 'en'">{{ t('explain.med.labelSays', { text: draft.medication.rawInstruction }) }}</span>
+        </p>
 
         <!-- Medication -->
         <div v-if="draft.type === 'medication'" class="card fgrid">
@@ -251,7 +265,8 @@ const scanAgain = () => router.push({ name: draft.type === 'bill' ? 'bill-scan' 
         <div class="d-flex flex-column gap-2">
           <div class="acts">
             <button type="button" class="btn btn-primary ok" :disabled="flagged.length > 0" :aria-describedby="flagged.length ? 'ok-reason' : null" @click="confirm">{{ t('confirm.ok') }}<AppIcon name="right" /></button>
-            <button type="button" class="btn btn-ghost" @click="scanAgain"><AppIcon name="camera" :size="22" />{{ photo ? t('confirm.retake') : t('confirm.scanOther') }}</button>
+            <button v-if="fixing" type="button" class="btn btn-ghost" @click="scanAgain">{{ t('schedule.fix.cancel') }}</button>
+            <button v-else type="button" class="btn btn-ghost" @click="scanAgain"><AppIcon name="camera" :size="22" />{{ photo ? t('confirm.retake') : t('confirm.scanOther') }}</button>
           </div>
           <span v-if="flagged.length" id="ok-reason" class="text-muted-a11y">{{ t('confirm.okDisabled') }}</span>
         </div>

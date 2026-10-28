@@ -1,6 +1,7 @@
 import mongoose from 'mongoose'
 import { sendError } from './errors.js'
 import { User } from './models/User.js'
+import { Dose } from './models/Dose.js'
 
 let pending
 export async function connectDb() {
@@ -12,8 +13,8 @@ export async function connectDb() {
       await mongoose.connect(process.env.MONGODB_URI, {
         serverSelectionTimeoutMS: 5000, connectTimeoutMS: 5000, maxPoolSize: 10,
       })
-      // Ensure concurrent signups cannot create duplicate emails.
-      await User.init()
+      // Ensure concurrent signups cannot create duplicate emails, and a dose can't be ticked twice on the same day.
+      await Promise.all([User.init(), Dose.init()])
     } catch (error) {
       await mongoose.disconnect()
       throw error

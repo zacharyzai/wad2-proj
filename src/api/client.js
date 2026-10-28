@@ -34,3 +34,13 @@ export const scanSample = (sampleId) => api('/scan', { method: 'POST', body: { s
 
 // Contract: docs/chat-contract.md
 export const askMedicine = (medicines, question, lang, history = []) => api('/chat', { method: 'POST', body: { medicines, question, lang, history } })
+
+// Contract: docs/doses-contract.md
+export const dosesTaken = (date) => api(`/doses?date=${encodeURIComponent(date)}`)
+export const setDoseTaken = (doseId, date, taken) => api('/doses', { method: taken ? 'POST' : 'DELETE', body: { doseId, date } })
+
+// Contract: docs/google-contract.md
+export const googleStatus = () => api('/google/status')
+export const googleConnect = (next) => api('/google/connect', { method: 'POST', body: { next } })
+export const googleSync = (entries, lang) => api('/google/sync', { method: 'POST', body: { entries, lang } })
+export const googleDisconnect = (removeEvents) => api('/google/disconnect', { method: 'POST', body: { removeEvents } })

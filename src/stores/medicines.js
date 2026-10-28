@@ -1,4 +1,5 @@
-// The user's medicines, so Ask can answer about what they actually take. Extracted text only (contract fields), never photos.
+// The user's medicines, so Ask can answer about what they actually take and Schedule can lay out their doses.
+// Extracted text only (contract fields), never photos.
 // shortcut: kept in this browser only; move to the user's account (Sheen Hern's history API) once login exists.
 import { reactive, toRaw, watch } from 'vue'
 
@@ -14,7 +15,8 @@ function load() {
   }
 }
 
-// [{ id, source: 'label' | 'typed', sample, medication }], newest first.
+// [{ id, source: 'label' | 'typed', sample, medication, schedule? }], newest first.
+// schedule = { startDate, days, times: { slot: 'HH:MM' } }, set on the Schedule page (src/rules/schedule.js reads it).
 export const medicines = reactive(load())
 
 watch(medicines, (list) => {
@@ -28,12 +30,48 @@ watch(medicines, (list) => {
 const same = (a, b) => a.name.trim().toLowerCase() === b.name.trim().toLowerCase() && (a.strength ?? '') === (b.strength ?? '')
 
 // Re-adding a medicine replaces the old entry, so a re-scanned label updates its instructions.
+// It keeps the old id and schedule, so its dose ticks and calendar events carry on instead of starting again.
+// A name typed in Ask never replaces a checked label: that would drop its daily instructions, and so its timetable.
 export function rememberMedicine(medication, source, sample = false) {
   const copy = structuredClone(toRaw(medication))
   const old = medicines.findIndex((m) => same(m.medication, copy))
-  if (old !== -1) medicines.splice(old, 1)
-  medicines.unshift({ id: `${Date.now()}-${Math.random().toString(36).slice(2)}`, source, sample, medication: copy })
+  if (old !== -1 && source === 'typed' && medicines[old].source === 'label') return
+  const previous = old === -1 ? null : medicines.splice(old, 1)[0]
+  medicines.unshift({
+    id: previous?.id ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+    source,
+    sample,
+    medication: copy,
+    ...(previous?.schedule ? { schedule: previous.schedule } : {}),
+  })
   medicines.splice(MAX)
+}
+
+// "Fix what we read" (Schedule → Confirm): the corrected details replace that medicine in place. Same id, schedule and
+// sample flag, so its ticks and calendar reminders carry on, even when the name itself was corrected.
+// Checked on Confirm, so it counts as a checked label from now on (a typed medicine becomes one too).
+export function replaceMedicine(id, medication) {
+  const copy = structuredClone(toRaw(medication))
+  const index = medicines.findIndex((m) => m.id === id)
+  if (index === -1) return rememberMedicine(copy, 'label') // removed meanwhile: add it again
+  const entry = medicines[index]
+  entry.medication = copy
+  entry.source = 'label'
+  // Corrected into the name of another saved medicine: keep this one (it has the schedule being fixed), drop the copy.
+  for (let i = medicines.length - 1; i >= 0; i--) if (i !== medicines.indexOf(entry) && same(medicines[i].medication, copy)) medicines.splice(i, 1)
+}
+
+// What Confirm needs to open a saved medicine: every contract field present (typed ones have only a name and
+// instructions), nothing to flag beyond the usual required fields, no photo, and `savedId` saying which one to replace.
+export function scanFromMedicine(entry) {
+  const blank = { name: null, strength: null, doseAmount: null, doseUnit: null, timesPerDay: null, timing: null, withFood: null, frequencyType: null, rawInstruction: null, warnings: [] }
+  return { type: 'medication', source: entry.sample ? 'sample' : entry.source, unclear: [], medication: { ...blank, ...structuredClone(toRaw(entry.medication)) }, savedId: entry.id }
+}
+
+// Schedule page: how many days, from when, and any times the user changed.
+export function setSchedule(id, schedule) {
+  const entry = medicines.find((m) => m.id === id)
+  if (entry) entry.schedule = structuredClone(toRaw(schedule))
 }
 
 // Returns what was removed and where, so the page can offer Undo.

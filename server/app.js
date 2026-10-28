@@ -8,6 +8,7 @@ import ttsRouter from './routes/tts.js'
 import { sendError } from './errors.js'
 import { requireAuth } from './middleware/requireAuth.js'
 import googleRouter from './routes/google.js'
+import dosesRouter from './routes/doses.js'
 
 const app = express()
 
@@ -25,6 +26,7 @@ app.use('/api/history', historyRouter)
 app.use('/api/share', shareRouter)
 app.use('/api/tts', ttsRouter)
 app.use('/api/google', googleRouter)
+app.use('/api/doses', requireAuth, dosesRouter)
 
 app.use('/api', (req, res) => sendError(res, 404, 'NOT_FOUND', 'Unknown API route'))
 

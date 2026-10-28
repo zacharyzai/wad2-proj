@@ -790,5 +790,100 @@
     "begin": "Tunjukkan saya",
     "tapHint": "Ketik butang yang bercahaya",
     "there": "Bawa saya ke sana"
+  },
+  "schedule": {
+    "lead": "Tandakan setiap dos selepas anda mengambilnya. Tanda anda disimpan dalam akaun anda.",
+    "empty": {
+      "title": "Belum ada ubat",
+      "text": "Imbas dan semak label ubat. Dosnya akan dipaparkan di sini sebagai jadual harian."
+    },
+    "today": "Hari ini",
+    "noneToday": "Tiada dos untuk diambil hari ini.",
+    "noneTodayNeedDays": "Belum ada dos. Beritahu kami berapa hari ubat anda perlu diambil, di bawah.",
+    "progress": "{done} daripada {total} dos sudah diambil",
+    "allDone": "Semua dos hari ini sudah diambil. Syabas!",
+    "taken": "Sudah ambil",
+    "tickLabel": "Sudah ambil: {name}, {time}",
+    "tickFailed": "Tanda itu tidak disimpan. Sila cuba lagi.",
+    "saved": "Jadual disimpan",
+    "removed": "{name} dibuang",
+    "undo": "Buat asal",
+    "meds": {
+      "title": "Ubat saya",
+      "until": "{start} hingga {end}",
+      "starts": "Bermula {date}",
+      "ended": "Tamat {date}",
+      "needDays": "Berapa hari ubat ini perlu diambil?",
+      "needDaysHelp": "Semak label atau tanya ahli farmasi anda. Kami tambah ke jadual anda setelah anda beritahu kami.",
+      "setDays": "Masukkan bilangan hari",
+      "setDaysOne": "Masukkan bilangan hari untuk {name}",
+      "remove": "Buang",
+      "removeOne": "Buang {name}",
+      "change": "Ubah",
+      "changeOne": "Ubah {name}",
+      "daysTimes": "Hari dan masa",
+      "daysTimesOne": "Hari dan masa untuk {name}"
+    },
+    "form": {
+      "title": "Ubah {name}",
+      "days": "Bilangan hari",
+      "daysHelp": "Berapa hari perlu diambil, termasuk tarikh mula.",
+      "start": "Tarikh mula",
+      "times": "Masa untuk setiap dos",
+      "save": "Simpan",
+      "cancel": "Batal",
+      "bad": {
+        "days": "Masukkan nombor bulat dari 1 hingga {max}.",
+        "start": "Pilih tarikh mula.",
+        "time": "Masukkan masa, contohnya 8:00 pagi."
+      }
+    },
+    "pharm": {
+      "title": "Tanya ahli farmasi anda",
+      "text": "Ubat-ubat ini tidak diambil pada masa yang sama setiap hari, contohnya hanya bila perlu, seminggu sekali, atau dos yang dikurangkan. Kami tidak masukkan ubat ini ke dalam jadual anda. Tanya ahli farmasi bila perlu mengambilnya."
+    },
+    "calendar": {
+      "title": "Peringatan dalam Google Calendar",
+      "text": "Sambungkan Google Calendar dan setiap dos dipaparkan dalam kalendar anda dengan amaran, supaya telefon anda mengingatkan anda walaupun aplikasi ini ditutup.",
+      "connect": "Sambungkan Google Calendar",
+      "reconnect": "Sambung semula",
+      "connected": "Disambungkan",
+      "events": "{n} dos ada dalam kalendar anda.",
+      "alerts": "Pastikan amaran kalendar anda dihidupkan.",
+      "missing": "Belum ada dalam kalendar anda: {names}. Masukkan bilangan hari di atas untuk menambahnya.",
+      "updated": "Kalendar dikemas kini",
+      "failed": "Kalendar anda tidak dikemas kini. Kami akan cuba lagi apabila anda mengubah jadual.",
+      "disconnect": "Putuskan Google Calendar",
+      "removeAsk": "Buang juga dos anda daripada Google Calendar?",
+      "removeYes": "Ya, buang",
+      "removeNo": "Tidak, simpan",
+      "cancel": "Batal",
+      "disconnected": "Google Calendar diputuskan",
+      "result": {
+        "connected": "Google Calendar disambungkan",
+        "cancelled": "Google Calendar tidak disambungkan.",
+        "failed": "Kami tidak dapat menyambungkan Google Calendar. Sila cuba lagi."
+      }
+    },
+    "fix": {
+      "button": "Betulkan maklumat",
+      "buttonOne": "Betulkan maklumat {name}",
+      "lead": "Ubah apa-apa yang tidak sepadan dengan label. Bilangan hari, tanda anda dan peringatan kalendar kekal seperti sedia ada.",
+      "cancel": "Batal",
+      "done": "{name} dikemas kini"
+    },
+    "slot": {
+      "now": "Ambil sekarang",
+      "later": "Nanti hari ini",
+      "earlier": "Belum ditanda",
+      "done": "Semua sudah diambil",
+      "missed": "Jika anda terlepas dos, tanya ahli farmasi apa yang perlu dibuat."
+    },
+    "early": {
+      "title": "Dos ini untuk nanti hari ini",
+      "text": "{name} untuk {time}. Adakah anda sudah mengambilnya?",
+      "yes": "Ya, sudah ambil",
+      "no": "Belum lagi"
+    }
   }
 }
