@@ -341,7 +341,8 @@
     "pause": "Pause",
     "replay": "Replay",
     "speed": "Speed",
-    "unavailable": "Read-aloud in this language is not available on this device yet."
+    "preparing": "Getting the audio…",
+    "failed": "We couldn't play this aloud right now. Please try again in a moment."
   },
   "ask": {
     "title": "Ask about your medicine",

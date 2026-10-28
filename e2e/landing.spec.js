@@ -62,16 +62,22 @@ test('signed in before, but the server no longer accepts that login: off to Log 
   expect(await page.evaluate(() => [localStorage.getItem('token'), localStorage.getItem('user')])).toEqual([null, null])
 })
 
-test('both "Try me out" buttons go to Log in, then on to Scan', async ({ page }) => {
+test('both "Try me out" buttons go to Log in (which then opens Home)', async ({ page }) => {
   await page.goto('/welcome')
   await page.getByTestId('landing-cta-hero').click()
-  await expect(page).toHaveURL(/\/login\?next=(%2F|\/)scan$/)
+  await expect(page).toHaveURL(/\/login$/)
 
   await page.goto('/welcome')
   // It lands at the very end of the page. Retry: the router's scroll-to-top can still run just after load and undo one scroll.
   await expect.poll(() => page.evaluate(() => (window.scrollTo(0, document.body.scrollHeight), scrollY > 0))).toBe(true)
   await page.getByTestId('landing-cta-final').click()
-  await expect(page).toHaveURL(/\/login\?next=(%2F|\/)scan$/)
+  await expect(page).toHaveURL(/\/login$/)
+
+  // Logging in from there opens Home, not Scan.
+  await mockAuth(page)
+  await fillLogin(page)
+  await expect(page).toHaveURL(/\/$/)
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('What would you like to understand?')
 })
 
 test('the headline changes language on its own; tapping a language stops it and switches the page', async ({ page }) => {
@@ -252,16 +258,30 @@ test('desktop: Tab reaches buttons in sections not yet scrolled to; the section 
   await expect(speaker).toHaveCSS('pointer-events', 'auto')
 })
 
-test('read-aloud demo: a device with no voice for the language says so instead of doing nothing', async ({ page }) => {
+test('read-aloud demo: a device with no Tamil voice plays Tamil audio from our server (never its English voice)', async ({ page }) => {
   await page.addInitScript(() => {
+    window.__spoken = 0
     window.speechSynthesis.getVoices = () => [{ lang: 'en-US', name: 'English' }]
-    window.speechSynthesis.speak = () => {}
+    window.speechSynthesis.speak = () => window.__spoken++
   })
   await page.emulateMedia({ reducedMotion: 'reduce' })
   await page.goto('/welcome')
   await page.getByTestId('landing-listen').getByRole('button', { name: 'தமிழ்' }).click()
+  const sent = page.waitForRequest('**/api/tts')
   await page.getByTestId('landing-speak').click()
-  await expect(page.getByTestId('landing-no-voice')).toHaveText('Read-aloud in this language is not available on this device yet.')
-  await page.getByTestId('landing-listen').getByRole('button', { name: 'English' }).click() // a language it has: the note goes
+  expect((await sent).postDataJSON()).toMatchObject({ lang: 'ta', text: expect.stringContaining('$8.70') })
+  await expect(page.getByTestId('landing-no-voice')).toHaveCount(0)
+  expect(await page.evaluate(() => window.__spoken)).toBe(0)
+})
+
+test('read-aloud demo: when the server has no audio either, it says so instead of doing nothing', async ({ page }) => {
+  await page.addInitScript(() => (window.speechSynthesis.getVoices = () => []))
+  await page.route('**/api/tts', (route) => route.fulfill({ status: 503, json: { ok: false, error: { code: 'AI_UNAVAILABLE' } } }))
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await page.goto('/welcome')
+  await page.getByTestId('landing-listen').getByRole('button', { name: 'தமிழ்' }).click()
+  await page.getByTestId('landing-speak').click()
+  await expect(page.getByTestId('landing-no-voice')).toHaveText("We couldn't play this aloud right now. Please try again in a moment.")
+  await page.getByTestId('landing-listen').getByRole('button', { name: 'English' }).click() // picking a language clears the note
   await expect(page.getByTestId('landing-no-voice')).toHaveCount(0)
 })

@@ -103,17 +103,20 @@ Extract the bill.
 - items: each charge line with its description as printed, a category, and the amount in SGD dollars (e.g. 14.50).
   category: consultation (doctor or dentist fees), medication, investigation (lab tests, X-rays, scans), procedure
   (treatment, surgery, therapy, nursing, consumables), ward (ward, bed or room charges), tax (GST), otherwise other.
-  Do not list subtotals or totals as items. If the bill gives each line a gross and a net (after subsidy) amount, use the
+  Do not list subtotals or totals as items. Never list a deduction as an item: a line with a minus sign or in brackets
+  (e.g. "MediShield Life -6,120.00", "Integrated Plan Payout (24,074.86)", "MediSave -1,500.00") lowers what is paid and
+  goes in subsidies or medisave instead. If the bill gives each line a gross and a net (after subsidy) amount, use the
   NET amount for every item, and mark the subsidy already taken off those lines with "includedInItems": true.
   GST is its own "tax" item.
 - subsidies: each subsidy, deduction or claim that lowers what the patient pays (not MediSave). scheme: "government" for
   government/polyclinic/ward subsidy, "chas" for CHAS, "pioneer" for Pioneer Generation (PG), "merdeka" for Merdeka
   Generation (MG), "insurance" for MediShield Life, Integrated Shield, private or employer insurance, otherwise "other".
-  amount as a positive number. includedInItems: true only for a subsidy already taken off the item amounts you listed
+  amount as a positive number, even when printed with a minus sign. includedInItems: true only for a subsidy already taken off the item amounts you listed
   (net lines); otherwise false.
-- medisave: amount paid by MediSave in dollars, 0 if there is no MediSave line.
+- medisave: amount paid by MediSave in dollars, as a positive number, 0 if there is no MediSave line.
 - totalPayable: the final amount the patient pays in cash, card or NETS, in dollars.
-- visitDate as YYYY-MM-DD (the visit date, or the discharge date for a hospital stay). clinic: the clinic or hospital name.
+- visitDate as YYYY-MM-DD (the visit date, or the discharge date for a hospital stay). Singapore dates are written
+  day first: 07/10/2026 is 7 October 2026, so "2026-10-07". clinic: the clinic or hospital name.
 ${RULES}`,
 }
 

@@ -12,7 +12,7 @@ import { computed, nextTick, onBeforeUnmount, ref, toRaw } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { askMedicine } from '../api/client'
 import { medicines, rememberMedicine, forgetMedicine, restoreMedicine } from '../stores/medicines'
-import { speechRate } from '../stores/speech'
+import { speak, stopSpeaking } from '../stores/speech'
 import AppIcon from '../components/layout/AppIcon.vue'
 
 const CHIPS = ['when', 'food', 'missed', 'store']
@@ -84,33 +84,25 @@ async function scrollTo(msg, block) {
   thread.value?.querySelector(`[data-reply="${msg.id}"]`)?.scrollIntoView({ block, behavior: smooth ? 'smooth' : 'auto' })
 }
 
-// Read-aloud on every answer, in the answer's language, at the shared speed. Hidden when the device has no voice for it.
-const canSpeak = typeof window !== 'undefined' && 'speechSynthesis' in window
-const voices = ref(canSpeak ? speechSynthesis.getVoices() : [])
-const loadVoices = () => (voices.value = speechSynthesis.getVoices())
-if (canSpeak) speechSynthesis.addEventListener('voiceschanged', loadVoices)
-const voiceFor = (lang) => voices.value.find((v) => v.lang.toLowerCase().startsWith(lang))
+// Read-aloud on every answer, in the answer's language, at the shared speed: the device's voice, or our server's audio
+// when the device has none for that language (stores/speech.js).
 const speaking = ref(null) // id of the message being read
-let utterance = null
-
-function play(m) {
-  speechSynthesis.cancel()
-  const u = new SpeechSynthesisUtterance(answerText(m))
-  u.voice = voiceFor(m.lang)
-  u.lang = u.voice.lang
-  u.rate = speechRate.value
-  // cancel() also ends the previous utterance, so only the current one may clear the state.
-  u.onend = u.onerror = () => {
-    if (utterance === u) speaking.value = null
-  }
-  utterance = u
+const preparing = ref(false) // getting the audio for it
+const speakFailed = ref(null) // id of the message whose audio couldn't be played
+async function play(m) {
   speaking.value = m.id
-  speechSynthesis.speak(u)
+  preparing.value = true
+  speakFailed.value = null
+  const result = await speak(answerText(m), m.lang, { onPlaying: () => speaking.value === m.id && (preparing.value = false) })
+  if (speaking.value !== m.id || result === 'stopped') return // another answer (or Stop) took over
+  speaking.value = null
+  preparing.value = false
+  if (result === 'failed') speakFailed.value = m.id
 }
 function stopReading() {
-  utterance = null
-  if (canSpeak) speechSynthesis.cancel()
   speaking.value = null
+  preparing.value = false
+  stopSpeaking()
 }
 
 // Voice input: fills the text box only; the user checks it and presses Ask.
@@ -213,7 +205,6 @@ onBeforeUnmount(() => {
   stopReading()
   recognition?.abort()
   clearTimeout(toastTimer)
-  if (canSpeak) speechSynthesis.removeEventListener('voiceschanged', loadVoices)
 })
 </script>
 
@@ -337,11 +328,12 @@ onBeforeUnmount(() => {
             <template v-else>
               <div class="answer rise" :lang="m.reply.answer ? m.lang : null" data-testid="ask-answer">
                 <p>{{ answerText(m) }}</p>
-                <div v-if="canSpeak && voiceFor(m.lang)" class="actions">
-                  <button type="button" class="btn btn-outline btn-sm listen" :aria-pressed="speaking === m.id" @click="speaking === m.id ? stopReading() : play(m)">
+                <div class="actions">
+                  <button type="button" class="btn btn-outline btn-sm listen" :aria-pressed="speaking === m.id" :aria-busy="speaking === m.id && preparing" @click="speaking === m.id ? stopReading() : play(m)">
                     <AppIcon :name="speaking === m.id ? 'pause' : 'volume'" :size="20" />
-                    {{ speaking === m.id ? t('ask.read.stop') : t('ask.read.play') }}
+                    {{ speaking === m.id ? (preparing ? t('player.preparing') : t('ask.read.stop')) : t('ask.read.play') }}
                   </button>
+                  <span v-if="speakFailed === m.id" class="text-muted-a11y" role="status">{{ t('player.failed') }}</span>
                 </div>
               </div>
               <p v-if="m.reply.sources?.length" class="from" data-testid="ask-from">{{ t('ask.from', { source: m.reply.sources.map(sourceText).join(', ') }) }}</p>

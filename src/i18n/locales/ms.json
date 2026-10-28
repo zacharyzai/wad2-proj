@@ -341,7 +341,8 @@
     "pause": "Jeda",
     "replay": "Main semula",
     "speed": "Kelajuan",
-    "unavailable": "Bacaan dalam bahasa ini belum tersedia pada peranti ini."
+    "preparing": "Menyediakan audio…",
+    "failed": "Kami tidak dapat membacakannya sekarang. Sila cuba lagi sebentar lagi."
   },
   "ask": {
     "title": "Tanya tentang ubat anda",

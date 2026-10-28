@@ -160,14 +160,21 @@ test('the speaker reads the step and can be stopped', async ({ page }) => {
   await expect(speak).toHaveAttribute('aria-pressed', 'false')
 })
 
-test('no speaker when this device has no voice for the language (no English voice reading Tamil as "dot")', async ({ page }) => {
+test('no Tamil voice on the device: the speaker plays Tamil audio from our server (never the English voice saying "dot")', async ({ page }) => {
   await page.addInitScript(() => {
     localStorage.setItem('locale', 'ta')
+    window.__spoken = 0
     window.speechSynthesis.getVoices = () => [{ lang: 'en-SG', name: 'English' }]
+    window.speechSynthesis.speak = () => window.__spoken++
   })
   await page.goto('/')
   await expect(guide(page)).toBeVisible()
-  await expect(page.getByTestId('guide-speak')).toHaveCount(0)
+  const sent = page.waitForRequest('**/api/tts')
+  await page.getByTestId('guide-speak').click()
+  const body = (await sent).postDataJSON()
+  expect(body.lang).toBe('ta')
+  expect(body.text).toContain(await page.locator('#guide-title').textContent())
+  expect(await page.evaluate(() => window.__spoken)).toBe(0)
 })
 
 for (const colorScheme of ['light', 'dark']) {
