@@ -146,6 +146,7 @@ test('it can be opened again any time: sidebar on desktop, Account on every scre
 test('the speaker reads the step and can be stopped', async ({ page }) => {
   await page.addInitScript(() => {
     window.__spoken = []
+    window.speechSynthesis.getVoices = () => [{ lang: 'en-SG', name: 'English' }]
     window.speechSynthesis.speak = (u) => window.__spoken.push({ text: u.text, lang: u.lang })
   })
   await page.goto('/')
@@ -157,6 +158,23 @@ test('the speaker reads the step and can be stopped', async ({ page }) => {
   ])
   await speak.click()
   await expect(speak).toHaveAttribute('aria-pressed', 'false')
+})
+
+test('no Tamil voice on the device: the speaker plays Tamil audio from our server (never the English voice saying "dot")', async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem('locale', 'ta')
+    window.__spoken = 0
+    window.speechSynthesis.getVoices = () => [{ lang: 'en-SG', name: 'English' }]
+    window.speechSynthesis.speak = () => window.__spoken++
+  })
+  await page.goto('/')
+  await expect(guide(page)).toBeVisible()
+  const sent = page.waitForRequest('**/api/tts')
+  await page.getByTestId('guide-speak').click()
+  const body = (await sent).postDataJSON()
+  expect(body.lang).toBe('ta')
+  expect(body.text).toContain(await page.locator('#guide-title').textContent())
+  expect(await page.evaluate(() => window.__spoken)).toBe(0)
 })
 
 for (const colorScheme of ['light', 'dark']) {

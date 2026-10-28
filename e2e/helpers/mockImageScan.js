@@ -4,10 +4,11 @@ import { expect } from '@playwright/test'
 
 export async function mockImageScan(page, { cover = 'keep' } = {}) {
   // Covering personal details (src/utils/redact.js) needs the reader download and real label text; tests use a fake that
-  // keeps the photo as it is. Pass { cover } to test other outcomes: 'none' (nothing readable) or 'fail' (reader broke).
+  // keeps the photo as it is. Pass { cover } to test other outcomes: 'none' (nothing readable), 'fail' (reader broke) or 'hang' (never finishes).
   await page.addInitScript((cover) => {
     window.__redactForTests = async (dataUrl) => {
       if (cover === 'fail') throw new Error('reader failed')
+      if (cover === 'hang') return new Promise(() => {})
       return { dataUrl, keep: cover === 'none' ? [] : [{ text: 'TAKE 1 TABLET' }], hits: [] }
     }
   }, cover)

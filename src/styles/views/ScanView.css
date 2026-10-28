@@ -45,3 +45,11 @@
 .tips li { display: flex; gap: 14px; align-items: center; padding: 14px 0; font-size: 18px; line-height: 1.45; }
 .tips li + li { border-top: 1px solid var(--color-border); }
 .scan-preview { max-height: 360px; }
+
+/* The two steps of a photo scan: done (tick), now (filled), next (outlined). */
+.scan-steps { display: flex; flex-direction: column; gap: 12px; margin: 0; padding: 0; list-style: none; text-align: left; font-size: 18px; font-weight: 600; line-height: 1.35; }
+.scan-steps li { display: flex; align-items: center; gap: 12px; color: var(--color-text-muted); }
+.scan-steps li.now { color: var(--color-text); }
+.step-mark { flex: none; width: 32px; height: 32px; display: grid; place-items: center; border-radius: 50%; border: 2px solid var(--color-border-strong); font-size: 16px; font-weight: 700; transition: background-color 200ms var(--ease-out), border-color 200ms var(--ease-out), color 200ms var(--ease-out); }
+.scan-steps li.now .step-mark { border-color: var(--color-primary); background: var(--color-primary); color: #fff; }
+.scan-steps li.done .step-mark { border-color: var(--color-success); background: var(--color-success); color: #fff; }

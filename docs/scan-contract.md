@@ -38,6 +38,7 @@ From the client, call `scanImage(type, image)` / `scanSample(id)` from `src/api/
 | `AI_UNAVAILABLE` | 503 | Gemini is down or not configured |
 | `SERVER_ERROR` | 500 | unexpected server error |
 | `NETWORK_ERROR` | none | set by the client only: server unreachable or non-JSON response |
+| `TIMEOUT` | none | set by the client only: the scan passed its 30 s limit (covering on the phone, or the request) |
 
 Show errors with `t('errors.' + error.code)`.
 
@@ -101,7 +102,7 @@ All money is in **integer cents** (SGD). Never use float dollars.
 | `visitDate` | `YYYY-MM-DD` \| null |
 | `place` | `polyclinic` `gp` `dental` `specialist` `hospital` `tcm` `pharmacy` `lab` `other`, or `null` (older scans and samples: the Bill page then goes by the clinic name). Any medical bill is read; subsidy estimates are only for polyclinic, GP and dental bills |
 | `category` | `consultation` `medication` `investigation` `procedure` `ward` (ward, bed or room) `tax` (GST) `other` |
-| `scheme` | `government` `chas` `pioneer` `merdeka` `insurance` (MediShield Life, Integrated Shield, private or employer insurance) `other` |
+| `scheme` | `government` `chas` `pioneer` `merdeka` `insurance` (MediShield Life, Integrated Shield, private or employer insurance) `paid` (a deposit or earlier payment, taken off what is still due) `other` |
 | `includedInItems` | `true` when the bill gives each line a gross and a **net** amount: items then hold the net amounts and this subsidy is already inside them, so it is shown ("Already taken off the charges above") but never subtracted again. The check is items − subsidies not included − MediSave = total |
 | `amountCents`, `medisaveCents`, `totalPayableCents` | integer \| null |
 

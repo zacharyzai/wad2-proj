@@ -23,13 +23,14 @@ export class ScanError extends Error {
 const API = 'https://generativelanguage.googleapis.com/v1beta/models'
 // OpenAI-compatible. Different company from Google, so it isn't hit by the same overloads.
 const GROQ_API = 'https://api.groq.com/openai/v1/chat/completions'
-// One deadline for the whole scan, shared by the main model and its fallbacks.
-const TIMEOUT_MS = 25_000
+// One deadline for the whole scan, shared by the main model and its fallbacks. With covering on the phone and the upload,
+// a scan then stays inside the app's 30 s limit (SCAN_LIMIT_MS in ScanView.vue).
+const TIMEOUT_MS = 16_000
 // A slow model gives up early enough for a fallback to still answer in time.
-const FIRST_TRY_MS = 12_000
+const FIRST_TRY_MS = 9_000
 // Always kept for the last model (Groq, a different company): when every Gemini model is overloaded and slow to say so,
 // the backup still gets its turn instead of the deadline running out first.
-const LAST_TRY_RESERVE_MS = 8_000
+const LAST_TRY_RESERVE_MS = 5_000
 // A model that was just overloaded, out of quota or too slow is tried last for 2 minutes, so the next scans go straight
 // to one that is working instead of waiting for it to fail again. Per server instance; it forgets on a cold start.
 const REST_MS = 2 * 60_000
@@ -103,17 +104,23 @@ Extract the bill.
 - items: each charge line with its description as printed, a category, and the amount in SGD dollars (e.g. 14.50).
   category: consultation (doctor or dentist fees), medication, investigation (lab tests, X-rays, scans), procedure
   (treatment, surgery, therapy, nursing, consumables), ward (ward, bed or room charges), tax (GST), otherwise other.
-  Do not list subtotals or totals as items. If the bill gives each line a gross and a net (after subsidy) amount, use the
+  Do not list subtotals or totals as items. Never list a deduction as an item: a line with a minus sign or in brackets
+  (e.g. "MediShield Life -6,120.00", "Integrated Plan Payout (24,074.86)", "MediSave -1,500.00") lowers what is paid and
+  goes in subsidies or medisave instead. If the bill gives each line a gross and a net (after subsidy) amount, use the
   NET amount for every item, and mark the subsidy already taken off those lines with "includedInItems": true.
-  GST is its own "tax" item.
+  GST is its own "tax" item, unless the bill says GST is already included in the charges (e.g. "GST at 7% is included
+  in this bill"): then do not list it at all.
 - subsidies: each subsidy, deduction or claim that lowers what the patient pays (not MediSave). scheme: "government" for
   government/polyclinic/ward subsidy, "chas" for CHAS, "pioneer" for Pioneer Generation (PG), "merdeka" for Merdeka
-  Generation (MG), "insurance" for MediShield Life, Integrated Shield, private or employer insurance, otherwise "other".
-  amount as a positive number. includedInItems: true only for a subsidy already taken off the item amounts you listed
+  Generation (MG), "insurance" for MediShield Life, Integrated Shield, private or employer insurance, "paid" for money
+  already paid earlier (a deposit, or a payment shown in a payer or payment table), otherwise "other".
+  amount as a positive number, even when printed with a minus sign. includedInItems: true only for a subsidy already taken off the item amounts you listed
   (net lines); otherwise false.
-- medisave: amount paid by MediSave in dollars, 0 if there is no MediSave line.
-- totalPayable: the final amount the patient pays in cash, card or NETS, in dollars.
-- visitDate as YYYY-MM-DD (the visit date, or the discharge date for a hospital stay). clinic: the clinic or hospital name.
+- medisave: amount paid by MediSave in dollars, as a positive number, 0 if there is no MediSave line.
+- totalPayable: the final amount the patient still pays in cash, card or NETS, in dollars (the amount due after
+  deposits and earlier payments; on an interim bill, the amount due shown).
+- visitDate as YYYY-MM-DD (the visit date, or the discharge date for a hospital stay). Singapore dates are written
+  day first: 07/10/2026 is 7 October 2026, so "2026-10-07". clinic: the clinic or hospital name.
 ${RULES}`,
 }
 

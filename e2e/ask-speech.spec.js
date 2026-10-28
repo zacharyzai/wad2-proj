@@ -36,6 +36,7 @@ function fakeSpeech(page, { recognition = true } = {}) {
         start() {
           window.__recLang = this.lang
           setTimeout(() => {
+            if (window.__recError) return this.onerror?.({ error: window.__recError }), this.onend?.()
             this.onresult?.({ results: [[{ transcript: window.__heard }]] })
             this.onend?.()
           }, 50)
@@ -62,6 +63,16 @@ test('the mic fills the text box in the app language and does not send', async (
   expect(asked).toBe(0)
 })
 
+test('a browser that cannot hear Tamil says so, instead of "couldn\'t hear you"', async ({ page }) => {
+  await fakeSpeech(page)
+  await page.goto('/ask')
+  await page.getByRole('button', { name: 'தமிழ்' }).click()
+  await page.evaluate(() => (window.__recError = 'language-not-supported'))
+  await page.getByTestId('ask-mic').click()
+  await expect(page.getByText('இந்த உலாவியில் இந்த மொழியில் பேச முடியாது', { exact: false })).toBeVisible()
+  expect(await page.evaluate(() => window.__recLang)).toBe('ta-IN')
+})
+
 test('no mic button when the browser has no speech recognition', async ({ page }) => {
   await fakeSpeech(page, { recognition: false })
   await page.goto('/ask')
@@ -86,4 +97,17 @@ test('every answer can be read aloud and stopped, at the saved speed', async ({ 
   await first.getByRole('button', { name: 'Stop' }).click()
   await expect(first.getByRole('button', { name: 'Read aloud' })).toBeVisible()
   await expect(page.getByTestId('ask-answer').nth(1).getByRole('button', { name: 'Read aloud' })).toBeVisible()
+})
+
+test('an answer in a language the device has no voice for is read with audio from our server', async ({ page }) => {
+  await fakeSpeech(page)
+  await page.addInitScript(() => (window.speechSynthesis.getVoices = () => [{ lang: 'en-SG', name: 'English' }])) // no Tamil voice
+  await page.route('**/api/chat', (route) => route.fulfill({ json: answer('ஒரு நாளைக்கு 2 முறை.') }))
+  await page.goto('/ask')
+  await page.getByRole('button', { name: 'தமிழ்' }).click()
+  await page.locator('textarea').fill('எப்போது சாப்பிட வேண்டும்?')
+  await page.keyboard.press('Enter')
+  const sent = page.waitForRequest('**/api/tts')
+  await page.getByTestId('ask-answer').getByRole('button').first().click()
+  expect((await sent).postDataJSON()).toMatchObject({ lang: 'ta', text: expect.stringContaining('2 முறை') })
 })
