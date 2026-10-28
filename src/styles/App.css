@@ -1,17 +1,16 @@
 /* Scoped styles for App.vue. Phones and tablets (<992): header with language row, fixed bottom tabs. Desktop (≥992): white sidebar. Content max 1040px. */
 .shell { min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; padding-bottom: calc(82px + env(safe-area-inset-bottom)); }
 
-/* Phone header: brand | night | account, then the language row */
-.side { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; grid-template-areas: 'brand night acct' 'lang lang lang'; align-items: center; gap: 12px; padding: 12px 16px 14px; background: var(--color-card); border-bottom: 1px solid var(--color-border); }
+/* Phone header: brand | account, then the language row (day/night mode is on the Account page) */
+.side { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: 'brand acct' 'lang lang'; align-items: center; gap: 12px; padding: 12px 16px 14px; background: var(--color-card); border-bottom: 1px solid var(--color-border); }
 .brand { grid-area: brand; min-width: 0; display: flex; align-items: center; gap: 12px; color: var(--color-text); text-decoration: none; }
 .brand:hover { color: var(--color-text); }
 .logo { width: 48px; height: 48px; border-radius: 12px; }
 .brand-name { font-size: 18px; font-weight: 800; line-height: 1.15; letter-spacing: -0.01em; }
 .brand-can { display: block; color: var(--color-primary-text); }
-.desk-only, .navi.desk-only, .night-desk, .night-label, .acct-label, .acct-chev { display: none; }
+.desk-only, .navi.desk-only, .acct-label, .acct-chev { display: none; }
 .lang-box { grid-area: lang; }
 
-.night { grid-area: night; display: grid; place-items: center; width: var(--hit); height: var(--hit); padding: 0; border: 1px solid var(--color-border); border-radius: var(--r-pill); background: var(--color-surface-2); color: var(--color-text); }
 .acct { grid-area: acct; display: grid; place-items: center; width: var(--hit); height: var(--hit); border-radius: var(--r-pill); background: var(--color-tint); color: var(--color-tint-text); text-decoration: none; }
 .acct:hover { color: var(--color-tint-text); background: var(--color-tint-strong); }
 .acct[aria-current='page'] { background: var(--color-primary); color: var(--color-on-primary); }
@@ -59,11 +58,6 @@
   .lang-box { margin-top: auto; display: flex; flex-direction: column; gap: 10px; }
   .lang-box .section-label { padding: 0 4px; }
   .langs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
-
-  .night { display: flex; align-items: center; gap: 12px; width: 100%; height: auto; min-height: var(--z56, 56px); padding: 4px 6px 4px 12px; border-radius: 16px; background: var(--color-card); color: var(--color-text); text-align: left; }
-  .night-phone { display: none; }
-  .night-desk { display: block; color: var(--color-text-muted); }
-  .night-label { display: block; flex: 1; font-size: 16px; font-weight: 600; line-height: 1.25; white-space: nowrap; }
 
   .acct { display: flex; align-items: center; gap: 12px; width: 100%; height: auto; min-height: var(--z56, 56px); padding: 4px 12px; border-radius: 16px; background: var(--color-surface-2); color: var(--color-text); }
   .acct:hover { background: var(--color-border); color: var(--color-text); }

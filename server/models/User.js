@@ -6,6 +6,7 @@ export const CITIZENSHIP = ['birth', 'became', 'pr', 'other'] // citizen by birt
 // Household monthly income per person, in the CHAS card bands (chas.sg). Citizens only; it sets the CHAS card colour.
 export const INCOME = ['upTo1500', '1501to2300', 'above2300', 'unsure']
 export const LANGUAGES = ['en', 'zh', 'ms', 'ta'] // the app's language for this person, used on every device they log in on
+export const THEMES = ['light', 'dark', 'system'] // day, night, or follow the device's own setting
 
 const userSchema = new mongoose.Schema(
   {
@@ -18,13 +19,15 @@ const userSchema = new mongoose.Schema(
     income: { type: String, enum: [...INCOME, null], default: null }, // only for citizens
     // null = not chosen yet (accounts from before this field): the app then saves the language that device already uses.
     language: { type: String, enum: [...LANGUAGES, null], default: null },
+    // null = not chosen yet: the app then saves the one that device already uses (day mode unless they picked another).
+    theme: { type: String, enum: [...THEMES, null], default: null },
   },
   { timestamps: true, bufferCommands: false },
 )
 
 // What the client may see: never the password hash.
 userSchema.methods.toPublic = function () {
-  return { name: this.name ?? '', email: this.email, dob: this.dob ?? '', citizenship: this.citizenship ?? '', citizenSince: this.citizenSince ?? null, income: this.income ?? null, language: this.language ?? null }
+  return { name: this.name ?? '', email: this.email, dob: this.dob ?? '', citizenship: this.citizenship ?? '', citizenSince: this.citizenSince ?? null, income: this.income ?? null, language: this.language ?? null, theme: this.theme ?? null }
 }
 
 export const User = mongoose.models.User ?? mongoose.model('User', userSchema)

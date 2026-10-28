@@ -1,6 +1,6 @@
 <!-- Owner: Isaac. Full-screen frame for Login and Signup (no app sidebar: nothing else works before you log in).
      Left: a warm "paper" story (big serif greeting, a fanned real label and bill, three promises). Right: a plain sheet
-     with the language and night-mode switches, the Log in / Create account tabs and the form (the slot).
+     with the language switch, the Log in / Create account tabs and the form (the slot).
      Phones: switches, greeting, the dose chip, form, then the promises. -->
 <script>
 // Module state, shared by Login and Sign up: the papers' entrance and the chip's languages play once per visit,
@@ -13,7 +13,6 @@ import { ref, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { setLocale } from '../../i18n'
-import { theme, toggleTheme } from '../../theme'
 import AppIcon from './AppIcon.vue'
 
 defineProps({ active: { type: String, required: true } }) // 'login' or 'signup'
@@ -57,9 +56,6 @@ onBeforeUnmount(() => { clearTimeout(timer); document.removeEventListener('visib
       <div class="segmented auth-langs" role="group" :aria-label="t('nav.language')">
         <button v-for="(label, code) in LANGS" :key="code" type="button" :lang="code" :aria-pressed="locale === code" @click="setLocale(code)">{{ label }}</button>
       </div>
-      <button type="button" class="auth-night" :aria-pressed="theme === 'dark'" :aria-label="t('nav.night')" :title="t('nav.night')" @click="toggleTheme">
-        <AppIcon :name="theme === 'dark' ? 'sun' : 'moon'" :size="22" />
-      </button>
     </div>
 
     <section class="auth-story">
@@ -115,7 +111,6 @@ onBeforeUnmount(() => { clearTimeout(timer); document.removeEventListener('visib
 .auth-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; background: var(--color-surface-2); }
 .auth-langs { flex: 1; max-width: 360px; background: var(--color-page); }
 .auth-langs > button[aria-pressed='true'] { background: var(--color-card); color: var(--color-primary-text); box-shadow: var(--shadow-card); }
-.auth-night { width: var(--hit); height: var(--hit); flex: none; display: grid; place-items: center; border: 0; border-radius: 50%; background: var(--color-page); color: var(--color-text); }
 
 /* The story: warm paper, the one big serif moment */
 .auth-story { position: relative; display: flex; flex-direction: column; gap: 20px; padding: 8px 20px 28px; background: var(--color-surface-2); }

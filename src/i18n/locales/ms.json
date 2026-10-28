@@ -15,7 +15,6 @@
     "language": "Bahasa",
     "account": "Akaun",
     "main": "Menu utama",
-    "night": "Mod malam",
     "skip": "Langkau ke kandungan utama",
     "ask": "Tanya",
     "backTop": "Kembali ke atas"
@@ -747,7 +746,15 @@
     "save": "Simpan",
     "cancel": "Batal",
     "logoutAsk": "Log keluar dari telefon atau komputer ini?",
-    "logoutNote": "Anda perlu e-mel dan kata laluan untuk log masuk semula."
+    "logoutNote": "Anda perlu e-mel dan kata laluan untuk log masuk semula.",
+    "theme": {
+      "title": "Mod siang atau malam",
+      "light": "Siang",
+      "dark": "Malam",
+      "system": "Sama seperti telefon saya",
+      "note": "Mod malam menggunakan latar belakang gelap, lebih selesa untuk mata dalam bilik yang gelap. “Sama seperti telefon saya” mengikut tetapan telefon atau komputer anda sendiri.",
+      "later": "Anda boleh menukarnya bila-bila masa di halaman Akaun anda."
+    }
   },
   "guide": {
     "open": "Cara guna aplikasi",
