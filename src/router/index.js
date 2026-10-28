@@ -26,7 +26,13 @@ const routes = [
   { path: '/history', name: 'history', component: () => import('../views/HistoryView.vue') },
   { path: '/account', name: 'account', component: () => import('../views/AccountView.vue') },
   // Share links stay open: they are for family on WhatsApp, who have no account.
+  // Caregiver tracking: caregivers only (the guard below sends everyone else Home).
+  { path: '/care', name: 'care', component: () => import('../views/CareView.vue'), meta: { caregiverOnly: true } },
+  { path: '/care/:seniorId', name: 'care-senior', component: () => import('../views/CareSeniorView.vue'), meta: { caregiverOnly: true } },
+  // A senior's invite link, opened by the caregiver. Open to everyone; accepting needs a caregiver login.
   { path: '/shared/:token', name: 'shared', component: () => import('../views/SharedView.vue'), meta: { public: true } },
+  // One medicine label or bill shared read-only (History > Share).
+  { path: '/shared/scan/:token', name: 'shared-scan', component: () => import('../views/ScanShareView.vue'), meta: { public: true } },
   // Zachary: dev-only test bench for photo redaction; not in production builds.
   ...(import.meta.env.DEV ? [{ path: '/dev/redact', name: 'redact-lab', component: () => import('../views/dev/RedactLab.vue') }] : []),
   ...(import.meta.env.DEV ? [{ path: '/dev/badges', name: 'badge-demo', component: () => import('../views/dev/BadgeDemo.vue') }] : []),
@@ -80,6 +86,7 @@ router.beforeEach(async (to) => {
     } catch {
       // Storage blocked: they may see the welcome page again, which is harmless.
     }
+    if (to.meta.caregiverOnly && (authStore.user.role ?? 'senior') !== 'caregiver') return { name: 'home' }
     return to.meta.guestOnly ? { name: 'home' } : true
   }
   if (to.meta.public) return true

@@ -17,7 +17,45 @@
     "main": "主菜单",
     "skip": "跳到主要内容",
     "ask": "提问",
-    "backTop": "回到顶部"
+    "backTop": "回到顶部",
+    "care": "我的长辈"
+  },
+  "care": {
+    "lead": "邀请您的人。点选姓名查看今天的药物。",
+    "emptyTitle": "还没有关联的人",
+    "emptyText": "请您的父母或亲人在应用里打开“账户”，点“邀请照护者”，然后用 WhatsApp 把链接发给您。",
+    "nTaken": "已服 {n} 次", "nMissed": "漏服 {n} 次", "nUpcoming": "待服 {n} 次",
+    "todayFor": "{name}：今天",
+    "goneTitle": "您已无法查看此人", "goneText": "对方可能已移除链接。如有误，请向对方要一个新的邀请。",
+    "missedBanner": "{name} 今天有 {n} 次药还没吃。您可以打电话提醒一下。",
+    "allTaken": "{name} 今天到目前为止的药都吃了。",
+    "noDoses": "还没有安排药物", "noDosesText": "{name} 还没有把药物加入时间表。",
+    "updated": "更新于 {time}", "refresh": "刷新",
+    "status": { "taken": "已服", "missed": "漏服", "upcoming": "待服" }
+  },
+  "invite": {
+    "title": "{name} 想请您当他/她的照护者",
+    "seeTitle": "您会看到", "see1": "今天的服药时间。", "see2": "每次服药是已服、漏服还是待服。",
+    "notTitle": "您不会看到", "not1": "对方的扫描、照片、账单或账户资料。",
+    "removeAnytime": "{name} 可以随时移除您。",
+    "needAccount": "请用您的照护者账户登录后接受邀请。",
+    "login": "登录", "signup": "创建照护者账户", "accept": "接受并关心 {name}",
+    "seniorAccount": "这是长辈账户，不能当照护者。如要当照护者，请另外创建一个账户并选择“照护者”。",
+    "goneTitle": "此邀请已失效", "goneText": "它可能已过期或已被使用。请向对方要一个新链接。"
+  },
+  "careCard": {
+    "title": "您的照护者",
+    "intro": "照护者可以看到您今天有没有吃药，您忘记时他们可以打电话提醒。",
+    "none": "目前没有人能看到您的药物。",
+    "since": "自 {date}", "remove": "移除",
+    "removeAsk": "不再让 {name} 看到您的药物吗？", "removeYes": "是，移除", "keep": "保留",
+    "invite": "邀请照护者",
+    "inviteTitle": "发送链接之前",
+    "inviteSee": "照护者会看到：您的姓名、今天的服药时间，以及每次服药是已服、漏服还是待服。",
+    "inviteNot": "他们不会看到：您的扫描、照片、账单或账户资料。您可以随时移除他们。",
+    "inviteExpiry": "链接只能使用一次，7天后失效。",
+    "create": "创建链接", "linkReady": "链接已准备好", "linkLabel": "邀请链接",
+    "shareMessage": "请在 Ah Ma Ah Gong Can 上当我的照护者："
   },
   "pages": {
     "home": "看懂您的药物和账单",
@@ -29,12 +67,15 @@
     "login": "登录",
     "signup": "创建账户",
     "history": "扫描记录",
-    "shared": "共享摘要",
     "notFound": "找不到页面",
     "ask": "询问我的药物",
     "welcome": "欢迎",
     "billScan": "扫描医药账单",
-    "account": "我的账户"
+    "account": "我的账户",
+    "shared": "照护者邀请", 
+    "care": "我的长辈", 
+    "careSenior": "今天的药物", 
+    "sharedScan": "分享的摘要"
   },
   "errors": {
     "AUTH_UNAVAILABLE": "暂时无法登录或注册，请稍后再试。",
@@ -448,6 +489,30 @@
     "noAccount": "不用账户继续",
     "home": "回到首页"
   },
+  "history": {
+    "lead": "您保存的药物标签和账单，最新的在前面。",
+    "filter": "显示", "filterAll": "全部", "filterMed": "药物", "filterBill": "账单",
+    "saved": "保存于 {date}", "youPaid": "您支付了 {amount}", "sharing": "已开启分享链接",
+    "replay": "再听一遍", "share": "分享", "delete": "删除",
+    "shareTitle": "要分享这份扫描吗？",
+    "shareMed": "拿到链接的人会看到：药名、剂量规格、服用量、服用时间和注意事项。",
+    "shareBill": "拿到链接的人会看到：您支付的总额和各项收费。",
+    "shareNever": "他们看不到您的姓名、电子邮件、出生日期或照片。",
+    "shareExpiry": "链接30天后失效。您随时可以停止分享。",
+    "shareCreate": "创建链接", "linkReady": "链接已准备好", "linkLabel": "分享链接",
+    "expires": "有效期至 {date}", "whatsapp": "用 WhatsApp 发送", "copy": "复制链接", "copied": "已复制", "unshare": "停止分享",
+    "shareMessage": "来自 Ah Ma Ah Gong Can 的摘要：",
+    "deleteTitle": "要删除这份扫描吗？", "deleteText": "它会从您的记录中移除。您为它创建的链接也会失效。",
+    "deleteYes": "是，删除", "keep": "保留", "deleted": "扫描已删除。",
+    "loadMore": "显示更早的扫描", "noneOfType": "还没有这一类的记录。",
+    "emptyTitle": "还没有保存的扫描", "emptyText": "您保存的扫描会列在这里，方便再听一遍或分享给家人。"
+  },
+  "shared": {
+    "lead": "有人与您分享了这份内容，您只能阅读。",
+    "goneTitle": "此链接已失效", "goneText": "它可能已过期，或分享的人已停止分享。",
+    "note": "这是标签或账单内容的摘要。请务必向医生或药剂师确认。",
+    "open": "打开 Ah Ma Ah Gong Can"
+  },
   "notFound": {
     "title": "找不到这个页面",
     "text": "链接可能已过期或打错了。您保存的资料都没有丢失。",
@@ -480,6 +545,15 @@
       "became": "自 {year} 年起为新加坡公民",
       "pr": "新加坡永久居民",
       "other": "非公民或永久居民"
+    },
+    "role": "我是…",
+    "roles": { 
+      "senior": "长辈", 
+      "caregiver": "照护者" 
+    },
+    "roleHelp": {
+      "senior": "我需要服药，想看懂药物标签和账单。",
+      "caregiver": "我照顾父母或亲人，想知道他们有没有吃药。"
     },
     "missingFields": "有些栏目需要检查，已用红色标出。",
     "remember": "在此设备上记住我",
