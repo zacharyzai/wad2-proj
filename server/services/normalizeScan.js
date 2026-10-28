@@ -8,7 +8,8 @@ export const WITH_FOOD = ['before', 'after', 'with', 'any']
 export const FREQUENCY_TYPES = ['daily', 'as_needed', 'weekly', 'tapering', 'other']
 export const BILL_CATEGORIES = ['consultation', 'medication', 'investigation', 'procedure', 'ward', 'tax', 'other']
 // insurance: MediShield Life, Integrated Shield, private or employer insurance. Lowers what is paid, like a subsidy.
-export const SUBSIDY_SCHEMES = ['government', 'chas', 'pioneer', 'merdeka', 'insurance', 'other']
+// paid: money already paid earlier (a deposit at admission, an earlier payment), taken off what is still due.
+export const SUBSIDY_SCHEMES = ['government', 'chas', 'pioneer', 'merdeka', 'insurance', 'paid', 'other']
 // Where the bill is from. It decides which subsidy rules can apply (src/rules/subsidies.js).
 export const BILL_PLACES = ['polyclinic', 'gp', 'dental', 'specialist', 'hospital', 'tcm', 'pharmacy', 'lab', 'other']
 
@@ -55,12 +56,13 @@ export function normalizeMedication(raw = {}) {
 
 // Lines that lower the bill. Models sometimes copy them among the charges, or keep their minus sign; either way they are
 // taken off, never added. A charge is only treated as one by these words (a minus sign always counts).
-const DEDUCTION = /medi\s*shield|integrated\s*(shield|plan)|insurance|insurer|payout|claim|rebate|discount|deduct/i
+const DEDUCTION = /medi\s*shield|integrated\s*(shield|plan)|insurance|insurer|payout|claim|rebate|discount|deduct|deposit|prepaid|amount\s*paid|payments?\s*(received|made)/i
 const MEDISAVE = /medi\s*save/i
 // Totals the model listed as a charge: never added in.
 const TOTAL_LINE = /^(sub\s*-?\s*total|grand\s*total|total|balance|amount\s*(due|payable)|nett?\s*(payable|amount|total))\b/i
 const schemeFor = (d) =>
-  /medi\s*shield|integrated|insur|payout|claim/i.test(d) ? 'insurance'
+  /deposit|prepaid|amount\s*paid|payments?\b/i.test(d) ? 'paid'
+  : /medi\s*shield|integrated|insur|payout|claim/i.test(d) ? 'insurance'
     : /chas/i.test(d) ? 'chas'
       : /pioneer|\bpg\b/i.test(d) ? 'pioneer'
         : /merdeka|\bmg\b/i.test(d) ? 'merdeka'
@@ -78,6 +80,8 @@ export function normalizeBill(raw = {}) {
     const description = str(line?.description)
     const dollars = signedDollars(line?.amount)
     if (description && TOTAL_LINE.test(description)) continue
+    // "GST at 7% is included in this bill": already inside the charges, so never added again.
+    if (description && /\bgst\b/i.test(description) && /includ/i.test(description)) continue
     const off = dollars !== null && dollars < 0
     if (description && MEDISAVE.test(description) && dollars !== null) medisaveLines.push(Math.abs(dollars))
     else if (off || (description && DEDUCTION.test(description) && dollars !== null)) subsidies.push({ scheme: schemeFor(description ?? ''), amountCents: dollarsToCents(Math.abs(dollars)), includedInItems: false, moved: true })

@@ -120,3 +120,23 @@ test('a positive deduction among the charges still counts as a deduction; a Medi
   assert.equal(bill.subsidies.length, 2)
   assert.equal(bill.medisaveCents, 150000)
 })
+
+test('GST already included is not added again, and a deposit already paid comes off what is due (Yishun interim bill)', () => {
+  const { bill, unclear } = normalizeBill({
+    place: 'hospital',
+    items: [
+      { description: 'Total Charges', amount: 110576.13 },
+      { description: 'Room Charge ICU Class C - 9 day(s)', category: 'ward', amount: 110576.13 },
+      { description: 'Accident & Emergency Fee', category: 'other', amount: 122 },
+      { description: 'GST at 7% is included in this bill', category: 'tax', amount: 7234.1 },
+      { description: 'Payment', category: 'other', amount: -15000 },
+    ],
+    subsidies: [],
+    medisave: 0,
+    totalPayable: 95698.13,
+  })
+  assert.deepEqual(unclear, [])
+  assert.equal(bill.items.length, 2) // the total line and the included GST are gone
+  assert.deepEqual(bill.subsidies, [{ scheme: 'paid', amountCents: 1500000, includedInItems: false }])
+  assert.equal(bill.totalPayableCents, 9569813)
+})

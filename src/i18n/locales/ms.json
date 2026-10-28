@@ -279,7 +279,8 @@
     "pioneer": "Generasi Perintis",
     "merdeka": "Generasi Merdeka",
     "insurance": "Insurans (MediShield Life atau lain-lain)",
-    "other": "Subsidi lain"
+    "other": "Subsidi lain",
+    "paid": "Sudah dibayar"
   },
   "explain": {
     "sep": ", ",
@@ -607,7 +608,8 @@
     "tag": {
       "subsidy": "Subsidi",
       "medisave": "Dari MediSave CPF",
-      "insurance": "Insurans"
+      "insurance": "Insurans",
+      "paid": "Dibayar"
     },
     "medisave": "MediSave",
     "explain": {
@@ -624,7 +626,8 @@
         "pioneer": "Generasi Perintis mendapat bantuan tambahan untuk kos kesihatan. Jika anda dalam Generasi Perintis, anda mempunyai kad Generasi Perintis. Jumlah ini sudah ditolak daripada bil anda.",
         "merdeka": "Generasi Merdeka mendapat bantuan tambahan untuk kos kesihatan. Jika anda dalam Generasi Merdeka, anda mempunyai kad Generasi Merdeka. Jumlah ini sudah ditolak daripada bil anda.",
         "insurance": "MediShield Life atau pelan insurans anda telah membayar bahagian bil ini. Anda tidak perlu membayar jumlah ini.",
-        "other": "Skim atau diskaun lain telah menolak jumlah ini daripada bil anda. Tanya di kaunter skim yang mana."
+        "other": "Skim atau diskaun lain telah menolak jumlah ini daripada bil anda. Tanya di kaunter skim yang mana.",
+        "paid": "Jumlah ini sudah dibayar lebih awal, contohnya deposit semasa masuk wad. Ia ditolak daripada jumlah yang masih perlu dibayar."
       },
       "medisave": "MediSave ialah simpanan CPF anda untuk kos kesihatan. Wang daripadanya boleh membayar sebahagian bil, jadi anda membayar kurang dengan wang tunai.",
       "medisaveNone": "Tiada apa-apa dibayar daripada MediSave untuk bil ini."
