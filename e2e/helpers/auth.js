@@ -7,7 +7,8 @@ export const E2E_SECRET = 'e2e-only-secret-for-auth-checks-at-least-32-bytes'
 process.env.JWT_SECRET = E2E_SECRET
 const { signToken } = await import('../../server/services/auth.js')
 
-export const DEMO_USER = { name: 'Tan Mei Ling', email: 'demo@example.com', dob: '1952-03-07', citizenship: 'birth', citizenSince: null, income: 'upTo1500' }
+// theme: already chosen, so the day/night question (asked once to new accounts) stays out of the way; e2e/theme.spec.js tests it.
+export const DEMO_USER = { name: 'Tan Mei Ling', email: 'demo@example.com', dob: '1952-03-07', citizenship: 'birth', citizenSince: null, income: 'upTo1500', theme: 'light' }
 export const DEMO_PASSWORD = 'password123'
 export const testToken = (remember = true) => signToken('demo-user', remember)
 

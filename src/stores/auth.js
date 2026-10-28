@@ -5,11 +5,11 @@
 // while restore() checks with the server in the background. Logging out removes both.
 // The app language is part of the account: logging in on any device uses it, and changing it anywhere saves it.
 // A language picked while logged out (Login, Sign up, welcome page) wins at login and becomes the account's.
-// Day/night mode works the same way: picked on Sign up or the Account page, saved to the account, used on every device.
+// Day/night mode is part of the account too: asked once after signing up (ThemePrompt), changed on the Account page.
 import { reactive, watch } from 'vue'
 import { api, TOKEN_KEY, readToken } from '../api/client'
 import i18n, { setLocale } from '../i18n'
-import { setTheme, themeChoice } from '../theme'
+import { setTheme } from '../theme'
 
 const USER_KEY = 'user'
 
@@ -89,10 +89,9 @@ async function start(path, body, remember) {
 
 export const login = (email, password, remember = true) => start('/auth/login', { email, password }, remember)
 // profile = { name, dob, citizenship, citizenSince }
-// The language in use when they sign up (picked on the welcome page or above the form) becomes the account's language,
-// and the day/night choice on the form becomes the account's theme.
+// The language in use when they sign up (picked on the welcome page or above the form) becomes the account's language.
 export const signup = (email, password, profile, remember = true) =>
-  start('/auth/signup', { ...profile, email, password, language: i18n.global.locale.value, theme: themeChoice.value }, remember)
+  start('/auth/signup', { ...profile, email, password, language: i18n.global.locale.value }, remember)
 
 // Account page: change name, date of birth or citizenship.
 export async function updateProfile(profile) {
@@ -128,10 +127,9 @@ export async function saveTheme(theme) {
   return res
 }
 
-// Logged in: use the account's day/night choice. Accounts that never chose one get this device's choice saved.
+// Logged in: use the account's day/night choice. Accounts that haven't chosen are asked on Home (stores/guide.js).
 function useAccountTheme(user) {
-  if (!user.theme) saveTheme(themeChoice.value)
-  else setTheme(user.theme)
+  if (user.theme) setTheme(user.theme)
 }
 
 // Logged in: switch to the account's language, unless they just picked one on the way in (then that one is saved).

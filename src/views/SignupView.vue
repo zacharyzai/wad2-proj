@@ -10,7 +10,6 @@ import ErrorBanner from '../components/layout/ErrorBanner.vue'
 import BigButton from '../components/layout/BigButton.vue'
 import AppIcon from '../components/layout/AppIcon.vue'
 import { INCOMES, isCitizen } from '../utils/account'
-import { THEME_ICONS, THEMES, setTheme, themeChoice } from '../theme'
 
 const MIN_PASSWORD = 8
 // Same values as the subsidy rules (src/rules/subsidies.js, via BillView) and the server (server/models/User.js).
@@ -159,17 +158,6 @@ async function submit() {
         </div>
         <span v-if="show('income')" id="signup-income-help" class="auth-warn">{{ problems.income }}</span>
         <span v-else id="signup-income-help" class="auth-help">{{ t('bill.q.incomeHelp') }}</span>
-      </div>
-
-      <!-- Day or night: the page changes as they tap, so they see what they pick. Sent with the signup (stores/auth.js). -->
-      <div>
-        <span id="signup-theme-label" class="auth-label">{{ t('account.theme.title') }}</span>
-        <div class="segmented theme-choices" role="group" aria-labelledby="signup-theme-label" aria-describedby="signup-theme-help" data-testid="signup-theme">
-          <button v-for="c in THEMES" :key="c" type="button" :aria-pressed="themeChoice === c" :data-theme-choice="c" @click="setTheme(c)">
-            <AppIcon :name="THEME_ICONS[c]" :size="22" />{{ t(`account.theme.${c}`) }}
-          </button>
-        </div>
-        <span id="signup-theme-help" class="auth-help">{{ t('account.theme.later') }}</span>
       </div>
 
       <label class="auth-check">
