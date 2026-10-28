@@ -353,7 +353,7 @@ onBeforeUnmount(() => {
       </nav>
       <div class="lnav-acts">
         <RouterLink :to="{ name: 'login' }" class="lnav-login">{{ t('nav.login') }}</RouterLink>
-        <RouterLink :to="{ name: 'signup', query: { next: '/scan' } }" class="cta sm">{{ t('landing.try') }}</RouterLink>
+        <RouterLink :to="{ name: 'login', query: { next: '/scan' } }" class="cta sm">{{ t('landing.try') }}</RouterLink>
       </div>
     </header>
 
@@ -379,7 +379,7 @@ onBeforeUnmount(() => {
             </div>
             <p class="lede">{{ t('landing.hero.lead') }}</p>
             <div class="ctas">
-              <RouterLink :to="{ name: 'signup', query: { next: '/scan' } }" class="cta" data-testid="landing-cta-hero">{{ t('landing.try') }}</RouterLink>
+              <RouterLink :to="{ name: 'login', query: { next: '/scan' } }" class="cta" data-testid="landing-cta-hero">{{ t('landing.try') }}</RouterLink>
               <button type="button" class="ghost" @click="scrollToScan">{{ t('landing.hero.how') }} <span aria-hidden="true">↓</span></button>
             </div>
           </div>
@@ -602,7 +602,7 @@ onBeforeUnmount(() => {
         </div>
       </div>
       <div class="final" data-testid="landing-final">
-        <RouterLink :to="{ name: 'signup', query: { next: '/scan' } }" class="big-cta" data-fall="5" data-a="0.45" data-b="0.88" data-r0="-30" data-dx="0" data-testid="landing-cta-final">
+        <RouterLink :to="{ name: 'login', query: { next: '/scan' } }" class="big-cta" data-fall="5" data-a="0.45" data-b="0.88" data-r0="-30" data-dx="0" data-testid="landing-cta-final">
           <span data-morph="in" data-ma="0.86" data-mb="0.98" class="big-face">{{ t('landing.try') }} <span aria-hidden="true">→</span></span>
           <span data-morph="out" data-ma="0.84" data-mb="0.96" class="capsule fill" :style="pill('coral')" aria-hidden="true"></span>
         </RouterLink>

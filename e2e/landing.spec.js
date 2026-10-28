@@ -62,16 +62,16 @@ test('signed in before, but the server no longer accepts that login: off to Log 
   expect(await page.evaluate(() => [localStorage.getItem('token'), localStorage.getItem('user')])).toEqual([null, null])
 })
 
-test('both "Try me out" buttons go to Create account, then on to Scan', async ({ page }) => {
+test('both "Try me out" buttons go to Log in, then on to Scan', async ({ page }) => {
   await page.goto('/welcome')
   await page.getByTestId('landing-cta-hero').click()
-  await expect(page).toHaveURL(/\/signup\?next=(%2F|\/)scan$/)
+  await expect(page).toHaveURL(/\/login\?next=(%2F|\/)scan$/)
 
   await page.goto('/welcome')
   // It lands at the very end of the page. Retry: the router's scroll-to-top can still run just after load and undo one scroll.
   await expect.poll(() => page.evaluate(() => (window.scrollTo(0, document.body.scrollHeight), scrollY > 0))).toBe(true)
   await page.getByTestId('landing-cta-final').click()
-  await expect(page).toHaveURL(/\/signup\?next=(%2F|\/)scan$/)
+  await expect(page).toHaveURL(/\/login\?next=(%2F|\/)scan$/)
 })
 
 test('the headline changes language on its own; tapping a language stops it and switches the page', async ({ page }) => {
