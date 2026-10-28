@@ -9,12 +9,12 @@ import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { guide, STEPS, currentStep, endGuide, nextStep, openGuide } from '../../stores/guide'
+import { speak as sayAloud, stopSpeaking } from '../../stores/speech'
 import GuideArt from './GuideArt.vue'
 import AppIcon from '../layout/AppIcon.vue'
 
 const { t, locale } = useI18n()
 const router = useRouter()
-const VOICE = { en: 'en-SG', zh: 'zh-CN', ms: 'ms-MY', ta: 'ta-IN' }
 const PAD = 8 // space between the glow and the button
 const GAP = 18 // space between the glow and the speech bubble
 
@@ -28,20 +28,20 @@ const reading = ref(false)
 const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches
 let returnFocus = null
 
-// ---- read aloud ----
+// ---- read aloud: the device's voice, or our server's audio when it has none for the language (stores/speech.js) ----
+const preparing = ref(false) // getting the audio
+let readRun = 0
 function stopVoice() {
-  if ('speechSynthesis' in window) speechSynthesis.cancel()
-  reading.value = false
+  readRun++
+  stopSpeaking()
+  reading.value = preparing.value = false
 }
-function speak() {
-  if (reading.value || !('speechSynthesis' in window)) return stopVoice()
-  const u = new SpeechSynthesisUtterance(`${say('t')}. ${say('b')}`)
-  u.lang = VOICE[locale.value] ?? 'en-SG'
-  u.rate = 0.9
-  u.onend = u.onerror = () => (reading.value = false)
-  speechSynthesis.cancel()
-  speechSynthesis.speak(u)
-  reading.value = true
+async function speak() {
+  if (reading.value) return stopVoice()
+  const id = ++readRun
+  reading.value = preparing.value = true
+  await sayAloud(`${say('t')}. ${say('b')}`, locale.value, { rate: 0.9, onPlaying: () => id === readRun && (preparing.value = false) })
+  if (id === readRun) reading.value = preparing.value = false
 }
 
 // ---- moving on and ending ----
@@ -222,7 +222,7 @@ onBeforeUnmount(() => {
     <div class="scrim" aria-hidden="true"></div>
     <div ref="panel" class="card-g" role="dialog" aria-modal="true" aria-labelledby="guide-title" aria-describedby="guide-text" data-testid="guide">
       <div class="top">
-        <button type="button" class="speak" :aria-pressed="reading" :aria-label="reading ? t('guide.stop') : t('guide.listen')" data-testid="guide-speak" @click="speak">
+        <button type="button" class="speak" :class="{ wait: preparing }" :aria-busy="preparing" :aria-pressed="reading" :aria-label="reading ? t('guide.stop') : t('guide.listen')" data-testid="guide-speak" @click="speak">
           <AppIcon :name="reading ? 'pause' : 'volume'" :size="24" />
         </button>
         <span class="step-text" aria-live="polite">{{ t('guide.step', { n: guide.step, total: STEPS.length }) }}</span>
@@ -252,7 +252,7 @@ onBeforeUnmount(() => {
       <div :key="step.id" class="bubble-in">
         <div class="top">
           <span class="step-text" aria-live="polite">{{ t('guide.step', { n: guide.step, total: STEPS.length }) }}</span>
-          <button type="button" class="speak sm" :aria-pressed="reading" :aria-label="reading ? t('guide.stop') : t('guide.listen')" @click="speak">
+          <button type="button" class="speak sm" :class="{ wait: preparing }" :aria-busy="preparing" :aria-pressed="reading" :aria-label="reading ? t('guide.stop') : t('guide.listen')" @click="speak">
             <AppIcon :name="reading ? 'pause' : 'volume'" :size="20" />
           </button>
           <button type="button" class="g-skip sm" data-testid="guide-skip" @click="end('skip')">{{ t('guide.skip') }}<AppIcon name="x" :size="18" :stroke="2.5" /></button>
@@ -284,6 +284,8 @@ onBeforeUnmount(() => {
 .step-text { flex: 1; min-width: 0; font-size: 16px; font-weight: 700; line-height: 1.3; color: var(--color-text-muted); }
 .speak { width: var(--z52, 52px); height: var(--z52, 52px); flex: none; display: grid; place-items: center; padding: 0; border: 2px solid var(--color-primary-text); border-radius: 50%; background: var(--color-card); color: var(--color-tint-text); }
 .speak[aria-pressed='true'] { background: var(--color-tint); }
+.speak.wait { animation: speak-wait 1.2s ease-in-out infinite; } /* getting the audio (no voice on this device) */
+@keyframes speak-wait { 50% { opacity: 0.55; } }
 .g-skip { min-height: var(--z52, 52px); flex: none; display: flex; align-items: center; gap: 8px; padding: 6px 16px; border: 0; border-radius: 18px; background: var(--color-tint); color: var(--color-tint-text); font-size: 18px; font-weight: 700; }
 .g-skip:hover { background: var(--color-tint-strong); }
 .body { display: flex; flex-direction: column; gap: 16px; animation: slide 260ms var(--ease-out) both; }
@@ -341,6 +343,6 @@ p { margin: 0; font-size: 18px; line-height: 1.55; text-wrap: pretty; }
 @media (prefers-reduced-motion: reduce) {
   .scrim, .card-g, .body, .dim, .bubble-in, .guide-toast { animation: none; }
   .dim, .ring, .bubble { transition: none; }
-  .ring.tap::after, .tap-hint .icon { animation: none; }
+  .ring.tap::after, .tap-hint .icon, .speak.wait { animation: none; }
 }
 </style>

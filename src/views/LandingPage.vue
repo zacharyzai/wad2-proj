@@ -7,6 +7,7 @@ import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { WELCOME_KEY } from '../router'
 import { setLocale } from '../i18n'
+import { speak as sayAloud, stopSpeaking } from '../stores/speech'
 import AppIcon from '../components/layout/AppIcon.vue'
 
 const { t, locale } = useI18n()
@@ -67,40 +68,31 @@ function pickScan(item) {
   scanPinned.value = true
 }
 
-// Read-aloud demo. shortcut: browser speech only (no cloud TTS fallback like ReadAloud); fine for a demo line.
+// Read-aloud demo: the device's voice, or our server's audio when it has none for the language (stores/speech.js).
 const voice = ref(byLocale())
 const speaking = ref(false)
+const preparing = ref(false) // getting the audio
+let readRun = 0
 const ringing = ref(false) // fast rings: on with speaking, off at the next ring end after it stops
 const onRing = (e) => e.animationName.startsWith('ring') && !speaking.value && (ringing.value = false)
-// No speech at all, or no voice for this language (common for Tamil and Malay): say so instead of a silent button.
+// Neither a voice nor the server's audio could play: say so instead of a silent button.
 const noVoice = ref(false)
 function pickVoice(i) {
-  window.speechSynthesis?.cancel()
+  readRun++
+  stopSpeaking()
   voice.value = i
-  speaking.value = false
-  noVoice.value = false
+  speaking.value = preparing.value = noVoice.value = false
 }
-function speak() {
-  const synth = window.speechSynthesis
+async function speak() {
   if (speaking.value) return pickVoice(voice.value)
   const L = LANGS[voice.value]
-  const voices = synth?.getVoices() ?? []
-  const match = voices.find((v) => v.lang.toLowerCase().startsWith(L.lang))
-  // An empty list can just mean the voices haven't loaded yet, so only a loaded list without a match counts as "none".
-  if (!synth || (voices.length && !match)) return (noVoice.value = true)
+  const id = ++readRun
   noVoice.value = false
-  const u = new SpeechSynthesisUtterance(L.sample)
-  u.lang = L.voice
-  u.rate = 0.85
-  if (typeof SpeechSynthesisVoice !== 'undefined' && match instanceof SpeechSynthesisVoice) u.voice = match // else the lang decides
-  u.onend = () => (speaking.value = false)
-  u.onerror = (e) => {
-    speaking.value = false
-    if (/unavailable|not-supported|synthesis-failed/.test(e.error ?? '')) noVoice.value = true
-  }
-  synth.cancel()
-  synth.speak(u)
-  speaking.value = ringing.value = true
+  speaking.value = ringing.value = preparing.value = true
+  const result = await sayAloud(L.sample, L.lang, { rate: 0.85, onPlaying: () => id === readRun && (preparing.value = false) })
+  if (id !== readRun) return
+  speaking.value = preparing.value = false
+  noVoice.value = result === 'failed'
 }
 
 // The Reminders switch also stops the phone buzzing (WCAG 2.2.2): reminders off, no reminder arrives.
@@ -337,7 +329,7 @@ onBeforeUnmount(() => {
   root.value?.removeEventListener('focusin', onFocusIn)
   removeEventListener('resize', onScroll)
   reduceMq.removeEventListener('change', onScroll)
-  window.speechSynthesis?.cancel()
+  stopSpeaking()
 })
 </script>
 
@@ -353,7 +345,7 @@ onBeforeUnmount(() => {
       </nav>
       <div class="lnav-acts">
         <RouterLink :to="{ name: 'login' }" class="lnav-login">{{ t('nav.login') }}</RouterLink>
-        <RouterLink :to="{ name: 'signup', query: { next: '/scan' } }" class="cta sm">{{ t('landing.try') }}</RouterLink>
+        <RouterLink :to="{ name: 'login' }" class="cta sm">{{ t('landing.try') }}</RouterLink>
       </div>
     </header>
 
@@ -379,7 +371,7 @@ onBeforeUnmount(() => {
             </div>
             <p class="lede">{{ t('landing.hero.lead') }}</p>
             <div class="ctas">
-              <RouterLink :to="{ name: 'signup', query: { next: '/scan' } }" class="cta" data-testid="landing-cta-hero">{{ t('landing.try') }}</RouterLink>
+              <RouterLink :to="{ name: 'login' }" class="cta" data-testid="landing-cta-hero">{{ t('landing.try') }}</RouterLink>
               <button type="button" class="ghost" @click="scrollToScan">{{ t('landing.hero.how') }} <span aria-hidden="true">↓</span></button>
             </div>
           </div>
@@ -504,8 +496,8 @@ onBeforeUnmount(() => {
             <span data-morph="out" data-ma="0.72" data-mb="0.88" class="tablet fill big" aria-hidden="true"><span></span></span>
           </button>
           <div class="said" aria-live="polite">
-            <span class="strong">{{ speaking ? t('landing.listen.hintSpeaking') : t('landing.listen.hint') }}</span>
-            <span v-if="noVoice" class="no-voice" data-testid="landing-no-voice">{{ t('player.unavailable') }}</span>
+            <span class="strong">{{ preparing ? t('player.preparing') : speaking ? t('landing.listen.hintSpeaking') : t('landing.listen.hint') }}</span>
+            <span v-if="noVoice" class="no-voice" data-testid="landing-no-voice">{{ t('player.failed') }}</span>
             <p :lang="LANGS[voice].lang" class="sample">“{{ LANGS[voice].sample }}”</p>
           </div>
         </div>
@@ -602,7 +594,7 @@ onBeforeUnmount(() => {
         </div>
       </div>
       <div class="final" data-testid="landing-final">
-        <RouterLink :to="{ name: 'signup', query: { next: '/scan' } }" class="big-cta" data-fall="5" data-a="0.45" data-b="0.88" data-r0="-30" data-dx="0" data-testid="landing-cta-final">
+        <RouterLink :to="{ name: 'login' }" class="big-cta" data-fall="5" data-a="0.45" data-b="0.88" data-r0="-30" data-dx="0" data-testid="landing-cta-final">
           <span data-morph="in" data-ma="0.86" data-mb="0.98" class="big-face">{{ t('landing.try') }} <span aria-hidden="true">→</span></span>
           <span data-morph="out" data-ma="0.84" data-mb="0.96" class="capsule fill" :style="pill('coral')" aria-hidden="true"></span>
         </RouterLink>

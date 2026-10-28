@@ -18,7 +18,7 @@
   overflow-x: clip; /* falling items drift sideways past the edge */
   background: var(--l-bg);
   color: var(--l-ink);
-  font-family: 'Atkinson Hyperlegible', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans CJK SC', 'Noto Sans SC', 'Tamil Sangam MN', 'Nirmala UI', 'Noto Sans Tamil', system-ui, sans-serif; /* Chinese and Tamil: the phone's own fonts */
+  font-family: var(--font-sans); /* the app's font (Atkinson Hyperlegible Next), so the welcome page and the app match */
   font-size: 19px;
   line-height: 1.5;
 }
