@@ -98,3 +98,16 @@ test('every answer can be read aloud and stopped, at the saved speed', async ({ 
   await expect(first.getByRole('button', { name: 'Read aloud' })).toBeVisible()
   await expect(page.getByTestId('ask-answer').nth(1).getByRole('button', { name: 'Read aloud' })).toBeVisible()
 })
+
+test('an answer in a language the device has no voice for is read with audio from our server', async ({ page }) => {
+  await fakeSpeech(page)
+  await page.addInitScript(() => (window.speechSynthesis.getVoices = () => [{ lang: 'en-SG', name: 'English' }])) // no Tamil voice
+  await page.route('**/api/chat', (route) => route.fulfill({ json: answer('ஒரு நாளைக்கு 2 முறை.') }))
+  await page.goto('/ask')
+  await page.getByRole('button', { name: 'தமிழ்' }).click()
+  await page.locator('textarea').fill('எப்போது சாப்பிட வேண்டும்?')
+  await page.keyboard.press('Enter')
+  const sent = page.waitForRequest('**/api/tts')
+  await page.getByTestId('ask-answer').getByRole('button').first().click()
+  expect((await sent).postDataJSON()).toMatchObject({ lang: 'ta', text: expect.stringContaining('2 முறை') })
+})

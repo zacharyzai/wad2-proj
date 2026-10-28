@@ -341,7 +341,8 @@
     "pause": "暂停",
     "replay": "重播",
     "speed": "语速",
-    "unavailable": "这台设备暂时不能用这种语言朗读。"
+    "preparing": "正在准备声音…",
+    "failed": "现在无法朗读。请稍后再试。"
   },
   "ask": {
     "title": "询问您的药物",
