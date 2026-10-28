@@ -23,13 +23,14 @@ export class ScanError extends Error {
 const API = 'https://generativelanguage.googleapis.com/v1beta/models'
 // OpenAI-compatible. Different company from Google, so it isn't hit by the same overloads.
 const GROQ_API = 'https://api.groq.com/openai/v1/chat/completions'
-// One deadline for the whole scan, shared by the main model and its fallbacks.
-const TIMEOUT_MS = 25_000
+// One deadline for the whole scan, shared by the main model and its fallbacks. With covering on the phone and the upload,
+// a scan then stays inside the app's 30 s limit (SCAN_LIMIT_MS in ScanView.vue).
+const TIMEOUT_MS = 16_000
 // A slow model gives up early enough for a fallback to still answer in time.
-const FIRST_TRY_MS = 12_000
+const FIRST_TRY_MS = 9_000
 // Always kept for the last model (Groq, a different company): when every Gemini model is overloaded and slow to say so,
 // the backup still gets its turn instead of the deadline running out first.
-const LAST_TRY_RESERVE_MS = 8_000
+const LAST_TRY_RESERVE_MS = 5_000
 // A model that was just overloaded, out of quota or too slow is tried last for 2 minutes, so the next scans go straight
 // to one that is working instead of waiting for it to fail again. Per server instance; it forgets on a cold start.
 const REST_MS = 2 * 60_000

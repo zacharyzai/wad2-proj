@@ -60,7 +60,8 @@
     "LOOKS_LIKE_BILL": "Ini kelihatan seperti bil perubatan, bukan label ubat.",
     "LOOKS_LIKE_LABEL": "Ini kelihatan seperti label ubat, bukan bil perubatan.",
     "MISMATCH": "Gambar ini tidak sepadan dengan apa yang anda pilih untuk diimbas.",
-    "SESSION_ENDED": "Anda telah dilog keluar. Sila log masuk semula."
+    "SESSION_ENDED": "Anda telah dilog keluar. Sila log masuk semula.",
+    "TIMEOUT": "Ini mengambil masa terlalu lama, jadi kami berhenti. Sila cuba lagi, atau cuba contoh."
   },
   "home": {
     "title": "Apa yang anda ingin fahami?",
@@ -184,6 +185,14 @@
       "bill": {
         "title": "Gambar ini tidak sepadan dengan bil perubatan",
         "text": "Ia kelihatan seperti label ubat, jadi kami tidak boleh membacanya sebagai bil. Sila ambil gambar bil."
+      }
+    },
+    "slow": "Ini lebih lama daripada biasa. Kami akan berhenti selepas 30 saat supaya anda boleh cuba lagi.",
+    "steps": {
+      "cover": "Tutup butiran peribadi anda pada telefon ini",
+      "read": {
+        "medication": "Baca label anda",
+        "bill": "Baca bil anda"
       }
     }
   },
