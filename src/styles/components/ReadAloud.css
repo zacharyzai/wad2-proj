@@ -9,3 +9,6 @@
 .replay { width: var(--z52, 52px); height: var(--z52, 52px); --bs-btn-bg: var(--color-surface-2); --bs-btn-border-color: var(--color-border); }
 .speed-label { font-size: 17px; font-weight: 600; color: var(--color-text-muted); }
 .speeds { flex: 1; min-width: 220px; }
+.play.wait .play-btn { animation: play-wait 1.2s ease-in-out infinite; } /* getting the audio (no voice on this device) */
+@keyframes play-wait { 50% { opacity: 0.6; } }
+@media (prefers-reduced-motion: reduce) { .play.wait .play-btn { animation: none; opacity: 0.75; } }

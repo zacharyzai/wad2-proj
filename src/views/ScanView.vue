@@ -4,7 +4,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { scanImage, scanSample } from '../api/client'
-import { redactImage } from '../utils/redact'
+import { redactImage, warmUp } from '../utils/redact'
 import { scanStore } from '../stores/scan'
 import AppIcon from '../components/layout/AppIcon.vue'
 import LoadingState from '../components/layout/LoadingState.vue'
@@ -260,7 +260,8 @@ onMounted(() => {
   scanStore.pendingFile = null
   if (file) return useFile(file)
   const sample = SAMPLES.find((s) => s.id === route.query.sample)
-  if (!sample) return
+  // Opened to take or pick a photo: start downloading the reader now (not for a sample, which never needs it; tests use a fake).
+  if (!sample) return window.__redactForTests || warmUp()
   router.replace({ query: {} }) // so Back from Confirm doesn't run the sample again
   trySample(sample)
 })

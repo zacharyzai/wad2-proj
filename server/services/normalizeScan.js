@@ -8,7 +8,8 @@ export const WITH_FOOD = ['before', 'after', 'with', 'any']
 export const FREQUENCY_TYPES = ['daily', 'as_needed', 'weekly', 'tapering', 'other']
 export const BILL_CATEGORIES = ['consultation', 'medication', 'investigation', 'procedure', 'ward', 'tax', 'other']
 // insurance: MediShield Life, Integrated Shield, private or employer insurance. Lowers what is paid, like a subsidy.
-export const SUBSIDY_SCHEMES = ['government', 'chas', 'pioneer', 'merdeka', 'insurance', 'other']
+// paid: money already paid earlier (a deposit at admission, an earlier payment), taken off what is still due.
+export const SUBSIDY_SCHEMES = ['government', 'chas', 'pioneer', 'merdeka', 'insurance', 'paid', 'other']
 // Where the bill is from. It decides which subsidy rules can apply (src/rules/subsidies.js).
 export const BILL_PLACES = ['polyclinic', 'gp', 'dental', 'specialist', 'hospital', 'tcm', 'pharmacy', 'lab', 'other']
 
@@ -17,7 +18,17 @@ const num = (v) => (typeof v === 'number' && Number.isFinite(v) && v >= 0 ? v : 
 const posInt = (v) => (Number.isInteger(v) && v > 0 ? v : null)
 const oneOf = (v, list) => (list.includes(v) ? v : null)
 // AI reads dollars off the bill; the contract stores integer cents.
-const cents = (v) => (num(v) === null ? null : Math.round(v * 100))
+// Bill amounts as printed can carry a sign: "-6,120.00", "(6,120.00)" or "S$ 1,500.00" (a string from some models).
+// Returns signed dollars, or null. A minus or brackets means a deduction (see normalizeBill).
+function signedDollars(v) {
+  if (typeof v === 'number') return Number.isFinite(v) ? v : null
+  if (typeof v !== 'string') return null
+  const t = v.replace(/s?\$|sgd|,|\s/gi, '')
+  const m = t.match(/^(\()?([-−–])?(\d+(?:\.\d+)?)\)?$/)
+  if (!m) return null
+  return (m[1] || m[2] ? -1 : 1) * Number(m[3])
+}
+const dollarsToCents = (v) => (v === null ? null : Math.round(v * 100))
 const isoDate = (v) => (typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : null)
 
 export function normalizeMedication(raw = {}) {
@@ -43,27 +54,64 @@ export function normalizeMedication(raw = {}) {
   return { type: 'medication', source: 'ai', unclear, medication }
 }
 
+// Lines that lower the bill. Models sometimes copy them among the charges, or keep their minus sign; either way they are
+// taken off, never added. A charge is only treated as one by these words (a minus sign always counts).
+const DEDUCTION = /medi\s*shield|integrated\s*(shield|plan)|insurance|insurer|payout|claim|rebate|discount|deduct|deposit|prepaid|amount\s*paid|payments?\s*(received|made)/i
+const MEDISAVE = /medi\s*save/i
+// Totals the model listed as a charge: never added in.
+const TOTAL_LINE = /^(sub\s*-?\s*total|grand\s*total|total|balance|amount\s*(due|payable)|nett?\s*(payable|amount|total))\b/i
+const schemeFor = (d) =>
+  /deposit|prepaid|amount\s*paid|payments?\b/i.test(d) ? 'paid'
+  : /medi\s*shield|integrated|insur|payout|claim/i.test(d) ? 'insurance'
+    : /chas/i.test(d) ? 'chas'
+      : /pioneer|\bpg\b/i.test(d) ? 'pioneer'
+        : /merdeka|\bmg\b/i.test(d) ? 'merdeka'
+          : /subsid/i.test(d) ? 'government'
+            : 'other'
+
 export function normalizeBill(raw = {}) {
   const unclear = []
   const list = (v) => (Array.isArray(v) ? v : [])
 
-  const items = list(raw.items).map((line, i) => {
-    const item = {
-      description: str(line?.description),
-      category: oneOf(line?.category, BILL_CATEGORIES) ?? 'other',
-      amountCents: cents(line?.amount),
-    }
+  const subsidies = []
+  const medisaveLines = []
+  const charges = []
+  for (const line of list(raw.items)) {
+    const description = str(line?.description)
+    const dollars = signedDollars(line?.amount)
+    if (description && TOTAL_LINE.test(description)) continue
+    // "GST at 7% is included in this bill": already inside the charges, so never added again.
+    if (description && /\bgst\b/i.test(description) && /includ/i.test(description)) continue
+    const off = dollars !== null && dollars < 0
+    if (description && MEDISAVE.test(description) && dollars !== null) medisaveLines.push(Math.abs(dollars))
+    else if (off || (description && DEDUCTION.test(description) && dollars !== null)) subsidies.push({ scheme: schemeFor(description ?? ''), amountCents: dollarsToCents(Math.abs(dollars)), includedInItems: false, moved: true })
+    else charges.push({ description, category: oneOf(line?.category, BILL_CATEGORIES) ?? 'other', amountCents: dollars === null ? null : dollarsToCents(dollars) })
+  }
+  const items = charges.map((item, i) => {
     if (item.description === null) unclear.push(`bill.items.${i}.description`)
     if (item.amountCents === null) unclear.push(`bill.items.${i}.amountCents`)
     return item
   })
 
-  const subsidies = list(raw.subsidies).map((line, i) => {
+  for (const line of list(raw.subsidies)) {
+    const dollars = signedDollars(line?.amount)
+    // The sign doesn't matter here: everything in subsidies lowers the bill.
+    const subsidy = { scheme: oneOf(line?.scheme, SUBSIDY_SCHEMES) ?? 'other', amountCents: dollars === null ? null : dollarsToCents(Math.abs(dollars)), includedInItems: line?.includedInItems === true }
+    // The same deduction listed twice (as a charge with a minus sign and as a subsidy) counts once.
+    const twin = subsidies.findIndex((s) => s.moved && s.amountCents === subsidy.amountCents)
+    if (twin >= 0) subsidies.splice(twin, 1)
+    subsidies.push(subsidy)
+  }
+  subsidies.forEach((s, i) => {
+    delete s.moved
     // includedInItems: already taken off the (net) item amounts, so shown but never subtracted again.
-    const subsidy = { scheme: oneOf(line?.scheme, SUBSIDY_SCHEMES) ?? 'other', amountCents: cents(line?.amount), includedInItems: line?.includedInItems === true }
-    if (subsidy.amountCents === null) unclear.push(`bill.subsidies.${i}.amountCents`)
-    return subsidy
+    if (s.amountCents === null) unclear.push(`bill.subsidies.${i}.amountCents`)
   })
+
+  const medisave = signedDollars(raw.medisave)
+  // A MediSave line among the charges only counts when the model didn't also give it as medisave.
+  const medisaveDollars = medisave !== null && medisave !== 0 ? Math.abs(medisave) : medisaveLines.length ? medisaveLines.reduce((a, b) => a + b, 0) : medisave
+  const total = signedDollars(raw.totalPayable)
 
   const bill = {
     clinic: str(raw.clinic),
@@ -71,8 +119,8 @@ export function normalizeBill(raw = {}) {
     visitDate: isoDate(raw.visitDate),
     items,
     subsidies,
-    medisaveCents: cents(raw.medisave),
-    totalPayableCents: cents(raw.totalPayable),
+    medisaveCents: dollarsToCents(medisaveDollars),
+    totalPayableCents: total === null || total < 0 ? null : dollarsToCents(total),
   }
 
   if (!items.length) unclear.push('bill.items')

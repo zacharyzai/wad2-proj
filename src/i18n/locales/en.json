@@ -288,7 +288,8 @@
     "pioneer": "Pioneer Generation",
     "merdeka": "Merdeka Generation",
     "insurance": "Insurance (MediShield Life or other)",
-    "other": "Other subsidy"
+    "other": "Other subsidy",
+    "paid": "Already paid"
   },
   "explain": {
     "sep": ", ",
@@ -350,7 +351,8 @@
     "pause": "Pause",
     "replay": "Replay",
     "speed": "Speed",
-    "unavailable": "Read-aloud in this language is not available on this device yet."
+    "preparing": "Getting the audio…",
+    "failed": "We couldn't play this aloud right now. Please try again in a moment."
   },
   "ask": {
     "title": "Ask about your medicine",
@@ -417,7 +419,9 @@
       "start": "Speak",
       "stop": "Stop",
       "listening": "Listening…",
-      "error": "Couldn’t hear you. Try again or type."
+      "error": "Couldn’t hear you. Try again or type.",
+      "noLang": "Speaking in this language doesn't work in this browser. Please type, or try Google Chrome.",
+      "blocked": "The microphone is blocked. Allow it in your browser settings, or type."
     },
     "toast": {
       "removed": "{name} removed",
@@ -613,7 +617,8 @@
     "tag": {
       "subsidy": "Subsidy",
       "medisave": "From CPF MediSave",
-      "insurance": "Insurance"
+      "insurance": "Insurance",
+      "paid": "Paid"
     },
     "medisave": "MediSave",
     "explain": {
@@ -630,7 +635,8 @@
         "pioneer": "The Pioneer Generation gets extra help with healthcare costs. If you are in it, you have a Pioneer Generation card. This amount has already been taken off your bill.",
         "merdeka": "The Merdeka Generation gets extra help with healthcare costs. If you are in it, you have a Merdeka Generation card. This amount has already been taken off your bill.",
         "insurance": "MediShield Life or your insurance plan paid this part of the bill. You don’t pay this amount.",
-        "other": "Another scheme or discount took this amount off your bill. Ask at the counter which one it is."
+        "other": "Another scheme or discount took this amount off your bill. Ask at the counter which one it is.",
+        "paid": "This was paid earlier, for example a deposit when you were admitted. It is taken off what is still to pay."
       },
       "medisave": "MediSave is your CPF savings for healthcare. Money from it can pay part of some bills, so you pay less in cash.",
       "medisaveNone": "Nothing was paid from MediSave on this bill."

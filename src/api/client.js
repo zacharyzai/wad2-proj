@@ -37,3 +37,6 @@ export const scanSample = (sampleId, timeout) => api('/scan', { method: 'POST', 
 
 // Contract: docs/chat-contract.md
 export const askMedicine = (medicines, question, lang, history = []) => api('/chat', { method: 'POST', body: { medicines, question, lang, history } })
+
+// Read-aloud audio for devices with no voice for the language: { audio } (base64 WAV). Takes about 6 s.
+export const readAloudAudio = (text, lang) => api('/tts', { method: 'POST', body: { text, lang } })

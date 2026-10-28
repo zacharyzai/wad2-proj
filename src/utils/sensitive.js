@@ -32,6 +32,10 @@ const isPhone = (raw) => /^(\+?65)?[3689]\d{7}$/.test(raw.replace(/[\s()-]/g, ''
 // Also the people around the patient (bills name whoever pays: "MediSave account holder: Ong Kok Leong (Son)").
 const LABEL = /^(patient'?s?\s*name|name|nric(\/fin)?|fin|ic\s*no\.?|id\s*no\.?|d\.?o\.?b\.?|date\s*of\s*birth|birth\s*date|(home\s*)?address|addr\.?|tel\.?|phone|mobile|hp|contact(\s*no\.?)?|(medisave\s*)?(account\s*)?holder|payer|paid\s*by|next\s*of\s*kin|nok|guardian)$/i
 const COLON_LABEL = /^(patient|pt\.?)$/i
+// Column headings after a label: then the label heads a table ("Payer  Adjustment  Payment  Amount Due") and the names are
+// in the rows below, not after it on the same line.
+const HEADING = /^(adjustments?|payments?|amounts?|amt|due|paid|payable|balance|share|portion|relationship|relation|status|type|date|method|mode|ref(erence)?|no\.?|\(?s?\$\)?|sgd)$/i
+const NAME_PARTICLE = /^(bin|binte|binti|bte|van|von|de|del|da|dos)$/i // lowercase parts of names (s/o, d/o have a slash)
 // Whole line is an address: "Blk 123 ...", "#04-56", "Singapore 520123", "S(520123)".
 const ADDRESS_LINE = /^(blk|block)\b|#\d{1,3}-\d{1,4}|singapore\s*\d{6}|\bS\(?\d{6}\)?(?!\S)/i
 
@@ -48,6 +52,7 @@ export function findSensitive(lines) {
     hits.push({ text: word.text, reason, bbox: word.bbox })
   }
   let coverNextLine = null // a label with its value on the next line ("Name:" ⏎ "TAN AH KOW")
+  let tableRows = null // a label heading a table: { reason, left } rows whose names (the words before the first number) are covered
 
   for (const line of lines) {
     const words = line.words.filter((w) => w.text.trim())
@@ -56,6 +61,21 @@ export function findSensitive(lines) {
       words.forEach((w) => hit(w, coverNextLine))
       coverNextLine = null
       continue
+    }
+    if (tableRows) {
+      // The words before the first number are a name, unless they read as a sentence: more than 6 words, or 2+ ordinary
+      // lowercase words ("note that the"; name particles like bin, binte, s/o don't count). Then the table has ended.
+      const end = words.findIndex((w) => /\d/.test(w.text))
+      const lead = words.slice(0, end < 0 ? words.length : end)
+      const plain = lead.filter((w) => /^[a-z]{3,}[.,]?$/.test(w.text) && !NAME_PARTICLE.test(w.text)).length
+      if (lead.length > 6 || plain >= 2) tableRows = null
+      else {
+        for (const w of words) {
+          if (/\d/.test(w.text)) break
+          hit(w, tableRows.reason)
+        }
+        if (--tableRows.left === 0) tableRows = null
+      }
     }
     const text = words.map((w) => w.text).join(' ')
     if (ADDRESS_LINE.test(text)) {
@@ -82,6 +102,12 @@ export function findSensitive(lines) {
         // Without a colon, only accept a label that starts the line, so "Name" in the middle of a sentence is left alone.
         if (!isLabel || (!hasColon && i > 0)) continue
         const reason = base.toLowerCase()
+        const rest = words.slice(i + n)
+        if (!hasColon && rest.length && rest.every((x) => HEADING.test(clean(x.text)))) {
+          tableRows = { reason, left: 4 } // the headings stay; the names below are covered
+          i = words.length
+          break
+        }
         if (glued.join(':').trim()) hit(words[i + n - 1], reason) // value glued on: "Name:TAN"
         // Cover the value: up to the next "Something:" field on the same line, or the next line if nothing follows.
         let j = i + n
@@ -100,6 +126,8 @@ export function findSensitive(lines) {
 const KEEP = [
   /\d+(\.\d+)?\s*(mg|mcg|µg|g|ml|%|iu|units?)\b/i, // strength or volume: 500 MG, 5ml
   /\$?\d+\.\d{2}\b/, // money: 14.50, $8.70
+  // Money whose decimal point the reader lost or misplaced at the end of a row (real photos): "504 70", "23.011 69".
+  /\d(?:[\d,.]*\d)?\s\d{2}\s*$/,
   /\b(take|tab(let)?s?|cap(sule)?s?|syrup|cream|ointment|gel|drops?|puffs?|inhaler|spray|solution|suspension|lozenges?|patch(es)?|sachets?|(tea)?spoons?(ful)?|apply|inhale|swallow|chew|dissolve|insert|use)\b/i,
   /\b(once|twice|thrice|times?|daily|day|days|weekly|weeks?|hours?|hourly|every|mo(rn|m)ing|afternoon|evening|night|bedtime|before|after|food|meals?|breakfast|lunch|dinner|needed|required|pain|fever)\b/i,
   /\b(do not|don'?t|avoid|may cause|drows\w*|alcohol|finish|complete|course|external|refrigerat\w*|store|shake|warning|caution)\b/i,
@@ -108,7 +136,7 @@ const KEEP = [
   /\b(qty|quantity|exp(iry)?|date|dispensed|pharmacy|polyclinic|clinic|hospital|pharmacist|rx)\b/i,
   /\b(consult\w*|subsid\w*|medisave|chas|payable|total|gst|invoice|bill|receipt|amount|paid|payment|balance|pioneer|merdeka|generation|medications?|investigations?|procedures?|charges?|fees?|cash|nets|less)\b/i,
   // Hospital, specialist, dental and other medical bills. No ID words (bill no, admission no): those lines stay covered.
-  /\b(ward|room|bed|class|medishield|shield|insurance|insurer|claims?|deduct\w*|radiology|x-?ray|scan|laborator\w*|lab|physio\w*|therapy|nursing|consumables|dental|dentist|specialist|discharged?|admitted|tcm)\b/i,
+  /\b(ward|room|bed|class|medishield|shield|insurance|insurer|claims?|deduct\w*|radiology|x-?ray|scan|laborator\w*|lab|physio\w*|therapy|nursing|consumables|dental|dentist|specialist|discharged?|admitted|tcm|implants?|appliances?|orthop\w*|stents?|prosthe\w*|devices?|services?)\b/i,
 ]
 
 // Row geometry from the reader: a baseline (tilted on a tilted photo) plus how far letters reach above and below it.

@@ -12,7 +12,7 @@ import { computed, nextTick, onBeforeUnmount, ref, toRaw } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { askMedicine } from '../api/client'
 import { medicines, rememberMedicine, forgetMedicine, restoreMedicine } from '../stores/medicines'
-import { speechRate } from '../stores/speech'
+import { speak, stopSpeaking } from '../stores/speech'
 import AppIcon from '../components/layout/AppIcon.vue'
 
 const CHIPS = ['when', 'food', 'missed', 'store']
@@ -84,51 +84,45 @@ async function scrollTo(msg, block) {
   thread.value?.querySelector(`[data-reply="${msg.id}"]`)?.scrollIntoView({ block, behavior: smooth ? 'smooth' : 'auto' })
 }
 
-// Read-aloud on every answer, in the answer's language, at the shared speed. Hidden when the device has no voice for it.
-const canSpeak = typeof window !== 'undefined' && 'speechSynthesis' in window
-const voices = ref(canSpeak ? speechSynthesis.getVoices() : [])
-const loadVoices = () => (voices.value = speechSynthesis.getVoices())
-if (canSpeak) speechSynthesis.addEventListener('voiceschanged', loadVoices)
-const voiceFor = (lang) => voices.value.find((v) => v.lang.toLowerCase().startsWith(lang))
+// Read-aloud on every answer, in the answer's language, at the shared speed: the device's voice, or our server's audio
+// when the device has none for that language (stores/speech.js).
 const speaking = ref(null) // id of the message being read
-let utterance = null
-
-function play(m) {
-  speechSynthesis.cancel()
-  const u = new SpeechSynthesisUtterance(answerText(m))
-  u.voice = voiceFor(m.lang)
-  u.lang = u.voice.lang
-  u.rate = speechRate.value
-  // cancel() also ends the previous utterance, so only the current one may clear the state.
-  u.onend = u.onerror = () => {
-    if (utterance === u) speaking.value = null
-  }
-  utterance = u
+const preparing = ref(false) // getting the audio for it
+const speakFailed = ref(null) // id of the message whose audio couldn't be played
+async function play(m) {
   speaking.value = m.id
-  speechSynthesis.speak(u)
+  preparing.value = true
+  speakFailed.value = null
+  const result = await speak(answerText(m), m.lang, { onPlaying: () => speaking.value === m.id && (preparing.value = false) })
+  if (speaking.value !== m.id || result === 'stopped') return // another answer (or Stop) took over
+  speaking.value = null
+  preparing.value = false
+  if (result === 'failed') speakFailed.value = m.id
 }
 function stopReading() {
-  utterance = null
-  if (canSpeak) speechSynthesis.cancel()
   speaking.value = null
+  preparing.value = false
+  stopSpeaking()
 }
 
 // Voice input: fills the text box only; the user checks it and presses Ask.
 const Recognition = typeof window !== 'undefined' && (window.SpeechRecognition || window.webkitSpeechRecognition)
 const REC_LANG = { en: 'en-SG', zh: 'zh-CN', ms: 'ms-MY', ta: 'ta-IN' }
 const listening = ref(false)
-const micError = ref(false)
+const micError = ref(null) // which ask.mic message to show
+// The browser's speech service decides which languages work (Safari and iPhones often have no Tamil or Malay): say so.
+const MIC_ERRORS = { 'language-not-supported': 'noLang', 'not-allowed': 'blocked', 'service-not-allowed': 'blocked' }
 let recognition = null
 
 function toggleMic() {
   if (listening.value) return recognition.stop()
-  micError.value = false
+  micError.value = null
   recognition = new Recognition()
   recognition.lang = REC_LANG[locale.value]
   recognition.interimResults = false
   recognition.maxAlternatives = 1
   recognition.onresult = (e) => (question.value = e.results[0][0].transcript.slice(0, MAX))
-  recognition.onerror = (e) => (micError.value = e.error !== 'aborted')
+  recognition.onerror = (e) => (micError.value = e.error === 'aborted' ? null : (MIC_ERRORS[e.error] ?? 'error'))
   recognition.onend = () => {
     listening.value = false
     input.value?.focus()
@@ -137,7 +131,7 @@ function toggleMic() {
     recognition.start()
     listening.value = true
   } catch {
-    micError.value = true
+    micError.value = 'error'
   }
 }
 
@@ -211,7 +205,6 @@ onBeforeUnmount(() => {
   stopReading()
   recognition?.abort()
   clearTimeout(toastTimer)
-  if (canSpeak) speechSynthesis.removeEventListener('voiceschanged', loadVoices)
 })
 </script>
 
@@ -335,11 +328,12 @@ onBeforeUnmount(() => {
             <template v-else>
               <div class="answer rise" :lang="m.reply.answer ? m.lang : null" data-testid="ask-answer">
                 <p>{{ answerText(m) }}</p>
-                <div v-if="canSpeak && voiceFor(m.lang)" class="actions">
-                  <button type="button" class="btn btn-outline btn-sm listen" :aria-pressed="speaking === m.id" @click="speaking === m.id ? stopReading() : play(m)">
+                <div class="actions">
+                  <button type="button" class="btn btn-outline btn-sm listen" :aria-pressed="speaking === m.id" :aria-busy="speaking === m.id && preparing" @click="speaking === m.id ? stopReading() : play(m)">
                     <AppIcon :name="speaking === m.id ? 'pause' : 'volume'" :size="20" />
-                    {{ speaking === m.id ? t('ask.read.stop') : t('ask.read.play') }}
+                    {{ speaking === m.id ? (preparing ? t('player.preparing') : t('ask.read.stop')) : t('ask.read.play') }}
                   </button>
+                  <span v-if="speakFailed === m.id" class="text-muted-a11y" role="status">{{ t('player.failed') }}</span>
                 </div>
               </div>
               <p v-if="m.reply.sources?.length" class="from" data-testid="ask-from">{{ t('ask.from', { source: m.reply.sources.map(sourceText).join(', ') }) }}</p>
@@ -397,7 +391,7 @@ onBeforeUnmount(() => {
       </form>
       <span role="status" class="mic-status">
         <template v-if="listening">{{ t('ask.mic.listening') }}</template>
-        <template v-else-if="micError">{{ t('ask.mic.error') }}</template>
+        <template v-else-if="micError">{{ t(`ask.mic.${micError}`) }}</template>
         <!-- H5: say the limit is near instead of silently stopping the typing. -->
         <template v-else-if="question.length > MAX - 50"><span data-testid="ask-left">{{ t('ask.left', { n: MAX - question.length }) }}</span></template>
       </span>

@@ -77,3 +77,66 @@ test('bill with net lines: the subsidy inside them is kept but not subtracted ag
   const twice = normalizeBill({ ...NET_BILL, subsidies: NET_BILL.subsidies.map((s) => ({ ...s, includedInItems: false })) })
   assert.ok(twice.unclear.includes('bill.totalPayableCents'))
 })
+
+// The Orchid Crest statement (fictional private hospital): 8 charges + GST = 33,194.86; MediShield Life, the Integrated
+// Plan and MediSave take off 31,694.86, leaving 1,500.00.
+const CHARGES = [
+  ['Room & Board', 'ward', 3140], ["Surgeon's Fee", 'procedure', 9800], ["Anaesthetist's Fee", 'procedure', 2400],
+  ['Cath Lab & Operating Facility', 'procedure', 6850], ['Drug-Eluting Stent', 'procedure', 4200],
+  ['Investigations (Echo, Troponin, Labs)', 'investigation', 1845.6], ['Pharmacy', 'medication', 1236.4],
+  ['Nursing & Consumables', 'procedure', 982], ['GST 9%', 'tax', 2740.86],
+].map(([description, category, amount]) => ({ description, category, amount }))
+
+test('deductions copied as printed (minus signs, brackets, strings, among the charges) are taken off, not added', () => {
+  const { bill, unclear } = normalizeBill({
+    place: 'hospital',
+    items: [
+      ...CHARGES,
+      { description: 'Subtotal', category: 'other', amount: 30454 }, // a total listed as a charge: dropped
+      { description: 'Grand Total', category: 'other', amount: 33194.86 },
+      { description: 'MediShield Life', category: 'other', amount: -6120 },
+      { description: 'Integrated Plan Payout', category: 'other', amount: '(24,074.86)' },
+      { description: 'MediSave (****9087)', category: 'other', amount: '-1,500.00' },
+    ],
+    subsidies: [{ scheme: 'insurance', amount: -6120, includedInItems: false }], // MediShield also given here: counted once
+    medisave: 0,
+    totalPayable: 'S$ 1,500.00',
+  })
+  assert.deepEqual(unclear, [])
+  assert.equal(bill.items.length, 9)
+  assert.deepEqual(bill.subsidies.map((s) => [s.scheme, s.amountCents]).sort(), [['insurance', 2407486], ['insurance', 612000]])
+  assert.equal(bill.medisaveCents, 150000)
+  assert.equal(bill.totalPayableCents, 150000)
+})
+
+test('a positive deduction among the charges still counts as a deduction; a MediSave line given twice counts once', () => {
+  const { bill, unclear } = normalizeBill({
+    items: [...CHARGES, { description: 'MediShield Life claim', amount: 6120 }, { description: 'Integrated Shield payout', amount: 24074.86 }, { description: 'MediSave', amount: 1500 }],
+    subsidies: [],
+    medisave: 1500,
+    totalPayable: 1500,
+  })
+  assert.deepEqual(unclear, [])
+  assert.equal(bill.subsidies.length, 2)
+  assert.equal(bill.medisaveCents, 150000)
+})
+
+test('GST already included is not added again, and a deposit already paid comes off what is due (Yishun interim bill)', () => {
+  const { bill, unclear } = normalizeBill({
+    place: 'hospital',
+    items: [
+      { description: 'Total Charges', amount: 110576.13 },
+      { description: 'Room Charge ICU Class C - 9 day(s)', category: 'ward', amount: 110576.13 },
+      { description: 'Accident & Emergency Fee', category: 'other', amount: 122 },
+      { description: 'GST at 7% is included in this bill', category: 'tax', amount: 7234.1 },
+      { description: 'Payment', category: 'other', amount: -15000 },
+    ],
+    subsidies: [],
+    medisave: 0,
+    totalPayable: 95698.13,
+  })
+  assert.deepEqual(unclear, [])
+  assert.equal(bill.items.length, 2) // the total line and the included GST are gone
+  assert.deepEqual(bill.subsidies, [{ scheme: 'paid', amountCents: 1500000, includedInItems: false }])
+  assert.equal(bill.totalPayableCents, 9569813)
+})
