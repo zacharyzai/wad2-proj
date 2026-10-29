@@ -160,18 +160,32 @@ test('rejects unknown fields, photos, owner injection and malformed or unconfirm
   assert.equal(await Scan.countDocuments(), count)
 })
 
-test('rejects malformed bill dates, money, totals and nested private fields', async () => {
+test('rejects malformed bill dates, money and nested private fields', async () => {
   const sample = await fixture('bill-1')
   for (const change of [
     (b) => { b.visitDate = '2026-02-30' }, (b) => { b.items = [] },
     (b) => { b.items[0].amountCents = 1.5 }, (b) => { b.items[0].amountCents = '1450' },
-    (b) => { b.items[0].patientName = 'Private Person' }, (b) => { b.totalPayableCents += 1 },
+    (b) => { b.items[0].patientName = 'Private Person' }, (b) => { b.subtotals = [{ section: 'Medications', amountCents: -1 }] },
     (b) => { b.medisaveCents = -1 }, (b) => { b.subsidies[0].includedInItems = 'false' },
   ]) {
     const scan = structuredClone(sample)
     change(scan.bill)
     await error(await save(scan), 400, 'BAD_REQUEST')
   }
+})
+
+test('a bill whose lines do not add up is saved with its printed total, sections and subtotals (docs/scan-contract.md)', async () => {
+  const scan = structuredClone(await fixture('bill-1'))
+  scan.bill.totalPayableCents += 50 // one line misread by 50 cents; the person confirmed the printed total
+  scan.bill.items[0].section = 'Consultation Fees'
+  scan.bill.subtotals = [{ section: 'Consultation Fees', amountCents: scan.bill.items[0].amountCents }]
+  const response = await save(scan)
+  assert.equal(response.status, 201)
+  const { bill } = (await response.json()).data.scan
+  assert.equal(bill.totalPayableCents, scan.bill.totalPayableCents)
+  assert.equal(bill.items[0].section, 'Consultation Fees')
+  assert.equal('section' in bill.items[1], false) // only where the bill printed one
+  assert.deepEqual(bill.subtotals, scan.bill.subtotals)
 })
 
 test('bad IDs and pagination return JSON errors, not CastErrors or Mongo filters', async () => {
