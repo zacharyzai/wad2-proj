@@ -6,6 +6,7 @@ import { useI18n } from 'vue-i18n'
 import { scanStore } from '../stores/scan'
 import ReadAloud from '../components/explain/ReadAloud.vue'
 import AppIcon from '../components/layout/AppIcon.vue'
+import { billGap, linesTotal } from '../rules/billCheck'
 
 const { t, locale } = useI18n()
 const router = useRouter()
@@ -84,6 +85,8 @@ function bill(b) {
       [t('explain.bill.medisave'), minusMoney(b.medisaveCents)],
     ],
     paras: [t('explain.bill.p')],
+    // Lines that don't add up to the bill's total (a misread digit): the total shown is the bill's own; say so, as Confirm and the Bill page do.
+    note: billGap(b) ? t('bill.gap.text', { lines: money(linesTotal(b)), total: money(pay) }) : null,
     q: t('explain.check.billQ'),
     options: [pay, wrongAmount].sort(byValue).map((n) => ({ label: money(n), right: n === pay })),
     right: t('explain.check.billRight', { amount: money(pay) }),
@@ -100,7 +103,7 @@ const view = computed(() => {
 })
 
 const speech = computed(() =>
-  view.value ? [view.value.title, ...(view.value.lines ?? []).map((line) => line.join(' ')), ...view.value.paras].join(' ') : '',
+  view.value ? [view.value.title, ...(view.value.lines ?? []).map((line) => line.join(' ')), view.value.note, ...view.value.paras].filter(Boolean).join(' ') : '',
 )
 
 const picked = ref(null)
@@ -139,6 +142,11 @@ watch(locale, () => (picked.value = null))
               <dd>{{ amount }}</dd>
             </div>
           </dl>
+
+          <p v-if="view.note" class="alert alert-info m-0" role="note" data-testid="explain-gap">
+            <AppIcon name="info" />
+            <span><strong class="d-block">{{ t('bill.gap.title') }}</strong>{{ view.note }}</span>
+          </p>
 
           <div v-if="view.stats" class="stats stagger">
             <div v-for="stat in view.stats" :key="stat.text" class="stat">
