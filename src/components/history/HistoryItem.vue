@@ -1,7 +1,7 @@
 <!-- Owner: Isaac. One saved scan in the History list: replay, share (with a "what will be shared" step first) and delete (with a confirm step).
      Share and delete are inline panels, not pop-ups, so keyboard and screen-reader users never get trapped. -->
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, nextTick, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AppIcon from '../layout/AppIcon.vue'
 import ErrorBanner from '../layout/ErrorBanner.vue'
@@ -13,6 +13,7 @@ const { t, locale } = useI18n()
 
 const panel = ref(null) // null | 'share' | 'delete'
 const busy = ref(false)
+const createButton = ref(null)
 const errorCode = ref(null)
 const copied = ref(false)
 
@@ -42,7 +43,13 @@ async function run(call, onOk) {
   else errorCode.value = res.error.code
 }
 const makeLink = () => run(() => createShare(props.item.id), (d) => emit('changed', { shareToken: d.token, shareExpiresAt: d.expiresAt }))
-const stopSharing = () => run(() => revokeShare(props.item.shareToken), () => { emit('changed', { shareToken: null, shareExpiresAt: null }); panel.value = null })
+// The panel stays open on "Create a link": it shows sharing has stopped, and focus lands there instead of being lost with
+// the Stop sharing button.
+const stopSharing = () => run(() => revokeShare(props.item.shareToken), async () => {
+  emit('changed', { shareToken: null, shareExpiresAt: null })
+  await nextTick()
+  createButton.value?.focus()
+})
 const remove = () => run(() => deleteScan(props.item.id), () => emit('deleted', props.item.id))
 
 async function copy() {
@@ -84,7 +91,7 @@ async function copy() {
         <p class="m-0">{{ t(isMed ? 'history.shareMed' : 'history.shareBill') }}</p>
         <p class="m-0">{{ t('history.shareNever') }}</p>
         <p class="m-0 text-body-secondary">{{ t('history.shareExpiry') }}</p>
-        <button type="button" class="btn btn-primary" :disabled="busy" data-testid="history-share-create" @click="makeLink">{{ busy ? t('auth.working') : t('history.shareCreate') }}</button>
+        <button ref="createButton" type="button" class="btn btn-primary" :disabled="busy" data-testid="history-share-create" @click="makeLink">{{ busy ? t('auth.working') : t('history.shareCreate') }}</button>
       </template>
       <template v-else>
         <h3>{{ t('history.linkReady') }}</h3>

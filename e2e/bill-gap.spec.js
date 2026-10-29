@@ -55,6 +55,8 @@ test('the Bill page keeps the printed total and says the lines are off, and wher
   const ok = page.getByRole('button', { name: 'Looks correct' })
   await expect(ok).toBeEnabled() // never blocked by the sums
   await ok.click()
+  // Explain says it too, under its summary, and reads it aloud with the rest.
+  await expect(page.getByTestId('explain-gap')).toContainText('They come to $35.03, but your bill’s total is $35.53.')
   await page.getByRole('link', { name: /See full breakdown/ }).click()
   await expect(page.getByTestId('bill-total')).toContainText('$35.53')
   const note = page.getByTestId('bill-gap')
@@ -68,6 +70,7 @@ test('a bill that adds up shows no note', async ({ page }) => {
   await expect(page.getByRole('button', { name: 'Looks correct' })).toBeEnabled()
   await expect(page.getByTestId('confirm-gap')).toHaveCount(0)
   await page.getByRole('button', { name: 'Looks correct' }).click()
+  await expect(page.getByTestId('explain-gap')).toHaveCount(0)
   await page.getByRole('link', { name: /See full breakdown/ }).click()
   await expect(page.getByTestId('bill-total')).toContainText('$35.53')
   await expect(page.getByTestId('bill-gap')).toHaveCount(0)

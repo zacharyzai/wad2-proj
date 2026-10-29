@@ -1,17 +1,18 @@
-/* Scoped styles for LandingPage.vue. Its own warm palette and type (from the Claude Design landing page), kept on .landing
-   so the app's tokens are untouched. Full-bleed: the route has meta.bare, so there is no sidebar around it. */
+/* Scoped styles for LandingPage.vue. Full-bleed: the route has meta.bare, so there is no sidebar around it.
+   Colours are the app's own day palette (src/styles/global/tokens.css: Pharmacy Teal on Rice Paper), written out rather
+   than var()'d because the welcome page always shows in day mode, whatever night-mode choice the device has saved. */
 .landing {
-  --l-bg: oklch(0.977 0.012 80);
-  --l-sand: oklch(0.948 0.026 75);
-  --l-ink: oklch(0.28 0.035 45);
-  --l-muted: oklch(0.43 0.035 45);
-  --l-accent: oklch(0.52 0.16 35);
-  --l-accent-hover: oklch(0.47 0.15 35);
-  --l-accent-text: oklch(0.46 0.15 35);
-  --l-on-accent: oklch(0.99 0.005 80);
-  --l-card: oklch(0.995 0.004 80);
-  --l-line: oklch(0.9 0.02 70);
-  --l-green-text: oklch(0.4 0.09 150);
+  --l-bg: #faf7f2; /* --color-page */
+  --l-sand: #f2ede4; /* --color-surface-2 */
+  --l-ink: #211e1a; /* --color-text */
+  --l-muted: #5e574e; /* --color-text-muted */
+  --l-accent: #1a7070; /* --color-primary */
+  --l-accent-hover: #135555; /* --color-primary-pressed */
+  --l-accent-text: #1a7070; /* --color-primary-text */
+  --l-on-accent: #ffffff; /* --color-on-primary */
+  --l-card: #fffdfa; /* --color-card */
+  --l-line: #ece5d9; /* --color-border */
+  --l-green-text: #04785a; /* --color-success-text */
   --l-shadow: oklch(0.35 0.06 45 / 0.45);
   --l-gutter: clamp(20px, 5vw, 96px);
   position: relative;
@@ -45,7 +46,7 @@
 .cta, .ghost, .outline, .hchip, .voice, .speaker, .big-cta, .switch-btn { font: inherit; cursor: pointer; text-decoration: none; transition: background-color 0.25s, color 0.25s, scale 160ms cubic-bezier(0.23, 1, 0.32, 1); }
 /* Press feedback uses `scale`, not `transform`, so it never fights the scroll engine's inline transforms. */
 .cta:active, .ghost:active, .outline:active, .hchip:active, .voice:active, .speaker:active, .big-cta:active, .switch-btn:active, .scan-pick > button:active { scale: 0.97; }
-.cta { display: inline-flex; align-items: center; min-height: 58px; padding: 0 30px; border-radius: 999px; background: var(--l-accent); color: var(--l-on-accent); font-size: 20px; font-weight: 700; box-shadow: 0 12px 24px -14px oklch(0.45 0.15 35 / 0.8); }
+.cta { display: inline-flex; align-items: center; min-height: 58px; padding: 0 30px; border-radius: 999px; background: var(--l-accent); color: var(--l-on-accent); font-size: 20px; font-weight: 700; box-shadow: 0 12px 24px -14px rgba(19, 85, 85, 0.8); }
 .cta:hover { background: var(--l-accent-hover); color: var(--l-on-accent); }
 .ghost { min-height: 58px; padding: 0 26px; border: 2px solid oklch(0.28 0.035 45 / 0.3); border-radius: 999px; background: transparent; color: var(--l-ink); font-size: 20px; font-weight: 700; }
 .ghost:hover, .outline:hover { background: oklch(0.28 0.035 45 / 0.06); color: var(--l-ink); }
@@ -131,7 +132,7 @@
 /* After each swap the new card is scanned again: a line sweeps from top to bottom once. */
 /* As tall as the card, so translate's % moves the line exactly down the card (no layout per frame). */
 .rescan { position: absolute; left: -10px; right: -10px; top: 0; bottom: 0; opacity: 0; pointer-events: none; animation: rescan 1100ms cubic-bezier(0.45, 0, 0.25, 1) 160ms both; }
-.rescan::before { content: ''; display: block; height: 4px; border-radius: 4px; background: var(--l-accent); box-shadow: 0 0 18px 5px oklch(0.52 0.16 35 / 0.35); }
+.rescan::before { content: ''; display: block; height: 4px; border-radius: 4px; background: var(--l-accent); box-shadow: 0 0 18px 5px rgba(26, 112, 112, 0.35); }
 @keyframes rescan { 0% { translate: 0 0; opacity: 0; } 12% { opacity: 1; } 88% { opacity: 1; } 100% { translate: 0 calc(100% - 4px); opacity: 0; } }
 /* Bill / Medicine label: pick which one the frame shows. */
 .scan-pick { width: 100%; max-width: 440px; display: flex; gap: 4px; padding: 4px; border-radius: 18px; background: var(--l-sand); border: 1px solid var(--l-line); }
@@ -140,7 +141,7 @@
 .scan-pick > button[aria-pressed='true'] { background: var(--l-card); color: var(--l-ink); box-shadow: 0 6px 14px -8px var(--l-shadow); }
 .bill-plain { display: flex; flex-direction: column; }
 .bill-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding-bottom: 12px; border-bottom: 2px solid var(--l-line); }
-.tag { font-size: 16px; font-weight: 700; padding: 5px 12px; border-radius: 999px; background: oklch(0.93 0.05 150); color: oklch(0.38 0.09 150); white-space: nowrap; }
+.tag { font-size: 16px; font-weight: 700; padding: 5px 12px; border-radius: 999px; background: #e7f6f1; color: #04785a; /* --color-success-bg / -text */ white-space: nowrap; }
 .bill-line { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; padding: 12px 0; border-bottom: 1px dashed oklch(0.87 0.022 70); font-size: 18px; line-height: 1.35; }
 .bill-line b { font-size: 19px; text-align: right; } /* wraps on very narrow phones instead of leaving the card */
 .bill-line.paid { color: var(--l-green-text); border-bottom: 2px solid var(--l-line); }
@@ -150,7 +151,7 @@
 .receipt > div { display: flex; justify-content: space-between; gap: 8px; }
 .receipt .r-title { font-weight: 700; letter-spacing: 0.08em; padding-bottom: 6px; }
 .receipt .barcode { margin-top: auto; height: 30px; background: repeating-linear-gradient(90deg, oklch(0.6 0.02 60) 0 2px, transparent 2px 5px, oklch(0.6 0.02 60) 5px 6px, transparent 6px 10px); }
-.scanline { position: absolute; left: -10px; right: -10px; top: -2px; height: 4px; border-radius: 4px; opacity: 0; background: var(--l-accent); box-shadow: 0 0 18px 5px oklch(0.52 0.16 35 / 0.35); }
+.scanline { position: absolute; left: -10px; right: -10px; top: -2px; height: 4px; border-radius: 4px; opacity: 0; background: var(--l-accent); box-shadow: 0 0 18px 5px rgba(26, 112, 112, 0.35); }
 
 /* 03 Read aloud: four capsules become the language buttons, a big tablet becomes the speaker. */
 .voices { width: 100%; max-width: 440px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; }
@@ -158,7 +159,7 @@
 .voice-face { position: absolute; inset: 0; border-radius: 999px; display: flex; align-items: center; justify-content: center; background: var(--l-card); color: var(--l-ink); border: 2px solid oklch(0.85 0.025 70); font-size: 21px; font-weight: 700; box-shadow: 0 10px 20px -14px oklch(0.35 0.06 45 / 0.5); transition: background-color 0.25s, color 0.25s; }
 .voice[aria-pressed='true'] .voice-face { background: var(--l-ink); color: var(--l-bg); border-color: var(--l-ink); }
 .speaker { position: relative; width: clamp(136px, 13vw, 168px); aspect-ratio: 1; padding: 0; border: none; border-radius: 50%; background: transparent; }
-.speaker-face { position: absolute; inset: 0; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--l-accent); color: var(--l-on-accent); box-shadow: 0 0 0 12px oklch(0.52 0.16 35 / 0.12), 0 24px 40px -18px oklch(0.45 0.15 35 / 0.7); transition: box-shadow 0.3s, background-color 0.25s; }
+.speaker-face { position: absolute; inset: 0; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--l-accent); color: var(--l-on-accent); box-shadow: 0 0 0 12px rgba(26, 112, 112, 0.12), 0 24px 40px -18px rgba(19, 85, 85, 0.7); transition: box-shadow 0.3s, background-color 0.25s; }
 .speaker:hover .speaker-face { background: var(--l-accent-hover); }
 /* The big listen button breathes and sends out rings, so it reads as "press me"; faster while it is speaking. */
 .speaker-face { z-index: 0; }
@@ -173,7 +174,7 @@
 .speaker.ringing .speaker-face::after { animation-delay: 0.65s; }
 @keyframes ring { from { transform: scale(1); opacity: 0.45; } to { transform: scale(1.55); opacity: 0; } }
 @keyframes breathe { 50% { scale: 1.1; } }
-.speaker.speaking .speaker-face { box-shadow: 0 0 0 12px oklch(0.52 0.16 35 / 0.28), 0 24px 40px -18px oklch(0.45 0.15 35 / 0.7); }
+.speaker.speaking .speaker-face { box-shadow: 0 0 0 12px rgba(26, 112, 112, 0.28), 0 24px 40px -18px rgba(19, 85, 85, 0.7); }
 .tablet.big { --c: oklch(0.89 0.1 88); --score: oklch(0.8 0.12 80); }
 .tablet.big > span { left: 18%; right: 18%; height: 5px; margin-top: -2.5px; }
 .said { width: 100%; max-width: 440px; display: flex; flex-direction: column; align-items: center; gap: 12px; padding-top: 6px; }
@@ -189,7 +190,7 @@
 .switch-btn { display: flex; align-items: center; margin-left: auto; text-align: right; gap: 10px; min-height: 48px; padding: 0 2px 0 10px; border: none; background: transparent; color: var(--l-ink); font-size: 18px; font-weight: 700; }
 .sw { position: relative; display: block; flex: none; width: 54px; height: 32px; border-radius: 999px; background: oklch(0.6 0.02 70); transition: background-color 0.2s; }
 .sw::after { content: ''; position: absolute; top: 4px; left: 4px; width: 24px; height: 24px; border-radius: 50%; background: var(--l-card); box-shadow: 0 1px 3px oklch(0 0 0 / 0.3); transition: transform 200ms cubic-bezier(0.23, 1, 0.32, 1); }
-.sw.on { background: oklch(0.5 0.11 150); }
+.sw.on { background: #1a7070; } /* --color-primary */
 .sw.on::after { transform: translateX(22px); }
 .dose { display: flex; align-items: center; gap: 14px; padding: 14px 0; border-top: 1px solid var(--l-line); }
 .sun { flex: none; width: 34px; height: 34px; margin: 0 3px; border-radius: 50%; }
@@ -207,7 +208,7 @@
    the plan card and phone fit one screen; the text is decoration, aria-hidden): it buzzes, the
    Calendar notification drops in, stays, then goes; every 7 s. The Reminders switch turns it off; it waits while off screen (.idle). */
 .phone-wrap { position: relative; z-index: 1; align-self: flex-end; margin: -8px 6% 0 0; } /* tucks under the card without covering the Night row */
-.phone { position: relative; rotate: 4deg; width: 172px; aspect-ratio: 9 / 19.5; padding: 9px 9px 7px; border: 7px solid oklch(0.2 0.015 45); border-radius: 36px; background: linear-gradient(165deg, oklch(0.66 0.11 45), oklch(0.5 0.12 32) 55%, oklch(0.33 0.07 28)); box-shadow: 0 0 0 2px oklch(0.62 0.02 60), 0 40px 60px -30px var(--l-shadow); display: flex; flex-direction: column; align-items: center; color: oklch(0.99 0.005 80); animation: buzz 7s linear infinite; }
+.phone { position: relative; rotate: 4deg; width: 172px; aspect-ratio: 9 / 19.5; padding: 9px 9px 7px; border: 7px solid oklch(0.2 0.015 45); border-radius: 36px; background: linear-gradient(165deg, #00897b, #1a7070 55%, #135555) /* the app's --gradient-hero */; box-shadow: 0 0 0 2px oklch(0.62 0.02 60), 0 40px 60px -30px var(--l-shadow); display: flex; flex-direction: column; align-items: center; color: oklch(0.99 0.005 80); animation: buzz 7s linear infinite; }
 /* Side buttons: volume up and down on the left, power on the right. */
 .side { position: absolute; width: 3px; border-radius: 2px; background: oklch(0.45 0.015 50); }
 .vol-up { left: -12px; top: 22%; height: 30px; }
@@ -261,14 +262,14 @@
 .msg.bot { display: flex; align-items: flex-end; gap: 12px; max-width: 94%; }
 .avatar { flex: none; width: 44px; height: 44px; transform: rotate(-35deg); box-shadow: 0 6px 10px -6px oklch(0.35 0.06 45 / 0.6); }
 .bubble { position: relative; padding: 16px 22px; box-shadow: 0 14px 24px -18px oklch(0.35 0.06 45 / 0.5); }
-.me .bubble { border-radius: 26px 26px 8px 26px; background: oklch(0.92 0.045 45); }
+.me .bubble { border-radius: 26px 26px 8px 26px; background: #e0f7f5; } /* --color-tint */
 .bot .bubble { border-radius: 26px 26px 26px 8px; background: var(--l-card); border: 2px solid var(--l-line); }
 .bubble .fill { border-radius: inherit; }
 .bubble p { margin: 0; font-size: 20px; line-height: 1.45; }
 .bot-name { font-size: 16px; font-weight: 700; color: var(--l-muted); }
 .final { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 18px; margin-top: clamp(56px, 9vh, 104px); text-align: center; }
 .big-cta { position: relative; display: block; width: min(100%, 380px); height: clamp(84px, 8vw, 100px); border-radius: 999px; }
-.big-face { position: absolute; inset: 0; border-radius: 999px; display: flex; align-items: center; justify-content: center; gap: 14px; background: var(--l-accent); color: var(--l-on-accent); font-size: clamp(28px, 2.6vw, 34px); font-weight: 700; box-shadow: 0 24px 40px -18px oklch(0.45 0.15 35 / 0.7); transition: background-color 0.25s; }
+.big-face { position: absolute; inset: 0; border-radius: 999px; display: flex; align-items: center; justify-content: center; gap: 14px; background: var(--l-accent); color: var(--l-on-accent); font-size: clamp(28px, 2.6vw, 34px); font-weight: 700; box-shadow: 0 24px 40px -18px rgba(19, 85, 85, 0.7); transition: background-color 0.25s; }
 .big-cta:hover .big-face { background: var(--l-accent-hover); }
 .note { margin: 0; max-width: 28em; font-size: 18px; line-height: 1.5; text-wrap: balance; }
 

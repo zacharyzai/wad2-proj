@@ -11,6 +11,8 @@
 // rule.eligible(normalizeAnswers(answers)) returns true, false, or 'unknown' when an answer it needs is missing.
 // checkRules(answers) does both steps for every rule.
 
+import { sumCents } from './billCheck.js'
+
 export const UNKNOWN = 'unknown'
 const CHECKED_ON = '2026-10-21'
 const FIRST_YEAR = 1900
@@ -141,7 +143,6 @@ export function billPlace(bill) {
   return /polyclinic/i.test(bill.clinic ?? '') ? 'polyclinic' : 'chasClinic'
 }
 
-const sumCents = (lines) => lines.reduce((total, line) => total + (line.amountCents ?? 0), 0)
 
 // The bill after subsidies. MediSave is only a way of paying it, so it is not taken off here.
 // A subsidy already inside net line amounts (includedInItems) isn't taken off again.

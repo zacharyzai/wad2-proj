@@ -187,7 +187,7 @@ test('the medicine list keeps ids and schedules, and a typed name never replaces
   const label = { name: 'Panadol', strength: null, doseAmount: 2, doseUnit: 'tablet', frequencyType: 'daily', timesPerDay: 2, timing: null }
   rememberMedicine(label, 'label')
   const { id } = medicines[0]
-  setSchedule(id, { startDate: '2026-10-23', days: 5, times: {} })
+  setSchedule(id, { startDate: todayInSingapore(), days: 5, times: {} }) // still running (an ended one restarts: see the refill test)
 
   // Typed in Ask with the same name: the label (and so its timetable and Google reminders) stays.
   rememberMedicine({ name: 'panadol', rawInstruction: 'for pain' }, 'typed')
@@ -299,8 +299,34 @@ test('a checked label with a quantity goes on the timetable from today for as lo
   const [amlodipine, metformin] = medicines
   assert.deepEqual(metformin.schedule, { startDate: todayInSingapore(), days: 30, times: {} })
   assert.equal(amlodipine.schedule, undefined)
-  // Scanning the same label again keeps the days already set (and so its ticks and reminders).
-  setSchedule(metformin.id, { startDate: '2026-10-01', days: 45, times: {} })
+  // Scanning the same label again while the course is still running keeps the days already set (and its ticks and reminders).
+  setSchedule(metformin.id, { startDate: addDays(todayInSingapore(), -10), days: 45, times: {} })
   rememberMedicine({ name: 'Metformin', strength: '500 mg', doseAmount: 1, doseUnit: 'tablet', quantity: 90, frequencyType: 'daily', timesPerDay: 2, warnings: [] }, 'label')
   assert.equal(medicines[0].schedule.days, 45)
+})
+
+test('a refill: re-scanning a medicine whose course has ended starts it again from today, keeping changed times and its id', () => {
+  medicines.splice(0)
+  const label = (quantity) => ({ name: 'Metformin', strength: '500 mg', doseAmount: 1, doseUnit: 'tablet', quantity, frequencyType: 'daily', timesPerDay: 2, warnings: [] })
+  const today = todayInSingapore()
+  rememberMedicine(label(60), 'label')
+  const { id } = medicines[0]
+  setSchedule(id, { startDate: addDays(today, -40), days: 30, times: { morning: '07:30' } }) // ended 11 days ago
+
+  // The new pack says how much: back on the timetable from today, for as long as it lasts.
+  rememberMedicine(label(60), 'label')
+  assert.deepEqual(medicines[0].schedule, { startDate: today, days: 30, times: { morning: '07:30' } })
+  assert.equal(medicines[0].id, id) // same doses, so tick history and calendar events stay linked
+  assert.equal(buildSchedule(medicines[0], medicines[0].schedule).endDate, addDays(today, 29))
+
+  // Ended, and the new label doesn't say how much: Schedule asks for the days again (no end date), times kept.
+  setSchedule(id, { startDate: addDays(today, -40), days: 30, times: { morning: '07:30' } })
+  rememberMedicine(label(null), 'label')
+  assert.deepEqual(medicines[0].schedule, { times: { morning: '07:30' } })
+  assert.equal(buildSchedule(medicines[0], medicines[0].schedule).endDate, null)
+
+  // The last day of a course still counts as running: nothing restarts early.
+  setSchedule(id, { startDate: addDays(today, -29), days: 30, times: {} })
+  rememberMedicine(label(60), 'label')
+  assert.equal(medicines[0].schedule.startDate, addDays(today, -29))
 })

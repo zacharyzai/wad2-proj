@@ -85,7 +85,7 @@ test.describe('logged out', () => {
     await page.getByTestId('signup-income').selectOption('1501to2300')
     await page.getByTestId('signup-submit').click()
     expect((await sent).postDataJSON()).toEqual({
-      name: 'Lim Ah Huat', email: 'ahhuat@example.com', password: 'password123', dob: '1958-11-02', citizenship: 'became', citizenSince: 1975, income: '1501to2300', remember: true, language: 'en',
+      name: 'Lim Ah Huat', email: 'ahhuat@example.com', password: 'password123', dob: '1958-11-02', citizenship: 'became', citizenSince: 1975, income: '1501to2300', remember: true, language: 'en', role: 'senior', // the default role (a caregiver picks theirs: e2e/care.spec.js)
     })
     await expect(page).toHaveURL(/\/scan$/)
   })
