@@ -19,7 +19,7 @@ let mongo, server, base, token, userId
 const profile = { name: 'Test Citizen', dob: '1952-03-07', citizenship: 'birth', citizenSince: null, income: 'upTo1500' }
 const email = 'auth@example.com'
 const password = 'password123'
-const publicUser = { ...profile, email, language: null, theme: null } // no language or theme sent: not chosen yet
+const publicUser = { ...profile, email, role: 'senior', language: null, theme: null } // no language or theme sent: not chosen yet
 
 before(async () => {
   mongo = await MongoMemoryServer.create()
@@ -91,7 +91,7 @@ test('profile updates feed the account and bill subsidy fields without exposing 
   const updated = { ...profile, name: 'Updated Citizen', citizenship: 'pr', income: null }
   const response = await request('/auth/me', updated, { method: 'PATCH', token })
   assert.equal(response.status, 200)
-  assert.deepEqual((await response.json()).data.user, { ...updated, email, language: null, theme: null })
+  assert.deepEqual((await response.json()).data.user, { ...updated, email, role: 'senior', language: null, theme: null })
   await error(await request('/auth/me', { ...updated, dob: '1952-02-30' }, { method: 'PATCH', token }), 400, 'BAD_REQUEST')
 })
 
@@ -100,7 +100,7 @@ test('the app language is saved at signup, changes on its own with PATCH { langu
   const { token: t, user } = (await res.json()).data
   assert.equal(user.language, 'zh')
   const changed = await request('/auth/me', { language: 'ta' }, { method: 'PATCH', token: t })
-  assert.deepEqual((await changed.json()).data.user, { ...profile, email: 'lang@example.com', language: 'ta', theme: null }) // the details are untouched
+  assert.deepEqual((await changed.json()).data.user, { ...profile, email: 'lang@example.com', role: 'senior', language: 'ta', theme: null }) // the details are untouched
   await error(await request('/auth/me', { language: 'fr' }, { method: 'PATCH', token: t }), 400, 'BAD_REQUEST')
   await error(await post('signup', { ...profile, email: 'lang2@example.com', password, language: 'xx' }), 400, 'BAD_REQUEST')
   // The details form still saves the details, with or without the language.
@@ -114,7 +114,7 @@ test('day/night/system is saved at signup, changes on its own with PATCH { theme
   const { token: t, user } = (await res.json()).data
   assert.equal(user.theme, 'dark')
   const changed = await request('/auth/me', { theme: 'system' }, { method: 'PATCH', token: t })
-  assert.deepEqual((await changed.json()).data.user, { ...profile, email: 'theme@example.com', language: null, theme: 'system' }) // the details are untouched
+  assert.deepEqual((await changed.json()).data.user, { ...profile, email: 'theme@example.com', role: 'senior', language: null, theme: 'system' }) // the details are untouched
   await error(await request('/auth/me', { theme: 'blue' }, { method: 'PATCH', token: t }), 400, 'BAD_REQUEST')
   await error(await post('signup', { ...profile, email: 'theme2@example.com', password, theme: 'auto' }), 400, 'BAD_REQUEST')
 })
@@ -133,7 +133,7 @@ test('existing email-only Argon2 accounts, seven-day JWTs and main two-part toke
   assert.equal((await me(`${payload}.${signature}`)).status, 200)
   const completed = await request('/auth/me', profile, { method: 'PATCH', token: originalJwt })
   assert.equal(completed.status, 200)
-  assert.deepEqual((await completed.json()).data.user, { ...profile, email: 'legacy@example.com', language: null, theme: null }) // old accounts: not chosen yet, never a guessed English
+  assert.deepEqual((await completed.json()).data.user, { ...profile, email: 'legacy@example.com', role: 'senior', language: null, theme: null }) // old accounts: not chosen yet, never a guessed English
 })
 
 test('main-branch scrypt accounts can still log in', async () => {
