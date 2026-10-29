@@ -22,7 +22,8 @@ const LANGS = [
 const byLocale = () => Math.max(0, LANGS.findIndex((l) => l.lang === locale.value))
 
 // Pill colours (two halves of a capsule). a/b = section progress where it starts and finishes falling; r0 = start tilt; dx = sideways drift.
-const PILL = { brand: ['oklch(0.52 0.16 35)', 'oklch(0.89 0.1 88)'], coral: ['oklch(0.74 0.11 38)', 'oklch(0.89 0.1 88)'], green: ['oklch(0.74 0.08 150)', 'oklch(0.86 0.065 150)'], blue: ['oklch(0.74 0.07 240)', 'oklch(0.86 0.055 235)'], gold: ['oklch(0.8 0.12 80)', 'oklch(0.84 0.08 40)'] }
+// brand: the assistant's capsule, half Pharmacy Teal (the app's accent).
+const PILL = { brand: ['#1a7070', 'oklch(0.89 0.1 88)'], coral: ['oklch(0.74 0.11 38)', 'oklch(0.89 0.1 88)'], green: ['oklch(0.74 0.08 150)', 'oklch(0.86 0.065 150)'], blue: ['oklch(0.74 0.07 240)', 'oklch(0.86 0.055 235)'], gold: ['oklch(0.8 0.12 80)', 'oklch(0.84 0.08 40)'] }
 const pill = (name) => ({ '--c1': PILL[name][0], '--c2': PILL[name][1] })
 const VOICE_FALL = [
   { a: 0.02, b: 0.5, r0: -24, dx: -40, pill: 'coral' },
