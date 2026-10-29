@@ -14,12 +14,13 @@ All answers use the usual envelope: `{ ok: true, data }` or `{ ok: false, error:
 
 | Method | Path | Body | Answer |
 |---|---|---|---|
-| POST | `/api/auth/signup` | `{ name, email, password, dob, citizenship, citizenSince, income, remember, language, theme }` | `{ token, user }` · `400 BAD_REQUEST` · `409 EMAIL_TAKEN` |
+| POST | `/api/auth/signup` | `{ name, email, password, dob, citizenship, citizenSince, income, remember, language, theme, role? }` | `{ token, user }` · `400 BAD_REQUEST` · `409 EMAIL_TAKEN` |
 | POST | `/api/auth/login` | `{ email, password, remember }` | `{ token, user }` · `401 WRONG_LOGIN` (same for unknown email and wrong password) |
 | GET | `/api/auth/me` | (token) | `{ user }`, plus a fresh `token` when the login is remembered · `401 NOT_LOGGED_IN` |
 | PATCH | `/api/auth/me` | `{ name, dob, citizenship, citizenSince, income, language?, theme? }`, or `{ language }` / `{ theme }` alone | `{ user }` · `400` · `401` |
 
-- `user` = `{ name, email, dob, citizenship, citizenSince, income }`. The password hash never leaves the server.
+- `user` = `{ name, email, role, dob, citizenship, citizenSince, income, language, theme }`. The password hash never leaves the server.
+- `role` is `senior` or `caregiver`, chosen at signup, defaulting to `senior` when omitted. Existing accounts with no stored role also read as `senior`. Role is returned at signup/login/me and cannot be changed through profile PATCH. Caregiver permissions are checked against the database role, not browser state or JWT role claims. See [care-contract.md](care-contract.md).
 - `dob`: `'YYYY-MM-DD'`, a real date from 1900 to today.
 - `citizenship`: `birth` (citizen by birth), `became` (citizen later; `citizenSince` = the year, from the birth year to this year), `pr`, `other`. These are the subsidy questionnaire's values, so the Bill page uses them directly.
 - Passwords: 8 to 200 characters, stored as a salted Argon2id hash. Existing scrypt hashes remain accepted.
