@@ -14,12 +14,13 @@ All answers use the usual envelope: `{ ok: true, data }` or `{ ok: false, error:
 
 | Method | Path | Body | Answer |
 |---|---|---|---|
-| POST | `/api/auth/signup` | `{ name, email, password, dob, citizenship, citizenSince, income, remember, language }` | `{ token, user }` · `400 BAD_REQUEST` · `409 EMAIL_TAKEN` |
+| POST | `/api/auth/signup` | `{ name, email, password, dob, citizenship, citizenSince, income, remember, language, theme, role? }` | `{ token, user }` · `400 BAD_REQUEST` · `409 EMAIL_TAKEN` |
 | POST | `/api/auth/login` | `{ email, password, remember }` | `{ token, user }` · `401 WRONG_LOGIN` (same for unknown email and wrong password) |
 | GET | `/api/auth/me` | (token) | `{ user }`, plus a fresh `token` when the login is remembered · `401 NOT_LOGGED_IN` |
-| PATCH | `/api/auth/me` | `{ name, dob, citizenship, citizenSince, income, language? }`, or `{ language }` alone | `{ user }` · `400` · `401` |
+| PATCH | `/api/auth/me` | `{ name, dob, citizenship, citizenSince, income, language?, theme? }`, or `{ language }` / `{ theme }` alone | `{ user }` · `400` · `401` |
 
-- `user` = `{ name, email, dob, citizenship, citizenSince, income }`. The password hash never leaves the server.
+- `user` = `{ name, email, role, dob, citizenship, citizenSince, income, language, theme }`. The password hash never leaves the server.
+- `role` is `senior` or `caregiver`, chosen at signup, defaulting to `senior` when omitted. Existing accounts with no stored role also read as `senior`. Role is returned at signup/login/me and cannot be changed through profile PATCH. Caregiver permissions are checked against the database role, not browser state or JWT role claims. See [care-contract.md](care-contract.md).
 - `dob`: `'YYYY-MM-DD'`, a real date from 1900 to today.
 - `citizenship`: `birth` (citizen by birth), `became` (citizen later; `citizenSince` = the year, from the birth year to this year), `pr`, `other`. These are the subsidy questionnaire's values, so the Bill page uses them directly.
 - Passwords: 8 to 200 characters, stored as a salted Argon2id hash. Existing scrypt hashes remain accepted.
@@ -43,3 +44,6 @@ shortcut: logging out only deletes the token on that device; a copied token stay
 
 `user.language` is `en`, `zh`, `ms`, `ta`, or `null` (accounts from before this field). Signup saves the language in use (picked on the welcome page or above the form). On login and every visit the app switches to the account's language; a `null` account gets the device's current language saved. Changing the language anywhere while logged in (sidebar, phone header, Account page) sends `PATCH /api/auth/me { language }`. The Account page shows "Settings saved" after each save.
 
+## Day / night mode
+
+`user.theme` is `light` (day), `dark` (night), `system` (follow the phone or computer's own setting), or `null` (not chosen yet). New visitors start in day mode, whatever the device is set to. Sign up doesn't ask: an account whose theme is `null` is asked once on Home (or Scan), before the Beginner's guide (`ThemePrompt.vue`), and the Account page changes it any time; both send `PATCH /api/auth/me { theme }`. On login and every visit the app uses the account's theme. Signup still accepts an optional `theme`. The device also remembers it (`localStorage.theme`), so the login page and the first paint use it before the account is known.

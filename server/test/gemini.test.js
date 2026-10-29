@@ -221,3 +221,52 @@ test('Groq alone works when there is no Gemini key', async (t) => {
   assert.equal(calls.length, 1)
   assert.match(calls[0], /groq\.com/)
 })
+
+// A bill whose lines don't add up is read once more, with a note on where; the second reading is used only if it adds
+// up and keeps the same total.
+const BILL = (fexofen, total = 35.53) => ({
+  readable: true,
+  items: [
+    { description: 'Consultation', category: 'consultation', amount: 28, section: 'Consultation Fees' },
+    { description: 'FEXOFEN 180MG', category: 'medication', amount: fexofen, section: 'Medications List' },
+    { description: 'Other medicines', category: 'medication', amount: 69.26, section: 'Medications List' },
+    { description: 'GST (9%)', category: 'tax', amount: 10.06 },
+  ],
+  subtotals: [{ section: 'Medications List', amount: 83.76 }],
+  subsidies: [{ scheme: 'other', amount: 86.29 }],
+  medisave: 0,
+  totalPayable: total,
+})
+function billReplies(...bodies) {
+  const prompts = []
+  globalThis.fetch = async (url, init) => {
+    prompts.push(JSON.parse(init.body).contents[0].parts[1].text)
+    return new Response(JSON.stringify(geminiText(bodies.shift())))
+  }
+  return prompts
+}
+
+test('a bill that does not add up is read once more, pointed at the section that is off', async () => {
+  const prompts = billReplies(BILL(14), BILL(14.5))
+  const scan = await extractScan('bill', IMG)
+  assert.equal(prompts.length, 2)
+  assert.match(prompts[1], /"Medications List" add up to \$83\.26, but its subtotal is printed as \$83\.76/)
+  assert.match(prompts[1], /never change an amount just to make the numbers add up/)
+  assert.equal(scan.bill.items[1].amountCents, 1450) // the second reading, which adds up
+})
+
+test('the second reading is kept only if it adds up with the same total; otherwise the first stays', async () => {
+  billReplies(BILL(14), BILL(14))
+  assert.equal((await extractScan('bill', IMG)).bill.items[1].amountCents, 1400) // still off: first reading, gap shown
+  billReplies(BILL(14), BILL(14, 35.03))
+  assert.equal((await extractScan('bill', IMG)).bill.totalPayableCents, 3553) // a total changed to make it fit: not used
+})
+
+test('no second reading when it adds up, for labels, or when the daily cap says no', async () => {
+  let prompts = billReplies(BILL(14.5))
+  await extractScan('bill', IMG)
+  assert.equal(prompts.length, 1)
+  prompts = billReplies(BILL(14))
+  await extractScan('bill', IMG, { canRecheck: () => false })
+  assert.equal(prompts.length, 1)
+})

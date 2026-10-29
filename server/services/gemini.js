@@ -3,6 +3,7 @@
 import {
   normalizeMedication,
   normalizeBill,
+  addsUp,
   DOSE_UNITS,
   TIMINGS,
   WITH_FOOD,
@@ -11,6 +12,7 @@ import {
   SUBSIDY_SCHEMES,
   BILL_PLACES,
 } from './normalizeScan.js'
+import { billGap, sectionsOff } from '../../src/rules/billCheck.js'
 
 export class ScanError extends Error {
   constructor(status, code, message) {
@@ -56,6 +58,7 @@ const SCHEMAS = {
     strength: S,
     doseAmount: N,
     doseUnit: E(DOSE_UNITS),
+    quantity: N,
     timesPerDay: { type: 'INTEGER', nullable: true },
     timing: { type: 'ARRAY', items: { type: 'STRING', enum: TIMINGS }, nullable: true },
     withFood: E(WITH_FOOD),
@@ -70,7 +73,8 @@ const SCHEMAS = {
     clinic: S,
     place: E(BILL_PLACES),
     visitDate: S,
-    items: { type: 'ARRAY', items: obj({ description: S, category: E(BILL_CATEGORIES), amount: N }) },
+    items: { type: 'ARRAY', items: obj({ description: S, category: E(BILL_CATEGORIES), amount: N, section: S }) },
+    subtotals: { type: 'ARRAY', items: obj({ section: S, amount: N }) },
     subsidies: { type: 'ARRAY', items: obj({ scheme: E(SUBSIDY_SCHEMES), amount: N, includedInItems: { type: 'BOOLEAN' } }) },
     medisave: N,
     totalPayable: N,
@@ -91,6 +95,8 @@ const PROMPTS = {
   medication: `You read Singapore pharmacy medication labels for elderly patients.
 Extract the medicine on this label.
 - doseAmount: amount per dose (e.g. "Take 2 tablets" -> 2). doseUnit: tablet, capsule, ml, puff, drop or other.
+- quantity: how much was given, in the same unit as the dose ("Qty: 60 tablets" -> 60, "100 ml" -> 100). null if the
+  label doesn't say, or gives it in another unit (e.g. "2 boxes").
 - timesPerDay: doses per day for a fixed daily schedule ("twice a day" -> 2, "every morning" -> 1).
 - timing: only the times of day the label explicitly states ("morning and night" -> ["morning","bedtime"]); otherwise null.
 - withFood: "before" / "after" / "with" food, "any" if the label says with or without food, null if not stated.
@@ -104,12 +110,16 @@ Extract the bill.
 - items: each charge line with its description as printed, a category, and the amount in SGD dollars (e.g. 14.50).
   category: consultation (doctor or dentist fees), medication, investigation (lab tests, X-rays, scans), procedure
   (treatment, surgery, therapy, nursing, consumables), ward (ward, bed or room charges), tax (GST), otherwise other.
+  Copy every amount digit by digit, exactly as printed (14.50 is not 14.00).
+  section: the heading the line is printed under (e.g. "Consultation Fees", "Medications List"), or null if none.
   Do not list subtotals or totals as items. Never list a deduction as an item: a line with a minus sign or in brackets
   (e.g. "MediShield Life -6,120.00", "Integrated Plan Payout (24,074.86)", "MediSave -1,500.00") lowers what is paid and
   goes in subsidies or medisave instead. If the bill gives each line a gross and a net (after subsidy) amount, use the
   NET amount for every item, and mark the subsidy already taken off those lines with "includedInItems": true.
   GST is its own "tax" item, unless the bill says GST is already included in the charges (e.g. "GST at 7% is included
   in this bill"): then do not list it at all.
+- subtotals: each subtotal printed under one group of charge lines, with that group's heading as section, exactly as
+  the lines' section (e.g. {"section": "Medications List", "amount": 83.76}). Not the overall totals.
 - subsidies: each subsidy, deduction or claim that lowers what the patient pays (not MediSave). scheme: "government" for
   government/polyclinic/ward subsidy, "chas" for CHAS, "pioneer" for Pioneer Generation (PG), "merdeka" for Merdeka
   Generation (MG), "insurance" for MediShield Life, Integrated Shield, private or employer insurance, "paid" for money
@@ -117,8 +127,9 @@ Extract the bill.
   amount as a positive number, even when printed with a minus sign. includedInItems: true only for a subsidy already taken off the item amounts you listed
   (net lines); otherwise false.
 - medisave: amount paid by MediSave in dollars, as a positive number, 0 if there is no MediSave line.
-- totalPayable: the final amount the patient still pays in cash, card or NETS, in dollars (the amount due after
-  deposits and earlier payments; on an interim bill, the amount due shown).
+- totalPayable: the final amount the patient pays in cash, card or NETS for this bill, in dollars (after deposits and
+  payments made before this bill; on an interim bill, the amount due shown). On a receipt that shows the payment for
+  this bill ("Amount Paid $35.53" next to "Total Payable $35.53"), totalPayable is that amount, never 0.
 - visitDate as YYYY-MM-DD (the visit date, or the discharge date for a hospital stay). Singapore dates are written
   day first: 07/10/2026 is 7 October 2026, so "2026-10-07". clinic: the clinic or hospital name.
 ${RULES}`,
@@ -166,10 +177,10 @@ export function attempts({ gemini, groq, geminiBody, groqBody }) {
 
 // Tries each model in turn within one deadline. Resolves to the reply text, or null when the model sent none
 // (usually a refusal or safety block). Throws ScanError when no model answered at all.
-export async function firstReply(tries) {
+export async function firstReply(tries, timeoutMs = TIMEOUT_MS) {
   if (!tries.length) throw new ScanError(503, 'AI_UNAVAILABLE', 'No AI key is set (GEMINI_API_KEY or GROQ_API_KEY)')
 
-  const deadline = Date.now() + TIMEOUT_MS
+  const deadline = Date.now() + timeoutMs
   const statuses = []
   // Models that failed recently go to the back, in their usual order.
   const order = [...tries.filter((a) => !resting(a)), ...tries.filter(resting)]
@@ -212,20 +223,47 @@ export function parseJson(text) {
   }
 }
 
+// A bill whose lines don't add up is read once more, if at least this much of the scan's time is left.
+const RECHECK_MIN_MS = 6_000
+
 // GEMINI_MODEL, then GEMINI_FALLBACK_MODELS, then GROQ_MODELS.
-export async function extractScan(type, imageDataUrl) {
+// canRecheck: asked before the extra reading of a bill that doesn't add up (the route counts it against the daily cap).
+export async function extractScan(type, imageDataUrl, { canRecheck = () => true } = {}) {
+  const started = Date.now()
+  const first = await readOnce(type, imageDataUrl, PROMPTS[type], TIMEOUT_MS)
+  if (type !== 'bill' || first.unclear.length || addsUp(first)) return first
+  const left = TIMEOUT_MS - (Date.now() - started)
+  if (left < RECHECK_MIN_MS || !canRecheck()) return first
+  // The second reading is used only if it adds up and agrees on the total: never a total changed to make the sums work.
+  const second = await readOnce(type, imageDataUrl, `${PROMPTS.bill}\n${recheckNote(first.bill)}`, left).catch(() => null)
+  return second && addsUp(second) && second.bill.totalPayableCents === first.bill.totalPayableCents ? second : first
+}
+
+// What didn't add up in the first reading, so the second one looks there. It names the printed numbers, never an answer.
+function recheckNote(bill) {
+  const $ = (cents) => `$${(cents / 100).toFixed(2)}`
+  const off = sectionsOff(bill).map((s) => `the lines under "${s.section}" add up to ${$(s.linesCents)}, but its subtotal is printed as ${$(s.printedCents)}`)
+  const why = off.length ? off.join('; ') : `the charges minus deductions come to ${$(billGap(bill) + bill.totalPayableCents)}, but the total payable is printed as ${$(bill.totalPayableCents)}`
+  return `A first reading of this bill did not add up: ${why}. Read every amount again, digit by digit, and return the whole bill.
+Copy only what is printed: never change an amount just to make the numbers add up.`
+}
+
+// One reading: the models in turn, the reply checked and normalized. Throws ScanError for an unreadable or wrong document.
+async function readOnce(type, imageDataUrl, prompt, timeoutMs) {
   const [, mimeType, data] = imageDataUrl.match(/^data:(image\/[a-z]+);base64,(.+)$/)
   const text = await firstReply(
     attempts({
       gemini: [process.env.GEMINI_MODEL || 'gemini-3.8-flash', ...list(process.env.GEMINI_FALLBACK_MODELS)],
       groq: list(process.env.GROQ_MODELS ?? 'qwen/qwen3.8-27b'),
       geminiBody: {
-        contents: [{ parts: [{ inline_data: { mime_type: mimeType, data } }, { text: PROMPTS[type] }] }],
+        contents: [{ parts: [{ inline_data: { mime_type: mimeType, data } }, { text: prompt }] }],
         generationConfig: {
           responseMimeType: 'application/json',
           responseSchema: SCHEMAS[type],
           temperature: 0,
-          // Copying text off a label needs no reasoning; low thinking is much faster.
+          // Copying text off a label needs no reasoning; low thinking is much faster. (Medium thinking and high media
+          // resolution for bills were tried on 28 Oct 2026 but couldn't be timed: Gemini was overloaded. A bill that
+          // doesn't add up is read once more instead, see extractScan.)
           thinkingConfig: { thinkingLevel: 'low' },
         },
       },
@@ -237,13 +275,14 @@ export async function extractScan(type, imageDataUrl) {
           {
             role: 'user',
             content: [
-              { type: 'text', text: `${PROMPTS[type]}\nReply with JSON only, matching this schema:\n${JSON.stringify(SCHEMAS[type])}` },
+              { type: 'text', text: `${prompt}\nReply with JSON only, matching this schema:\n${JSON.stringify(SCHEMAS[type])}` },
               { type: 'image_url', image_url: { url: imageDataUrl } },
             ],
           },
         ],
       },
     }),
+    timeoutMs,
   )
   // No text usually means the model refused or was blocked (e.g. safety filter).
   if (!text) throw new ScanError(422, 'UNREADABLE_IMAGE', 'The photo could not be read')

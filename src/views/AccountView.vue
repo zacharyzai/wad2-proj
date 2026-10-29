@@ -4,8 +4,9 @@
 import { computed, onBeforeUnmount, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { authStore, logout, saveLanguage, updateProfile } from '../stores/auth'
+import { authStore, logout, saveLanguage, saveTheme, updateProfile } from '../stores/auth'
 import { LOCALES, setLocale } from '../i18n'
+import { THEME_ICONS, THEMES, setTheme, themeChoice } from '../theme'
 import { openGuide } from '../stores/guide'
 import { INCOMES, citizenshipText, incomeText, isCitizen } from '../utils/account'
 import PageHeader from '../components/layout/PageHeader.vue'
@@ -13,6 +14,7 @@ import Card from '../components/layout/Card.vue'
 import BigButton from '../components/layout/BigButton.vue'
 import ErrorBanner from '../components/layout/ErrorBanner.vue'
 import AppIcon from '../components/layout/AppIcon.vue'
+import CaregiverCard from '../components/care/CaregiverCard.vue'
 
 const CITIZENSHIPS = ['birth', 'became', 'pr', 'other']
 const today = new Date().toISOString().slice(0, 10)
@@ -33,6 +35,7 @@ const dobText = computed(() => {
 const rows = computed(() => [
   { key: 'name', label: t('auth.name'), value: user.value.name || '—' },
   { key: 'email', label: t('auth.email'), value: user.value.email || '—' },
+  { key: 'role', label: t('auth.role'), value: t(`auth.roles.${user.value.role ?? 'senior'}`) },
   { key: 'dob', label: t('auth.dob'), value: dobText.value },
   { key: 'citizenship', label: t('auth.citizenship'), value: citizenshipText(t, user.value) },
   ...(isCitizen(user.value.citizenship) ? [{ key: 'income', label: t('bill.q.income'), value: incomeText(t, user.value) }] : []),
@@ -75,6 +78,14 @@ async function chooseLanguage(code) {
   const saving = saveLanguage(code) // first, so the store's own language watcher doesn't save it twice
   setLocale(code)
   const res = await saving
+  notify(res?.ok ? t('account.toast') : t(`errors.${res?.error.code ?? 'SERVER_ERROR'}`), !res?.ok)
+}
+
+// Day, night or the same as this device: the page changes at once; the account remembers it for every device.
+async function chooseTheme(choice) {
+  if (choice === themeChoice.value) return
+  setTheme(choice)
+  const res = await saveTheme(choice)
   notify(res?.ok ? t('account.toast') : t(`errors.${res?.error.code ?? 'SERVER_ERROR'}`), !res?.ok)
 }
 
@@ -148,11 +159,23 @@ function leave() {
         </div>
       </form>
     </Card>
+    
+    <!-- Seniors only: who can see my doses, and Invite a caregiver. -->
+    <CaregiverCard v-if="(user.role ?? 'senior') !== 'caregiver'" />
 
     <Card :title="t('nav.language')">
       <p class="text-muted-a11y m-0">{{ t('account.languageNote') }}</p>
       <div class="segmented langs" role="group" :aria-label="t('nav.language')" data-testid="account-language">
         <button v-for="(label, code) in LOCALES" :key="code" type="button" :lang="code" :aria-pressed="locale === code" @click="chooseLanguage(code)">{{ label }}</button>
+      </div>
+    </Card>
+
+    <Card :title="t('account.theme.title')">
+      <p class="text-muted-a11y m-0">{{ t('account.theme.note') }}</p>
+      <div class="segmented theme-choices" role="group" :aria-label="t('account.theme.title')" data-testid="account-theme">
+        <button v-for="c in THEMES" :key="c" type="button" :aria-pressed="themeChoice === c" :data-theme-choice="c" @click="chooseTheme(c)">
+          <AppIcon :name="THEME_ICONS[c]" :size="22" />{{ t(`account.theme.${c}`) }}
+        </button>
       </div>
     </Card>
 

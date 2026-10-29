@@ -15,6 +15,7 @@ import ErrorBanner from '../components/layout/ErrorBanner.vue'
 import AppIcon from '../components/layout/AppIcon.vue'
 import { CATEGORY_STYLE, SUBSIDY_STYLE, MEDISAVE_STYLE, money, minusMoney, sumCents, deducted } from '../components/bill/lines'
 import { citizenshipText } from '../utils/account'
+import { billGap, linesTotal, sectionsOff } from '../rules/billCheck'
 
 const { t, locale } = useI18n()
 const router = useRouter()
@@ -29,6 +30,9 @@ const SAMPLES = [
 // Only a bill the user has checked on Confirm (or a built-in sample) is broken down.
 const scan = computed(() => (scanStore.confirmed && scanStore.current?.type === 'bill' ? scanStore.current : null))
 const bill = computed(() => scan.value?.bill)
+// Lines that don't add up to the bill's total (a misread digit): the total shown is the bill's own; this says so, and where.
+const gap = computed(() => (bill.value ? billGap(bill.value) : null))
+const offSections = computed(() => (gap.value ? sectionsOff(bill.value) : []))
 const unchecked = computed(() => !scanStore.confirmed && scanStore.current?.type === 'bill')
 
 const loading = ref(false)
@@ -207,6 +211,16 @@ const summary = computed(() => [
           </dl>
           <span v-if="scan.source === 'sample'" class="badge badge-navy align-self-start"><AppIcon name="file" :size="18" />{{ t('bill.sampleTag') }}</span>
         </section>
+
+        <div v-if="gap" class="alert alert-info" role="note" data-testid="bill-gap">
+          <AppIcon name="info" />
+          <div class="d-flex flex-column gap-2">
+            <strong>{{ t('bill.gap.title') }}</strong>
+            <span>{{ t('bill.gap.text', { lines: money(linesTotal(bill)), total: money(bill.totalPayableCents) }) }}</span>
+            <span v-for="s in offSections" :key="s.section">{{ t('confirm.bill.gapWhere', { section: s.section, printed: money(s.printedCents) }) }}</span>
+            <span class="fw-normal">{{ t('bill.gap.subsidy') }}</span>
+          </div>
+        </div>
 
         <!-- What the subsidies below are based on, and where to change it (a caregiver can check with their parent's details there). -->
         <p v-if="user?.dob" class="basis" data-testid="bill-basis">
