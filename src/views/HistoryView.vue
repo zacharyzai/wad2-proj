@@ -1,5 +1,5 @@
 <!-- Owner: Isaac. Saved scans (medicines and bills), newest first, 10 at a time. Replay opens the Explain page with that scan; share and delete live on each item.
-     API: docs/history-contract.md (assumed until Sheen Hern's /api/history exists). -->
+     API: docs/history-contract.md. -->
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
@@ -39,7 +39,7 @@ async function load() {
   const res = await listScans(page.value + 1)
   loading.value = false
   loadingMore.value = false
-  if (!res.ok) return void (res.error.code !== 'NOT_IMPLEMENTED' && (errorCode.value = res.error.code))
+  if (!res.ok) return void (errorCode.value = res.error.code)
   items.value.push(...res.data.items)
   page.value = res.data.page
   pages.value = res.data.pages

@@ -7,13 +7,28 @@ import { buildSchedule, syncEntries, todayInSingapore } from '../rules/schedule.
 import { authStore } from './auth'
 import { medicines } from './medicines'
 
+// The browser's medicine list outlives logging out, so it remembers whose it is: on a shared tablet, senior B logging in
+// after senior A must never send A's medicines to B's account (and so to B's caregiver).
+const OWNER_KEY = 'medicinesOwner'
+function ownsList(email) {
+  try {
+    const owner = localStorage.getItem(OWNER_KEY)
+    if (owner === null) localStorage.setItem(OWNER_KEY, email) // first account to save this browser's list claims it
+    return (owner ?? email) === email
+  } catch {
+    return false // storage blocked: can't tell whose list it is, so don't send it
+  }
+}
+
 const entries = () => syncEntries(medicines.map((m) => buildSchedule(m, m.schedule ?? {})), todayInSingapore())
-const canSave = () => authStore.user && authStore.user.role !== 'caregiver'
 
 let timer
 function push() {
   clearTimeout(timer)
-  timer = setTimeout(() => canSave() && saveSchedule(entries()), 1500) // not critical: a failed save is retried on the next change
+  timer = setTimeout(() => {
+    const user = authStore.user
+    if (user && user.role !== 'caregiver' && ownsList(user.email)) saveSchedule(entries()) // not critical: retried on the next change
+  }, 1500)
 }
 
 // Every change, including removing the last medicine. On log-in or page load only when this browser has medicines,
