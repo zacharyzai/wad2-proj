@@ -380,7 +380,6 @@
       "charges": "Jumlah caj",
       "subsidies": "Subsidi yang ditolak",
       "medisave": "Dibayar oleh MediSave",
-      "pay": "Anda bayar",
       "p": "Subsidi sudah ditolak daripada bil anda. Jumlah MediSave dibayar daripada akaun MediSave CPF anda, bukan dengan wang tunai.",
       "breakdown": "Lihat pecahan penuh"
     },
@@ -501,15 +500,8 @@
   },
   "soon": {
     "title": "Akan datang",
-    "schedule": "Selepas anda menyemak label ubat, dosnya akan dipaparkan di sini sebagai jadual harian.",
-    "bill": "Imbas bil perubatan untuk melihat jumlah bayaran, subsidi dan MediSave anda.",
     "history": "Imbasan yang anda simpan akan disenaraikan di sini, yang terbaru dahulu. Menyimpan memerlukan akaun.",
-    "account": "Akaun akan datang tidak lama lagi. Sementara itu, imbasan boleh dibuat tanpa akaun dan kekal pada peranti ini.",
-    "shared": "Ringkasan yang dikongsi akan dibuka di sini sebagai halaman baca sahaja.",
-    "scanMed": "Imbas label ubat",
-    "scanBill": "Imbas bil",
-    "noAccount": "Teruskan tanpa akaun",
-    "home": "Ke halaman utama"
+    "scanMed": "Imbas label ubat"
   },
   "history": {
     "lead": "Label ubat dan bil yang anda simpan, yang terbaru di atas.",
@@ -543,9 +535,7 @@
     "keep": "Simpan",
     "deleted": "Imbasan dipadam.",
     "loadMore": "Papar imbasan lebih lama",
-    "noneOfType": "Belum ada yang seperti ini.",
-    "emptyTitle": "Belum ada imbasan disimpan",
-    "emptyText": "Imbasan yang anda simpan akan disenaraikan di sini, supaya anda boleh mendengarnya semula atau berkongsi."
+    "noneOfType": "Belum ada yang seperti ini."
   },
   "shared": {
     "lead": "Seseorang berkongsi ini dengan anda. Anda hanya boleh membacanya.",
@@ -566,13 +556,9 @@
     "password": "Kata laluan",
     "passwordHint": "Sekurang-kurangnya 8 aksara",
     "passwordShort": "Kata laluan anda perlu sekurang-kurangnya 8 aksara.",
-    "loginLead": "Log masuk untuk menyimpan ubat anda dan berkongsi dengan keluarga.",
-    "signupLead": "Percuma. Kami tidak akan meminta nombor NRIC anda.",
     "login": "Log masuk",
     "signup": "Cipta akaun",
     "working": "Sila tunggu…",
-    "noAccount": "Belum ada akaun?",
-    "haveAccount": "Sudah ada akaun?",
     "tabs": "Log masuk atau daftar akaun",
     "privacy": "Kami tidak pernah meminta NRIC anda. Kata laluan anda disimpan dalam bentuk berkod, jadi kami pun tidak dapat membacanya.",
     "show": "Tunjuk kata laluan",
@@ -782,9 +768,6 @@
       "polyclinic": "Warganegara dan penduduk tetap Singapura membayar kadar bersubsidi di poliklinik. Subsidi ini sudah ditolak daripada bil poliklinik anda."
     },
     "q": {
-      "title": "Semak subsidi lain",
-      "lead": "Jawab apa yang anda tahu. Jawapan anda kekal di peranti ini. Ia tidak dihantar atau disimpan.",
-      "birth": "Tahun anda dilahirkan",
       "yearExample": "cth. 1955",
       "citizen": "Adakah anda warganegara Singapura?",
       "status": {
@@ -801,17 +784,10 @@
         "mid": "$1,501 hingga $2,300",
         "high": "Lebih daripada $2,300",
         "unsure": "Tidak pasti"
-      },
-      "errors": {
-        "year": "Sila taip tahun 4 digit dari 1901 hingga {max}.",
-        "beforeBirth": "Tahun ini lebih awal daripada tahun anda dilahirkan. Sila semak."
-      },
-      "clear": "Padam jawapan saya"
+      }
     },
     "r": {
       "title": "Apa maksudnya untuk anda",
-      "updating": "Sedang dikemas kini…",
-      "updated": "Terkini",
       "estimateTitle": "Anggaran sahaja — bukan pengiraan rasmi.",
       "estimateText": "Klinik yang menentukan jumlah bayaran anda. Semak dengan klinik atau halaman rasmi ini:",
       "onBill": "Subsidi pada bil ini",
@@ -859,7 +835,6 @@
     "languageNote": "Aplikasi akan menggunakan bahasa ini pada setiap telefon atau komputer yang anda log masuk.",
     "lead": "Ini ialah butiran yang anda berikan.",
     "details": "Butiran anda",
-    "passwordNote": "Kata laluan tidak pernah dipaparkan.",
     "logout": "Log keluar",
     "billNote": "Tarikh lahir, kewarganegaraan dan pendapatan isi rumah anda digunakan untuk menyemak subsidi anda di halaman Bil.",
     "edit": "Ubah butiran saya",
@@ -935,7 +910,6 @@
     "there": "Bawa saya ke sana"
   },
   "schedule": {
-    "lead": "Tandakan setiap dos selepas anda mengambilnya. Tanda anda disimpan dalam akaun anda.",
     "empty": {
       "title": "Belum ada ubat",
       "text": "Imbas dan semak label ubat. Dosnya akan dipaparkan di sini sebagai jadual harian."

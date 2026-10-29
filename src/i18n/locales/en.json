@@ -380,7 +380,6 @@
       "charges": "Total charges",
       "subsidies": "Subsidies taken off",
       "medisave": "Paid by MediSave",
-      "pay": "You pay",
       "p": "Subsidies are already taken off your bill. The MediSave amount is paid from your CPF MediSave account, not in cash.",
       "breakdown": "See full breakdown"
     },
@@ -501,15 +500,8 @@
   },
   "soon": {
     "title": "Coming soon",
-    "schedule": "After you check a medicine label, its doses will show here as a daily timetable.",
-    "bill": "Scan a medical bill to see what you pay, your subsidies and MediSave.",
     "history": "Your saved scans will be listed here, newest first. Saving needs an account.",
-    "account": "Accounts are coming soon. Until then, scanning works without one and stays on this device.",
-    "shared": "Shared summaries will open here as a read-only page.",
-    "scanMed": "Scan a medicine label",
-    "scanBill": "Scan a bill",
-    "noAccount": "Continue without an account",
-    "home": "Go to home"
+    "scanMed": "Scan a medicine label"
   },
   "history": {
     "lead": "Your saved medicine labels and bills, newest first.",
@@ -543,9 +535,7 @@
     "keep": "Keep it",
     "deleted": "Scan deleted.",
     "loadMore": "Show older scans",
-    "noneOfType": "Nothing of this kind yet.",
-    "emptyTitle": "No saved scans yet",
-    "emptyText": "Scans you save will be listed here, so you can listen to them again or share them."
+    "noneOfType": "Nothing of this kind yet."
   },
   "shared": {
     "lead": "Someone shared this with you. You can only read it.",
@@ -566,8 +556,6 @@
     "password": "Password",
     "passwordHint": "At least 8 characters",
     "passwordShort": "Your password needs at least 8 characters.",
-    "loginLead": "Log in to keep your medicines and share them with family.",
-    "signupLead": "Free. We never ask for your NRIC number.",
     "login": "Log in",
     "signup": "Create account",
     "role": "I am a…",
@@ -580,8 +568,6 @@
       "caregiver": "I look after a parent or relative and want to see whether they took their medicine."
     },
     "working": "Please wait…",
-    "noAccount": "No account yet?",
-    "haveAccount": "Already have an account?",
     "tabs": "Log in or create an account",
     "privacy": "We never ask for your NRIC. Your password is stored scrambled, so not even we can read it.",
     "show": "Show password",
@@ -782,9 +768,6 @@
       "polyclinic": "Singapore citizens and permanent residents pay subsidised rates at polyclinics. The subsidy is already taken off your polyclinic bill."
     },
     "q": {
-      "title": "Check other subsidies",
-      "lead": "Answer what you know. Your answers stay on this device. They are not sent or saved.",
-      "birth": "Year you were born",
       "yearExample": "e.g. 1955",
       "citizen": "Are you a Singapore citizen?",
       "status": {
@@ -801,17 +784,10 @@
         "mid": "$1,501 to $2,300",
         "high": "More than $2,300",
         "unsure": "Not sure"
-      },
-      "errors": {
-        "year": "Please type a 4-digit year from 1901 to {max}.",
-        "beforeBirth": "This year is before the year you were born. Please check it."
-      },
-      "clear": "Clear my answers"
+      }
     },
     "r": {
       "title": "What this means for you",
-      "updating": "Updating…",
-      "updated": "Up to date",
       "estimateTitle": "Estimate only — not an official calculation.",
       "estimateText": "The clinic decides what you pay. Check with the clinic or these official pages:",
       "onBill": "Subsidies on this bill",
@@ -859,7 +835,6 @@
     "languageNote": "The app uses this language on every phone or computer you log in on.",
     "lead": "These are the details you gave us.",
     "details": "Your details",
-    "passwordNote": "Your password is never shown.",
     "logout": "Log out",
     "billNote": "Your date of birth, citizenship and household income are used to check your subsidies on the Bill page.",
     "edit": "Edit my details",
@@ -935,7 +910,6 @@
     "there": "Take me there"
   },
   "schedule": {
-    "lead": "Tick each dose when you take it. Your ticks are saved to your account.",
     "empty": {
       "title": "No medicines yet",
       "text": "Scan and check a medicine label. Its doses will show here as a daily timetable."
