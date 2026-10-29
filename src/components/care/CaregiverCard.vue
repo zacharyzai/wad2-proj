@@ -24,9 +24,8 @@ const whatsapp = computed(() => `https://wa.me/?text=${encodeURIComponent(`${t('
 
 async function load() {
   const res = await myCaregivers()
-  // The API may still be a stub: an empty list, not an error.
   if (res.ok) caregivers.value = res.data.caregivers
-  else if (res.error.code !== 'NOT_IMPLEMENTED') errorCode.value = res.error.code
+  else errorCode.value = res.error.code
 }
 onMounted(load)
 

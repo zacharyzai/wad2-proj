@@ -66,7 +66,9 @@ export const getShared = (token) => api(`/share/${encodeURIComponent(token)}`)
 export const createInvite = () => api('/care/invites', { method: 'POST' }) // senior: { token, expiresAt }
 export const getInvite = (token) => api(`/care/invites/${encodeURIComponent(token)}`) // public: { senior: { name }, expiresAt }
 export const acceptInvite = (token) => api(`/care/invites/${encodeURIComponent(token)}/accept`, { method: 'POST' }) // caregiver: { seniorId }
-export const saveSchedule = (entries) => api('/schedule', { method: 'PUT', body: { entries } }) // senior: today's doses for linked caregivers
+// The account's medicine list (docs/care-contract.md): every device and the linked caregiver see the same Schedule.
+export const loadMedicines = () => api('/schedule') // { medicines } (null: never saved)
+export const saveMedicines = (medicines) => api('/schedule', { method: 'PUT', body: { medicines } })
 export const careSeniors = () => api('/care/seniors') // caregiver: { seniors: [{ id, name, today: { taken, missed, upcoming } }] }
 export const careToday = (seniorId) => api(`/care/seniors/${encodeURIComponent(seniorId)}/today`) // { senior: { id, name }, doses: [...] }
 export const myCaregivers = () => api('/care/caregivers') // senior: { caregivers: [{ id, name, since }] }

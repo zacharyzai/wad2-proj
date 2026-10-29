@@ -23,6 +23,12 @@ Every page needs an account. Use one of these fake people (password for all: **`
 | `late.citizen.demo@example.com` | Lim Mei Ling | 1946 | Citizen since 1990 | More than $2,300 | Merdeka Generation (missed Pioneer: citizen after 1986); CHAS Green |
 | `chas.demo@example.com` | Rajesh s/o Kumar | 1975 | Citizen by birth | $1,500 or less | No Pioneer or Merdeka; CHAS Blue only |
 | `pr.demo@example.com` | Maria Santos | 1958 | Permanent resident | (not asked) | No Pioneer, Merdeka or CHAS; polyclinic PR rates only |
+| `chas.orange.demo@example.com` | Nur Aisyah binte Ismail | 1968 | Citizen by birth | $1,501 to $2,300 | No Pioneer or Merdeka; CHAS Orange only |
+| `chas.green.demo@example.com` | David Lee Wei Ming | 1972 | Citizen by birth | More than $2,300 | No Pioneer or Merdeka; CHAS Green only |
+| `unsure.demo@example.com` | Gopal s/o Ramasamy | 1952 | Citizen by birth | Not sure | Merdeka Generation; CHAS applies, card colour unknown |
+| `foreigner.demo@example.com` | Kenji Watanabe | 1960 | Neither citizen nor PR | (not asked) | No subsidy estimates; schemes listed with their official links |
+
+**Caregiver account:** `caregiver.demo@example.com` (Tan Wei Jie, same password) is already linked to **Tan Ah Kow** (`pioneer.demo`) and **Siti Aminah** (`merdeka.demo`). It opens on **Care**: each senior's doses today, taken, missed or still to come. A senior shows "Not shared yet" until they have used Schedule while logged in. To see it update, log in as `pioneer.demo` on a second device or browser, scan the **Metformin label** sample, tap **Looks correct** and tick a dose; the caregiver's page refreshes every minute.
 
 Or create your own account: it asks for your name, date of birth, citizenship and (for citizens) household income, and the language you're using becomes your account's language.
 
@@ -121,13 +127,13 @@ pnpm dev      # app on http://localhost:5173 (sends /api to the API)
 
 ### Database
 
-Confirmed scan history backend: `POST/GET /api/history` and `GET/DELETE /api/history/:id`. See [docs/history-contract.md](docs/history-contract.md) for the payload, ownership rules and frontend handoff. The Confirm save action and History pages are not wired to these endpoints yet.
+Confirmed scan history backend: `POST/GET /api/history` and `GET/DELETE /api/history/:id`. See [docs/history-contract.md](docs/history-contract.md) for the payload, ownership rules and share links. Tapping **Looks correct** on Confirm saves the scan to History when logged in.
 
-Caregiver invite/account linking: see [docs/care-contract.md](docs/care-contract.md). Seniors can invite one caregiver; caregivers can link multiple seniors. This backend handles invitation expiry, acceptance and revocation; caregiver schedule/scan read access is a separate feature.
+Caregiver invite/account linking: see [docs/care-contract.md](docs/care-contract.md). Seniors can invite one caregiver; caregivers can link multiple seniors. This backend handles invitation expiry, acceptance and revocation, and the caregiver's read-only view of a linked senior's doses today (from the timetable the senior's app saves with `PUT /api/schedule`).
 
 Follow [docs/atlas.md](docs/atlas.md) for team access. `pnpm atlas:configure` writes your `.env`; `pnpm db:check` checks the connection. `pnpm server:local` uses a throwaway local database instead.
 
-Create or reset the 5 demo accounts (safe to run again):
+Create or reset the 10 demo accounts (9 seniors and the linked caregiver; safe to run again, and it re-links the caregiver to the Pioneer and Merdeka seniors):
 
 ```bash
 node --env-file=.env server/scripts/seed-demo-accounts.js

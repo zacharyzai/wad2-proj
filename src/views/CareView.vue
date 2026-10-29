@@ -19,8 +19,7 @@ async function load() {
   errorCode.value = null
   const res = await careSeniors()
   loading.value = false
-  // Sheen Hern's API may still be a stub: show the empty screen, not an error.
-  if (!res.ok) return void (res.error.code !== 'NOT_IMPLEMENTED' && (errorCode.value = res.error.code))
+  if (!res.ok) return void (errorCode.value = res.error.code)
   seniors.value = res.data.seniors
 }
 onMounted(load)
