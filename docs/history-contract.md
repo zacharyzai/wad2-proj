@@ -1,6 +1,6 @@
 # Confirmed scan history
 
-Owner: Sheen Hern (backend); Isaac (History pages); Asher (Confirm save action). This PR supplies the backend and tests. The current History page and Confirm flow are not connected to it yet.
+Owner: Sheen Hern (backend); Isaac (History pages); Asher (Confirm save action). Confirm saves each checked scan here when logged in (`ConfirmView.confirm()`, not awaited).
 
 Canonical route: **`/api/history`**, using the already mounted route. The build guide's proposed `/api/scans` is not a second API. All responses use `{ ok: true, data }` or `{ ok: false, error: { code, message } }`. All endpoints require `Authorization: Bearer <token>` and an existing account. Route responses have `Cache-Control: no-store`.
 
@@ -9,7 +9,7 @@ Canonical route: **`/api/history`**, using the already mounted route. The build 
 | Method | Path | Success |
 | --- | --- | --- |
 | POST | `/api/history` | 201, `{ id, createdAt, scan }` |
-| GET | `/api/history?page=1` | 200, `{ items, page, pageSize: 10, total, hasMore }` |
+| GET | `/api/history?page=1` | 200, `{ items, page, pageSize: 10, pages, total, hasMore }`; each item `{ id, type, source, title, createdAt, totalPayableCents (bills, else null), shareToken, shareExpiresAt (null unless a link is live) }` |
 | GET | `/api/history/:id` | 200, `{ id, createdAt, scan }` |
 | DELETE | `/api/history/:id` | 200, `{ id }` |
 
@@ -88,7 +88,7 @@ Isaac: replace Coming soon with loading/empty/error states, paginated summaries,
 
 Every read/delete query filters by the authenticated `userId`; client owner filters are rejected. Only confirmed extracted contract fields are saved in `scans`. No photos or dedicated patient-name/NRIC/address/phone fields are stored. Free-text fields remain user-supplied: users must not enter identifying information into medicine instructions or bill descriptions. The backend does not automatically detect all personal text in otherwise valid fields.
 
-Scope: scan history covers confirmed medication labels and bills. It is separate from saved schedules/dose logs and chat history. No anonymous record-share links will be built (team decision). The later caregiver work will invite someone to sign up or log in and use backend-managed access; it is not implemented by this API.
+Scope: scan history covers confirmed medication labels and bills. It is separate from saved schedules/dose logs and chat history. Read-only share links (`POST /api/share { scanId }` → `{ token, expiresAt }`, 30 days; `DELETE /api/share/:token`; public `GET /api/share/:token` → `{ scan }` with contract fields only, rate limited) replace the earlier "no anonymous links" decision, per the proposal's WhatsApp sharing. The later caregiver work will invite someone to sign up or log in and use backend-managed access; it is not implemented by this API.
 
 ## Verification
 

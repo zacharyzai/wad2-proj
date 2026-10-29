@@ -26,6 +26,8 @@ export const ttsRateLimit = limiter(1, Number(process.env.TTS_RATE_LIMIT) || 12,
 // Slows password guessing: only failed logins and signups count.
 // Dose ticks are cheap, but a script shouldn't be able to hammer the database. Far above what a person tapping ticks can reach.
 export const doseRateLimit = limiter(1, Number(process.env.DOSE_RATE_LIMIT) || 60, 'Too many changes, please wait a minute')
+// Opening a share link needs no account: per IP, far above what a family member clicking a link can reach.
+export const shareRateLimit = limiter(1, Number(process.env.SHARE_RATE_LIMIT) || 60, 'Too many requests, please wait a minute')
 export const authRateLimit =limiter(15, Number(process.env.AUTH_RATE_LIMIT) || 10, 'Too many tries, please wait a few minutes', undefined, { skipSuccessfulRequests: true })
 
 // Global cap across all users, so rotating IPs can't drain the daily AI quota. Scan, chat and read-aloud

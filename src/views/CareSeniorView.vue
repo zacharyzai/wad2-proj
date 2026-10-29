@@ -16,6 +16,7 @@ const route = useRoute()
 
 const senior = ref(null)
 const doses = ref([])
+const shared = ref(true) // false: the senior's app has never saved a timetable to their account
 const loading = ref(true)
 const errorCode = ref(null)
 const updated = ref(null)
@@ -41,6 +42,7 @@ async function load(quiet = false) {
     errorCode.value = null
     senior.value = res.data.senior
     doses.value = res.data.doses
+    shared.value = res.data.shared !== false
     updated.value = new Date()
   } else if (!quiet || res.error.code === 'NOT_FOUND') errorCode.value = res.error.code
 }
@@ -62,6 +64,8 @@ onBeforeUnmount(() => clearInterval(timer))
       <RouterLink :to="{ name: 'care' }" class="btn btn-primary">{{ t('pages.care') }}</RouterLink>
     </EmptyState>
     <ErrorBanner v-else-if="errorCode" :code="errorCode" retryable @retry="load()" />
+
+    <EmptyState v-else-if="!shared" :title="t('care.notShared')" :text="t('care.notSharedText', { name: senior.name })" icon="calendar" />
 
     <template v-else>
       <!-- The one thing a caregiver wants to know: has anything been missed? -->

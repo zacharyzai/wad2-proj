@@ -4,6 +4,8 @@ import { computed, nextTick, reactive, ref, toRaw, watch } from 'vue'
 import { onBeforeRouteLeave, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { scanStore } from '../stores/scan'
+import { authStore } from '../stores/auth'
+import { saveScan } from '../api/client'
 import { rememberMedicine, replaceMedicine } from '../stores/medicines'
 import ConfirmField from '../components/scan/ConfirmField.vue'
 import AppIcon from '../components/layout/AppIcon.vue'
@@ -125,6 +127,9 @@ function confirm() {
     // Ask (the chatbot) answers about the medicines the user has checked.
     rememberMedicine(draft.medication, 'label', draft.source === 'sample')
   }
+  // Logged in: the checked scan goes to History too (contract fields only, never the photo). Not waited for: a failed save
+  // must not stop the explanation, and History simply won't list this one.
+  if (authStore.user) saveScan({ type: draft.type, source: draft.source, unclear: [], [draft.type]: draft[draft.type] })
   scanStore.current = draft
   scanStore.confirmed = true
   done = true

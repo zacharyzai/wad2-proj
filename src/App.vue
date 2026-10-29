@@ -9,6 +9,7 @@ import GuideDialog from './components/guide/GuideDialog.vue'
 import ThemePrompt from './components/guide/ThemePrompt.vue'
 import { maybeShowGuide, openGuide } from './stores/guide'
 import { authStore } from './stores/auth'
+import './stores/scheduleSync'
 
 const { t, locale } = useI18n()
 const route = useRoute()

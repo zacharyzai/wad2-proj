@@ -9,6 +9,8 @@ import { CareLink } from '../models/CareLink.js'
 import { CareInviteQuota } from '../models/CareInviteQuota.js'
 import { User } from '../models/User.js'
 import { signToken } from '../services/auth.js'
+import { Dose } from '../models/Dose.js'
+import { addDays, todayInSingapore } from '../../src/rules/schedule.js'
 
 process.env.JWT_SECRET = randomBytes(48).toString('hex')
 process.env.USE_MOCK_AI = 'true'
@@ -178,7 +180,7 @@ test('only the linked senior/caregiver can revoke; revocation cannot restore a c
   const first = await issued(owner)
   assert.equal((await accept(cg, first.token)).status, 200)
   const [link] = await links(owner)
-  await error(await care(`/seniors/${owner.id}/today`, { token: cg.token }), 501, 'NOT_IMPLEMENTED')
+  assert.equal((await care(`/seniors/${owner.id}/today`, { token: cg.token })).status, 200)
   await error(await care(`/links/${link.id}`, { method: 'DELETE', token: stranger.token }), 404, 'NOT_FOUND')
   await error(await care(`/links/not-an-id`, { method: 'DELETE', token: owner.token }), 404, 'NOT_FOUND')
   // Cancelling pending invitations never accidentally deletes the active caregiver.
@@ -255,13 +257,16 @@ test('no client body can choose the senior/caregiver or silently change an accou
   await error(await accept(owner, i.token), 404, 'NOT_FOUND')
 })
 
-test('deleted senior invites cannot be previewed/accepted; read-only data access remains unimplemented and guarded', async () => {
+test('deleted senior invites cannot be previewed/accepted; today is only readable once linked', async () => {
   const owner = await user(), cg = await user('caregiver')
   const i = await issued(owner)
   await error(await care(`/seniors/${owner.id}/today`, { token: cg.token }), 404, 'NOT_FOUND')
   assert.equal((await accept(cg, i.token)).status, 200)
-  await error(await care('/seniors', { token: cg.token }), 501, 'NOT_IMPLEMENTED')
-  await error(await care(`/seniors/${owner.id}/today`, { token: cg.token }), 501, 'NOT_IMPLEMENTED')
+  // Never saved a timetable: "not shared yet", never invented zero counts.
+  const [listed] = (await (await care('/seniors', { token: cg.token })).json()).data.seniors
+  assert.deepEqual(listed, { id: owner.id, name: 'Test User', today: null })
+  const today = (await (await care(`/seniors/${owner.id}/today`, { token: cg.token })).json()).data
+  assert.deepEqual(today, { senior: { id: owner.id, name: 'Test User' }, shared: false, doses: [] })
   const missing = await user(), t = await issued(missing)
   await User.deleteOne({ _id: missing.id })
   await error(await preview(t.token), 404, 'NOT_FOUND')
@@ -290,4 +295,33 @@ test('public invitation probing is also limited by IP', async () => {
   let response
   for (let i = 0; i < 61; i++) response = await request('/care/invites/unknown', { ip: '198.51.100.99' })
   await error(response, 429, 'RATE_LIMITED')
+})
+
+test("a caregiver sees the linked senior's saved timetable and ticks for today, and nobody else's", async () => {
+  const owner = await user('senior', 'Ah Ma'), cg = await user('caregiver'), stranger = await user('caregiver')
+  assert.equal((await accept(cg, (await issued(owner)).token)).status, 200)
+  const today = todayInSingapore()
+  const entry = (id, startDate, endDate, flagged = false) => ({ medicineId: id, label: `Medicine ${id}`, instruction: { count: 1, unit: 'tablet', food: null },
+    doses: [{ id: `${id}-morning`, time: '08:00' }, { id: `${id}-night`, time: '21:00' }], startDate, endDate, flagged })
+  const entries = [entry('m1', today, addDays(today, 6)), entry('old', addDays(today, -9), addDays(today, -3)), entry('prn', today, null, true)]
+  const save = (token, body) => request('/schedule', { method: 'PUT', token, body })
+  assert.equal((await save(undefined, { entries })).status, 401)
+  assert.equal((await save(owner.token, { entries: [{ ...entries[0], startDate: 'soon' }] })).status, 400)
+  assert.deepEqual((await (await save(owner.token, { entries })).json()).data, { saved: 3 })
+  await Dose.create({ userId: owner.id, date: today, doseId: 'm1-morning', takenAt: new Date() })
+
+  const body = (await (await care(`/seniors/${owner.id}/today`, { token: cg.token })).json()).data
+  assert.equal(body.shared, true)
+  // Only today's course; the ended one and the "when needed" one are left out. The ticked dose is taken whatever the time.
+  assert.deepEqual(body.doses.map((d) => [d.doseId, d.time, d.label]), [['m1-morning', '08:00', 'Medicine m1'], ['m1-night', '21:00', 'Medicine m1']])
+  assert.equal(body.doses[0].status, 'taken')
+  assert.ok(['missed', 'upcoming'].includes(body.doses[1].status))
+  const [listed] = (await (await care('/seniors', { token: cg.token })).json()).data.seniors
+  assert.deepEqual(listed.today, { taken: 1, missed: Number(body.doses[1].status === 'missed'), upcoming: Number(body.doses[1].status === 'upcoming') })
+
+  // Saving again replaces the copy (one per account), and a caregiver who is not linked sees nothing.
+  assert.equal((await save(owner.token, { entries: [] })).status, 200)
+  assert.deepEqual((await (await care(`/seniors/${owner.id}/today`, { token: cg.token })).json()).data.doses, [])
+  await error(await care(`/seniors/${owner.id}/today`, { token: stranger.token }), 404, 'NOT_FOUND')
+  assert.deepEqual((await (await care('/seniors', { token: stranger.token })).json()).data.seniors, [])
 })

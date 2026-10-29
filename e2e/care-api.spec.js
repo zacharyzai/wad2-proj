@@ -78,8 +78,8 @@ test('senior creates an invite → new caregiver signs up and accepts → senior
   await expect(page.getByTestId('invite-accept')).toBeVisible()
   await page.getByTestId('invite-accept').click()
   await expect(page).toHaveURL(/\/care\/[a-f0-9]{24}$/)
-  // The next PR supplies the schedule read view; no invented zero doses are returned by this PR.
-  await expect(page.getByRole('alert')).toContainText('This feature is coming soon')
+  // This senior's app never saved a timetable: "not shared yet", never invented zero doses.
+  await expect(page.getByRole('heading', { name: 'Not shared yet' })).toBeVisible()
   const caregiverLogin = await request.post(`${careBackend}/api/auth/login`, { data: { email: caregiverEmail, password } })
   const caregiverToken = (await caregiverLogin.json()).data.token
   const headers = { authorization: `Bearer ${caregiverToken}` }

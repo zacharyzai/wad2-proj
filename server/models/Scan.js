@@ -29,7 +29,11 @@ const scanSchema = new mongoose.Schema({
   type: { type: String, required: true, enum: ['medication', 'bill'] },
   source: { type: String, required: true, enum: ['sample', 'mock', 'ai'] },
   medication: { type: medication, default: undefined }, bill: { type: bill, default: undefined },
+  // Read-only share link (server/routes/share.js): a random 32-hex token and when it stops working. Kept as is (not hashed)
+  // so History can show the owner their link again; it only ever opens this one scan, without the account.
+  shareToken: { type: String, match: /^[a-f0-9]{32}$/ }, shareExpiresAt: Date,
 }, { timestamps: true, bufferCommands: false, strict: 'throw' })
 // _id breaks ties when multiple scans are saved in the same millisecond.
 scanSchema.index({ userId: 1, createdAt: -1, _id: -1 })
+scanSchema.index({ shareToken: 1 }, { unique: true, sparse: true })
 export const Scan = mongoose.models.Scan ?? mongoose.model('Scan', scanSchema)

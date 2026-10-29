@@ -40,7 +40,9 @@
       "taken": "已服",
       "missed": "漏服",
       "upcoming": "待服"
-    }
+    },
+    "notShared": "还未分享",
+    "notSharedText": "{name} 在手机上登录并打开应用后，这里就会显示他们的服药时间表。"
   },
   "invite": {
     "title": "{name} 想请您当他/她的照护者",

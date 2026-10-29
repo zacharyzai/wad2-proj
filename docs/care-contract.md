@@ -75,7 +75,10 @@ The existing senior Account card can create a link, show the linked caregiver an
 
 Two frontend follow-ups: hide/disable Create invite when the senior already has a caregiver (backend returns 409 today), and expose Cancel invitation via `DELETE /care/invites`. Creation already replaces an old pending invite.
 
-**No fake health data:** `/care/seniors` returns `501 NOT_IMPLEMENTED` for a caregiver; `/care/seniors/:seniorId/today` returns 404 unless linked, then 501 until the data-access PR. The current frontend navigates to that detail page on acceptance, so it displays “This feature is coming soon” after a successful link. Use `/care/links` for the real relationship list in this PR. Do not present missing server-side schedule data as zero doses or calculate missed doses from ticks alone.
+**No fake health data:** the senior's app saves its timetable to their account (`PUT /api/schedule { entries }`, ScheduleEntry format from `docs/google-contract.md`, checked by `checkEntries`; one copy per account, replaced on every change, sent from `src/stores/scheduleSync.js`).
+- `GET /care/seniors` (caregiver) → `{ seniors: [{ id, name, today: { taken, missed, upcoming } | null }] }`. `today` is `null` when the senior's app has never saved a timetable.
+- `GET /care/seniors/:seniorId/today` (caregiver, linked only, else 404) → `{ senior: { id, name }, shared, doses: [{ doseId, time, label, status }] }`. `shared: false` (with `doses: []`) means no timetable saved yet; the page says "Not shared yet", never zero doses.
+- Status: `taken` = ticked today (`/api/doses`); `missed` = not ticked and its time has passed (`timeStates` says `earlier`, the same moment the senior's Today page says "Not ticked yet"); otherwise `upcoming`. Flagged ("when needed") and out-of-course entries are left out (`dosesOn`). Singapore day.
 
 Before adding scan access, align the frontend's consent: its invitation currently promises caregivers do **not** see scans/bills/account details. A link alone must not be treated as permission to expose extra data contrary to that promise. Future read endpoints must check an active link on every request; the existing `/api/history` and `/api/doses` ownership rules are not relaxed by this PR.
 

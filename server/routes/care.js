@@ -1,4 +1,5 @@
-// Owner: Sheen Hern. Invite/account linking only; read-only schedule/scan access is the next workstream.
+// Owner: Sheen Hern. Invite/account linking, and (built by Claude, declared in README.txt) a caregiver's read-only view of a
+// linked senior's doses today.
 import { Router } from 'express'
 import { createHash, randomBytes } from 'node:crypto'
 import mongoose from 'mongoose'
@@ -9,6 +10,9 @@ import { requireAuth } from '../middleware/requireAuth.js'
 import { CareLink } from '../models/CareLink.js'
 import { CareInviteQuota } from '../models/CareInviteQuota.js'
 import { User } from '../models/User.js'
+import { Dose } from '../models/Dose.js'
+import { Schedule } from '../models/Schedule.js'
+import { dosesOn, timeInSingapore, timeStates, todayInSingapore } from '../../src/rules/schedule.js'
 
 const router = Router()
 const WEEK = 7 * 24 * 3600_000
@@ -176,15 +180,40 @@ router.delete('/links/:id', ...either, (req, res) => {
   })
 })
 
-// Do not invent zero-dose counts from browser-only schedules. These read views are deliberately a separate PR.
-router.get('/seniors', ...caregiver, (req, res) => sendError(res, 501, 'NOT_IMPLEMENTED', 'Caregiver schedule access is not implemented yet; use /api/care/links to manage linked accounts'))
+// A linked senior's doses today, from the timetable their app saved (PUT /api/schedule) and their ticks: taken, missed (its
+// time has passed, the moment their own Today page says "Not ticked yet") or upcoming. null when the senior's app has never
+// saved a timetable, so the caregiver sees "not shared yet", never invented zero counts.
+async function dosesToday(seniorId) {
+  const saved = await Schedule.findOne({ userId: seniorId }).select('entries').lean()
+  if (!saved) return null
+  const today = todayInSingapore()
+  const doses = dosesOn(saved.entries, today)
+  const taken = new Set((await Dose.find({ userId: seniorId, date: today }).select('doseId').lean()).map((d) => d.doseId))
+  const times = [...new Set(doses.map((d) => d.time))]
+  const states = timeStates(times, timeInSingapore())
+  const passed = new Set(times.filter((t, i) => states[i] === 'earlier'))
+  return doses.map((d) => ({ doseId: d.id, time: d.time, label: d.label, status: taken.has(d.id) ? 'taken' : passed.has(d.time) ? 'missed' : 'upcoming' }))
+}
+const counts = (doses) => doses && ['taken', 'missed', 'upcoming'].reduce((c, s) => ({ ...c, [s]: doses.filter((d) => d.status === s).length }), {})
+
+router.get('/seniors', ...caregiver, (req, res) => database(res, async () => {
+  const links = await CareLink.find({ caregiverId: req.userId }).sort({ linkedAt: -1, _id: -1 }).lean()
+  const people = await User.find({ _id: { $in: links.map((l) => l.seniorId) } }).select('name role').lean()
+  const seniors = []
+  for (const person of people.filter((p) => roleOf(p) === 'senior')) {
+    seniors.push({ id: String(person._id), name: person.name ?? '', today: counts(await dosesToday(person._id)) })
+  }
+  res.json({ ok: true, data: { seniors } })
+}))
+
 router.get('/seniors/:seniorId/today', ...caregiver, (req, res) => {
   if (!mongoose.isObjectIdOrHexString(req.params.seniorId)) return gone(res)
   return database(res, async () => {
     if (!await CareLink.exists({ seniorId: req.params.seniorId, caregiverId: req.userId })) return gone(res)
-    const owner = await User.findById(req.params.seniorId).select('role').lean()
+    const owner = await User.findById(req.params.seniorId).select('name role').lean()
     if (!owner || roleOf(owner) !== 'senior') return gone(res)
-    sendError(res, 501, 'NOT_IMPLEMENTED', 'Caregiver schedule access is not implemented yet')
+    const doses = await dosesToday(owner._id)
+    res.json({ ok: true, data: { senior: { id: String(owner._id), name: owner.name ?? '' }, shared: doses !== null, doses: doses ?? [] } })
   })
 })
 

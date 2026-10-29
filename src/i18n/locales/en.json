@@ -60,7 +60,9 @@
       "taken": "Taken",
       "missed": "Missed",
       "upcoming": "To come"
-    }
+    },
+    "notShared": "Not shared yet",
+    "notSharedText": "{name}'s schedule will show here once they open the app on their phone while logged in."
   },
   "invite": {
     "title": "{name} would like you to be their caregiver",

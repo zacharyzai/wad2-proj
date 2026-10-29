@@ -50,12 +50,19 @@ router.get('/', (req, res) => {
   return database(req, res, async () => {
     const owner = { userId: req.userId }
     const [docs, total] = await Promise.all([
-      Scan.find(owner).select('type source createdAt medication.name medication.strength bill.clinic').sort({ createdAt: -1, _id: -1 }).skip((page - 1) * PAGE_SIZE).limit(PAGE_SIZE).lean(),
+      Scan.find(owner).select('type source createdAt medication.name medication.strength bill.clinic bill.totalPayableCents shareToken shareExpiresAt').sort({ createdAt: -1, _id: -1 }).skip((page - 1) * PAGE_SIZE).limit(PAGE_SIZE).lean(),
       Scan.countDocuments(owner),
     ])
-    const items = docs.map((d) => ({ id: String(d._id), type: d.type, source: d.source, createdAt: d.createdAt,
-      title: d.type === 'medication' ? [d.medication.name, d.medication.strength].filter(Boolean).join(' ') : d.bill.clinic ?? null }))
-    res.json({ ok: true, data: { items, page, pageSize: PAGE_SIZE, total, hasMore: page * PAGE_SIZE < total } })
+    const now = new Date()
+    // What the History page shows per row: the amount paid for a bill, and the share link while it still works.
+    const items = docs.map((d) => {
+      const sharing = d.shareToken && d.shareExpiresAt > now
+      return { id: String(d._id), type: d.type, source: d.source, createdAt: d.createdAt,
+        title: d.type === 'medication' ? [d.medication.name, d.medication.strength].filter(Boolean).join(' ') : d.bill.clinic ?? null,
+        totalPayableCents: d.type === 'bill' ? d.bill.totalPayableCents : null,
+        shareToken: sharing ? d.shareToken : null, shareExpiresAt: sharing ? d.shareExpiresAt : null }
+    })
+    res.json({ ok: true, data: { items, page, pageSize: PAGE_SIZE, pages: Math.max(1, Math.ceil(total / PAGE_SIZE)), total, hasMore: page * PAGE_SIZE < total } })
   })
 })
 

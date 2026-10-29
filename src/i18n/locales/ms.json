@@ -40,7 +40,9 @@
       "taken": "Sudah diambil",
       "missed": "Terlepas",
       "upcoming": "Akan datang"
-    }
+    },
+    "notShared": "Belum dikongsi",
+    "notSharedText": "Jadual {name} akan dipaparkan di sini selepas mereka membuka aplikasi di telefon dan log masuk."
   },
   "invite": {
     "title": "{name} mahu anda menjadi penjaganya",
