@@ -9,6 +9,7 @@ const medication = new mongoose.Schema({
   name: { ...text, required: true }, strength: text,
   doseAmount: { type: Number, required: true, min: Number.MIN_VALUE, max: 100 },
   doseUnit: { type: String, enum: [...DOSE_UNITS, null], default: null },
+  quantity: { type: Number, default: null, min: Number.MIN_VALUE, max: 100000 }, // how much was given, in the dose's unit
   timesPerDay: { type: Number, default: null, min: 1, max: 6, validate: (v) => v === null || Number.isInteger(v) },
   timing: { type: [{ type: String, enum: TIMINGS }], default: null },
   withFood: { type: String, enum: [...WITH_FOOD, null], default: null },
@@ -18,9 +19,10 @@ const medication = new mongoose.Schema({
 const bill = new mongoose.Schema({
   clinic: text, place: { type: String, enum: [...BILL_PLACES, null], default: null },
   visitDate: { type: String, default: null },
-  items: [new mongoose.Schema({ description: { ...text, required: true }, category: { type: String, required: true, enum: BILL_CATEGORIES }, amountCents: cents }, nested)],
+  items: [new mongoose.Schema({ description: { ...text, required: true }, category: { type: String, required: true, enum: BILL_CATEGORIES }, amountCents: cents, section: { type: String, maxlength: 2000 } }, nested)], // section: only when the bill printed headings
   subsidies: [new mongoose.Schema({ scheme: { type: String, required: true, enum: SUBSIDY_SCHEMES }, amountCents: cents, includedInItems: { type: Boolean, default: false } }, nested)],
   medisaveCents: cents, totalPayableCents: cents,
+  subtotals: [new mongoose.Schema({ section: { ...text, required: true }, amountCents: cents }, nested)],
 }, nested)
 const scanSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, immutable: true },

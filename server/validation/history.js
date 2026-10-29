@@ -37,8 +37,11 @@ export function checkConfirmedScan(body) {
     if (type === 'medication') {
       if (s.bill !== undefined) fail('bill on a medication scan')
       const m = s.medication
-      object(m, ['name', 'strength', 'doseAmount', 'doseUnit', 'timesPerDay', 'timing', 'withFood', 'frequencyType', 'rawInstruction', 'warnings'], 'medication fields')
+      object(m, ['name', 'strength', 'doseAmount', 'doseUnit', 'quantity', 'timesPerDay', 'timing', 'withFood', 'frequencyType', 'rawInstruction', 'warnings'], 'medication fields')
       if (typeof m.doseAmount !== 'number' || !Number.isFinite(m.doseAmount) || m.doseAmount <= 0 || m.doseAmount > 100) fail('doseAmount')
+      // How much was given ("Qty: 60 tablets"): optional; Schedule works out how long it lasts from it (docs/scan-contract.md).
+      const quantity = m.quantity ?? null
+      if (quantity !== null && (typeof quantity !== 'number' || !Number.isFinite(quantity) || quantity <= 0 || quantity > 100000)) fail('quantity')
       const frequencyType = choice(m.frequencyType, FREQUENCY_TYPES, 'frequencyType')
       const times = m.timesPerDay ?? null
       if ((times !== null || frequencyType === 'daily') && (!Number.isInteger(times) || times < 1 || times > 6)) fail('timesPerDay')
@@ -47,7 +50,7 @@ export function checkConfirmedScan(body) {
       if (frequencyType === 'daily' && timing?.length && timing.length !== times) fail('timing count must match timesPerDay')
       return { scan: { type, source, medication: {
         name: text(m.name, 'name', true), strength: text(m.strength, 'strength'), doseAmount: m.doseAmount,
-        doseUnit: choice(m.doseUnit, DOSE_UNITS, 'doseUnit', true), timesPerDay: times, timing,
+        doseUnit: choice(m.doseUnit, DOSE_UNITS, 'doseUnit', true), quantity, timesPerDay: times, timing,
         withFood: choice(m.withFood, WITH_FOOD, 'withFood', true), frequencyType,
         rawInstruction: text(m.rawInstruction, 'rawInstruction'),
         warnings: list(m.warnings, 'warnings', 50).map((w) => text(w, 'warning', true)),
@@ -55,12 +58,12 @@ export function checkConfirmedScan(body) {
     }
     if (s.medication !== undefined) fail('medication on a bill scan')
     const b = s.bill
-    object(b, ['clinic', 'place', 'visitDate', 'items', 'subsidies', 'medisaveCents', 'totalPayableCents'], 'bill fields')
+    object(b, ['clinic', 'place', 'visitDate', 'items', 'subsidies', 'medisaveCents', 'totalPayableCents', 'subtotals'], 'bill fields')
     const visitDate = b.visitDate ?? null
     if (visitDate !== null && (typeof visitDate !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(visitDate) || !Number.isFinite(Date.parse(visitDate)) || new Date(visitDate).toISOString().slice(0, 10) !== visitDate)) fail('visitDate')
     const items = list(b.items, 'items', 100, 1).map((i) => {
-      object(i, ['description', 'category', 'amountCents'], 'item fields')
-      return { description: text(i.description, 'description', true), category: choice(i.category, BILL_CATEGORIES, 'category'), amountCents: money(i.amountCents, 'amountCents') }
+      object(i, ['description', 'category', 'amountCents', 'section'], 'item fields')
+      return { description: text(i.description, 'description', true), category: choice(i.category, BILL_CATEGORIES, 'category'), amountCents: money(i.amountCents, 'amountCents'), ...(i.section != null && { section: text(i.section, 'section') }) }
     })
     const subsidies = list(b.subsidies, 'subsidies', 100).map((s) => {
       object(s, ['scheme', 'amountCents', 'includedInItems'], 'subsidy fields')
@@ -69,9 +72,14 @@ export function checkConfirmedScan(body) {
     })
     const medisaveCents = money(b.medisaveCents, 'medisaveCents')
     const totalPayableCents = money(b.totalPayableCents, 'totalPayableCents')
-    const sum = (xs) => xs.reduce((t, x) => t + x.amountCents, 0)
-    if (sum(items) - sum(subsidies.filter((s) => !s.includedInItems)) - medisaveCents !== totalPayableCents) fail('bill totals do not balance')
-    return { scan: { type, source, bill: { clinic: text(b.clinic, 'clinic'), place: choice(b.place, BILL_PLACES, 'place', true), visitDate, items, subsidies, medisaveCents, totalPayableCents } } }
+    // Printed subtotals under groups of lines (optional): they show which group a misread amount is in.
+    const subtotals = list(b.subtotals ?? [], 'subtotals', 50).map((t) => {
+      object(t, ['section', 'amountCents'], 'subtotal fields')
+      return { section: text(t.section, 'subtotal section', true), amountCents: money(t.amountCents, 'subtotal amountCents') }
+    })
+    // Lines need not add up to the total: the printed total is kept and confirmed by the person even when one line was
+    // misread, and Confirm, Explain and the Bill page say so (src/rules/billCheck.js, docs/scan-contract.md).
+    return { scan: { type, source, bill: { clinic: text(b.clinic, 'clinic'), place: choice(b.place, BILL_PLACES, 'place', true), visitDate, items, subsidies, medisaveCents, totalPayableCents, subtotals } } }
   } catch (error) {
     return { error: error.message }
   }
