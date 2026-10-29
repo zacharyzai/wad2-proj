@@ -503,8 +503,6 @@
     "loading": "Loading…"
   },
   "soon": {
-    "title": "Coming soon",
-    "history": "Your saved scans will be listed here, newest first. Saving needs an account.",
     "scanMed": "Scan a medicine label"
   },
   "history": {
@@ -539,7 +537,9 @@
     "keep": "Keep it",
     "deleted": "Scan deleted.",
     "loadMore": "Show older scans",
-    "noneOfType": "Nothing of this kind yet."
+    "noneOfType": "Nothing of this kind yet.",
+    "emptyTitle": "Nothing saved yet",
+    "emptyText": "When you check a scan and tap \"Looks correct\", it is saved here, newest first. You need to be logged in."
   },
   "shared": {
     "lead": "Someone shared this with you. You can only read it.",

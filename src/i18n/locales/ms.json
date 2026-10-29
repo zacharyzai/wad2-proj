@@ -503,8 +503,6 @@
     "loading": "Sedang dimuatkan…"
   },
   "soon": {
-    "title": "Akan datang",
-    "history": "Imbasan yang anda simpan akan disenaraikan di sini, yang terbaru dahulu. Menyimpan memerlukan akaun.",
     "scanMed": "Imbas label ubat"
   },
   "history": {
@@ -539,7 +537,9 @@
     "keep": "Simpan",
     "deleted": "Imbasan dipadam.",
     "loadMore": "Papar imbasan lebih lama",
-    "noneOfType": "Belum ada yang seperti ini."
+    "noneOfType": "Belum ada yang seperti ini.",
+    "emptyTitle": "Belum ada yang disimpan",
+    "emptyText": "Selepas anda menyemak imbasan dan menekan \"Semuanya betul\", ia disimpan di sini, yang terbaru di atas. Anda perlu log masuk."
   },
   "shared": {
     "lead": "Seseorang berkongsi ini dengan anda. Anda hanya boleh membacanya.",

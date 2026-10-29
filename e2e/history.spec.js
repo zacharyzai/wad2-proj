@@ -23,10 +23,10 @@ test.describe('history list', () => {
     await expect(page.getByText('Bedok Polyclinic')).toBeVisible()
   })
 
-  test('empty history keeps the Coming soon look and offers a scan button', async ({ page }) => {
+  test('empty history says nothing is saved yet and offers a scan button', async ({ page }) => {
     await mockHistory(page, [])
     await page.goto('/history')
-    await expect(page.getByRole('heading', { name: 'Coming soon' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Nothing saved yet' })).toBeVisible()
     await expect(page.getByTestId('history-empty-scan')).toBeVisible()
   })
 

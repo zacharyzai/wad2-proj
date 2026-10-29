@@ -75,7 +75,7 @@ function removed(id) {
     <LoadingState v-if="loading" />
     <ErrorBanner v-else-if="errorCode && !items.length" :code="errorCode" retryable @retry="load" />
 
-    <EmptyState v-else-if="!items.length" :title="t('soon.title')" :text="t('soon.history')" icon="history">
+    <EmptyState v-else-if="!items.length" :title="t('history.emptyTitle')" :text="t('history.emptyText')" icon="history">
       <RouterLink :to="{ name: 'scan' }" class="btn btn-primary" data-testid="history-empty-scan"><AppIcon name="scan" />{{ t('nav.scanDoc') }}</RouterLink>
     </EmptyState>
 
