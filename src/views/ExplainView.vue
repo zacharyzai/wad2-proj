@@ -6,7 +6,8 @@ import { useI18n } from 'vue-i18n'
 import { scanStore } from '../stores/scan'
 import ReadAloud from '../components/explain/ReadAloud.vue'
 import AppIcon from '../components/layout/AppIcon.vue'
-import { billGap, linesTotal } from '../rules/billCheck'
+import { billGap, linesTotal, sumCents } from '../rules/billCheck'
+import { money, minusMoney } from '../components/bill/lines'
 
 const { t, locale } = useI18n()
 const router = useRouter()
@@ -15,9 +16,6 @@ const router = useRouter()
 const scan = scanStore.confirmed ? scanStore.current : null
 if (!scan) router.replace({ name: scanStore.current ? 'confirm' : 'scan' })
 
-const money = (cents) => '$' + (cents / 100).toFixed(2)
-const minusMoney = (cents) => (cents > 0 ? '−' : '') + money(cents ?? 0) // never "−$0.00"
-const sum = (xs) => xs.reduce((total, x) => total + x.amountCents, 0)
 // Dose numbers always stay as digits, in every language.
 const byValue = (a, b) => a - b
 const TIME_ICONS = { morning: 'sunrise', afternoon: 'sun', evening: 'sunset', bedtime: 'bed' }
@@ -69,7 +67,7 @@ function medication(m) {
 }
 
 function bill(b) {
-  const charges = sum(b.items)
+  const charges = sumCents(b.items)
   const pay = b.totalPayableCents
   const wrongAmount = charges !== pay ? charges : pay + 1000
   const date = b.visitDate && new Date(`${b.visitDate}T00:00`).toLocaleDateString(locale.value, { day: 'numeric', month: 'short', year: 'numeric' })
@@ -81,7 +79,7 @@ function bill(b) {
     title: t('explain.bill.title', { amount: money(pay) }),
     lines: [
       [t('explain.bill.charges'), money(charges)],
-      [t('explain.bill.subsidies'), minusMoney(sum(b.subsidies.filter((s) => !s.includedInItems)))],
+      [t('explain.bill.subsidies'), minusMoney(sumCents(b.subsidies.filter((s) => !s.includedInItems)))],
       [t('explain.bill.medisave'), minusMoney(b.medisaveCents)],
     ],
     paras: [t('explain.bill.p')],
