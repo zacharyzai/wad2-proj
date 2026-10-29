@@ -15,10 +15,10 @@
     "language": "Language",
     "account": "Account",
     "main": "Main",
-    "night": "Night mode",
     "skip": "Skip to main content",
     "ask": "Ask",
-    "backTop": "Back to top"
+    "backTop": "Back to top",
+    "care": "My seniors"
   },
   "pages": {
     "home": "Understand your medicine and bills",
@@ -30,14 +30,76 @@
     "login": "Log in",
     "signup": "Create an account",
     "history": "Scan history",
-    "shared": "Shared summary",
+    "shared": "Caregiver invitation",
+    "care": "My seniors",
+    "careSenior": "Today's medicines",
+    "sharedScan": "Shared summary",
     "notFound": "Page not found",
     "ask": "Ask about my medicine",
     "welcome": "Welcome",
     "billScan": "Scan a medical bill",
     "account": "Your account"
   },
+  "care": {
+    "lead": "The people who invited you. Tap a name to see today's medicines.",
+    "emptyTitle": "No one linked yet",
+    "emptyText": "Ask your parent or relative to open Account in the app and tap \"Invite a caregiver\". They can send you the link on WhatsApp.",
+    "nTaken": "{n} taken",
+    "nMissed": "{n} missed",
+    "nUpcoming": "{n} to come",
+    "todayFor": "{name}: today",
+    "goneTitle": "You can no longer see this person",
+    "goneText": "They may have removed the link. If this is a mistake, ask them for a new invite.",
+    "missedBanner": "{name} has not taken {n} dose today. You may want to give them a call. | {name} has not taken {n} doses today. You may want to give them a call.",
+    "allTaken": "{name} has taken every dose so far today.",
+    "noDoses": "No medicines on the schedule",
+    "noDosesText": "{name} has not added any medicine to their schedule yet.",
+    "updated": "Updated {time}",
+    "refresh": "Refresh",
+    "status": {
+      "taken": "Taken",
+      "missed": "Missed",
+      "upcoming": "To come"
+    }
+  },
+  "invite": {
+    "title": "{name} would like you to be their caregiver",
+    "seeTitle": "You will see",
+    "see1": "Their medicine times for today.",
+    "see2": "Whether each dose is taken, missed or still to come.",
+    "notTitle": "You will not see",
+    "not1": "Their scans, photos, bills or account details.",
+    "removeAnytime": "{name} can remove you at any time.",
+    "needAccount": "Log in with your caregiver account to accept.",
+    "login": "Log in",
+    "signup": "Create a caregiver account",
+    "accept": "Accept and watch over {name}",
+    "seniorAccount": "This is a senior account, so it cannot be a caregiver. To be a caregiver, create a second account and choose \"Caregiver\".",
+    "goneTitle": "This invitation is no longer available",
+    "goneText": "It may have expired or already been used. Ask for a new link."
+  },
+  "careCard": {
+    "title": "Your caregivers",
+    "intro": "A caregiver can see whether you took today's medicine, so they can call you if you forget.",
+    "none": "No one can see your medicines yet.",
+    "since": "Since {date}",
+    "remove": "Remove",
+    "removeAsk": "Stop {name} from seeing your medicines?",
+    "removeYes": "Yes, remove",
+    "keep": "Keep",
+    "invite": "Invite a caregiver",
+    "inviteTitle": "Before you send the link",
+    "inviteSee": "The caregiver will see: your name, your medicine times for today, and whether each dose is taken, missed or still to come.",
+    "inviteNot": "They will not see: your scans, photos, bills or account details. You can remove them at any time.",
+    "inviteExpiry": "The link can be used once and stops working after 7 days.",
+    "create": "Create link",
+    "linkReady": "Your link is ready",
+    "linkLabel": "Invitation link",
+    "shareMessage": "Please be my caregiver on Ah Ma Ah Gong Can:"
+  },
   "errors": {
+    "WRONG_ROLE": "This action needs a different account role.",
+    "CAREGIVER_ALREADY_LINKED": "This senior already has a caregiver. Remove the current link before inviting someone else.",
     "AUTH_UNAVAILABLE": "Login and signup are temporarily unavailable. Please try again later.",
     "BAD_REQUEST": "We couldn’t use that. Please try again.",
     "NOT_FOUND": "We could not find that.",
@@ -225,7 +287,9 @@
       "times": "Times a day",
       "when": "When",
       "food": "Before or after food",
-      "other": "Other instructions on the label (one per line)"
+      "other": "Other instructions on the label (one per line)",
+      "quantity": "Amount in the pack",
+      "quantityHelp": "As on the label, for example Qty: 60. We use it to work out how many days it lasts. Leave it empty if the label doesn’t say."
     },
     "bill": {
       "item": "Item",
@@ -235,7 +299,8 @@
       "smudged": "Please check: this part is hard to read on the photo.",
       "medisave": "Paid by MediSave",
       "total": "Total you pay",
-      "mismatch": "Please check: the amounts don’t add up to this total."
+      "gap": "These lines add up to {lines}, not {total}. One amount may have been misread, but the total is copied from your bill, so you can carry on.",
+      "gapWhere": "If you want to check, look at the lines under “{section}”: the bill says they come to {printed}."
     },
     "steps": {
       "label": "Steps",
@@ -448,6 +513,49 @@
     "noAccount": "Continue without an account",
     "home": "Go to home"
   },
+  "history": {
+    "lead": "Your saved medicine labels and bills, newest first.",
+    "filter": "Show",
+    "filterAll": "All",
+    "filterMed": "Medicines",
+    "filterBill": "Bills",
+    "saved": "Saved {date}",
+    "youPaid": "You paid {amount}",
+    "sharing": "Link is on",
+    "replay": "Listen again",
+    "share": "Share",
+    "delete": "Delete",
+    "shareTitle": "Share this scan?",
+    "shareMed": "The person with the link will see: the medicine name, strength, dose, times and any warnings.",
+    "shareBill": "The person with the link will see: the total you paid and the charges.",
+    "shareNever": "They will not see your name, email, date of birth or your photo.",
+    "shareExpiry": "The link stops working after 30 days. You can stop sharing at any time.",
+    "shareCreate": "Create link",
+    "linkReady": "Your link is ready",
+    "linkLabel": "Share link",
+    "expires": "Works until {date}",
+    "whatsapp": "Send on WhatsApp",
+    "copy": "Copy link",
+    "copied": "Copied",
+    "unshare": "Stop sharing",
+    "shareMessage": "A summary from Ah Ma Ah Gong Can:",
+    "deleteTitle": "Delete this scan?",
+    "deleteText": "It will be removed from your history. Any link you made for it will stop working.",
+    "deleteYes": "Yes, delete",
+    "keep": "Keep it",
+    "deleted": "Scan deleted.",
+    "loadMore": "Show older scans",
+    "noneOfType": "Nothing of this kind yet.",
+    "emptyTitle": "No saved scans yet",
+    "emptyText": "Scans you save will be listed here, so you can listen to them again or share them."
+  },
+  "shared": {
+    "lead": "Someone shared this with you. You can only read it.",
+    "goneTitle": "This link is no longer available",
+    "goneText": "It may have expired, or the person who shared it stopped sharing.",
+    "note": "This is a summary of what the label or bill says. Always confirm with your doctor or pharmacist.",
+    "open": "Open Ah Ma Ah Gong Can"
+  },
   "notFound": {
     "title": "We can’t find that page",
     "text": "The link may be old or typed wrongly. Nothing you saved has been lost.",
@@ -464,6 +572,15 @@
     "signupLead": "Free. We never ask for your NRIC number.",
     "login": "Log in",
     "signup": "Create account",
+    "role": "I am a…",
+    "roles": {
+      "senior": "Senior",
+      "caregiver": "Caregiver"
+    },
+    "roleHelp": {
+      "senior": "I take medicine and want help understanding my labels and bills.",
+      "caregiver": "I look after a parent or relative and want to see whether they took their medicine."
+    },
     "working": "Please wait…",
     "noAccount": "No account yet?",
     "haveAccount": "Already have an account?",
@@ -732,7 +849,12 @@
     "basis": "Checked with your account details: born {year}, {status}.",
     "basisChange": "Change my details",
     "closeBill": "Close this bill",
-    "inLines": "Already taken off the charges above"
+    "inLines": "Already taken off the charges above",
+    "gap": {
+      "title": "These charges don’t quite add up",
+      "text": "They come to {lines}, but your bill’s total is {total}. One amount may have been misread. The amount you pay shown here is the one printed on your bill.",
+      "subsidy": "Subsidy estimates use these lines, so they may be slightly off."
+    }
   },
   "account": {
     "toast": "Settings saved",
@@ -747,7 +869,15 @@
     "save": "Save",
     "cancel": "Cancel",
     "logoutAsk": "Log out of this phone or computer?",
-    "logoutNote": "You will need your email and password to log in again."
+    "logoutNote": "You will need your email and password to log in again.",
+    "theme": {
+      "title": "Day or night mode",
+      "light": "Day",
+      "dark": "Night",
+      "system": "Same as my phone",
+      "note": "Night mode has a dark background, easier on the eyes in a dark room. “Same as my phone” follows your phone or computer’s own setting.",
+      "later": "You can change this any time on your Account page."
+    }
   },
   "guide": {
     "open": "How to use the app",
@@ -899,6 +1029,49 @@
       "text": "{name} is for {time}. Have you already taken it?",
       "yes": "Yes, I took it",
       "no": "Not yet"
-    }
+    },
+    "title": {
+      "today": "Your medicines today",
+      "week": "This week",
+      "meds": "My medicines"
+    },
+    "tab": {
+      "today": "Today",
+      "week": "This week",
+      "meds": "My medicines"
+    },
+    "add": "Add medicine",
+    "back": "Back to schedule",
+    "tapWhenTaken": "Tap when taken",
+    "next": "Next: {name} at {time}",
+    "needDaysCount": "{n} medicine needs its number of days | {n} medicines need their number of days",
+    "due": {
+      "one": "Time for {name}",
+      "many": "Time for {n} medicines",
+      "text": "Due at {time}. Take it, then tap the button.",
+      "take": "I’ve taken it"
+    },
+    "week": {
+      "sum": "{done} of {due} doses taken so far this week",
+      "loading": "Checking this week’s ticks",
+      "range": "{start} to {end}",
+      "caption": "Your doses this week, by time of day",
+      "cell": "{day}, {slot}: {state}",
+      "state": {
+        "ok": "Taken",
+        "miss": "Missed",
+        "up": "Coming up"
+      },
+      "missedTitle": "Missed this week",
+      "noneMissed": "Nothing missed this week.",
+      "notDaily": "Not every day"
+    },
+    "rem": {
+      "title": "Reminders",
+      "lead": "Your phone reminds you through Google Calendar, even when this app is closed.",
+      "times": "Your dose times",
+      "timesHelp": "To change a time, open My medicines and choose Change."
+    },
+    "supply": "From the label: {qty}, {per} a day, so it lasts {days} day. | From the label: {qty}, {per} a day, so it lasts {days} days."
   }
 }

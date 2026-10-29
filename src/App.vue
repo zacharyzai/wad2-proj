@@ -1,13 +1,14 @@
 <!-- Owner: Isaac (app shell). From the Claude Design screens: phone header + bottom tabs, desktop sidebar (≥992px). One set of elements, re-laid out by CSS. -->
 <script setup>
-import { nextTick, watch } from 'vue'
+import { computed, nextTick, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { setLocale } from './i18n'
-import { theme, toggleTheme } from './theme'
 import AppIcon from './components/layout/AppIcon.vue'
 import GuideDialog from './components/guide/GuideDialog.vue'
+import ThemePrompt from './components/guide/ThemePrompt.vue'
 import { maybeShowGuide, openGuide } from './stores/guide'
+import { authStore } from './stores/auth'
 
 const { t, locale } = useI18n()
 const route = useRoute()
@@ -22,7 +23,9 @@ const NAV = [
   { to: '/bill', key: 'nav.bill', icon: 'receipt' },
   { to: '/ask', key: 'nav.ask', icon: 'chat' },
   { to: '/history', key: 'nav.history', icon: 'history' },
+  { to: '/care', key: 'nav.care', icon: 'users', caregiverOnly: true },
 ]
+const navItems = computed(() => NAV.filter((item) => !item.caregiverOnly || authStore.user?.role === 'caregiver'))
 // Prefix match so /scan/confirm and /scan/explain keep Scan highlighted; Home only on '/'.
 const isOn = (to) => (to === '/' ? route.path === '/' : route.path.startsWith(to))
 
@@ -71,7 +74,7 @@ router.afterEach(async (to, from, failure) => {
 
       <nav class="nav" :aria-label="t('nav.main')">
         <RouterLink
-          v-for="item in NAV"
+          v-for="item in navItems"
           :key="item.to"
           :to="item.to"
           :data-guide="item.to"
@@ -99,14 +102,6 @@ router.afterEach(async (to, from, failure) => {
         </div>
       </div>
 
-      <!-- Icon only in the phone header; a labelled row with a switch in the desktop sidebar. -->
-      <button type="button" class="night" :aria-pressed="theme === 'dark'" :aria-label="t('nav.night')" :title="t('nav.night')" @click="toggleTheme">
-        <AppIcon :name="theme === 'dark' ? 'sun' : 'moon'" :size="22" class="night-phone" />
-        <AppIcon name="moon" :size="22" class="night-desk" />
-        <span class="night-label" aria-hidden="true">{{ t('nav.night') }}</span>
-        <span class="switch night-desk" aria-hidden="true"></span>
-      </button>
-
       <!-- Everyone has an account, so this is always Account (logged-out visitors are sent to Log in by the router). -->
       <RouterLink to="/account" class="acct" data-guide="/account" :aria-label="t('nav.account')" :aria-current="isOn('/account') ? 'page' : null">
         <span class="acct-icon"><AppIcon name="user" :size="22" /></span>
@@ -123,6 +118,7 @@ router.afterEach(async (to, from, failure) => {
       </footer>
     </div>
   </div>
+  <ThemePrompt />
   <GuideDialog />
 </template>
 

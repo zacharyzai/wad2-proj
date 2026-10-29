@@ -2,7 +2,7 @@
 import { Router } from 'express'
 import { sendError } from '../errors.js'
 import { withDb } from '../db.js'
-import { User, CITIZENSHIP, INCOME, LANGUAGES } from '../models/User.js'
+import { User, CITIZENSHIP, INCOME, LANGUAGES, THEMES, ROLES } from '../models/User.js'
 import { hashPassword, signToken, verifyPassword, jwtSecret } from '../services/auth.js'
 import { requireAuth } from '../middleware/requireAuth.js'
 import { authRateLimit } from '../middleware/rateLimit.js'
@@ -42,6 +42,8 @@ export function checkProfile(body, now = new Date()) {
 
 // The app language: optional (the client sends the one in use), so accounts made before it existed still work.
 const checkLanguage = (language) => (language === undefined || LANGUAGES.includes(language) ? null : `language must be one of ${LANGUAGES.join(', ')}`)
+// Day, night or follow the device: optional in the same way.
+const checkTheme = (theme) => (theme === undefined || THEMES.includes(theme) ? null : `theme must be one of ${THEMES.join(', ')}`)
 
 const answer = (res, user, remember, status = 200) => res.status(status).json({ ok: true, data: { token: signToken(user.id, remember), user: user.toPublic() } })
 
@@ -61,18 +63,20 @@ function configured(res) {
 router.post('/signup', authRateLimit, (req, res) => {
   const { email, password, remember = true } = req.body ?? {}
   const cleanEmail = typeof email === 'string' ? email.trim().toLowerCase() : ''
+  const role = req.body?.role === undefined ? 'senior' : req.body.role
+  if (!ROLES.includes(role)) return sendError(res, 400, 'BAD_REQUEST', 'role must be senior or caregiver')
   if (!EMAIL.test(cleanEmail) || cleanEmail.length > 254) return sendError(res, 400, 'BAD_REQUEST', 'email is not valid')
   if (typeof password !== 'string' || password.length < MIN_PASSWORD || password.length > 200) {
     return sendError(res, 400, 'BAD_REQUEST', `password must be ${MIN_PASSWORD} to 200 characters`)
   }
   const { profile, error } = checkProfile(req.body)
-  const languageError = checkLanguage(req.body?.language)
-  if (error || languageError) return sendError(res, 400, 'BAD_REQUEST', error ?? languageError)
+  const settingError = checkLanguage(req.body?.language) ?? checkTheme(req.body?.theme)
+  if (error || settingError) return sendError(res, 400, 'BAD_REQUEST', error ?? settingError)
 
   if (!configured(res)) return
   return withDb(res, async () => {
     try {
-      const user = await User.create({ ...profile, language: req.body.language ?? null, email: cleanEmail, passwordHash: await hashPassword(password) })
+      const user = await User.create({ ...profile, role, language: req.body.language ?? null, theme: req.body.theme ?? null, email: cleanEmail, passwordHash: await hashPassword(password) })
       answer(res, user, remember, 201)
     } catch (err) {
       if (err?.code === 11000) return sendError(res, 409, 'EMAIL_TAKEN', 'An account with this email already exists')
@@ -105,14 +109,15 @@ router.get('/me', requireAuth, (req, res) =>
   }),
 )
 
-// Edit the details (Account page), the language, or both. `{ language }` alone just changes the language (the language
-// switcher anywhere in the app); anything else is the full details form. Email and password are not changed here.
+// Edit the details (Account page), the settings (language, theme), or both. `{ language }` or `{ theme }` alone just
+// changes that setting; anything else is the full details form. Email and password are not changed here.
 router.patch('/me', requireAuth, (req, res) => {
-  const { language, ...rest } = req.body ?? {}
-  const languageError = checkLanguage(language)
-  if (languageError) return sendError(res, 400, 'BAD_REQUEST', languageError)
-  let update = language ? { language } : {}
-  if (Object.keys(rest).length || !language) {
+  if (req.body && Object.hasOwn(req.body, 'role')) return sendError(res, 400, 'BAD_REQUEST', 'Account role cannot be changed through profile editing')
+  const { language, theme, ...rest } = req.body ?? {}
+  const settingError = checkLanguage(language) ?? checkTheme(theme)
+  if (settingError) return sendError(res, 400, 'BAD_REQUEST', settingError)
+  let update = { ...(language && { language }), ...(theme && { theme }) }
+  if (Object.keys(rest).length || !Object.keys(update).length) {
     const { profile, error } = checkProfile(rest)
     if (error) return sendError(res, 400, 'BAD_REQUEST', error)
     update = { ...update, ...profile }

@@ -1,6 +1,6 @@
 <!-- Owner: Isaac. Full-screen frame for Login and Signup (no app sidebar: nothing else works before you log in).
      Left: a warm "paper" story (big serif greeting, a fanned real label and bill, three promises). Right: a plain sheet
-     with the language and night-mode switches, the Log in / Create account tabs and the form (the slot).
+     with the language switch, the Log in / Create account tabs and the form (the slot).
      Phones: switches, greeting, the dose chip, form, then the promises. -->
 <script>
 // Module state, shared by Login and Sign up: the papers' entrance and the chip's languages play once per visit,
@@ -13,7 +13,6 @@ import { ref, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { setLocale } from '../../i18n'
-import { theme, toggleTheme } from '../../theme'
 import AppIcon from './AppIcon.vue'
 
 defineProps({ active: { type: String, required: true } }) // 'login' or 'signup'
@@ -57,9 +56,6 @@ onBeforeUnmount(() => { clearTimeout(timer); document.removeEventListener('visib
       <div class="segmented auth-langs" role="group" :aria-label="t('nav.language')">
         <button v-for="(label, code) in LANGS" :key="code" type="button" :lang="code" :aria-pressed="locale === code" @click="setLocale(code)">{{ label }}</button>
       </div>
-      <button type="button" class="auth-night" :aria-pressed="theme === 'dark'" :aria-label="t('nav.night')" :title="t('nav.night')" @click="toggleTheme">
-        <AppIcon :name="theme === 'dark' ? 'sun' : 'moon'" :size="22" />
-      </button>
     </div>
 
     <section class="auth-story">
@@ -115,7 +111,6 @@ onBeforeUnmount(() => { clearTimeout(timer); document.removeEventListener('visib
 .auth-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; background: var(--color-surface-2); }
 .auth-langs { flex: 1; max-width: 360px; background: var(--color-page); }
 .auth-langs > button[aria-pressed='true'] { background: var(--color-card); color: var(--color-primary-text); box-shadow: var(--shadow-card); }
-.auth-night { width: var(--hit); height: var(--hit); flex: none; display: grid; place-items: center; border: 0; border-radius: 50%; background: var(--color-page); color: var(--color-text); }
 
 /* The story: warm paper, the one big serif moment */
 .auth-story { position: relative; display: flex; flex-direction: column; gap: 20px; padding: 8px 20px 28px; background: var(--color-surface-2); }
@@ -158,6 +153,12 @@ onBeforeUnmount(() => { clearTimeout(timer); document.removeEventListener('visib
 .auth-check { display: flex; align-items: center; gap: 12px; min-height: var(--hit); font-size: 18px; font-weight: 600; cursor: pointer; }
 .auth-check input { width: 26px; height: 26px; flex: none; accent-color: var(--color-primary); }
 .auth-help { display: block; margin-top: var(--s-2); font-size: var(--fs-small); line-height: 1.45; color: var(--color-text-muted); }
+/* Signup: "I am a senior / a caregiver" cards. The thick border and the filled dot show the choice, not colour alone. */
+.auth-roles { border: 0; padding: 0; margin: 0; display: flex; flex-direction: column; gap: var(--s-2); min-width: 0; }
+.auth-role { display: flex; gap: var(--s-3); align-items: flex-start; padding: var(--s-3) var(--s-4); border: 1px solid var(--color-border-strong); border-radius: var(--r-field); background: var(--color-card); cursor: pointer; }
+.auth-role.on { border: 2px solid var(--color-primary); padding: calc(var(--s-3) - 1px) calc(var(--s-4) - 1px); background: var(--color-tint); }
+.auth-role input { width: 26px; height: 26px; flex: none; margin-top: 2px; accent-color: var(--color-primary); }
+.auth-role:focus-within { box-shadow: var(--focus-ring); }
 /* "Forgot your password?": a big, plain tap target that opens a short help text (Login). */
 .auth-forgot summary { display: inline-flex; align-items: center; min-height: var(--hit); font-size: 18px; font-weight: 700; color: var(--color-link); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
 .auth-forgot summary::-webkit-details-marker { display: none; }

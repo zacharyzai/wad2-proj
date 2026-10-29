@@ -21,7 +21,7 @@ const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 
-const form = reactive({ name: '', email: '', password: '', dob: '', citizenship: '', citizenSince: '', income: '' })
+const form = reactive({role: route.query.role === 'caregiver' ? 'caregiver' : 'senior', name: '', email: '', password: '', dob: '', citizenship: '', citizenSince: '', income: '' })
 const remember = ref(true)
 const showPw = ref(false)
 const busy = ref(false)
@@ -63,7 +63,7 @@ async function submit() {
   const res = await signup(
     form.email.trim(),
     form.password,
-    { name: form.name.trim(), dob: form.dob, citizenship: form.citizenship, citizenSince: form.citizenship === 'became' ? Number(form.citizenSince) : null, income: isCitizen(form.citizenship) ? form.income : null },
+    {role: form.role, name: form.name.trim(), dob: form.dob, citizenship: form.citizenship, citizenSince: form.citizenship === 'became' ? Number(form.citizenSince) : null, income: isCitizen(form.citizenship) ? form.income : null },
     remember.value,
   )
   busy.value = false
@@ -79,6 +79,14 @@ async function submit() {
       <p v-if="tried && Object.keys(problems).length" class="auth-warn m-0" role="alert" data-testid="signup-missing">
         <AppIcon name="alert" :size="20" />{{ t('auth.missingFields') }}
       </p>
+      <!-- Who is this account for? Chosen once: a person who is both makes two accounts. -->
+      <fieldset class="auth-roles">
+        <legend class="auth-label">{{ t('auth.role') }}</legend>
+        <label v-for="r in ['senior', 'caregiver']" :key="r" class="auth-role" :class="{ on: form.role === r }">
+          <input v-model="form.role" type="radio" name="role" :value="r" :data-testid="`signup-role-${r}`" />
+          <span><strong>{{ t(`auth.roles.${r}`) }}</strong><span class="auth-help d-block mt-1">{{ t(`auth.roleHelp.${r}`) }}</span></span>
+        </label>
+      </fieldset>
 
       <div>
         <label for="signup-name" class="auth-label">{{ t('auth.name') }}</label>
@@ -170,3 +178,4 @@ async function submit() {
     </form>
   </AuthShell>
 </template>
+

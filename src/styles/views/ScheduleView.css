@@ -1,121 +1,133 @@
-/* Scoped styles for ScheduleView.vue. */
-.schedule { max-width: 1160px; margin: 0 auto; width: 100%; }
+/* Scoped styles for ScheduleView.vue (time-of-day colours: ScheduleSlots.css). Layout from the Claude Design "Schedule"
+   screens, on the app's own tokens: one column on phones, cards side by side once there is room (400px each). */
+.schedule { width: 100%; }
 
-/* Phones: one column, Today first. Desktop: Today on the left; medicines, pharmacist and calendar in a narrower panel. */
-.sched-grid { display: grid; gap: 20px; align-items: start; }
-@media (min-width: 992px) {
-  .sched-grid:not(.empty) {
-    grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
-    grid-template-areas: 'today meds' 'today pharm' 'today cal' 'today .';
-    grid-template-rows: auto auto auto 1fr;
-  }
-  /* Today stays in view while the panel beside it is scrolled (same as .stick in layout.css). */
-  .g-today { grid-area: today; position: sticky; top: 24px; }
-  .g-meds { grid-area: meds; }
-  .g-pharm { grid-area: pharm; }
-  .g-cal { grid-area: cal; }
-  .sched-grid.empty { max-width: 620px; width: 100%; margin: 0 auto; }
-}
+/* Header: the date, the view's title, and the two actions */
+.head { display: flex; flex-direction: column; gap: 8px; }
+.head-row { flex-direction: row; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px; }
+.date { font-size: var(--t18, 18px); font-weight: 600; color: var(--color-text-muted); }
+.head h1 { margin: 0; }
+.head-acts { display: flex; flex-wrap: wrap; gap: 10px; }
+.back-link { padding-left: 4px; }
 
-/* Today: a timeline */
-.today-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 16px; }
-.progress-line { display: flex; align-items: center; gap: 10px; font-size: var(--fs-lead); font-weight: 700; color: var(--color-tint-text); }
-.day-progress { height: 10px; border-radius: var(--r-pill); background: var(--color-surface-2); overflow: hidden; }
-.day-progress > span { display: block; height: 100%; border-radius: inherit; background: var(--color-success); transition: width var(--dur) var(--ease-out); }
-/* Time-of-day colours, like the compartments of a pill box. Always with the word and icon, never colour alone.
-   --band: background, --edge: border, --ink: heading text (AA on --band, and on --card for the icon). */
-/* --soft: the paler band for "Later today" (written out, not mixed, so contrast checkers can measure it). */
-.schedule {
-  --band-morning: #fff4d6; --soft-morning: #fffaeb; --edge-morning: #e7c35f; --ink-morning: #6b4f00;
-  --band-afternoon: #ffeadb; --soft-afternoon: #fff5ee; --edge-afternoon: #eeb084; --ink-afternoon: #8a3f0b;
-  --band-evening: #f1eafb; --soft-evening: #f8f4fd; --edge-evening: #c4abe8; --ink-evening: #553187;
-  --band-bedtime: #e6eefb; --soft-bedtime: #f2f6fd; --edge-bedtime: #a9c0ea; --ink-bedtime: #1d4380;
-}
-/* Not :global(): Vue keeps only what's inside it, which would set these on <html>, under the light ones on .schedule. */
-:root[data-theme='dark'] .schedule {
-  --band-morning: #2a2413; --soft-morning: #211f17; --edge-morning: #6b5a24; --ink-morning: #f3d27a;
-  --band-afternoon: #2d1f15; --soft-afternoon: #231d19; --edge-afternoon: #6e4526; --ink-afternoon: #ffb98a;
-  --band-evening: #231c31; --soft-evening: #1f1e2a; --edge-evening: #554277; --ink-evening: #cdb5f2;
-  --band-bedtime: #162136; --soft-bedtime: #18212c; --edge-bedtime: #36527f; --ink-bedtime: #a9c6f2;
-}
-.slot-morning { --band: var(--band-morning); --soft: var(--soft-morning); --edge: var(--edge-morning); --ink: var(--ink-morning); }
-.slot-afternoon { --band: var(--band-afternoon); --soft: var(--soft-afternoon); --edge: var(--edge-afternoon); --ink: var(--ink-afternoon); }
-.slot-evening { --band: var(--band-evening); --soft: var(--soft-evening); --edge: var(--edge-evening); --ink: var(--ink-evening); }
-.slot-bedtime { --band: var(--band-bedtime); --soft: var(--soft-bedtime); --edge: var(--edge-bedtime); --ink: var(--ink-bedtime); }
-.slot-other { --band: var(--color-surface-2); --soft: var(--color-card); --edge: var(--color-border-strong); --ink: var(--color-text); }
+/* Today / This week / My medicines: links drawn as one segmented control (no animation: used many times a day). */
+.tabs { display: flex; gap: 4px; padding: 4px; border-radius: 18px; background: var(--color-surface-2); border: 1px solid var(--color-border); }
+.tab { flex: 1 1 0; min-width: 0; min-height: var(--z52, 52px); display: grid; place-items: center; padding: 6px 8px; border-radius: 14px; color: var(--color-text-muted); font-size: var(--t18, 18px); font-weight: 600; line-height: 1.2; text-align: center; text-decoration: none; }
+.tab[aria-current='page'] { background: var(--color-card); color: var(--color-text); font-weight: 800; box-shadow: var(--shadow-card); }
+@media (hover: hover) and (pointer: fine) { .tab:not([aria-current='page']):hover { color: var(--color-text); } }
+.tab:focus-visible { outline: none; box-shadow: var(--focus-ring); }
 
-.slot-group { display: flex; flex-direction: column; gap: 10px; padding: 14px; border: 1px solid var(--edge); border-radius: 22px; background: var(--band); }
-.slot-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; }
-.slot-time { display: flex; align-items: center; gap: 12px; margin: 0; color: var(--ink); }
-.slot-icon { width: 44px; height: 44px; border-radius: 14px; background: var(--color-card); color: var(--ink); border: 1px solid var(--edge); }
-.slot-text { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 10px; }
-.slot-name { font-size: var(--t22, 22px); font-weight: 800; }
-.slot-clock { font-size: var(--fs-lead); font-weight: 700; }
-.slot-note { font-size: 16px; font-weight: 600; color: var(--color-warning-text); }
+/* ===== Today ===== */
+/* What's due now: in the time of day's own colour, so it reads as "this compartment, now". */
+.due { display: flex; flex-direction: column; gap: 16px; padding: 20px; border-radius: var(--r-card); background: var(--band); border: 2px solid var(--edge); box-shadow: var(--shadow-hover); color: var(--color-text); }
+.due .slot-tile { color: var(--ink); border-color: var(--edge); }
+.due-title { margin: 0; font-size: var(--t22, 22px); font-weight: 800; line-height: 1.3; color: var(--ink); overflow-wrap: anywhere; }
+.due-list { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 4px; }
+.due .btn { align-self: flex-start; }
+@media (max-width: 575.98px) { .due .btn { align-self: stretch; } }
 
-/* Due now: a thick border and the label in the band's own ink. */
-.slot-group.is-now { border-width: 3px; padding: 12px; box-shadow: var(--shadow-hover); }
-/* Later today: toned down (half the colour, a dashed edge, muted names), but still readable and tickable. */
-.slot-group.is-later { background: var(--soft); border-style: dashed; }
-.is-later .dose-name { color: var(--color-text-muted); }
+/* Progress: the ring fills as doses are ticked (the words beside it say the same thing). */
+.progress-card { display: flex; align-items: center; gap: 18px; padding: 18px 20px; border-radius: var(--r-card); background: var(--gradient-result); border: 1px solid var(--color-border); box-shadow: var(--shadow-card); }
+.ring { width: 72px; height: 72px; flex: none; }
+.ring circle { fill: none; stroke-width: 8; }
+.ring-track { stroke: var(--color-surface-2); }
+.ring-fill { stroke: var(--color-primary); stroke-linecap: round; transform: rotate(-90deg); transform-origin: 36px 36px; transition: stroke-dashoffset 300ms var(--ease-out), stroke 200ms ease; }
+.ring-fill.full { stroke: var(--color-success); }
+.ring-num { fill: var(--color-primary-text); font-family: var(--font-sans); font-size: 17px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.progress-words { font-size: var(--fs-lead); line-height: 1.35; }
 
+.slot-grid, .med-grid, .rem-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 400px), 1fr)); gap: 20px; align-items: start; }
+.med-grid { list-style: none; margin: 0; padding: 0; }
+
+/* One card per time of day. Due now: a thick edge in the compartment's colour. Later today: toned down, still tickable. */
+.slot-card { display: flex; flex-direction: column; padding: 18px 18px 6px; border-radius: var(--r-card); background: var(--color-card); border: 1px solid var(--color-border); box-shadow: var(--shadow-card); }
+.slot-card.is-now { border: 2px solid var(--edge); padding: 17px 17px 5px; box-shadow: var(--shadow-hover); }
+.slot-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding-bottom: 12px; }
+.slot-name { flex: 1 1 auto; min-width: 0; margin: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 10px; font-size: var(--t21, 21px); font-weight: 800; line-height: 1.3; }
+.slot-clock { font-size: var(--t18, 18px); font-weight: 600; color: var(--color-text-muted); font-variant-numeric: tabular-nums; }
 .slot-state { flex: none; }
 .slot-state.state-now { background: var(--ink); color: var(--band); border-color: var(--ink); }
 .slot-state.state-later { background: var(--color-card); color: var(--color-text-muted); }
 .slot-state.state-earlier { background: var(--color-warning-bg); color: var(--color-warning-text); border-color: var(--color-warning-border); }
 .slot-state.state-done { background: var(--color-success-bg); color: var(--color-success-text); border-color: var(--color-success-border); }
-.early { flex: 1 1 100%; }
-.doses, .med-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; }
-.dose { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; padding: 14px 16px; border: 1px solid var(--color-border); border-radius: 18px; background: var(--color-card); transition: background-color var(--dur) var(--ease-out), border-color var(--dur) var(--ease-out); }
-.dose.done { background: var(--color-success-bg); border-color: var(--color-success-border); }
-.dose-info, .med-info { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 0; }
-.dose-name { font-size: var(--fs-h3); font-weight: 700; line-height: 1.35; overflow-wrap: anywhere; }
+.slot-note { padding-bottom: 10px; font-size: 16px; font-weight: 600; color: var(--color-warning-text); }
 
-/* The tick: a big toggle (64px tall) with a word, never just a colour. Taken = green with a tick mark. */
-.tick { flex: none; min-height: var(--h-btn); min-width: 132px; padding: 10px 18px; font-size: var(--t20, 20px); }
-.tick[aria-pressed='true'] { border-color: var(--color-success); background: var(--color-success-bg); color: var(--color-success-text); padding: 9px 17px; }
-.tick:disabled { cursor: progress; border-style: dashed; }
-.tick:focus-visible { outline: none; box-shadow: var(--focus-ring); border-color: var(--color-primary); }
+.doses { list-style: none; margin: 0; padding: 0; }
+.doses > li { border-top: 1px solid var(--color-border); }
 
-/* Side panel: compact rows, one Change button each */
-.side-title { font-size: var(--fs-h3); }
-.med-row { display: flex; flex-direction: column; gap: 10px; padding: 14px 0; border-top: 1px solid var(--color-border); }
-.med-row:first-child { border-top: 0; padding-top: 0; }
-.card-warning .med-row { border-color: var(--color-warning-border); }
+/* The tick: a box that fills with a tick, the medicine's name (the button) and a word. The button's ::after covers the whole
+   row, so anywhere on it ticks; focus and press show on the row. */
+.dose { position: relative; display: flex; align-items: center; gap: 14px; padding: 12px 0; border-radius: 16px; -webkit-tap-highlight-color: transparent; }
+.dose:has(.dose-btn:focus-visible) { box-shadow: var(--focus-ring); }
+.dose-btn { position: static; padding: 0; border: 0; background: none; color: var(--color-text); font: inherit; font-size: var(--t19, 19px); font-weight: 700; line-height: 1.3; text-align: left; overflow-wrap: anywhere; cursor: pointer; }
+.dose-btn::after { content: ''; position: absolute; inset: 0; border-radius: inherit; }
+.dose-btn:focus-visible { outline: none; }
+.dose-btn:disabled { cursor: progress; }
+.box { width: 52px; height: 52px; flex: none; display: grid; place-items: center; border-radius: 16px; border: 2px solid var(--color-border-strong); background: var(--color-card); color: var(--color-on-primary); transition: background-color 160ms ease, border-color 160ms ease, box-shadow 160ms ease, transform 120ms var(--ease-out); }
+.box :deep(svg) { opacity: 0; transform: scale(0.6); transition: opacity 160ms var(--ease-out), transform 200ms var(--ease-out); }
+.dose:not(.busy):active .box { transform: scale(0.94); } /* presses in under the finger */
+.dose.busy .box { border-style: dashed; }
+.dose.done .box { background: var(--color-primary); border-color: var(--color-primary); box-shadow: var(--shadow-glow); }
+.dose.done .box :deep(svg) { opacity: 1; transform: none; }
+.is-earlier .dose:not(.done) .box { border-color: var(--color-warning); background: var(--color-warning-bg); }
+.dose-info { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 3px; }
+.is-later .dose:not(.done) .dose-btn { color: var(--color-text-muted); }
+.dose-detail { font-size: var(--t17, 17px); line-height: 1.4; color: var(--color-text-muted); }
+.dose-word { display: inline-flex; align-items: center; gap: 6px; margin-top: 2px; font-size: 16px; font-weight: 600; color: var(--color-text-muted); }
+.dose.done .dose-word { padding: 1px 10px; border-radius: var(--r-pill); background: var(--color-success-bg); border: 1px solid var(--color-success-border); color: var(--color-success-text); font-weight: 700; }
+.early { margin-bottom: 12px; }
+.need-link { text-decoration: none; align-items: center; }
+
+/* ===== My medicines ===== */
+.med-card { display: flex; flex-direction: column; gap: 14px; padding: 18px; }
 /* The details keep at least 13rem; on a narrow phone the Change button wraps under them instead of squeezing the name. */
-.med-line { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 10px 12px; }
-.med-line > .med-info { flex: 1 1 13rem; }
-.med-name { font-size: 18px; font-weight: 700; line-height: 1.35; overflow-wrap: anywhere; }
+.med-line { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 10px 14px; }
+.med-info { flex: 1 1 13rem; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.med-name { font-size: var(--t20, 20px); font-weight: 800; line-height: 1.3; overflow-wrap: anywhere; }
 .med-times { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; }
+.med-supply { display: inline-flex; align-items: flex-start; gap: 6px; color: var(--color-text-muted); }
+.med-supply > :first-child { flex: none; margin-top: 3px; }
 .change { flex: none; }
 .manage { display: flex; flex-direction: column; gap: 8px; padding: 12px; border-radius: 16px; background: var(--color-surface-2); }
 .manage .btn { justify-content: flex-start; }
+.pharm { display: flex; flex-direction: column; gap: 16px; padding: 20px; }
+.pharm-list { list-style: none; margin: 0; padding: 0; }
+.pharm-row { display: flex; flex-direction: column; gap: 10px; padding: 14px 0; border-top: 1px solid var(--color-warning-border); }
 
 .edit-form { display: flex; flex-direction: column; gap: 16px; padding: 16px; border-radius: 18px; background: var(--color-surface-2); }
 .days-input { max-width: 12rem; }
 .times { border: 0; margin: 0; padding: 0; min-width: 0; }
 .times legend { margin-bottom: 8px; }
-/* As many columns as fit: two in the wide phone layout, one in the narrow desktop panel. */
 .time-grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr)); }
 .time-label { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; }
 .field-error { display: flex; gap: 8px; margin: 0; color: var(--color-danger-text); font-size: 16px; font-weight: 600; }
+
+/* ===== Reminders ===== */
+.time-list { list-style: none; margin: 0; padding: 0; }
+.time-list li { display: flex; align-items: center; gap: 14px; padding: 10px 0; border-top: 1px solid var(--color-border); font-size: var(--t18, 18px); font-weight: 600; }
+.time-list li:first-child { border-top: 0; }
+.tnum { font-variant-numeric: tabular-nums; }
 
 /* Toasts: above the phone tab bar; bottom of the page area on desktop (same places as Account and Ask). */
 .toast-slot { position: fixed; left: 16px; right: 16px; bottom: calc(96px + env(safe-area-inset-bottom)); z-index: 30; display: flex; justify-content: center; pointer-events: none; }
 .toast-slot .toast-ahma { padding: 14px 20px; }
 .toast-ahma.bad { background: #a31f2a; } /* fixed dark red: white text stays readable in night mode too */
 .toast-enter-active { transition: opacity 220ms var(--ease-out), transform 220ms var(--ease-out); }
-.toast-leave-active { transition: opacity 160ms ease-in, transform 160ms ease-in; }
+.toast-leave-active { transition: opacity 150ms var(--ease-out), transform 150ms var(--ease-out); }
 .toast-enter-from, .toast-leave-to { opacity: 0; transform: translateY(12px); }
 .toast-undo { position: fixed; left: 16px; right: 16px; bottom: calc(96px + env(safe-area-inset-bottom)); z-index: 20; justify-content: space-between; max-width: 32em; margin: 0 auto; }
 .toast-undo .btn { flex: none; }
 
-/* Phones: the tick drops under the medicine at full width, so long names keep their room. */
+/* Phones: the two actions share one row (they wrap only if a language's labels need it). */
 @media (max-width: 575.98px) {
-  .dose { flex-wrap: wrap; }
-  .tick { width: 100%; }
+  .head-acts { width: 100%; }
+  .head-acts .btn { flex: 1 1 auto; }
 }
 @media (min-width: 992px) {
   .toast-slot { bottom: 32px; left: 248px; }
   .toast-undo { left: auto; right: 32px; bottom: 32px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ring-fill, .box, .box :deep(svg) { transition: none; }
+  .dose:not(.busy):active .box { transform: none; }
 }

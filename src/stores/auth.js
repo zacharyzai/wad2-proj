@@ -5,9 +5,11 @@
 // while restore() checks with the server in the background. Logging out removes both.
 // The app language is part of the account: logging in on any device uses it, and changing it anywhere saves it.
 // A language picked while logged out (Login, Sign up, welcome page) wins at login and becomes the account's.
+// Day/night mode is part of the account too: asked once after signing up (ThemePrompt), changed on the Account page.
 import { reactive, watch } from 'vue'
 import { api, TOKEN_KEY, readToken } from '../api/client'
 import i18n, { setLocale } from '../i18n'
+import { setTheme } from '../theme'
 
 const USER_KEY = 'user'
 
@@ -59,6 +61,7 @@ export function restore() {
     if (res.ok) {
       authStore.user = res.data.user
       useAccountLanguage(res.data.user)
+      useAccountTheme(res.data.user)
       // Remembered logins get a fresh 30 days from today; either way the saved copy is updated.
       save(res.data.token ?? readToken(), Boolean(res.data.token) || isRemembered(), res.data.user)
     } else if (res.error.code === 'NOT_LOGGED_IN') {
@@ -77,6 +80,7 @@ async function start(path, body, remember) {
     save(res.data.token, remember, res.data.user)
     authStore.user = res.data.user
     useAccountLanguage(res.data.user, pickedLoggedOut)
+    useAccountTheme(res.data.user)
     pickedLoggedOut = false
     authStore.checked = true
   }
@@ -109,6 +113,23 @@ export async function saveLanguage(language) {
     save(readToken(), isRemembered(), res.data.user)
   }
   return res
+}
+
+// Save a new day/night choice to the account. The page changes straight away (setTheme); this only remembers it.
+export async function saveTheme(theme) {
+  if (!authStore.user) return null
+  authStore.user = { ...authStore.user, theme }
+  const res = await api('/auth/me', { method: 'PATCH', body: { theme } })
+  if (res.ok) {
+    authStore.user = res.data.user
+    save(readToken(), isRemembered(), res.data.user)
+  }
+  return res
+}
+
+// Logged in: use the account's day/night choice. Accounts that haven't chosen are asked on Home (stores/guide.js).
+function useAccountTheme(user) {
+  if (user.theme) setTheme(user.theme)
 }
 
 // Logged in: switch to the account's language, unless they just picked one on the way in (then that one is saved).
