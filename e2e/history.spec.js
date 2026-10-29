@@ -67,7 +67,7 @@ test.describe('sharing and deleting', () => {
     await page.goto('/history')
     await page.getByTestId('history-share').click()
     await page.getByTestId('history-unshare').click()
-    await expect(page.getByTestId('history-share-create')).toBeVisible()
+    await expect(page.getByTestId('history-share-create')).toBeFocused() // the panel stays open, focus isn't lost
     expect(revoked).toBe(true)
   })
 
@@ -90,7 +90,8 @@ test.describe('shared page (no login)', () => {
     await page.route(/\/api\/share\/c+$/, (route) => route.fulfill({ json: { ok: true, data: { scan: SCAN } } }))
     await page.goto(`/shared/scan/${'c'.repeat(32)}`)
     await expect(page.getByTestId('shared-name')).toHaveText('Metformin')
-    await expect(page.getByText('Always confirm with your doctor or pharmacist.')).toBeVisible()
+    // The page's own note (the app footer also says "always confirm with your doctor or pharmacist").
+    await expect(page.getByText('This is a summary of what the label or bill says. Always confirm with your doctor or pharmacist.')).toBeVisible()
   })
 
   test('an expired or revoked link shows one friendly message', async ({ page }) => {
