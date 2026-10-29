@@ -98,6 +98,8 @@
     "sharedScan": "分享的摘要"
   },
   "errors": {
+    "WRONG_ROLE": "此操作需要使用另一种账户角色。",
+    "CAREGIVER_ALREADY_LINKED": "这位长者已有一位照护者。请先解除现有联系，再邀请其他人。",
     "AUTH_UNAVAILABLE": "暂时无法登录或注册，请稍后再试。",
     "BAD_REQUEST": "我们无法使用这个。请再试一次。",
     "NOT_FOUND": "找不到相关内容。",

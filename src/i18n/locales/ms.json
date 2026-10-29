@@ -98,6 +98,8 @@
     "sharedScan": "Ringkasan dikongsi"
   },
   "errors": {
+    "WRONG_ROLE": "Tindakan ini memerlukan peranan akaun yang berbeza.",
+    "CAREGIVER_ALREADY_LINKED": "Warga emas ini sudah mempunyai penjaga. Putuskan pautan semasa sebelum menjemput orang lain.",
     "AUTH_UNAVAILABLE": "Log masuk dan pendaftaran tidak tersedia buat sementara waktu. Sila cuba lagi nanti.",
     "BAD_REQUEST": "Kami tidak dapat menggunakannya. Sila cuba lagi.",
     "NOT_FOUND": "Kami tidak dapat menjumpainya.",

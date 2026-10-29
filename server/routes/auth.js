@@ -2,7 +2,7 @@
 import { Router } from 'express'
 import { sendError } from '../errors.js'
 import { withDb } from '../db.js'
-import { User, CITIZENSHIP, INCOME, LANGUAGES, THEMES } from '../models/User.js'
+import { User, CITIZENSHIP, INCOME, LANGUAGES, THEMES, ROLES } from '../models/User.js'
 import { hashPassword, signToken, verifyPassword, jwtSecret } from '../services/auth.js'
 import { requireAuth } from '../middleware/requireAuth.js'
 import { authRateLimit } from '../middleware/rateLimit.js'
@@ -63,6 +63,8 @@ function configured(res) {
 router.post('/signup', authRateLimit, (req, res) => {
   const { email, password, remember = true } = req.body ?? {}
   const cleanEmail = typeof email === 'string' ? email.trim().toLowerCase() : ''
+  const role = req.body?.role === undefined ? 'senior' : req.body.role
+  if (!ROLES.includes(role)) return sendError(res, 400, 'BAD_REQUEST', 'role must be senior or caregiver')
   if (!EMAIL.test(cleanEmail) || cleanEmail.length > 254) return sendError(res, 400, 'BAD_REQUEST', 'email is not valid')
   if (typeof password !== 'string' || password.length < MIN_PASSWORD || password.length > 200) {
     return sendError(res, 400, 'BAD_REQUEST', `password must be ${MIN_PASSWORD} to 200 characters`)
@@ -74,7 +76,7 @@ router.post('/signup', authRateLimit, (req, res) => {
   if (!configured(res)) return
   return withDb(res, async () => {
     try {
-      const user = await User.create({ ...profile, language: req.body.language ?? null, theme: req.body.theme ?? null, email: cleanEmail, passwordHash: await hashPassword(password) })
+      const user = await User.create({ ...profile, role, language: req.body.language ?? null, theme: req.body.theme ?? null, email: cleanEmail, passwordHash: await hashPassword(password) })
       answer(res, user, remember, 201)
     } catch (err) {
       if (err?.code === 11000) return sendError(res, 409, 'EMAIL_TAKEN', 'An account with this email already exists')
@@ -110,6 +112,7 @@ router.get('/me', requireAuth, (req, res) =>
 // Edit the details (Account page), the settings (language, theme), or both. `{ language }` or `{ theme }` alone just
 // changes that setting; anything else is the full details form. Email and password are not changed here.
 router.patch('/me', requireAuth, (req, res) => {
+  if (req.body && Object.hasOwn(req.body, 'role')) return sendError(res, 400, 'BAD_REQUEST', 'Account role cannot be changed through profile editing')
   const { language, theme, ...rest } = req.body ?? {}
   const settingError = checkLanguage(language) ?? checkTheme(theme)
   if (settingError) return sendError(res, 400, 'BAD_REQUEST', settingError)
