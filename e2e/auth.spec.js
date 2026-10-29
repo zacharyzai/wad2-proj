@@ -108,8 +108,9 @@ test.describe('logged out', () => {
   test('a forgotten password is not a dead end, and an ended login says why (H9, H1)', async ({ page }) => {
     await page.goto('/login?expired=1')
     await expect(page.getByTestId('login-error')).toHaveText(/You were logged out. Please log in again./)
-    await page.getByText('Forgot your password?').click()
-    await expect(page.getByTestId('login-forgot')).toContainText('Ask the family member who helped set up your account')
+    await page.getByTestId('login-forgot').click() // the reset flow itself: e2e/forgot.spec.js
+    await expect(page).toHaveURL(/\/forgot$/)
+    await expect(page.getByTestId('forgot-family')).toContainText('Ask the family member who helped set up your account')
   })
 
   test('login page has no missing translations in any language', async ({ page }) => {
