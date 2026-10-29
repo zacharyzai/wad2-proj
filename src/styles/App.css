@@ -18,7 +18,7 @@
 /* Bottom tabs: the active tab gets a tinted pill behind its icon and a bar under its label. */
 .nav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 10; display: flex; padding: 8px 8px calc(8px + env(safe-area-inset-bottom)); background: var(--color-card); border-top: 1px solid var(--color-border); box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.05); }
 /* Phone tabs share the width by label length (5 tabs; long Tamil words like அட்டவணை need more room than "Ask"). */
-.navi { position: relative; flex: 1 1 auto; min-width: 0; white-space: nowrap; min-height: var(--z64, 64px); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding-bottom: 6px; border-radius: 16px; color: var(--color-text-muted); font-size: 16px; font-weight: 600; line-height: 1.2; text-align: center; text-decoration: none; }
+.navi { position: relative; flex: 1 1 auto; min-width: 0; white-space: nowrap; min-height: var(--z64, 64px); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding-bottom: 6px; border-radius: var(--r-tile); color: var(--color-text-muted); font-size: 16px; font-weight: 600; line-height: 1.2; text-align: center; text-decoration: none; }
 .navi:hover { color: var(--color-tint-text); }
 .guide-link { width: 100%; border: 1px solid var(--color-border); background: none; font-family: inherit; }
 .navi-icon { width: var(--z56, 56px); height: 32px; border-radius: var(--r-pill); display: grid; place-items: center; transition: background-color var(--dur) var(--ease-out); }
@@ -59,7 +59,7 @@
   .lang-box .section-label { padding: 0 4px; }
   .langs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
 
-  .acct { display: flex; align-items: center; gap: 12px; width: 100%; height: auto; min-height: var(--z56, 56px); padding: 4px 12px; border-radius: 16px; background: var(--color-surface-2); color: var(--color-text); }
+  .acct { display: flex; align-items: center; gap: 12px; width: 100%; height: auto; min-height: var(--z56, 56px); padding: 4px 12px; border-radius: var(--r-tile); background: var(--color-surface-2); color: var(--color-text); }
   .acct:hover { background: var(--color-border); color: var(--color-text); }
   .acct-icon { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; background: var(--color-tint); color: var(--color-tint-text); }
   .acct-label { display: block; flex: 1; font-size: 16px; font-weight: 600; }

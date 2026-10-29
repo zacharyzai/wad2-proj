@@ -21,6 +21,6 @@
 .schedule .slot-other { --band: var(--color-surface-2); --soft: var(--color-card); --edge: var(--color-border-strong); --ink: var(--color-text); }
 
 /* The icon tile that names a time of day: the compartment's colour, its ink on top. */
-.schedule .slot-tile { width: 44px; height: 44px; flex: none; display: inline-grid; place-items: center; border-radius: 13px; background: var(--band); color: var(--ink); border: 1px solid var(--edge); }
-.schedule .slot-tile.lg { width: 52px; height: 52px; border-radius: 16px; background: var(--color-card); }
+.schedule .slot-tile { width: 44px; height: 44px; flex: none; display: inline-grid; place-items: center; border-radius: var(--r-sm); background: var(--band); color: var(--ink); border: 1px solid var(--edge); }
+.schedule .slot-tile.lg { width: 52px; height: 52px; border-radius: var(--r-tile); background: var(--color-card); }
 .schedule .slot-tile.sm { width: 40px; height: 40px; border-radius: 12px; }

@@ -23,9 +23,9 @@
 /* Conversation: the user's words in a soft bubble on the right, answers as plain text beside the logo. */
 .thread { display: flex; flex-direction: column; gap: 28px; margin: 0; padding: 0; list-style: none; }
 .turn { display: flex; flex-direction: column; gap: 18px; }
-.you { align-self: flex-end; max-width: 82%; padding: 14px 18px; border-radius: 22px 22px 6px 22px; background: var(--color-tint); color: var(--color-text); font-size: var(--t19, 19px); line-height: 1.5; overflow-wrap: anywhere; }
+.you { align-self: flex-end; max-width: 82%; padding: 14px 18px; border-radius: var(--r-card) var(--r-card) 6px var(--r-card); background: var(--color-tint); color: var(--color-text); font-size: var(--t19, 19px); line-height: 1.5; overflow-wrap: anywhere; }
 .reply { display: flex; gap: 12px; align-items: flex-start; scroll-margin-top: 16px; }
-.avatar { flex: none; width: 40px; height: 40px; border-radius: 10px; box-shadow: var(--shadow-card); }
+.avatar { flex: none; width: 40px; height: 40px; border-radius: var(--r-sm); box-shadow: var(--shadow-card); }
 .reply-body { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 12px; }
 .answer p { font-size: var(--t19, 19px); line-height: 1.6; overflow-wrap: anywhere; }
 .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }

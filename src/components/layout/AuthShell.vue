@@ -123,7 +123,7 @@ onBeforeUnmount(() => { clearTimeout(timer); document.removeEventListener('visib
 .lang-ta .auth-hello h1 { font-family: var(--font-sans); font-weight: 800; font-size: clamp(30px, 6vw, 48px); line-height: 1.2; }
 .auth-papers { margin: 0; }
 .paper { display: none; }
-.paper-chip { display: grid; place-items: center; width: fit-content; text-align: center; text-wrap: balance; max-width: 100%; padding: 10px 16px; border-radius: 16px; background: var(--color-primary); color: var(--color-on-primary); font-family: var(--font-display); font-size: 18px; line-height: 1.35; font-variant-numeric: lining-nums; box-shadow: var(--shadow-glow); }
+.paper-chip { display: grid; place-items: center; width: fit-content; text-align: center; text-wrap: balance; max-width: 100%; padding: 10px 16px; border-radius: var(--r-tile); background: var(--color-primary); color: var(--color-on-primary); font-family: var(--font-display); font-size: 18px; line-height: 1.35; font-variant-numeric: lining-nums; box-shadow: var(--shadow-glow); }
 /* Tamil is the longest sentence and sets the chip's size: the plainer script face keeps it to two lines on a phone. */
 .paper-chip > [lang='ta'] { font-family: var(--font-sans); font-size: max(16px, 0.9em); font-weight: 600; }
 /* Each sentence comes into focus as the last one blurs away (exit faster than entrance). */
@@ -194,7 +194,7 @@ onBeforeUnmount(() => { clearTimeout(timer); document.removeEventListener('visib
   .auth-promises-desk { display: flex; padding: 0; background: none; }
   /* The pictures fill whatever height is left: sized from the box itself (container units), never hidden. */
   .auth-papers { display: block; position: relative; flex: 1 1 0; min-height: 120px; margin: 0; container-type: size; }
-  .paper { display: block; position: absolute; width: min(58cqw, 92cqh, 340px); border-radius: 10px; background: #fff; box-shadow: var(--shadow-hover); animation: paper-in 700ms var(--ease-out) both; }
+  .paper { display: block; position: absolute; width: min(58cqw, 92cqh, 340px); border-radius: var(--r-sm); background: #fff; box-shadow: var(--shadow-hover); animation: paper-in 700ms var(--ease-out) both; }
   .paper-bill { left: 34%; top: 0; transform: rotate(6deg); animation-delay: 80ms; }
   .paper-med { left: 2%; top: 18%; overflow: hidden; transform: rotate(-6deg); }
   .paper-med img { display: block; width: 100%; }

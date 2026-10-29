@@ -94,10 +94,10 @@ onBeforeUnmount(() => url.value && URL.revokeObjectURL(url.value))
 </template>
 
 <style scoped>
-.dz-card { width: 100%; max-width: 560px; margin-inline: auto; padding: 28px; border: 1px solid var(--color-border); border-radius: 16px; background: var(--color-card); }
+.dz-card { width: 100%; max-width: 560px; margin-inline: auto; padding: 28px; border: 1px solid var(--color-border); border-radius: var(--r-tile); background: var(--color-card); }
 .dz {
   display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 56px 20px; text-align: center; cursor: pointer;
-  border: 1.5px dashed var(--color-border-strong); border-radius: 20px;
+  border: 1.5px dashed var(--color-border-strong); border-radius: var(--r-panel);
   transition: border-color var(--dur) var(--ease-out), background-color var(--dur) var(--ease-out);
 }
 .dz:hover, .dz-over { border-color: var(--color-primary); }

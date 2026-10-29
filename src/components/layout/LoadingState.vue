@@ -49,19 +49,14 @@ const elapsed = computed(() => {
 .ls-cell:not(.ls-centre) { animation: pixel-on var(--dur) ease-in-out var(--delay) infinite; }
 .ls-centre { opacity: 0.07; }
 /* 16px, not 13px: the app's minimum text size for seniors. */
-.ls-label {
-  font-size: 16px; font-weight: 500; color: transparent;
-  background-image: linear-gradient(90deg, var(--color-text-muted) 35%, var(--color-text) 50%, var(--color-text-muted) 65%);
-  background-size: 200% 100%; -webkit-background-clip: text; background-clip: text;
-  animation: shimmer-text 1.4s linear infinite;
-}
+.ls-label { font-size: 16px; font-weight: 500; color: var(--color-text-muted); animation: label-breathe 1.8s ease-in-out infinite; } /* solid words that gently brighten between two AA text colours, never a gradient */
 .ls-time { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 16px; font-variant-numeric: tabular-nums; color: var(--color-text-muted); }
 
 @keyframes pixel-on { 0%, 100% { opacity: 0.12; } 50% { opacity: 1; } }
-@keyframes shimmer-text { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+@keyframes label-breathe { 50% { color: var(--color-text); } }
 
 @media (prefers-reduced-motion: reduce) {
   .ls-cell { animation: none !important; }
-  .ls-label { animation: none; background: none; color: var(--color-text); }
+  .ls-label { animation: none; }
 }
 </style>

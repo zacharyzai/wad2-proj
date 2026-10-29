@@ -214,7 +214,7 @@ dd { margin: 0; font-size: var(--fs-h3); font-weight: 700; overflow-wrap: anywhe
 .toast-slot { position: fixed; left: 16px; right: 16px; bottom: calc(96px + env(safe-area-inset-bottom)); z-index: 30; display: flex; justify-content: center; pointer-events: none; }
 @media (min-width: 992px) { .toast-slot { bottom: 32px; left: 248px; } } /* centred in the page area, beside the sidebar */
 .toast-ahma { padding: 14px 20px; }
-.toast-ahma.bad { background: #a31f2a; } /* fixed dark red: white text stays readable in night mode too */
+.toast-ahma.bad { background: var(--color-sos-pressed); } /* fixed dark red: white text stays readable in night mode too */
 .toast-enter-active { transition: opacity 220ms var(--ease-out), transform 220ms var(--ease-out); }
 .toast-leave-active { transition: opacity 160ms ease-in, transform 160ms ease-in; }
 .toast-enter-from, .toast-leave-to { opacity: 0; transform: translateY(12px); }

@@ -13,14 +13,14 @@
 /* Soft decorative circles behind hero content */
 .blob { position: absolute; z-index: -1; border-radius: 50%; background: rgba(255, 255, 255, 0.08); pointer-events: none; }
 
-.summary-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); background: var(--color-card); border: 1px solid var(--color-border); border-radius: 20px; padding: 14px 6px; text-align: center; }
+.summary-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); background: var(--color-card); border: 1px solid var(--color-border); border-radius: var(--r-panel); padding: 14px 6px; text-align: center; }
 .summary-row > * + * { border-left: 1px solid var(--color-border); }
 
 .tile { width: var(--tile); height: var(--tile); border-radius: var(--r-sm); display: grid; place-items: center; flex: none; background: var(--color-primary); color: #fff; }
 .tile-soft { background: var(--color-tint); color: var(--color-tint-text); }
 .tile-muted { background: var(--color-surface-2); color: var(--color-text-muted); }
 .tile-warning { background: var(--color-warning-bg); color: var(--color-warning); border: 1px solid var(--color-warning-border); }
-.tile-lg { width: var(--tile-lg); height: var(--tile-lg); border-radius: 16px; }
+.tile-lg { width: var(--tile-lg); height: var(--tile-lg); border-radius: var(--r-tile); }
 
 .logo-tile { flex: none; display: block; border-radius: 14px; box-shadow: var(--shadow-card); }
-.photo { width: 100%; border: 1px solid var(--color-border); border-radius: 22px; object-fit: contain; background: var(--color-surface-2); box-shadow: var(--shadow-card); }
+.photo { width: 100%; border: 1px solid var(--color-border); border-radius: var(--r-card); object-fit: contain; background: var(--color-surface-2); box-shadow: var(--shadow-card); }

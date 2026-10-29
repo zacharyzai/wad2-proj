@@ -139,13 +139,19 @@ export const list = (value) => (value ?? '').split(',').map((m) => m.trim()).fil
 
 // One attempt per model: how to send the request and where that provider puts the reply text.
 // `body` is everything except the model name, so scan and chat share the same senders.
-function geminiAttempt(model, body) {
+// The main key, then any add-on keys (GEMINI_EXTRA_KEYS / GROQ_EXTRA_KEYS, comma separated) from other accounts for their own quota.
+export const geminiKeys = () => [process.env.GEMINI_API_KEY, ...list(process.env.GEMINI_EXTRA_KEYS)].filter(Boolean)
+const groqKeys = () => [process.env.GROQ_API_KEY, ...list(process.env.GROQ_EXTRA_KEYS)].filter(Boolean)
+// Same model on a different key is a different attempt, so one key running out doesn't rest the others.
+export const keyed = (model, i) => (i ? `${model}#${i + 1}` : model)
+
+function geminiAttempt(model, body, key = process.env.GEMINI_API_KEY, i = 0) {
   return {
-    name: model,
+    name: keyed(model, i),
     send: (signal) =>
       fetch(`${API}/${model}:generateContent`, {
         method: 'POST',
-        headers: { 'content-type': 'application/json', 'x-goog-api-key': process.env.GEMINI_API_KEY },
+        headers: { 'content-type': 'application/json', 'x-goog-api-key': key },
         body: JSON.stringify(body),
         signal,
       }),
@@ -153,13 +159,13 @@ function geminiAttempt(model, body) {
   }
 }
 
-function groqAttempt(model, body) {
+function groqAttempt(model, body, key, i) {
   return {
-    name: `groq:${model}`,
+    name: `groq:${keyed(model, i)}`,
     send: (signal) =>
       fetch(GROQ_API, {
         method: 'POST',
-        headers: { 'content-type': 'application/json', authorization: `Bearer ${process.env.GROQ_API_KEY}` },
+        headers: { 'content-type': 'application/json', authorization: `Bearer ${key}` },
         body: JSON.stringify({ model, ...body }),
         signal,
       }),
@@ -167,11 +173,11 @@ function groqAttempt(model, body) {
   }
 }
 
-// Gemini models first, then Groq; a provider is skipped when its key isn't set.
+// Gemini models first, then Groq; a provider is skipped when it has no key. Every model on the main key comes before add-on keys.
 export function attempts({ gemini, groq, geminiBody, groqBody }) {
   return [
-    ...(process.env.GEMINI_API_KEY ? [...new Set(gemini)].map((m) => geminiAttempt(m, geminiBody)) : []),
-    ...(process.env.GROQ_API_KEY ? [...new Set(groq)].map((m) => groqAttempt(m, groqBody)) : []),
+    ...geminiKeys().flatMap((key, i) => [...new Set(gemini)].map((m) => geminiAttempt(m, geminiBody, key, i))),
+    ...groqKeys().flatMap((key, i) => [...new Set(groq)].map((m) => groqAttempt(m, groqBody, key, i))),
   ]
 }
 

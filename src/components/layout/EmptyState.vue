@@ -41,7 +41,7 @@ defineProps({
 .dot { fill: var(--color-accent); }
 .dot.soft { fill: var(--color-tint-strong); }
 .spark { stroke: var(--color-accent); stroke-width: 2.5; stroke-linecap: round; }
-.art .tile { position: absolute; right: 30px; bottom: 6px; width: 76px; height: 76px; border-radius: 22px; box-shadow: var(--shadow-glow); animation: float 4s ease-in-out infinite; }
+.art .tile { position: absolute; right: 30px; bottom: 6px; width: 76px; height: 76px; border-radius: var(--r-card); box-shadow: var(--shadow-glow); animation: float 4s ease-in-out infinite; }
 @keyframes float { 50% { transform: translateY(-6px); } }
 .acts-col { max-width: 360px; }
 h1.empty-title { font-size: var(--fs-h1); }
