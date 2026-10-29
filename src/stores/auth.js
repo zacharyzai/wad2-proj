@@ -88,6 +88,11 @@ async function start(path, body, remember) {
 }
 
 export const login = (email, password, remember = true) => start('/auth/login', { email, password }, remember)
+// Forgot your password? Emails a reset link if an account uses this address (the answer is the same either way).
+// The language in use picks the email's language for accounts that haven't chosen one.
+export const requestReset = (email) => api('/auth/forgot', { method: 'POST', body: { email, language: i18n.global.locale.value } })
+// The new password from an emailed link: logs this device in (and every other device out).
+export const resetPassword = (token, password, remember = true) => start('/auth/reset', { token, password }, remember)
 // profile = { name, dob, citizenship, citizenSince }
 // The language in use when they sign up (picked on the welcome page or above the form) becomes the account's language.
 export const signup = (email, password, profile, remember = true) =>

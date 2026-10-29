@@ -23,6 +23,9 @@ const userSchema = new mongoose.Schema(
     language: { type: String, enum: [...LANGUAGES, null], default: null },
     // null = not chosen yet: the app then saves the one that device already uses (day mode unless they picked another).
     theme: { type: String, enum: [...THEMES, null], default: null },
+    // When the password last changed (a reset), to the whole second. Logins made before it are refused (requireAuth),
+    // so a reset logs out every other device. null = never changed.
+    passwordChangedAt: { type: Date, default: null },
   },
   { timestamps: true, bufferCommands: false },
 )

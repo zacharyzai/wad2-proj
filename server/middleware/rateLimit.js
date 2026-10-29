@@ -28,6 +28,11 @@ export const ttsRateLimit = limiter(1, Number(process.env.TTS_RATE_LIMIT) || 12,
 export const doseRateLimit = limiter(1, Number(process.env.DOSE_RATE_LIMIT) || 60, 'Too many changes, please wait a minute')
 // Opening a share link needs no account: per IP, far above what a family member clicking a link can reach.
 export const shareRateLimit = limiter(1, Number(process.env.SHARE_RATE_LIMIT) || 60, 'Too many requests, please wait a minute')
+// "Forgot your password?": every request counts (each one may send an email; it always answers the same, so counting
+// only failures would never stop anything). Per email too, in MongoDB (routes/auth.js).
+export const forgotRateLimit = limiter(60, Number(process.env.FORGOT_RATE_LIMIT) || 10, 'Too many requests, please wait a while')
+// Choosing the new password from the emailed link: every try counts, so links can't be guessed at speed.
+export const resetRateLimit = limiter(15, Number(process.env.RESET_RATE_LIMIT) || 20, 'Too many tries, please wait a few minutes')
 export const authRateLimit =limiter(15, Number(process.env.AUTH_RATE_LIMIT) || 10, 'Too many tries, please wait a few minutes', undefined, { skipSuccessfulRequests: true })
 
 // Global cap across all users, so rotating IPs can't drain the daily AI quota. Scan, chat and read-aloud

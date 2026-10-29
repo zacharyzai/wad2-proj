@@ -136,7 +136,7 @@ Done by walking each flow in the browser (phone and desktop, English and Chinese
 
 | # | Heuristic | Where | Sev | Problem | Status |
 |---|---|---|---|---|---|
-| R1 | H9 Recover, H10 Help | Login | **3** | No "Forgot password?": a senior who forgets is stuck with no hint. | **Fixed (partly):** "Forgot your password?" explains what to do. A real reset needs an email service; future work. |
+| R1 | H9 Recover, H10 Help | Login | **3** | No "Forgot password?": a senior who forgets is stuck with no hint. | **Fixed:** "Forgot your password?" emails a 30-minute reset link (in the account's language); choosing a new password logs out every other device. People without email still see "ask the family member who set it up". |
 | R2 | H1 Status | Start-up | 2 | When a saved login expires, the app moves to Login silently. | **Fixed:** "You were logged out. Please log in again." |
 | R3 | H5 Prevention | Account | 2 | Log out is one tap; logging back in needs the password, and there is no reset (R1). | **Fixed:** asks "Log out of this phone or computer?" first. |
 | R4 | H3 Control | Ask | 2 | No way to start over (old #15). Matters more now: earlier turns are sent with each question, so an old topic can steer new answers. | **Fixed:** "New conversation", with Undo for 8 seconds. |

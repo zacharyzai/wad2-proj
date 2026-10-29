@@ -69,4 +69,39 @@ export function readToken(token, now = Date.now()) {
   }
 }
 
+// Password reset links (docs/auth-contract.md). Signed like logins, but for their own audience, so a reset link is never
+// accepted as a login and a login never as a reset link. Nothing is stored: the link carries a fingerprint of the password
+// hash it was made for (keyed with the secret, so it says nothing about the password), and once the password changes the
+// fingerprint no longer matches, so each link works once and every older link stops working too.
+const RESET_AUDIENCE = 'ah-ma-ah-gong-can:password-reset'
+export const RESET_SECONDS = 30 * 60
+const fingerprint = (passwordHash) => createHmac('sha256', jwtSecret()).update(`reset:${passwordHash}`).digest('base64url')
+
+export function signResetToken(user, now = Date.now()) {
+  const iat = Math.floor(now / 1000)
+  return jwt.sign({ sub: String(user._id ?? user.id), pwd: fingerprint(user.passwordHash), iat, exp: iat + RESET_SECONDS }, jwtSecret(), {
+    algorithm: 'HS256', issuer: ISSUER, audience: RESET_AUDIENCE,
+  })
+}
+
+// { sub, pwd } for a well-formed, unexpired reset link; null otherwise. Still check it against the account (resetTokenMatches).
+export function readResetToken(token, now = Date.now()) {
+  if (typeof token !== 'string' || token.length > 2048 || token.split('.').length !== 3) return null
+  try {
+    const payload = jwt.verify(token, jwtSecret(), { algorithms: ['HS256'], issuer: ISSUER, audience: RESET_AUDIENCE, clockTimestamp: now / 1000 })
+    if (typeof payload?.sub !== 'string' || !payload.sub || typeof payload.pwd !== 'string' || !Number.isInteger(payload.exp)) return null
+    return { sub: payload.sub, pwd: payload.pwd }
+  } catch {
+    return null
+  }
+}
+
+// The link was made for this account's current password (not used yet, and no newer password since).
+export function resetTokenMatches(payload, user) {
+  if (!payload || typeof user?.passwordHash !== 'string' || payload.sub !== String(user._id ?? user.id)) return false
+  const expected = Buffer.from(fingerprint(user.passwordHash))
+  const given = Buffer.from(payload.pwd)
+  return given.length === expected.length && timingSafeEqual(given, expected)
+}
+
 export const bearer = (req) => /^Bearer ([^\s]+)$/i.exec(req.get('authorization') ?? '')?.[1]
