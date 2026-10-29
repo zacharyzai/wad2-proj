@@ -56,6 +56,7 @@ Tap **Ask** and type or say a question ("Can I take it with food?"). Answers com
 - **Night mode:** the moon button. The app always starts in day mode.
 - **How to use the app:** a short guide that points at each button. It opens on your first visit, and again any time from the sidebar or Account.
 - **Account:** see and edit your details (these drive the bill subsidies), change language (you'll see "Settings saved"), and log out.
+- **Forgot your password?** On Log in, type your email and tap **Forgot your password?**, then **Send me a link**. Running locally, the email is printed in the terminal running `pnpm server`: open its link, choose a new password, and you're logged in (any other device that was logged in is logged out). Each link works once, for 30 minutes.
 
 ---
 
@@ -69,6 +70,7 @@ Tap **Ask** and type or say a question ("Can I take it with food?"). Answers com
 | On-phone covering of personal details | ✅ |
 | Ask chatbot | ✅ |
 | Accounts, Remember me, language on the account | ✅ |
+| Forgot your password? (reset link by email; logs out every other device) | ✅ Needs an email provider on the live site (`MAIL_PROVIDER`); locally the email prints in the server terminal |
 | Google Calendar reminders | ✅ Connect, Disconnect and automatic sync on the Schedule page |
 | Medicine schedule with dose ticks | ✅ Ticks saved to your account; "when necessary", weekly and tapering medicines go to your pharmacist, never scheduled |
 | Caregiver view (a family member sees whether today's doses were taken, with the senior's approval) | Coming |

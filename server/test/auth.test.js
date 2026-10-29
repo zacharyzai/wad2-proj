@@ -5,7 +5,7 @@ import assert from 'node:assert/strict'
 process.env.JWT_SECRET = 'test-secret-for-auth-checks-at-least-32-bytes'
 delete process.env.MONGODB_URI // so a request that passes the checks gets the "accounts unavailable" answer, not a real DB
 const { default: app } = await import('../app.js')
-const { hashPassword, verifyPassword, signToken, readToken, TOKEN_SECONDS } = await import('../services/auth.js')
+const { hashPassword, verifyPassword, signToken, readToken, TOKEN_SECONDS, signResetToken, readResetToken, resetTokenMatches, RESET_SECONDS } = await import('../services/auth.js')
 const { checkProfile } = await import('../routes/auth.js')
 
 let server, base
@@ -88,4 +88,45 @@ test('/me needs a valid login token', async () => {
   const forged = await fetch(`${base}/api/auth/me`, { headers: { authorization: 'Bearer abc.def' } })
   assert.equal(forged.status, 401)
   assert.equal((await forged.json()).error.code, 'NOT_LOGGED_IN')
+})
+
+// Password reset links (no database: the account is a plain object with the fields the link is checked against).
+const account = (passwordHash) => ({ _id: '6a0000000000000000000001', passwordHash })
+
+test('a reset link works for 30 minutes, for its own account and its current password only', async () => {
+  const now = Date.UTC(2026, 9, 29, 8)
+  const user = account(await hashPassword('password123'))
+  const link = signResetToken(user, now)
+  const payload = readResetToken(link, now)
+  assert.equal(payload.sub, user._id)
+  assert.equal(resetTokenMatches(payload, user), true)
+  assert.ok(!link.includes(user.passwordHash) && !Buffer.from(link.split('.')[1], 'base64url').toString().includes('argon2')) // nothing about the password
+
+  assert.ok(readResetToken(link, now + (RESET_SECONDS - 1) * 1000)) // still fine just before 30 minutes
+  assert.equal(readResetToken(link, now + (RESET_SECONDS + 1) * 1000), null) // expired after
+  assert.equal(resetTokenMatches(payload, { ...user, _id: '6a0000000000000000000002' }), false) // another account
+})
+
+test('a reset link stops working once the password changes, so it works once and older links die too', async () => {
+  const user = account(await hashPassword('password123'))
+  const first = readResetToken(signResetToken(user))
+  const second = readResetToken(signResetToken(user))
+  assert.equal(resetTokenMatches(second, user), true) // asking twice: both work until one is used
+  const afterReset = { ...user, passwordHash: await hashPassword('new-password-456') }
+  assert.equal(resetTokenMatches(second, afterReset), false) // the used link
+  assert.equal(resetTokenMatches(first, afterReset), false) // and the older one
+})
+
+test('reset links and logins can never stand in for each other; tampered or forged links are refused', async () => {
+  const user = account(await hashPassword('password123'))
+  const link = signResetToken(user)
+  assert.equal(readToken(link), null) // a reset link is not a login
+  assert.equal(readResetToken(signToken(user._id, true)), null) // a login is not a reset link
+  const [head, body, sig] = link.split('.')
+  const claims = JSON.parse(Buffer.from(body, 'base64url').toString())
+  const swapped = Buffer.from(JSON.stringify({ ...claims, sub: '6a0000000000000000000002' })).toString('base64url')
+  assert.equal(readResetToken(`${head}.${swapped}.${sig}`), null) // pointed at another account
+  for (const bad of [undefined, '', 'not.a.link', link.slice(0, -4) + 'abcd', 'x'.repeat(3000)]) assert.equal(readResetToken(bad), null)
+  assert.equal(resetTokenMatches({ sub: user._id, pwd: 'short' }, user), false)
+  assert.equal(resetTokenMatches(null, user), false)
 })

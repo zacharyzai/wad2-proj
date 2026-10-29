@@ -23,6 +23,10 @@ const routes = [
   // Isaac (+ auth API). Everything needs an account except pages marked public: welcome, login, signup, share links, 404.
   { path: '/login', name: 'login', component: () => import('../views/LoginView.vue'), meta: { public: true, guestOnly: true, bare: true } },
   { path: '/signup', name: 'signup', component: () => import('../views/SignupView.vue'), meta: { public: true, guestOnly: true, bare: true } },
+  // Forgot your password? Ask for a link (logged out only), then choose a new password from the emailed link (works
+  // logged in too: the email may be opened on a device that is still logged in).
+  { path: '/forgot', name: 'forgot', component: () => import('../views/ForgotView.vue'), meta: { public: true, guestOnly: true, bare: true } },
+  { path: '/reset', name: 'reset', component: () => import('../views/ResetView.vue'), meta: { public: true, bare: true } },
   { path: '/history', name: 'history', component: () => import('../views/HistoryView.vue') },
   { path: '/account', name: 'account', component: () => import('../views/AccountView.vue') },
   // Share links stay open: they are for family on WhatsApp, who have no account.
