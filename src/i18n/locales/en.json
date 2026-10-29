@@ -98,6 +98,8 @@
     "shareMessage": "Please be my caregiver on Ah Ma Ah Gong Can:"
   },
   "errors": {
+    "WRONG_ROLE": "This action needs a different account role.",
+    "CAREGIVER_ALREADY_LINKED": "This senior already has a caregiver. Remove the current link before inviting someone else.",
     "AUTH_UNAVAILABLE": "Login and signup are temporarily unavailable. Please try again later.",
     "BAD_REQUEST": "We couldn’t use that. Please try again.",
     "NOT_FOUND": "We could not find that.",
