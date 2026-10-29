@@ -2,7 +2,7 @@
 // Extracted text only (contract fields), never photos.
 // shortcut: kept in this browser only; move to the user's account (Sheen Hern's history API) once login exists.
 import { reactive, toRaw, watch } from 'vue'
-import { supplyDays, todayInSingapore } from '../rules/schedule.js'
+import { addDays, supplyDays, todayInSingapore } from '../rules/schedule.js'
 
 const KEY = 'medicines'
 const MAX = 10 // same limit as the server
@@ -35,10 +35,20 @@ const fromLabel = (medication) => {
   return days ? { schedule: { startDate: todayInSingapore(), days, times: {} } } : {}
 }
 
+// Re-scanning a label: a course still running carries on (same days, so its ticks and reminders do too). One that has
+// ended is a refill: it starts again from today, from the new label (or Schedule asks how many days). Changed times stay.
+const ended = (schedule) => Boolean(schedule?.days) && addDays(schedule.startDate, schedule.days - 1) < todayInSingapore()
+function scheduleFor(previous, medication) {
+  if (previous?.schedule && !ended(previous.schedule)) return { schedule: previous.schedule }
+  const times = previous?.schedule?.times ?? {}
+  const fresh = fromLabel(medication).schedule
+  return fresh ? { schedule: { ...fresh, times } } : previous?.schedule ? { schedule: { times } } : {}
+}
+
 const same = (a, b) => a.name.trim().toLowerCase() === b.name.trim().toLowerCase() && (a.strength ?? '') === (b.strength ?? '')
 
 // Re-adding a medicine replaces the old entry, so a re-scanned label updates its instructions.
-// It keeps the old id and schedule, so its dose ticks and calendar events carry on instead of starting again.
+// It keeps the old id, and the schedule while the course is still running (scheduleFor), so ticks and calendar events carry on.
 // A name typed in Ask never replaces a checked label: that would drop its daily instructions, and so its timetable.
 export function rememberMedicine(medication, source, sample = false) {
   const copy = structuredClone(toRaw(medication))
@@ -50,7 +60,7 @@ export function rememberMedicine(medication, source, sample = false) {
     source,
     sample,
     medication: copy,
-    ...(previous?.schedule ? { schedule: previous.schedule } : fromLabel(copy)),
+    ...scheduleFor(previous, copy),
   })
   medicines.splice(MAX)
 }
