@@ -137,7 +137,7 @@ function confirm() {
 }
 
 // Cancelling a fix returns to My medicines, where it was opened from.
-const scanAgain = () => router.push(fixing ? { name: 'schedule', query: { view: 'meds' } } : { name: draft.type === 'bill' ? 'bill-scan' : 'scan' })
+const scanAgain = () => router.push(fixing ? { name: 'schedule', query: { view: 'meds' } } : draft.type === 'bill' ? { name: 'scan', hash: '#bill' } : { name: 'scan', query: { type: 'medication' } })
 </script>
 
 <template>

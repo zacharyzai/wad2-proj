@@ -24,8 +24,11 @@ const MAX_SIDE = 1600
 const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
-const type = computed(() => route.meta.scanType ?? 'medication') // /scan: labels; /bill/scan: bills
-const samples = computed(() => SAMPLES.filter((s) => s.type === type.value))
+// What the next photo is of. Both kinds are on the page; whichever button or sample is used sets this.
+// Links that already know (?type=bill, #bill, a sample) just start with it.
+const type = ref(route.query.type === 'bill' || route.hash === '#bill' ? 'bill' : (SAMPLES.find((x) => x.id === route.query.sample)?.type ?? 'medication'))
+const KINDS = ['medication', 'bill']
+const samplesOf = (k) => SAMPLES.filter((x) => x.type === k)
 
 const state = ref('idle') // idle | loading | error
 const covering = ref(false) // loading, step 1: blacking out personal details on this phone
@@ -88,7 +91,8 @@ const cameraBlocked = ref(false)
 // Until the first frame arrives the video is 0×0, and capturing would send an empty image.
 const cameraReady = ref(false)
 
-async function startCamera() {
+async function startCamera(k) {
+  type.value = k
   cameraBlocked.value = false
   // No camera API (e.g. plain http on a phone): the native camera via the file input still works.
   if (!navigator.mediaDevices?.getUserMedia) return camera.value.click()
@@ -98,6 +102,7 @@ async function startCamera() {
     cameraBlocked.value = true // permission denied or no camera
     return
   }
+  await nextTick() // the camera screen only exists once there is a stream
   video.value.srcObject = stream.value
 }
 
@@ -115,8 +120,8 @@ function capture() {
 
 async function retake() {
   state.value = 'idle'
-  await nextTick() // the <video> only exists on the idle screen
-  startCamera()
+  await nextTick()
+  startCamera(type.value)
 }
 
 onBeforeUnmount(stopCamera)
@@ -146,7 +151,8 @@ function onFile(event) {
   if (file) useFile(file)
 }
 
-async function useFile(file) {
+async function useFile(file, k = type.value) {
+  type.value = k
   // H1: shrinking a big photo takes about a second on old phones; show that we're working, so nobody taps again.
   coverView.value = null
   readingType.value = type.value
@@ -256,9 +262,10 @@ const TIPS = [
 
 // Home can hand over a picked photo or ask for a sample (/scan?sample=med-1).
 onMounted(() => {
-  const file = scanStore.pendingFile
+  const file = scanStore.pendingFile // a photo picked on Home: always a medicine label
   scanStore.pendingFile = null
-  if (file) return useFile(file)
+  if (file) return useFile(file, 'medication')
+  if (type.value === 'bill' && !route.query.sample) nextTick(() => document.getElementById('scan-bill')?.scrollIntoView({ block: 'start', behavior: 'instant' }))
   const sample = SAMPLES.find((s) => s.id === route.query.sample)
   // Opened to take or pick a photo: start downloading the reader now (not for a sample, which never needs it; tests use a fake).
   if (!sample) return window.__redactForTests || warmUp()
@@ -340,43 +347,45 @@ onMounted(() => {
     </div>
   </div>
 
+  <!-- Live camera: its own screen, so the picture is big and Capture is the only thing to press. -->
+  <div v-else-if="stream" class="page">
+    <h1>{{ t(type === 'bill' ? 'home.bill.title' : 'home.med.title') }}</h1>
+    <div class="frame-area">
+      <video ref="video" class="live" autoplay playsinline muted @playing="cameraReady = true" :aria-label="t('scan.preview')"></video>
+      <span class="frame" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+      <span class="frame-hint"><AppIcon name="sun" :size="18" />{{ t(`scan.frame.${type}`) }}</span>
+    </div>
+    <button type="button" class="btn btn-primary" :disabled="!cameraReady" data-testid="scan-capture" @click="capture"><AppIcon name="camera" />{{ t('scan.capture') }}</button>
+    <button type="button" class="btn btn-secondary" @click="stopCamera"><AppIcon name="x" />{{ t('scan.cancel') }}</button>
+  </div>
+
+  <!-- Both kinds, side by side on a wide screen (one under the other on a phone): nobody has to know which page to open. -->
   <div v-else class="page">
-    <div class="d-flex align-items-start gap-3">
-      <!-- Bills are scanned from the Bill page, so this goes back there. (Medicine Scan is a main tab: no Back.) -->
-      <RouterLink v-if="type === 'bill'" :to="{ name: 'bill' }" class="back" :aria-label="t('nav.back')" data-testid="scan-back"></RouterLink>
-      <div class="page-head">
-        <h1>{{ t(type === 'bill' ? 'home.bill.title' : 'home.med.title') }}</h1>
-        <p class="lead-text">{{ t(`scan.lead.${type}`) }}</p>
-      </div>
+    <div class="page-head">
+      <h1>{{ t('nav.scan') }}</h1>
+      <p class="lead-text">{{ t('home.lead') }}</p>
     </div>
 
-    <div class="cols">
-      <!-- Everything for getting a photo in, in one place: camera first (most people scan with a phone), then upload. -->
-      <section aria-labelledby="add-title">
-        <h2 id="add-title" class="section-label">{{ t('scan.addPhoto') }}</h2>
-        <!-- The video stays mounted (hidden) so startCamera can attach the stream to it. -->
-        <div v-show="stream" class="frame-area">
-          <video ref="video" class="live" autoplay playsinline muted @playing="cameraReady = true" :aria-label="t('scan.preview')"></video>
-          <span class="frame" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
-          <span class="frame-hint"><AppIcon name="sun" :size="18" />{{ t(`scan.frame.${type}`) }}</span>
+    <div class="kinds">
+    <section v-for="k in KINDS" :id="`scan-${k}`" :key="k" class="kind d-flex flex-column gap-3" :aria-labelledby="`kind-${k}`" :data-testid="`scan-${k}`">
+      <div class="kind-head">
+        <span class="tile tile-soft" aria-hidden="true"><AppIcon :name="k === 'bill' ? 'receipt' : 'pill'" :size="28" /></span>
+        <div class="d-flex flex-column gap-1">
+          <h2 :id="`kind-${k}`" class="m-0">{{ t(k === 'bill' ? 'home.bill.title' : 'home.med.title') }}</h2>
+          <p class="m-0 text-muted-a11y">{{ t(`scan.lead.${k}`) }}</p>
         </div>
-        <template v-if="stream">
-          <button type="button" class="btn btn-primary" :disabled="!cameraReady" @click="capture"><AppIcon name="camera" />{{ t('scan.capture') }}</button>
-          <button type="button" class="btn btn-secondary" @click="stopCamera"><AppIcon name="x" />{{ t('scan.cancel') }}</button>
-        </template>
-        <template v-else>
-          <button type="button" class="btn btn-primary" data-guide="scan-take" @click="startCamera"><AppIcon name="camera" />{{ t('scan.take') }}</button>
-          <p v-if="cameraBlocked" class="alert alert-warning" role="alert"><AppIcon name="alert" />{{ t('scan.cameraBlocked') }}</p>
+      </div>
+      <div class="cols">
+        <!-- Everything for getting a photo in, in one place: camera first (most people scan with a phone), then upload. -->
+        <div class="d-flex flex-column gap-3">
+          <button type="button" class="btn btn-primary" :data-guide="k === 'medication' ? 'scan-take' : null" :data-testid="`take-${k}`" @click="startCamera(k)"><AppIcon name="camera" />{{ t('scan.take') }}</button>
+          <p v-if="cameraBlocked && type === k" class="alert alert-warning" role="alert"><AppIcon name="alert" />{{ t('scan.cameraBlocked') }}</p>
           <p class="or">{{ t('scan.or') }}</p>
-          <UploadDropzone class="dz-full" @select="useFile" />
-        </template>
-        <p class="privacy"><AppIcon name="shield" :size="20" />{{ t('scan.privacy') }}</p>
-      </section>
-
-      <section aria-labelledby="samples-title">
-        <h2 id="samples-title" class="section-label">{{ t('scan.samplesTitle') }}</h2>
+          <UploadDropzone class="dz-full" @select="(f) => useFile(f, k)" />
+        </div>
         <div class="d-flex flex-column gap-3 stagger">
-          <button v-for="sample in samples" :key="sample.id" type="button" class="card card-interactive sample" @click="trySample(sample)">
+          <h3 class="section-label m-0">{{ t('scan.samplesTitle') }}</h3>
+          <button v-for="sample in samplesOf(k)" :key="sample.id" type="button" class="card card-interactive sample" @click="trySample(sample)">
             <img :src="`/samples/${sample.id}.svg`" alt="" class="sample-thumb" />
             <span class="d-flex flex-column flex-grow-1">
               <span class="sample-name">{{ t(`scan.samples.${sample.key}`) }}</span>
@@ -385,8 +394,10 @@ onMounted(() => {
             <AppIcon name="right" :size="22" class="text-teal" />
           </button>
         </div>
-      </section>
+      </div>
+    </section>
     </div>
+    <p class="privacy"><AppIcon name="shield" :size="20" />{{ t('scan.privacy') }}</p>
   </div>
 </template>
 

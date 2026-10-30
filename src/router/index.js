@@ -10,8 +10,8 @@ const routes = [
   // Zachary: welcome page, shown once to first-time visitors (guard below)
   { path: '/welcome', name: 'welcome', component: () => import('../views/LandingPage.vue'), meta: { bare: true, public: true } },
   // Asher: scan → confirm → explain flow
-  // Scan is for medication labels; bills are scanned from the Bill page (same view, scanType from meta). Old ?type=bill links still land there.
-  { path: '/scan', name: 'scan', component: () => import('../views/ScanView.vue'), beforeEnter: (to) => (to.query.type === 'bill' ? { name: 'bill-scan', query: { sample: to.query.sample } } : undefined) },
+  // Scan holds both: the medicine label and the bill, one under the other. Bills have no tab; the breakdown opens from Explain/History.
+  { path: '/scan', name: 'scan', component: () => import('../views/ScanView.vue') },
   { path: '/scan/confirm', name: 'confirm', component: () => import('../views/ConfirmView.vue') },
   { path: '/scan/explain', name: 'explain', component: () => import('../views/ExplainView.vue') },
   // Zachary: Ask about my medicine (feature 6)
@@ -19,7 +19,8 @@ const routes = [
   // Lokesh
   { path: '/schedule', name: 'schedule', component: () => import('../views/ScheduleView.vue') },
   { path: '/bill', name: 'bill', component: () => import('../views/BillView.vue') },
-  { path: '/bill/scan', name: 'bill-scan', component: () => import('../views/ScanView.vue'), meta: { scanType: 'bill' } },
+  // Old link: bills are scanned on the Scan page, under the medicine label.
+  { path: '/bill/scan', name: 'bill-scan', redirect: (to) => ({ name: 'scan', query: to.query, hash: '#bill' }) },
   // Isaac (+ auth API). Everything needs an account except pages marked public: welcome, login, signup, share links, 404.
   { path: '/login', name: 'login', component: () => import('../views/LoginView.vue'), meta: { public: true, guestOnly: true, bare: true } },
   { path: '/signup', name: 'signup', component: () => import('../views/SignupView.vue'), meta: { public: true, guestOnly: true, bare: true } },

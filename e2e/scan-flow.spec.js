@@ -4,7 +4,7 @@ import { mockImageScan } from './helpers/mockImageScan.js'
 
 const TINY_PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', 'base64')
 
-async function openSample(page, name, path = '/scan') {
+async function openSample(page, name, path = '/scan?type=medication') {
   await page.goto(path)
   await page.getByRole('button', { name }).click()
 }
@@ -45,18 +45,39 @@ test('bill sample shows what you pay', async ({ page }) => {
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('You pay $14.00.')
 })
 
-test('Scan is for medication labels; bills are scanned from the Bill page', async ({ page, isMobile }) => {
+test('Scan has the medicine label and the bill side by side (stacked on a phone), each with camera, upload and samples', async ({ page, isMobile }) => {
   await page.goto('/scan')
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Scan a medication label')
-  await expect(page.getByRole('button', { name: 'Medical bill' })).toHaveCount(0)
-  await expect(page.getByRole('radio')).toHaveCount(0)
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Scan')
+  const med = page.getByTestId('scan-medication')
+  const bill = page.getByTestId('scan-bill')
+  await expect(med.getByRole('heading', { level: 2 })).toHaveText('Scan a medication label')
+  await expect(bill.getByRole('heading', { level: 2 })).toHaveText('Scan a medical bill')
+  for (const section of [med, bill]) {
+    await expect(section.getByRole('button', { name: 'Take photo' })).toBeVisible()
+    await expect(section.getByText('Upload photo').first()).toBeVisible()
+  }
+  await expect(med.getByRole('button', { name: 'Metformin label' })).toBeVisible()
+  await expect(bill.getByRole('button', { name: 'Medical bill' })).toBeVisible()
+  await expect(med.getByRole('button', { name: 'Medical bill' })).toHaveCount(0)
+  const [m, b] = await Promise.all([med.boundingBox(), bill.boundingBox()])
+  if (isMobile) expect(b.y).toBeGreaterThan(m.y + m.height - 1) // phone: the bill under the label
+  else {
+    expect(b.x).toBeGreaterThan(m.x + m.width - 1) // wide screen: beside it
+    expect(Math.abs(b.y - m.y)).toBeLessThan(2) // on the same row
+  }
+})
 
-  // Old links (/scan?type=bill) land on the bill scan page.
-  await page.goto('/scan?type=bill')
-  await expect(page).toHaveURL(/\/bill\/scan$/)
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Scan a medical bill')
-  await expect(page.getByRole('button', { name: 'Metformin label' })).toHaveCount(0)
-  if (!isMobile) await expect(page.getByRole('link', { name: 'Bill', exact: true })).toHaveAttribute('aria-current', 'page')
+test('a sample link skips straight to Confirm', async ({ page }) => {
+  await page.goto('/scan?sample=med-1')
+  await expect(page).toHaveURL(/\/scan\/confirm$/)
+})
+
+test('old bill links land on the bill part of Scan, and Bill has no tab of its own', async ({ page, isMobile }) => {
+  await page.goto('/bill/scan')
+  await expect(page).toHaveURL(/\/scan#bill$/)
+  await expect(page.getByTestId('scan-bill')).toBeInViewport()
+  await expect(page.getByRole('link', { name: 'Bill', exact: true })).toHaveCount(0)
+  if (!isMobile) await expect(page.getByRole('link', { name: 'Scan', exact: true })).toHaveAttribute('aria-current', 'page')
 })
 
 test('unclear fields block Confirm until filled', async ({ page }) => {
@@ -80,7 +101,7 @@ test('unclear fields block Confirm until filled', async ({ page }) => {
 
 test('uploaded photo is compressed, sent and shown on Confirm', async ({ page }) => {
   await mockImageScan(page)
-  await page.goto('/scan')
+  await page.goto('/scan?type=medication')
   await page.getByTestId('upload-input').setInputFiles({ name: 'label.png', mimeType: 'image/png', buffer: TINY_PNG })
   await page.getByRole('button', { name: 'Scan', exact: true }).click()
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Check what we read')
@@ -127,7 +148,7 @@ async function mockBillSentAsLabel(page) {
     const bill = await (await route.fetch({ postData: JSON.stringify({ sampleId: 'bill-1' }) })).json()
     return route.fulfill({ json: { ok: true, data: { ...bill.data, source: 'ai' } } })
   })
-  await page.goto('/scan')
+  await page.goto('/scan?type=medication')
   await page.getByTestId('upload-input').setInputFiles({ name: 'bill.png', mimeType: 'image/png', buffer: TINY_PNG })
   await page.getByRole('button', { name: 'Scan', exact: true }).click()
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('This looks like a medical bill')
@@ -219,7 +240,7 @@ test('explain without a confirmed scan goes back to Scan', async ({ page }) => {
 
 test('the photo is shown before scanning; Change photo picks another', async ({ page }) => {
   await mockImageScan(page)
-  await page.goto('/scan')
+  await page.goto('/scan?type=medication')
   await page.getByTestId('upload-input').setInputFiles({ name: 'label.png', mimeType: 'image/png', buffer: TINY_PNG })
   await expect(page.getByRole('img', { name: 'The photo you chose' })).toBeVisible()
   await expect(page.getByText('label.png')).toBeVisible()
@@ -233,7 +254,7 @@ test('the photo is shown before scanning; Change photo picks another', async ({ 
 test('wrong file types and photos over 10MB are refused before anything is sent', async ({ page }) => {
   let apiCalls = 0
   await page.route('**/api/scan', (route) => (apiCalls++, route.continue()))
-  await page.goto('/scan')
+  await page.goto('/scan?type=medication')
   await page.getByTestId('upload-input').setInputFiles('public/samples/med-1.svg')
   await expect(page.getByRole('alert')).toHaveText('Please choose a PNG, JPG or HEIC photo.')
   await page.getByTestId('upload-input').setInputFiles({ name: 'big.jpg', mimeType: 'image/jpeg', buffer: Buffer.alloc(10 * 1024 * 1024 + 1) })
@@ -244,7 +265,7 @@ test('wrong file types and photos over 10MB are refused before anything is sent'
 
 test('a photo can be dropped on the upload box, which also opens with the keyboard', async ({ page }) => {
   await mockImageScan(page)
-  await page.goto('/scan')
+  await page.goto('/scan?type=medication')
   const zone = page.getByRole('button', { name: 'Tap to upload or drop a photo' })
   const chooser = page.waitForEvent('filechooser')
   await zone.focus()
@@ -262,7 +283,7 @@ test('a photo can be dropped on the upload box, which also opens with the keyboa
 test('a file the browser cannot open says so, without asking the server', async ({ page }) => {
   let apiCalls = 0
   await page.route('**/api/scan', (route) => (apiCalls++, route.continue()))
-  await page.goto('/scan')
+  await page.goto('/scan?type=medication')
   await page.getByTestId('upload-input').setInputFiles({ name: 'notes.png', mimeType: 'image/png', buffer: Buffer.from('not an image') })
   await page.getByRole('button', { name: 'Scan', exact: true }).click()
   await expect(page.getByRole('alert')).toContainText('This file can’t be used.')

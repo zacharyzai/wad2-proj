@@ -16,7 +16,7 @@ async function answerSaves(page) {
 }
 
 async function confirmSample(page) {
-  await page.goto('/scan')
+  await page.goto('/scan?type=medication')
   await page.getByRole('button', { name: 'Metformin label' }).click()
   await page.getByRole('button', { name: 'Looks correct' }).click()
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Take 1 tablet, 2 times a day.')

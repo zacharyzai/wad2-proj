@@ -61,7 +61,7 @@ export async function login(page, email, password) {
 // Start from the Metformin sample and wait for the Confirm screen.
 // TODO: switch to getByTestId('use-sample-label') once Asher adds it to ScanView.
 export async function useSampleLabel(page, name = 'Metformin label') {
-  await page.goto('/scan')
+  await page.goto('/scan?type=medication')
   await page.getByRole('button', { name }).click()
   await expect(page).toHaveURL(/\/scan\/confirm$/)
 }

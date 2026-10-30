@@ -22,7 +22,7 @@
   },
   "pages": {
     "home": "Understand your medicine and bills",
-    "scan": "Scan a medication label",
+    "scan": "Scan a label or bill",
     "confirm": "Check the details",
     "explain": "What this means",
     "schedule": "Medicine schedule",

@@ -15,7 +15,7 @@ test.beforeEach(({ page }) =>
 
 const guide = (page) => page.getByTestId('guide')
 const title = (page) => page.locator('#guide-title')
-const stepText = (page, n) => expect(page.getByText(`Step ${n} of 9`)).toBeVisible()
+const stepText = (page, n) => expect(page.getByText(`Step ${n} of 7`)).toBeVisible()
 
 // From the welcome card to the finish card using "Take me there" and Next (no hunting for buttons).
 async function walkToFinish(page) {
@@ -50,12 +50,6 @@ test('first visit: welcome card, then it points at the real buttons and waits fo
   await stepText(page, 3)
   await page.getByTestId('guide-next').click()
 
-  await expect(title(page)).toHaveText('Tap Bill')
-  await page.locator('[data-guide="/bill"]').click()
-  await expect(page).toHaveURL(/\/bill$/)
-  await expect(title(page)).toHaveText('Try a sample bill')
-  await page.getByTestId('guide-next').click()
-
   await expect(title(page)).toHaveText('Tap Ask')
   await page.locator('[data-guide="/ask"]').click()
   await expect(page).toHaveURL(/\/ask$/)
@@ -66,7 +60,7 @@ test('first visit: welcome card, then it points at the real buttons and waits fo
   await page.locator('[data-guide="/account"]').click()
   await expect(page).toHaveURL(/\/account$/)
   await expect(title(page)).toHaveText('You are ready')
-  await stepText(page, 9)
+  await stepText(page, 7)
 
   await page.getByTestId('guide-start').click()
   await expect(guide(page)).toHaveCount(0)
@@ -90,7 +84,7 @@ test('"Take me there" does the tap for you', async ({ page }) => {
 })
 
 test('Skip or Esc end it at any step; the closing message fades after a few seconds', async ({ page }) => {
-  await page.goto('/scan')
+  await page.goto('/scan?type=medication')
   await page.getByTestId('guide-next').click()
   await page.keyboard.press('Escape')
   await expect(guide(page)).toHaveCount(0)
@@ -122,7 +116,7 @@ test('arriving mid-task (another page first) waits, then shows on Home', async (
   await page.goto('/bill')
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Bill breakdown')
   await expect(guide(page)).toHaveCount(0)
-  await page.goto('/scan') // deferred: only Home shows it now
+  await page.goto('/scan?type=medication') // deferred: only Home shows it now
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
   await expect(guide(page)).toHaveCount(0)
   await page.goto('/')

@@ -21,14 +21,14 @@ const NAV = [
   { to: '/', key: 'nav.home', icon: 'home', phone: false },
   { to: '/scan', key: 'nav.scan', icon: 'scan' },
   { to: '/schedule', key: 'nav.schedule', icon: 'calendar' },
-  { to: '/bill', key: 'nav.bill', icon: 'receipt' },
   { to: '/ask', key: 'nav.ask', icon: 'chat' },
   { to: '/history', key: 'nav.history', icon: 'history' },
   { to: '/care', key: 'nav.care', icon: 'users', caregiverOnly: true },
 ]
 const navItems = computed(() => NAV.filter((item) => !item.caregiverOnly || authStore.user?.role === 'caregiver'))
 // Prefix match so /scan/confirm and /scan/explain keep Scan highlighted; Home only on '/'.
-const isOn = (to) => (to === '/' ? route.path === '/' : route.path.startsWith(to))
+// The bill breakdown is part of the Scan flow (no tab of its own), so Scan stays lit on it.
+const isOn = (to) => (to === '/' ? route.path === '/' : route.path.startsWith(to) || (to === '/scan' && route.path.startsWith('/bill')))
 
 // Tab title names the page, in the chosen language (route 'not-found' → key pages.notFound).
 watch(

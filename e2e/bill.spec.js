@@ -50,18 +50,6 @@ test.describe('getting to a bill', () => {
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('Bill breakdown')
     await expect(youPay(page, 'You pay $14.00')).toBeVisible()
   })
-
-  test('an unchecked bill asks to be checked first (sidebar link)', async ({ page, isMobile }) => {
-    test.skip(isMobile, 'The Bill link is in the desktop sidebar only; the phone tab bar keeps 4 tabs')
-    await page.goto('/bill/scan')
-    await page.getByRole('button', { name: 'Medical bill' }).click()
-    // Wait for Confirm, or Scan would still move there after the sample arrives.
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Check your bill items')
-    await page.getByRole('link', { name: 'Bill', exact: true }).click()
-    await expect(page.getByText('Please check the details of your bill first.')).toBeVisible()
-    await page.getByRole('link', { name: 'Check my bill' }).click()
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Check your bill items')
-  })
 })
 
 test.describe('breakdown', () => {
@@ -297,15 +285,12 @@ test.describe('getting back', () => {
     await expect(page).toHaveURL(/\/scan\/explain$/)
   })
 
-  test('Back to top, and Back from the bill scan page and Account', async ({ page }) => {
+  test('Back to top, and Back from Account', async ({ page }) => {
     await openSample(page, TAMPINES)
     await page.getByTestId('bill-top').click()
     await expect.poll(() => page.evaluate(() => scrollY)).toBe(0)
     await expect(page.getByRole('heading', { level: 1 })).toBeFocused()
 
-    await page.goto('/bill/scan')
-    await page.getByTestId('scan-back').click()
-    await expect(page).toHaveURL(/\/bill$/)
     await page.goto('/account')
     await page.getByRole('link', { name: 'Back' }).click()
     await expect(page).toHaveURL(/\/$/)

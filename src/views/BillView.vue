@@ -253,7 +253,7 @@ const summary = computed(() => [
         <div class="d-flex flex-column gap-3">
           <button type="button" class="btn btn-primary" data-testid="bill-done" @click="goBack"><AppIcon name="left" />{{ openedHere ? t('bill.closeBill') : t('nav.back') }}</button>
           <RouterLink :to="{ name: 'home' }" class="btn btn-secondary" data-testid="bill-home"><AppIcon name="home" />{{ t('nav.home') }}</RouterLink>
-          <RouterLink :to="{ name: 'bill-scan' }" class="btn btn-outline"><AppIcon name="scan" />{{ t('bill.another') }}</RouterLink>
+          <RouterLink :to="{ name: 'scan', hash: '#bill' }" class="btn btn-outline"><AppIcon name="scan" />{{ t('bill.another') }}</RouterLink>
           <button type="button" class="btn btn-ghost" data-testid="bill-top" @click="toTop"><AppIcon name="up" />{{ t('nav.backTop') }}</button>
         </div>
       </div>
@@ -268,7 +268,7 @@ const summary = computed(() => [
     </div>
 
     <EmptyState v-else :title="t('bill.none.title')" :text="t('bill.none.text')" icon="receipt">
-      <RouterLink :to="{ name: 'bill-scan' }" class="btn btn-primary"><AppIcon name="scan" />{{ t('bill.scan') }}</RouterLink>
+      <RouterLink :to="{ name: 'scan', hash: '#bill' }" class="btn btn-primary"><AppIcon name="scan" />{{ t('bill.scan') }}</RouterLink>
     </EmptyState>
 
     <!-- Samples: always offered when there's no real bill, and as "try another" while looking at a sample. -->
