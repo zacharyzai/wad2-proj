@@ -9,6 +9,7 @@ import { WELCOME_KEY } from '../router'
 import { setLocale } from '../i18n'
 import { speak as sayAloud, stopSpeaking } from '../stores/speech'
 import AppIcon from '../components/layout/AppIcon.vue'
+import DocTunnel from '../components/landing/DocTunnel.vue'
 
 const { t, locale } = useI18n()
 
@@ -390,6 +391,9 @@ onBeforeUnmount(() => {
         </div>
       </div>
     </section>
+
+    <!-- Between the hero and "Snap a photo": real labels and bills fly past through a 3D tunnel as you scroll (DocTunnel.vue). -->
+    <DocTunnel />
 
     <section id="scan" data-sec="2" class="sec sand" data-testid="landing-scan" aria-labelledby="scan-title">
       <div class="row">
