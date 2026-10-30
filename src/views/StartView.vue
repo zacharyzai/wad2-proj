@@ -5,7 +5,9 @@
      (the label slides in, a scan line reads it, the phone fills in, the morning dose is ticked), under 5 seconds so
      nothing keeps moving by itself (WCAG 2.2.2), and the three promises rise in as they scroll into view. All of this
      plays once per page load, never again on hover or on coming back from Log in. With a mouse, the picture tilts a
-     little towards it. With reduced motion everything is shown landed, at once. -->
+     little towards it. Behind it all, faint pills and tablets fall slowly through the teal like a waterfall (no pause
+     button, by the team's choice, as on the welcome page). With reduced motion everything is shown landed, at once,
+     and the pills don't fall. -->
 <script setup>
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -23,6 +25,32 @@ const doseText = () => t('explain.med.title', { amount: 1, unit: t('unit.tablet'
 
 const reduceMq = matchMedia('(prefers-reduced-motion: reduce)')
 const finePointer = matchMedia('(hover: hover) and (pointer: fine)')
+
+// The pill waterfall: the same pills on every visit (a fixed seed), spread across the band, more of them on the
+// picture's side so the words stay calm. Bigger pills are nearer: they fall faster, show more and lean more with the mouse.
+const seeded = (n) => {
+  const x = Math.sin(n * 9301 + 49297) * 233280
+  return x - Math.floor(x)
+}
+// Colours that sit well on the teal and next to the cream page: mint (the accent, lighter), honey, peach, blush and the
+// page's own cream. Capsules are two-tone (a colour and cream), like real ones; tablets are one colour.
+const PILL_COLOURS = ['#8af0e2', '#ffcf5c', '#ff9b73', '#ffb8ab', '#faf7f2']
+const PILLS = Array.from({ length: 18 }, (_, i) => {
+  const near = seeded(i + 1)
+  const side = seeded(i + 40)
+  return {
+    left: `${Math.round((i % 3 === 0 ? side * 45 : 40 + side * 58) * 10) / 10}%`,
+    size: Math.round(12 + near * 18), // px, the pill's height
+    round: seeded(i + 80) < 0.3, // a round tablet instead of a capsule
+    fall: `${Math.round(26 - near * 12)}s`, // nearer falls faster
+    delay: `${-Math.round(seeded(i + 120) * 26)}s`, // already on its way when the page opens
+    spin: `${seeded(i + 160) < 0.5 ? -1 : 1}`,
+    sway: `${Math.round(8 + seeded(i + 200) * 16)}px`,
+    colour: PILL_COLOURS[i % PILL_COLOURS.length],
+    alpha: (0.55 + near * 0.3).toFixed(3), // dimmed further behind the words (.rain's mask), so they stay easy to read
+    depth: `${Math.round(8 + near * 30)}px`,
+  }
+})
 
 // The words rise in once per page load, not every time someone comes back from Log in (one continuous place).
 const intro = !introPlayed && !reduceMq.matches
@@ -97,6 +125,15 @@ let introPlayed = false
       <span class="band-pill bp-1" aria-hidden="true"></span>
       <span class="band-pill bp-2" aria-hidden="true"></span>
       <span class="band-pill bp-3" aria-hidden="true"></span>
+      <!-- The pill waterfall. Decoration. -->
+      <span class="rain" aria-hidden="true">
+        <span
+          v-for="(p, i) in PILLS"
+          :key="i"
+          class="drop"
+          :style="{ left: p.left, '--size': `${p.size}px`, '--fall': p.fall, '--delay': p.delay, '--spin': p.spin, '--sway': p.sway, '--alpha': p.alpha, '--depth': p.depth, '--tint': p.colour }"
+        ><span class="drop-pill" :class="{ round: p.round }"></span></span>
+      </span>
       <div class="band-in">
         <div class="pitch">
           <h1 id="start-title">{{ t('start.title') }}</h1>
@@ -233,6 +270,21 @@ let introPlayed = false
 .intro .bp-3 { animation-delay: 400ms; }
 @keyframes pill-drift { from { opacity: 0; transform: translateY(40px); } }
 
+/* The pill waterfall: each drop is a full-height column that slides down by its own height (so the pill falls the whole
+   band, whatever its height), while the pill inside sways and turns. Soft colours (PILL_COLOURS), faint, behind everything; fading towards the
+   words on wide screens so the text stays easy to read. Leans with the mouse at its own depth. */
+.rain { position: absolute; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
+.drop { position: absolute; top: 0; height: 100%; translate: calc(var(--px, 0) * var(--depth)) calc(var(--py, 0) * var(--depth) * 0.5); transition: translate 900ms var(--ease-out); animation: fall var(--fall) linear var(--delay) infinite; }
+.drop-pill { position: absolute; top: calc(var(--size) * -3); left: 0; width: calc(var(--size) * 2.4); height: var(--size); border-radius: 999px; opacity: var(--alpha); background: linear-gradient(90deg, var(--tint) 50%, #faf7f2 50%); animation: sway calc(var(--fall) / 3) ease-in-out var(--delay) infinite alternate; }
+.drop-pill.round { width: var(--size); background: var(--tint); box-shadow: inset 0 0 0 calc(var(--size) / 6) rgba(255, 255, 255, 0.35); }
+.drop-pill.round::after { content: ''; position: absolute; left: 20%; right: 20%; top: calc(50% - 0.5px); height: 1px; background: rgba(0, 0, 0, 0.25); } /* the score line on a tablet */
+@keyframes fall { from { transform: translateY(0); } to { transform: translateY(calc(100% + var(--size) * 6)); } }
+@keyframes sway { from { transform: translateX(calc(var(--sway) * -1)) rotate(calc(var(--spin) * -35deg)); } to { transform: translateX(var(--sway)) rotate(calc(var(--spin) * 35deg)); } }
+/* Behind the words a pill shows at most about 0.21 (0.85 × 0.25): phones dim the middle column, wide screens the left
+   (words) side; the pills show in full colour beside the words and around the picture. */
+.rain { mask-image: linear-gradient(to right, #000, rgba(0, 0, 0, 0.25) 14%, rgba(0, 0, 0, 0.25) 86%, #000); }
+@media (min-width: 992px) { .rain { mask-image: linear-gradient(to right, #000 3%, rgba(0, 0, 0, 0.25) 6%, rgba(0, 0, 0, 0.25) 50%, #000 55%); } }
+
 /* "Join for free": a light sweeps across it once (first visit); the arrow leans the way it goes on hover. */
 .join { position: relative; overflow: hidden; isolation: isolate; }
 .join::after { content: ''; position: absolute; inset: 0; z-index: -1; background: linear-gradient(105deg, transparent 35%, rgba(42, 157, 143, 0.18) 50%, transparent 65%); transform: translateX(-110%); }
@@ -287,7 +339,7 @@ let introPlayed = false
   .start *, .start *::before, .start *::after { animation: none !important; transition: none !important; translate: none !important; }
   .phone { rotate: none !important; }
   .watching li { opacity: 1; transform: none; }
-  .beam { display: none; }
+  .beam, .rain { display: none; }
 }
 
 @media (max-width: 575.98px) {
