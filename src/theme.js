@@ -1,8 +1,10 @@
 // Day/night mode. Three choices: day ('light'), night ('dark') or the same as this phone or computer ('system').
 // Day mode unless the person picked another (the sidebar toggle, Sign up's question or the Account page); the pick is
 // remembered on this device and saved to the account (stores/auth.js). index.html sets the first value before the app
-// loads, so the page never flashes.
+// loads, so the page never flashes. Night mode belongs to an account: logged out (no saved login), it is always day mode,
+// and logging out goes back to day (resetTheme).
 import { ref } from 'vue'
+import { readToken } from './api/client'
 import { canFade, fadeScreen } from './screenFade'
 
 const STORAGE_KEY = 'theme'
@@ -10,6 +12,7 @@ export const THEMES = ['light', 'dark', 'system']
 export const THEME_ICONS = { light: 'sun', dark: 'moon', system: 'smartphone' }
 
 function saved() {
+  if (!readToken()) return 'light'
   try {
     const value = localStorage.getItem(STORAGE_KEY)
     return THEMES.includes(value) ? value : 'light'
@@ -52,6 +55,18 @@ export function setTheme(choice, pressed = null) {
     localStorage.setItem(STORAGE_KEY, choice)
   } catch {
     // Not critical; the choice just won't persist on this device.
+  }
+}
+
+// Logged out: back to day mode, and this device forgets the pick (the account keeps it for the next login).
+// Inside the log-out fade (stores/auth.js), so the colours change with the rest of the screen.
+export function resetTheme() {
+  themeChoice.value = 'light'
+  apply()
+  try {
+    localStorage.removeItem(STORAGE_KEY)
+  } catch {
+    // Storage blocked: nothing was saved anyway.
   }
 }
 

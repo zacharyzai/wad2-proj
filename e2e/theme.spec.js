@@ -95,3 +95,18 @@ test('Esc on the day/night question keeps day mode, saves it, and moves on', asy
   await expect(page.getByTestId('theme-prompt')).toHaveCount(0)
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'light')
 })
+
+test('logging out always goes back to day mode, also after a reload', async ({ page }) => {
+  await page.goto('/account')
+  await page.getByTestId('account-theme').getByRole('button', { name: 'Night' }).click()
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
+
+  await page.getByTestId('account-logout').click()
+  await page.getByTestId('account-logout-yes').click()
+  await expect(page).toHaveURL(/\/start/)
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light')
+  await expect(page.locator('body')).not.toHaveCSS('background-color', NIGHT_BG)
+
+  await page.reload() // index.html: no saved login, so day mode before the app loads too
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light')
+})

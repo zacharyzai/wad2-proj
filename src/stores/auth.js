@@ -9,7 +9,7 @@
 import { reactive, watch } from 'vue'
 import { api, TOKEN_KEY, readToken } from '../api/client'
 import i18n, { setLocale } from '../i18n'
-import { setTheme } from '../theme'
+import { resetTheme, setTheme } from '../theme'
 import { fadeScreen } from '../screenFade'
 
 const USER_KEY = 'user'
@@ -69,6 +69,7 @@ export function restore() {
       // Only a bad token logs you out, not a network blip (then the saved copy keeps working).
       save(null)
       authStore.user = null
+      resetTheme()
     }
     authStore.checked = true
   })
@@ -185,8 +186,10 @@ export function leaveApp(router) {
   }, 'enter')
 }
 
+// Night mode is for logged-in accounts only: logging out always goes back to day mode.
 export function logout() {
   save(null)
   authStore.user = null
   authStore.checked = true
+  resetTheme()
 }
