@@ -13,6 +13,7 @@ import AppIcon from '../layout/AppIcon.vue'
 
 const props = defineProps({
   entries: { type: Array, required: true }, // every ScheduleEntry, flagged ones included
+  next: { type: String, default: '/schedule' }, // the page Google sends them back to
 })
 const emit = defineEmits(['notify']) // (text, bad): the page's short message at the bottom
 
@@ -95,7 +96,7 @@ watch(payload, () => {
 
 async function connect() {
   busy.value = true
-  const res = await googleConnect('/schedule')
+  const res = await googleConnect(props.next)
   if (res.ok) return window.location.assign(res.data.url) // Google's permission page; it sends them back here
   busy.value = false
   if (!onError(res.error.code)) emit('notify', t(`errors.${res.error.code}`), true)
@@ -132,7 +133,7 @@ onMounted(async () => {
   // Back from Google's permission page: say how it went, then tidy the address so a reload doesn't say it again.
   const result = RESULTS.includes(route.query.google) ? route.query.google : null
   // Back from Google: tidy the address, staying on Reminders (where this card is shown).
-  if (route.query.google !== undefined) router.replace({ query: { ...route.query, google: undefined, view: 'reminders' } })
+  if (route.query.google !== undefined) router.replace({ query: { ...route.query, google: undefined, ...(route.name === 'schedule' && { view: 'reminders' }) } })
   if (result) emit('notify', t(`schedule.calendar.result.${result}`), result !== 'connected')
 
   const res = await googleStatus()
@@ -151,8 +152,8 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <!-- With no medicines, a Connect button has nothing to put in the calendar; once connected it stays, so Disconnect is reachable. -->
-  <section v-if="state !== 'hidden' && state !== 'loading' && (entries.length || state !== 'off')" class="card gap-3" aria-labelledby="calendar-title" data-testid="schedule-calendar">
+  <!-- Shown even with no medicines yet, so it can be found (and connected) before the first label is scanned. -->
+  <section v-if="state !== 'hidden' && state !== 'loading'" class="card gap-3" aria-labelledby="calendar-title" data-testid="schedule-calendar">
     <h2 id="calendar-title" class="d-flex align-items-center gap-3"><span class="tile tile-soft"><AppIcon name="calendar" :size="22" /></span>{{ t('schedule.calendar.title') }}</h2>
 
     <template v-if="state === 'off'">

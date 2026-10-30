@@ -1040,7 +1040,8 @@
     "tab": {
       "today": "Today",
       "week": "This week",
-      "meds": "My medicines"
+      "meds": "My medicines",
+      "reminders": "Reminders"
     },
     "add": "Add medicine",
     "back": "Back to schedule",

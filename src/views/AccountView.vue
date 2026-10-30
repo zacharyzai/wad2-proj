@@ -15,6 +15,12 @@ import BigButton from '../components/layout/BigButton.vue'
 import ErrorBanner from '../components/layout/ErrorBanner.vue'
 import AppIcon from '../components/layout/AppIcon.vue'
 import CaregiverCard from '../components/care/CaregiverCard.vue'
+import CalendarSync from '../components/schedule/CalendarSync.vue'
+import { medicines } from '../stores/medicines'
+import { buildSchedule } from '../rules/schedule'
+
+// The same whole schedule the Schedule page sends, so connecting or syncing here puts the right doses in the calendar.
+const entries = computed(() => medicines.map((m) => buildSchedule(m, m.schedule ?? {})))
 
 const CITIZENSHIPS = ['birth', 'became', 'pr', 'other']
 const today = new Date().toISOString().slice(0, 10)
@@ -162,6 +168,8 @@ function leave() {
     
     <!-- Seniors only: who can see my doses, and Invite a caregiver. -->
     <CaregiverCard v-if="(user.role ?? 'senior') !== 'caregiver'" />
+
+    <CalendarSync :entries="entries" next="/account" @notify="notify" />
 
     <Card :title="t('nav.language')">
       <p class="text-muted-a11y m-0">{{ t('account.languageNote') }}</p>

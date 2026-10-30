@@ -1040,7 +1040,8 @@
     "tab": {
       "today": "Hari ini",
       "week": "Minggu ini",
-      "meds": "Ubat saya"
+      "meds": "Ubat saya",
+      "reminders": "Peringatan"
     },
     "add": "Tambah ubat",
     "back": "Kembali ke jadual",

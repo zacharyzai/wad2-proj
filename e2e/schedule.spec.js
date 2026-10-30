@@ -199,7 +199,7 @@ test('tabs: Today, This week and My medicines are pages of their own; time cards
   await seed(page, [PANADOL, SCHEDULED, BEDTIME])
   await page.goto('/schedule')
   const tabs = page.getByRole('navigation', { name: 'Medicine schedule' }).getByRole('link')
-  await expect(tabs).toHaveText(['Today', 'This week', 'My medicines'])
+  await expect(tabs).toHaveText(['Today', 'This week', 'My medicines', 'Reminders'])
   await expect(tabs.first()).toHaveAttribute('aria-current', 'page')
   const [morning, evening] = await Promise.all(['08:00', '18:00'].map((time) => page.getByTestId(`slot-${time}`).boundingBox()))
   if (isMobile) expect(evening.y).toBeGreaterThan(morning.y + morning.height - 1) // one column
