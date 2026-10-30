@@ -1,6 +1,7 @@
 // Day/night mode. Three choices: day ('light'), night ('dark') or the same as this phone or computer ('system').
-// Day mode unless the person picked another (on Sign up or the Account page); the pick is remembered on this device
-// and saved to the account (stores/auth.js). index.html sets the first value before the app loads, so the page never flashes.
+// Day mode unless the person picked another (the sidebar toggle, Sign up's question or the Account page); the pick is
+// remembered on this device and saved to the account (stores/auth.js). index.html sets the first value before the app
+// loads, so the page never flashes.
 import { ref } from 'vue'
 
 const STORAGE_KEY = 'theme'
@@ -17,17 +18,38 @@ function saved() {
 }
 
 const deviceDark = typeof matchMedia === 'function' ? matchMedia('(prefers-color-scheme: dark)') : null
+const reduceMotion = typeof matchMedia === 'function' ? matchMedia('(prefers-reduced-motion: reduce)') : null
 export const themeChoice = ref(saved()) // what they picked
+export const shownTheme = ref('light') // what is showing: always 'light' or 'dark' ('system' resolved)
 
 // What shows is always 'light' or 'dark' (tokens.css): 'system' becomes whichever the device is using now.
+const resolve = () => (themeChoice.value === 'system' ? (deviceDark?.matches ? 'dark' : 'light') : themeChoice.value)
 function apply() {
-  document.documentElement.dataset.theme = themeChoice.value === 'system' ? (deviceDark?.matches ? 'dark' : 'light') : themeChoice.value
+  shownTheme.value = resolve()
+  document.documentElement.dataset.theme = shownTheme.value
 }
 
-export function setTheme(choice) {
+// When someone presses Day or Night, the whole screen cross-fades from the old colours to the new ones in half a second,
+// as one picture (styles/global/motion.css), so nothing snaps or fades on its own timing. Without View Transitions:
+// every colour fades together. Reduced motion, a hidden tab, or a change nobody pressed (login, the device at sunset): at once.
+const FADE_MS = 500
+function applyChange(pressed) {
+  const root = document.documentElement
+  if (!pressed || reduceMotion?.matches || document.hidden || root.dataset.theme === resolve()) return apply()
+  if (!document.startViewTransition) {
+    root.classList.add('theme-fade')
+    apply()
+    return setTimeout(() => root.classList.remove('theme-fade'), FADE_MS)
+  }
+  root.classList.add('theme-vt')
+  document.startViewTransition(apply).finished.finally(() => root.classList.remove('theme-vt'))
+}
+
+// `pressed`: the click (or element) that chose it, so the change fades; omit it to change at once (login, saved choice).
+export function setTheme(choice, pressed = null) {
   if (!THEMES.includes(choice)) return
   themeChoice.value = choice
-  apply()
+  applyChange(pressed)
   try {
     localStorage.setItem(STORAGE_KEY, choice)
   } catch {

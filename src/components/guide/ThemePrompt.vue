@@ -40,7 +40,7 @@ function finish() {
     <h2 id="theme-ask-title">{{ t('account.theme.title') }}</h2>
     <p id="theme-ask-text" class="m-0">{{ t('account.theme.note') }}</p>
     <div class="segmented theme-choices" role="group" aria-labelledby="theme-ask-title">
-      <button v-for="c in THEMES" :key="c" type="button" :aria-pressed="themeChoice === c" :autofocus="themeChoice === c" :data-theme-choice="c" @click="setTheme(c)">
+      <button v-for="c in THEMES" :key="c" type="button" :aria-pressed="themeChoice === c" :autofocus="themeChoice === c" :data-theme-choice="c" @click="setTheme(c, $event)">
         <AppIcon :name="THEME_ICONS[c]" :size="22" />{{ t(`account.theme.${c}`) }}
       </button>
     </div>

@@ -82,9 +82,9 @@ async function chooseLanguage(code) {
 }
 
 // Day, night or the same as this device: the page changes at once; the account remembers it for every device.
-async function chooseTheme(choice) {
+async function chooseTheme(choice, event) {
   if (choice === themeChoice.value) return
-  setTheme(choice)
+  setTheme(choice, event) // pressed: the screen cross-fades to the new colours
   const res = await saveTheme(choice)
   notify(res?.ok ? t('account.toast') : t(`errors.${res?.error.code ?? 'SERVER_ERROR'}`), !res?.ok)
 }
@@ -173,7 +173,7 @@ function leave() {
     <Card :title="t('account.theme.title')">
       <p class="text-muted-a11y m-0">{{ t('account.theme.note') }}</p>
       <div class="segmented theme-choices" role="group" :aria-label="t('account.theme.title')" data-testid="account-theme">
-        <button v-for="c in THEMES" :key="c" type="button" :aria-pressed="themeChoice === c" :data-theme-choice="c" @click="chooseTheme(c)">
+        <button v-for="c in THEMES" :key="c" type="button" :aria-pressed="themeChoice === c" :data-theme-choice="c" @click="chooseTheme(c, $event)">
           <AppIcon :name="THEME_ICONS[c]" :size="22" />{{ t(`account.theme.${c}`) }}
         </button>
       </div>

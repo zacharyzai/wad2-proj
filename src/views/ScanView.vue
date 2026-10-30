@@ -8,6 +8,7 @@ import { redactImage, warmUp } from '../utils/redact'
 import { scanStore } from '../stores/scan'
 import AppIcon from '../components/layout/AppIcon.vue'
 import LoadingState from '../components/layout/LoadingState.vue'
+import PillLoader from '../components/layout/PillLoader.vue'
 import UploadDropzone from '../components/scan/UploadDropzone.vue'
 import ReadAloud from '../components/explain/ReadAloud.vue'
 
@@ -278,16 +279,13 @@ onMounted(() => {
       <img v-if="coverView.covered" :src="coverView.covered" alt="" class="cover-after" />
       <span class="cover-line"></span>
     </div>
+    <!-- Reading a sample (no photo to show): the turning pill, large, inside soft pulsing rings. -->
     <div v-else class="progress-ring" aria-hidden="true">
-      <svg width="216" height="216" viewBox="0 0 216 216">
-        <circle cx="108" cy="108" r="96" fill="none" stroke="var(--color-surface-2)" stroke-width="12" />
-        <circle cx="108" cy="108" r="96" fill="none" stroke="var(--color-primary)" stroke-width="12" stroke-linecap="round" stroke-dasharray="603" stroke-dashoffset="400" />
-      </svg>
       <span class="progress-ring__pulse" style="inset: 26px"></span>
       <span class="progress-ring__pulse" style="inset: 42px"></span>
-      <span class="progress-ring__core"><AppIcon :name="readingType === 'bill' ? 'receipt' : 'pill'" :size="40" /></span>
+      <span class="progress-ring__core"><PillLoader :size="66" /></span>
     </div>
-    <LoadingState :label="covering ? t('scan.covering') : t(`scan.reading.${readingType}`)" />
+    <LoadingState :label="covering ? t('scan.covering') : t(`scan.reading.${readingType}`)" :pill="!!coverView" />
     <!-- A photo goes through two steps: covered on this phone, then read. Samples only have the second. -->
     <ol v-if="coverView" class="scan-steps" data-testid="scan-steps">
       <li :class="covering ? 'now' : 'done'" :aria-current="covering ? 'step' : null">

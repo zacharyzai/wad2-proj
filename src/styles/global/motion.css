@@ -1,7 +1,6 @@
 /* Owner: Isaac. Entry motion and loading states. Everything respects prefers-reduced-motion. */
 @keyframes ahma-rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
 @keyframes ahma-pulse { 0%, 100% { transform: scale(1); opacity: 0.5; } 50% { transform: scale(1.06); opacity: 1; } }
-@keyframes ahma-spin { to { transform: rotate(360deg); } }
 .rise { animation: ahma-rise var(--dur) var(--ease-out) both; }
 .stagger > * { animation: ahma-rise var(--dur) var(--ease-out) both; }
 .stagger > :nth-child(2) { animation-delay: calc(var(--stagger) * 1); }
@@ -10,13 +9,25 @@
 .stagger > :nth-child(5) { animation-delay: calc(var(--stagger) * 4); }
 .stagger > :nth-child(n + 6) { animation-delay: calc(var(--stagger) * 5); }
 
-/* Busy ring: a spinning arc with two pulsing inner rings */
+/* Busy ring (Scan): the turning pill (PillLoader) in a card, with two soft pulsing rings around it */
 .progress-ring { position: relative; width: 216px; height: 216px; display: grid; place-items: center; }
-.progress-ring > svg { position: absolute; inset: 0; animation: ahma-spin 1.6s linear infinite; }
 .progress-ring__pulse { position: absolute; border-radius: 50%; border: 2px solid var(--color-tint-strong); animation: ahma-pulse 2s ease-in-out infinite; }
 .progress-ring__pulse + .progress-ring__pulse { border-color: var(--color-tint); animation-delay: 0.4s; }
 .progress-ring__core { position: relative; width: 104px; height: 104px; border-radius: 50%; background: var(--color-card); box-shadow: var(--shadow-card); display: grid; place-items: center; color: var(--color-primary-text); }
 .reassure-pill { display: inline-flex; align-items: center; gap: 10px; padding: 12px 20px; border-radius: var(--r-pill); background: var(--color-card); border: 1px solid var(--color-border); box-shadow: var(--shadow-card); font-size: 17px; font-weight: 600; }
+
+/* Day ↔ night (src/theme.js): the whole screen cross-fades from the old colours to the new in half a second, as one
+   picture (the page's own transition layers are folded in), so every part changes together. */
+.theme-vt #main, .theme-vt .ft, .theme-vt .nav, .theme-vt .cover-view, .theme-vt .photo.stick { view-transition-name: none !important; }
+.theme-vt::view-transition-group(root) { animation: none; }
+.theme-vt::view-transition-old(root) { animation: theme-out 500ms cubic-bezier(0.4, 0, 0.2, 1) both; }
+.theme-vt::view-transition-new(root) { animation: theme-in 500ms cubic-bezier(0.4, 0, 0.2, 1) both; }
+@keyframes theme-out { to { opacity: 0; } }
+@keyframes theme-in { from { opacity: 0; } }
+/* Without View Transitions (older browsers): every colour fades together instead. */
+.theme-fade, .theme-fade *, .theme-fade *::before, .theme-fade *::after {
+  transition: background-color 500ms ease, color 500ms ease, border-color 500ms ease, fill 500ms ease, stroke 500ms ease, box-shadow 500ms ease !important;
+}
 
 /* Page transitions (src/router/index.js): only the page content moves; the sidebar and tab bar stay put. */
 #main { view-transition-name: page; }
@@ -48,5 +59,5 @@
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; animation-delay: 0ms !important; transition-duration: 0.01ms !important; }
   .btn:active, .choice:active, .card-interactive:hover { transform: none !important; }
   .card-interactive:active { scale: none !important; }
-  .progress-ring > svg, .progress-ring__pulse { animation: none !important; }
+  .progress-ring__pulse { animation: none !important; }
 }

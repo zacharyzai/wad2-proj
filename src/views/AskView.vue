@@ -14,6 +14,7 @@ import { askMedicine } from '../api/client'
 import { medicines, rememberMedicine, forgetMedicine, restoreMedicine } from '../stores/medicines'
 import { speak, stopSpeaking } from '../stores/speech'
 import AppIcon from '../components/layout/AppIcon.vue'
+import PillLoader from '../components/layout/PillLoader.vue'
 
 const CHIPS = ['when', 'food', 'missed', 'store']
 // Fallback follow-ups under an answer, by the chip that was asked (typed questions use `typed`), when the AI suggested none.
@@ -296,7 +297,7 @@ onBeforeUnmount(() => {
             <span class="visually-hidden">{{ t('ask.bot') }}: </span>
 
             <div v-if="m.state === 'loading'" class="thinking" data-testid="ask-loading">
-              <span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>{{ t('ask.thinking') }}
+              <PillLoader :size="28" class="me-3" />{{ t('ask.thinking') }}
             </div>
 
             <div v-else-if="m.state === 'error'" class="alert alert-warning flex-column rise" role="alert">
@@ -330,7 +331,8 @@ onBeforeUnmount(() => {
                 <p>{{ answerText(m) }}</p>
                 <div class="actions">
                   <button type="button" class="btn btn-outline btn-sm listen" :aria-pressed="speaking === m.id" :aria-busy="speaking === m.id && preparing" @click="speaking === m.id ? stopReading() : play(m)">
-                    <AppIcon :name="speaking === m.id ? 'pause' : 'volume'" :size="20" />
+                    <PillLoader v-if="speaking === m.id && preparing" :size="22" />
+                    <AppIcon v-else :name="speaking === m.id ? 'pause' : 'volume'" :size="20" />
                     {{ speaking === m.id ? (preparing ? t('player.preparing') : t('ask.read.stop')) : t('ask.read.play') }}
                   </button>
                   <span v-if="speakFailed === m.id" class="text-muted-a11y" role="status">{{ t('player.failed') }}</span>

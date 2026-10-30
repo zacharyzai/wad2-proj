@@ -62,11 +62,6 @@
 .mic-status { padding-left: 18px; font-weight: 700; color: var(--color-tint-text); }
 
 /* Dots while waiting; the global reduced-motion rule stops the animation. */
-.dots { display: inline-flex; gap: 5px; margin-right: 10px; }
-.dots i { width: 8px; height: 8px; border-radius: 50%; background: var(--color-primary-text); animation: blink 1.2s infinite ease-in-out; }
-.dots i:nth-child(2) { animation-delay: 0.2s; }
-.dots i:nth-child(3) { animation-delay: 0.4s; }
-@keyframes blink { 0%, 80%, 100% { opacity: 0.3; } 40% { opacity: 1; } }
 
 /* Above the phone tab bar and the composer; bottom corner on desktop. */
 .toast-undo { position: fixed; left: 16px; right: 16px; bottom: calc(96px + env(safe-area-inset-bottom)); z-index: 20; justify-content: space-between; max-width: 32em; margin: 0 auto; }

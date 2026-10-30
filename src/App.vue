@@ -7,6 +7,7 @@ import { setLocale } from './i18n'
 import AppIcon from './components/layout/AppIcon.vue'
 import GuideDialog from './components/guide/GuideDialog.vue'
 import ThemePrompt from './components/guide/ThemePrompt.vue'
+import ThemeToggle from './components/layout/ThemeToggle.vue'
 import { maybeShowGuide, openGuide } from './stores/guide'
 import { authStore } from './stores/auth'
 import './stores/scheduleSync'
@@ -93,6 +94,9 @@ router.afterEach(async (to, from, failure) => {
         <span class="navi-icon"><AppIcon name="compass" :size="22" /></span>
         <span class="navi-label">{{ t('guide.open') }}</span>
       </button>
+
+      <!-- Day / night, one tap from every page: above Language in the sidebar, beside Account in the phone header. -->
+      <div class="theme-box"><ThemeToggle /></div>
 
       <div class="lang-box">
         <span class="section-label desk-only">{{ t('nav.language') }}</span>
