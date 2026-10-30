@@ -41,7 +41,8 @@
     "billScan": "Scan a medical bill",
     "account": "Your account",
     "forgot": "Forgot your password?",
-    "reset": "Choose a new password"
+    "reset": "Choose a new password",
+    "start": "Get started"
   },
   "care": {
     "lead": "The people who invited you. Tap a name to see today's medicines.",
@@ -640,7 +641,8 @@
       "badTitle": "This link has expired or was already used",
       "badText": "Reset links work for 30 minutes, and only once. You can ask for a new one.",
       "newLink": "Send me a new link"
-    }
+    },
+    "newHere": "New here?"
   },
   "landing": {
     "hero": {
@@ -887,7 +889,9 @@
       "system": "Same as my phone",
       "note": "Night mode has a dark background, easier on the eyes in a dark room. “Same as my phone” follows your phone or computer’s own setting.",
       "later": "You can change this any time on your Account page."
-    }
+    },
+    "logoutBye": "Come back soon!",
+    "stay": "Stay logged in"
   },
   "guide": {
     "open": "How to use the app",
@@ -942,9 +946,7 @@
         "b": "Try a sample label to see it all work, or start using the app."
       }
     },
-    "begin": "Show me around",
-    "tapHint": "Tap the glowing button",
-    "there": "Take me there"
+    "tapHint": "Tap the glowing button, or press Next."
   },
   "schedule": {
     "empty": {
@@ -1082,5 +1084,12 @@
       "timesHelp": "To change a time, open My medicines and choose Change."
     },
     "supply": "From the label: {qty}, {per} a day, so it lasts {days} day. | From the label: {qty}, {per} a day, so it lasts {days} days."
+  },
+  "start": {
+    "title": "An easier way to understand your medicine and bills.",
+    "text": "Take a photo of a medicine label or a medical bill. We explain it in simple words, in your language, and read it aloud.",
+    "join": "Join for free",
+    "have": "Already have an account?",
+    "what": "What you get"
   }
 }

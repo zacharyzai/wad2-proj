@@ -1,8 +1,9 @@
 <!-- Beginner's guide (Claude Design "Tour", extended into a walk through the real app). Steps come from stores/guide.js:
      card  - a centred card (bottom sheet on phones) over a dimmed page: the welcome and the finish.
-     tap   - the real nav button glows; everything else is dimmed and blocked. Tapping it opens that page and moves on
-             ("Take me there" does the same for anyone who can't find it, or uses a keyboard).
+     tap   - the real nav button glows; everything else is dimmed and blocked. Tapping it opens that page and moves on;
+             so does Next (for anyone who can't find it, or uses a keyboard).
      look  - on the page just opened, points at one key button; Next moves on.
+     Every step that leads on has the same Next button, in the same place, so there is one thing to press throughout.
      Skip / Esc end it any time (marked seen). Focus goes to each step's title; card steps keep focus inside. -->
 <script setup>
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
@@ -50,8 +51,9 @@ function next() {
   stopVoice()
   nextStep()
 }
-function takeMeThere() {
-  router.push(step.value.target)
+// Next on a tap step does the tap: opens that page and moves on.
+function nextOrGo() {
+  if (step.value.kind === 'tap') router.push(step.value.target)
   next()
 }
 function end(kind) {
@@ -237,7 +239,7 @@ onBeforeUnmount(() => {
           <p id="guide-text">{{ say('b') }}</p>
         </div>
       </div>
-      <button v-if="step.id === 'intro'" type="button" class="btn btn-primary" data-testid="guide-next" @click="next">{{ t('guide.begin') }}<AppIcon name="right" /></button>
+      <button v-if="step.id === 'intro'" type="button" class="btn btn-primary" data-testid="guide-next" @click="next">{{ t('guide.next') }}<AppIcon name="right" /></button>
       <div v-else class="d-flex flex-column gap-3">
         <button type="button" class="btn btn-primary" data-testid="guide-sample" @click="end('sample')"><AppIcon name="pill" />{{ t('guide.try') }}</button>
         <button type="button" class="btn btn-outline g-outline" data-testid="guide-start" @click="end('start')">{{ t('guide.start') }}</button>
@@ -262,11 +264,8 @@ onBeforeUnmount(() => {
         </div>
         <h2 id="guide-title" ref="title" tabindex="-1">{{ say('t') }}</h2>
         <p id="guide-text">{{ say('b') }}</p>
-        <template v-if="step.kind === 'tap'">
-          <p class="tap-hint"><AppIcon name="sparkles" :size="20" />{{ t('guide.tapHint') }}</p>
-          <button type="button" class="there" data-testid="guide-there" @click="takeMeThere">{{ t('guide.there') }}<AppIcon name="right" :size="18" /></button>
-        </template>
-        <button v-else type="button" class="btn btn-primary btn-sm g-next" data-testid="guide-next" @click="next">{{ t('guide.next') }}<AppIcon name="right" :size="20" /></button>
+        <p v-if="step.kind === 'tap'" class="tap-hint"><AppIcon name="sparkles" :size="20" />{{ t('guide.tapHint') }}</p>
+        <button type="button" class="btn btn-primary btn-sm g-next" data-testid="guide-next" @click="nextOrGo">{{ t('guide.next') }}<AppIcon name="right" :size="20" /></button>
       </div>
     </div>
   </div>
@@ -325,7 +324,6 @@ p { margin: 0; font-size: 18px; line-height: 1.55; text-wrap: pretty; }
 .side-below .arrow { top: 0; }
 .tap-hint { display: flex; align-items: center; gap: 8px; color: var(--color-tint-text); font-weight: 700; }
 .tap-hint .icon { flex: none; animation: bob 1.2s ease-in-out infinite; }
-.there { align-self: flex-start; display: inline-flex; align-items: center; gap: 4px; min-height: var(--hit); padding: 0 2px; border: 0; background: none; color: var(--color-link); font-size: 17px; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
 .g-next { align-self: flex-end; min-height: var(--z52, 52px); }
 
 /* ---- closing message (fades after 3 seconds) ---- */

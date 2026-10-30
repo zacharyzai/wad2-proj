@@ -4,14 +4,15 @@
 import { computed, onBeforeUnmount, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { authStore, logout, saveLanguage, saveTheme, updateProfile } from '../stores/auth'
-import { LOCALES, setLocale } from '../i18n'
+import { authStore, leaveApp, saveLanguage, saveTheme, updateProfile } from '../stores/auth'
+import { LOCALES, chooseLocale } from '../i18n'
 import { THEME_ICONS, THEMES, setTheme, themeChoice } from '../theme'
 import { openGuide } from '../stores/guide'
 import { INCOMES, citizenshipText, incomeText, isCitizen } from '../utils/account'
 import PageHeader from '../components/layout/PageHeader.vue'
 import Card from '../components/layout/Card.vue'
 import BigButton from '../components/layout/BigButton.vue'
+import LeaveDialog from '../components/layout/LeaveDialog.vue'
 import ErrorBanner from '../components/layout/ErrorBanner.vue'
 import AppIcon from '../components/layout/AppIcon.vue'
 import CaregiverCard from '../components/care/CaregiverCard.vue'
@@ -72,11 +73,11 @@ async function save() {
   notify(t('account.toast'))
 }
 
-// Language: the page switches at once; the account remembers it for every device they log in on.
+// Language: the page fades into the new words; the account remembers it for every device they log in on.
 async function chooseLanguage(code) {
   if (code === locale.value) return
   const saving = saveLanguage(code) // first, so the store's own language watcher doesn't save it twice
-  setLocale(code)
+  chooseLocale(code)
   const res = await saving
   notify(res?.ok ? t('account.toast') : t(`errors.${res?.error.code ?? 'SERVER_ERROR'}`), !res?.ok)
 }
@@ -99,11 +100,11 @@ function notify(text, bad = false) {
 }
 onBeforeUnmount(() => clearTimeout(toastTimer))
 
-// H5: one stray tap must not log a senior out (logging back in needs the password, and there is no reset yet), so ask first.
+// H5: one stray tap must not log a senior out (logging back in needs the password), so a pop-up asks first (LeaveDialog).
 const askLeave = ref(false)
 function leave() {
-  logout()
-  router.push({ name: 'login' })
+  askLeave.value = false
+  leaveApp(router) // a calm fade to Start: the next person on a shared phone may be someone else
 }
 </script>
 
@@ -181,15 +182,8 @@ function leave() {
 
     <!-- The Beginner's guide again (on phones this is the only way back to it; desktop also has it in the sidebar). -->
     <button type="button" class="btn btn-outline" data-testid="account-guide" @click="openGuide"><AppIcon name="compass" />{{ t('guide.open') }}</button>
-    <BigButton v-if="!askLeave" variant="alt" data-testid="account-logout" @click="askLeave = true"><AppIcon name="logout" />{{ t('account.logout') }}</BigButton>
-    <div v-else class="alert alert-warning flex-column" role="alertdialog" aria-labelledby="leave-q" data-testid="account-logout-ask">
-      <strong id="leave-q">{{ t('account.logoutAsk') }}</strong>
-      <span>{{ t('account.logoutNote') }}</span>
-      <div class="d-flex flex-column flex-sm-row gap-3">
-        <button type="button" class="btn btn-primary" data-testid="account-logout-yes" @click="leave"><AppIcon name="logout" />{{ t('account.logout') }}</button>
-        <button type="button" class="btn btn-secondary" @click="askLeave = false">{{ t('account.cancel') }}</button>
-      </div>
-    </div>
+    <BigButton variant="alt" data-testid="account-logout" @click="askLeave = true"><AppIcon name="logout" />{{ t('account.logout') }}</BigButton>
+    <LeaveDialog :open="askLeave" @stay="askLeave = false" @leave="leave" />
 
     <!-- Always in the page, so screen readers announce what appears in it. -->
     <div class="toast-slot" role="status" aria-live="polite">

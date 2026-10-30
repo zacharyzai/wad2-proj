@@ -10,6 +10,7 @@ import { reactive, watch } from 'vue'
 import { api, TOKEN_KEY, readToken } from '../api/client'
 import i18n, { setLocale } from '../i18n'
 import { setTheme } from '../theme'
+import { fadeScreen } from '../screenFade'
 
 const USER_KEY = 'user'
 
@@ -74,18 +75,38 @@ export function restore() {
   return pending
 }
 
+// The account's language and day/night, held back after logging in until the app opens (enterApp), so they arrive in
+// the same calm fade as the first page instead of snapping in, one after the other, on the Log in page.
+let arrival = null
+function settleArrival() {
+  const go = arrival
+  arrival = null
+  go?.()
+}
+
 async function start(path, body, remember) {
   const res = await api(path, { method: 'POST', body: { ...body, remember } })
   if (res.ok) {
-    save(res.data.token, remember, res.data.user)
-    authStore.user = res.data.user
-    useAccountLanguage(res.data.user, pickedLoggedOut)
-    useAccountTheme(res.data.user)
+    const user = res.data.user
+    const keepPicked = pickedLoggedOut
+    save(res.data.token, remember, user)
+    authStore.user = user
+    arrival = () => {
+      useAccountLanguage(user, keepPicked)
+      useAccountTheme(user)
+    }
     pickedLoggedOut = false
     authStore.checked = true
   }
   return res // { ok, data } or { ok: false, error: { code } }
 }
+
+// Into the app after logging in, creating an account or choosing a new password: the page fades out and the first page
+// fades and settles in, already in the account's language and colours (screenFade.js).
+export const enterApp = (router, to) => fadeScreen(async () => {
+  settleArrival()
+  await router.push(to)
+}, 'enter')
 
 export const login = (email, password, remember = true) => start('/auth/login', { email, password }, remember)
 // Forgot your password? Emails a reset link if an account uses this address (the answer is the same either way).
@@ -153,6 +174,16 @@ watch(
     else if (authStore.user.language !== language) saveLanguage(language)
   },
 )
+
+// Log out, and the same calm fade back to Start. The saved login is cleared at once (closing the tab straight after
+// pressing Log out still logs out); only what is on screen changes inside the fade.
+export function leaveApp(router) {
+  save(null)
+  return fadeScreen(async () => {
+    logout()
+    await router.push({ name: 'start' })
+  }, 'enter')
+}
 
 export function logout() {
   save(null)

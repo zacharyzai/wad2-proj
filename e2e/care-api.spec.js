@@ -51,7 +51,7 @@ test('senior creates an invite → new caregiver signs up and accepts → senior
   async function logout() {
     await page.getByTestId('account-logout').click()
     await page.getByTestId('account-logout-yes').click()
-    await expect(page).toHaveURL(/\/login/)
+    await expect(page).toHaveURL(/\/start$/) // logging out opens Start
   }
   await login(seniorEmail)
   await expect(page.getByTestId('care-card')).toBeVisible()

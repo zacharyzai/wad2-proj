@@ -9,7 +9,7 @@ test.use({ storageState: { cookies: [], origins: [] }, loggedIn: false })
 const headline = (page) => page.getByTestId('landing-headline')
 const billCard = (page) => page.locator('#scan .bill')
 
-test('a first visit to "/" opens the welcome page once; after that "/" asks to log in', async ({ page }) => {
+test('a first visit to "/" opens the welcome page once; after that "/" opens Start (Join for free or Log in)', async ({ page }) => {
   await page.goto('/')
   await expect(page).toHaveURL(/\/welcome$/)
   await expect(page.getByRole('heading', { level: 1 })).toHaveAccessibleName('Understand your medical bills')
@@ -18,7 +18,7 @@ test('a first visit to "/" opens the welcome page once; after that "/" asks to l
   await expect(page.locator('.shell')).toHaveCount(0)
 
   await page.goto('/')
-  await expect(page).toHaveURL(/\/login$/) // every page needs an account
+  await expect(page).toHaveURL(/\/start$/) // every page needs an account
   await expect(page.getByTestId('landing-hero')).toHaveCount(0)
 })
 
@@ -28,7 +28,7 @@ test('someone with a login on this device skips the welcome page', async ({ page
   await expect(page).toHaveURL(/\/$/)
 })
 
-test('someone with an account who never saw the welcome page goes to Log in after logging out, not the welcome page', async ({ page }) => {
+test('someone with an account who never saw the welcome page goes to Start after logging out, not the welcome page', async ({ page }) => {
   await mockAuth(page)
   await page.goto('/login') // straight to Log in, e.g. from a link
   await fillLogin(page)
@@ -38,7 +38,7 @@ test('someone with an account who never saw the welcome page goes to Log in afte
     localStorage.removeItem('user')
   }) // logged out
   await page.goto('/')
-  await expect(page).toHaveURL(/\/login$/)
+  await expect(page).toHaveURL(/\/start$/)
 })
 
 test('signed in before: Home opens straight away, without waiting for the server', async ({ page }) => {

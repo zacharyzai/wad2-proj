@@ -3,7 +3,7 @@
 import { computed, nextTick, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { setLocale } from './i18n'
+import { chooseLocale } from './i18n'
 import AppIcon from './components/layout/AppIcon.vue'
 import GuideDialog from './components/guide/GuideDialog.vue'
 import ThemePrompt from './components/guide/ThemePrompt.vue'
@@ -101,7 +101,7 @@ router.afterEach(async (to, from, failure) => {
       <div class="lang-box">
         <span class="section-label desk-only">{{ t('nav.language') }}</span>
         <div class="segmented langs" role="group" :aria-label="t('nav.language')">
-          <button v-for="(label, code) in LANG_BUTTONS" :key="code" type="button" :lang="code" :aria-pressed="locale === code" @click="setLocale(code)">
+          <button v-for="(label, code) in LANG_BUTTONS" :key="code" type="button" :lang="code" :aria-pressed="locale === code" @click="chooseLocale(code)">
             {{ label }}
           </button>
         </div>

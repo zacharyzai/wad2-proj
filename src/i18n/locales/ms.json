@@ -100,7 +100,8 @@
     "careSenior": "Ubat hari ini",
     "sharedScan": "Ringkasan dikongsi",
     "forgot": "Lupa kata laluan?",
-    "reset": "Pilih kata laluan baharu"
+    "reset": "Pilih kata laluan baharu",
+    "start": "Mula"
   },
   "errors": {
     "WRONG_ROLE": "Tindakan ini memerlukan peranan akaun yang berbeza.",
@@ -640,7 +641,8 @@
       "badTitle": "Pautan ini sudah tamat tempoh atau sudah digunakan",
       "badText": "Pautan tetapan semula boleh digunakan selama 30 minit, dan sekali sahaja. Anda boleh meminta pautan baharu.",
       "newLink": "Hantar pautan baharu kepada saya"
-    }
+    },
+    "newHere": "Baru di sini?"
   },
   "landing": {
     "hero": {
@@ -887,7 +889,9 @@
       "system": "Sama seperti telefon saya",
       "note": "Mod malam menggunakan latar belakang gelap, lebih selesa untuk mata dalam bilik yang gelap. “Sama seperti telefon saya” mengikut tetapan telefon atau komputer anda sendiri.",
       "later": "Anda boleh menukarnya bila-bila masa di halaman Akaun anda."
-    }
+    },
+    "logoutBye": "Jumpa lagi!",
+    "stay": "Kekal log masuk"
   },
   "guide": {
     "open": "Cara guna aplikasi",
@@ -942,9 +946,7 @@
         "b": "Cuba label contoh untuk melihat semuanya berfungsi, atau mula guna aplikasi."
       }
     },
-    "begin": "Tunjukkan saya",
-    "tapHint": "Ketik butang yang bercahaya",
-    "there": "Bawa saya ke sana"
+    "tapHint": "Ketik butang yang bercahaya, atau tekan Seterusnya."
   },
   "schedule": {
     "empty": {
@@ -1082,5 +1084,12 @@
       "timesHelp": "Untuk menukar waktu, buka Ubat saya dan pilih Ubah."
     },
     "supply": "Daripada label: {qty}, {per} sehari, jadi ia cukup untuk {days} hari. | Daripada label: {qty}, {per} sehari, jadi ia cukup untuk {days} hari."
+  },
+  "start": {
+    "title": "Cara lebih mudah untuk memahami ubat dan bil anda.",
+    "text": "Ambil gambar label ubat atau bil perubatan. Kami terangkan dengan kata-kata mudah, dalam bahasa anda, dan bacakannya.",
+    "join": "Sertai secara percuma",
+    "have": "Sudah ada akaun?",
+    "what": "Apa yang anda dapat"
   }
 }

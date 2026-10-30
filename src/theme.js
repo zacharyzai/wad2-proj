@@ -3,6 +3,7 @@
 // remembered on this device and saved to the account (stores/auth.js). index.html sets the first value before the app
 // loads, so the page never flashes.
 import { ref } from 'vue'
+import { canFade, fadeScreen } from './screenFade'
 
 const STORAGE_KEY = 'theme'
 export const THEMES = ['light', 'dark', 'system']
@@ -30,19 +31,16 @@ function apply() {
 }
 
 // When someone presses Day or Night, the whole screen cross-fades from the old colours to the new ones in half a second,
-// as one picture (styles/global/motion.css), so nothing snaps or fades on its own timing. Without View Transitions:
-// every colour fades together. Reduced motion, a hidden tab, or a change nobody pressed (login, the device at sunset): at once.
+// as one picture (screenFade.js), so nothing snaps or fades on its own timing. Without View Transitions: every colour
+// fades together. Reduced motion, a hidden tab, or a change nobody pressed (login, the device at sunset): at once.
 const FADE_MS = 500
 function applyChange(pressed) {
   const root = document.documentElement
   if (!pressed || reduceMotion?.matches || document.hidden || root.dataset.theme === resolve()) return apply()
-  if (!document.startViewTransition) {
-    root.classList.add('theme-fade')
-    apply()
-    return setTimeout(() => root.classList.remove('theme-fade'), FADE_MS)
-  }
-  root.classList.add('theme-vt')
-  document.startViewTransition(apply).finished.finally(() => root.classList.remove('theme-vt'))
+  if (canFade()) return fadeScreen(apply, 'theme')
+  root.classList.add('theme-fade')
+  apply()
+  setTimeout(() => root.classList.remove('theme-fade'), FADE_MS)
 }
 
 // `pressed`: the click (or element) that chose it, so the change fades; omit it to change at once (login, saved choice).

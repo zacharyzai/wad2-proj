@@ -17,11 +17,11 @@ const guide = (page) => page.getByTestId('guide')
 const title = (page) => page.locator('#guide-title')
 const stepText = (page, n) => expect(page.getByText(`Step ${n} of 9`)).toBeVisible()
 
-// From the welcome card to the finish card using "Take me there" and Next (no hunting for buttons).
+// From the welcome card to the finish card pressing only Next (no hunting for buttons).
 async function walkToFinish(page) {
   await page.getByTestId('guide-next').click() // welcome → Tap Scan
   for (let i = 0; i < 4; i++) {
-    await page.getByTestId('guide-there').click() // tap step → its page
+    await page.getByTestId('guide-next').click() // tap step → its page
     if (i < 3) await page.getByTestId('guide-next').click() // look step → next tap step
   }
   await expect(title(page)).toHaveText('You are ready')
@@ -81,10 +81,13 @@ function innerWidthOf(page) {
   return page.viewportSize().width
 }
 
-test('"Take me there" does the tap for you', async ({ page }) => {
+test('every step that leads on has the same Next button; on a "Tap" step it does the tap for you', async ({ page }) => {
   await page.goto('/')
+  await expect(page.getByTestId('guide-next')).toHaveText('Next') // the welcome card too
   await page.getByTestId('guide-next').click()
-  await page.getByTestId('guide-there').click()
+  await expect(page.getByText('Tap the glowing button, or press Next.')).toBeVisible()
+  await expect(page.getByTestId('guide-next')).toHaveText('Next')
+  await page.getByTestId('guide-next').click()
   await expect(page).toHaveURL(/\/scan$/)
   await expect(title(page)).toHaveText('Take a photo of the label')
 })
