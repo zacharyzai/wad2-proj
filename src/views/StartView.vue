@@ -1,7 +1,13 @@
 <!-- Owner: Isaac. The first page for anyone not logged in: what the app does in one sentence, "Join for free" (Create
      account) and "Log in", and a picture of it working: a real sample label behind a phone showing what the app makes of it.
-     Two choices only, both big and in words. The welcome page (/welcome) tells the longer story. -->
+     Two choices only, both big and in words. The welcome page (/welcome) tells the longer story.
+     Motion: on the first visit in this tab the words rise in one after another; the picture then tells its story once
+     (the label slides in, a scan line reads it, the phone fills in, the morning dose is ticked), under 5 seconds so
+     nothing keeps moving by itself (WCAG 2.2.2), and the three promises rise in as they scroll into view. All of this
+     plays once per page load, never again on hover or on coming back from Log in. With a mouse, the picture tilts a
+     little towards it. With reduced motion everything is shown landed, at once. -->
 <script setup>
+import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AppIcon from '../components/layout/AppIcon.vue'
 import PublicHeader from '../components/layout/PublicHeader.vue'
@@ -14,18 +20,83 @@ const PROMISES = [
 ]
 // The phone shows what the Explain page says about the sample label, in the page language (its own words).
 const doseText = () => t('explain.med.title', { amount: 1, unit: t('unit.tablet', 1), times: 2 }, 2)
+
+const reduceMq = matchMedia('(prefers-reduced-motion: reduce)')
+const finePointer = matchMedia('(hover: hover) and (pointer: fine)')
+
+// The words rise in once per page load, not every time someone comes back from Log in (one continuous place).
+const intro = !introPlayed && !reduceMq.matches
+introPlayed = true
+
+// The picture's story waits (paused at its first frame) until the picture is on screen; on phones it is below the words.
+const demo = ref(null)
+const playing = ref(!intro)
+
+// With a mouse, the picture leans a little towards it (the paper less, the phone more, the light the most).
+const band = ref(null)
+let frame = 0
+function lean(event) {
+  if (reduceMq.matches || !finePointer.matches || frame) return
+  frame = requestAnimationFrame(() => {
+    frame = 0
+    const box = band.value?.getBoundingClientRect()
+    if (!box) return
+    band.value.style.setProperty('--px', (((event.clientX - box.left) / box.width) * 2 - 1).toFixed(3))
+    band.value.style.setProperty('--py', (((event.clientY - box.top) / box.height) * 2 - 1).toFixed(3))
+  })
+}
+function unlean() {
+  cancelAnimationFrame(frame)
+  frame = 0
+  band.value?.style.setProperty('--px', 0)
+  band.value?.style.setProperty('--py', 0)
+}
+
+// The promises rise in as they scroll into view, first visit only (shown at once with reduced motion).
+const gets = ref(null)
+const watching = ref(false)
+let seen = null
+onMounted(() => {
+  if (!intro || typeof IntersectionObserver !== 'function') return void (playing.value = true)
+  watching.value = true
+  seen = new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries) {
+        if (!entry.isIntersecting) continue
+        if (entry.target === demo.value) playing.value = true
+        else entry.target.classList.add('seen')
+        seen.unobserve(entry.target)
+      }
+    },
+    { threshold: 0.3 },
+  )
+  seen.observe(demo.value)
+  for (const li of gets.value.querySelectorAll('li')) seen.observe(li)
+})
+onBeforeUnmount(() => {
+  seen?.disconnect()
+  cancelAnimationFrame(frame)
+})
+</script>
+
+<script>
+let introPlayed = false
 </script>
 
 <template>
-  <div class="start" :class="`lang-${locale}`">
+  <div class="start" :class="[`lang-${locale}`, { intro }]">
     <!-- Both choices in the top bar too, as on most sites (wider screens; on phones "Join for free" is the first button below). -->
     <PublicHeader>
       <RouterLink :to="{ name: 'login' }" class="btn btn-outline btn-sm head-btn" data-testid="start-header-login"><AppIcon name="user" :size="20" />{{ t('nav.login') }}</RouterLink>
       <RouterLink :to="{ name: 'signup' }" class="btn btn-primary btn-sm head-btn head-join" data-testid="start-header-join">{{ t('start.join') }}</RouterLink>
     </PublicHeader>
 
-    <section class="band" aria-labelledby="start-title">
+    <section ref="band" class="band" aria-labelledby="start-title" @pointermove="lean" @pointerleave="unlean">
       <span class="band-glow" aria-hidden="true"></span>
+      <!-- Soft capsules drifting in the teal, like the app's pills. Decoration. -->
+      <span class="band-pill bp-1" aria-hidden="true"></span>
+      <span class="band-pill bp-2" aria-hidden="true"></span>
+      <span class="band-pill bp-3" aria-hidden="true"></span>
       <div class="band-in">
         <div class="pitch">
           <h1 id="start-title">{{ t('start.title') }}</h1>
@@ -39,8 +110,9 @@ const doseText = () => t('explain.med.title', { amount: 1, unit: t('unit.tablet'
         </div>
 
         <!-- A real sample label, and the phone showing what the app makes of it. Decoration: the words say it. -->
-        <figure class="demo" aria-hidden="true">
+        <figure ref="demo" class="demo" :class="{ play: playing }" aria-hidden="true">
           <img src="/samples/med-1.svg" alt="" class="paper" width="480" height="360" />
+          <span class="beam"></span>
           <div class="phone">
             <span class="phone-top"><img src="/logo-192.png" alt="" class="phone-logo" />Ah Ma Ah Gong Can</span>
             <div class="phone-card">
@@ -67,7 +139,7 @@ const doseText = () => t('explain.med.title', { amount: 1, unit: t('unit.tablet'
       </svg>
     </section>
 
-    <section class="gets" aria-labelledby="start-gets">
+    <section ref="gets" class="gets" :class="{ watching }" aria-labelledby="start-gets">
       <h2 id="start-gets" class="section-label">{{ t('start.what') }}</h2>
       <ul>
         <li v-for="p in PROMISES" :key="p.key"><span class="tile tile-soft tile-lg"><AppIcon :name="p.icon" :size="26" /></span>{{ t(`auth.promise.${p.key}`) }}</li>
@@ -136,6 +208,87 @@ const doseText = () => t('explain.med.title', { amount: 1, unit: t('unit.tablet'
 .gets .tile { flex: none; }
 .note { display: flex; gap: 10px; margin: 4px 0 0; font-size: 16px; line-height: 1.5; color: var(--color-text-muted); }
 .note .icon { flex: none; margin-top: 2px; color: var(--color-primary-text); }
+
+/* ---------- Motion (see the note at the top). Every animation lands on the page's normal look. ---------- */
+/* The words, first visit only: one after another, a soft rise. */
+.intro .pitch > * { animation: start-rise 620ms var(--ease-out) both; }
+.intro .pitch > :nth-child(2) { animation-delay: 90ms; }
+.intro .pitch > :nth-child(3) { animation-delay: 190ms; }
+.intro .pitch > :nth-child(4) { animation-delay: 280ms; }
+.intro .pitch > :nth-child(5) { animation-delay: 360ms; }
+.intro .band-glow { animation: glow-in 1600ms var(--ease-out) both; }
+.wave-back { transform-box: fill-box; transform-origin: bottom; }
+.intro .wave-back { animation: wave-in 1800ms var(--ease-out) both; }
+@keyframes start-rise { from { opacity: 0; transform: translateY(18px); } }
+@keyframes glow-in { from { opacity: 0; transform: translate(80px, -60px) scale(0.85); } }
+@keyframes wave-in { from { transform: translateX(-6%) scaleY(0.6); } }
+
+/* Soft capsules in the teal: they drift in once, then follow the mouse at different depths. */
+.band-pill { position: absolute; z-index: -1; border-radius: 999px; background: rgba(255, 255, 255, 0.07); border: 1px solid rgba(255, 255, 255, 0.1); translate: calc(var(--px, 0) * var(--depth)) calc(var(--py, 0) * var(--depth)); transition: translate 900ms var(--ease-out); }
+.bp-1 { --depth: 18px; width: 120px; height: 44px; left: 4%; bottom: 18%; rotate: -24deg; }
+.bp-2 { --depth: -26px; width: 78px; height: 28px; left: 55%; top: 6%; rotate: 32deg; }
+.bp-3 { --depth: 34px; width: 54px; height: 20px; right: 6%; bottom: 30%; rotate: -48deg; }
+.intro .band-pill { animation: pill-drift 2200ms var(--ease-out) both; }
+.intro .bp-2 { animation-delay: 200ms; }
+.intro .bp-3 { animation-delay: 400ms; }
+@keyframes pill-drift { from { opacity: 0; transform: translateY(40px); } }
+
+/* "Join for free": a light sweeps across it once (first visit); the arrow leans the way it goes on hover. */
+.join { position: relative; overflow: hidden; isolation: isolate; }
+.join::after { content: ''; position: absolute; inset: 0; z-index: -1; background: linear-gradient(105deg, transparent 35%, rgba(42, 157, 143, 0.18) 50%, transparent 65%); transform: translateX(-110%); }
+.intro .join::after { animation: sweep 1100ms var(--ease-out) 900ms both; }
+.join .icon, .about .icon { transition: transform 240ms var(--ease-spring); }
+.join:hover .icon, .about:hover .icon { transform: translateX(5px); }
+.join:hover { box-shadow: 0 10px 28px rgba(0, 0, 0, 0.26); }
+@keyframes sweep { from { transform: translateX(-110%); } to { transform: translateX(110%); } }
+
+/* The picture leans towards the mouse (the --px and --py set by the script, -1 to 1). Separate from the story's motion. */
+.paper { translate: calc(var(--px, 0) * -8px) calc(var(--py, 0) * -6px); transition: translate 700ms var(--ease-out); }
+.phone { translate: calc(var(--px, 0) * 12px) calc(var(--py, 0) * 10px); rotate: calc(var(--px, 0) * 1.5deg); transition: translate 700ms var(--ease-out), rotate 700ms var(--ease-out); }
+.band-glow { translate: calc(var(--px, 0) * 60px) calc(var(--py, 0) * 40px); transition: translate 1200ms var(--ease-out); }
+
+/* The story, about 4.5 seconds, first visit only, paused on its first frame until the picture is on screen (.play). */
+.intro .demo .paper { animation: paper-in 760ms var(--ease-spring) 100ms both; }
+.beam { position: absolute; left: 0; top: 6%; width: 74%; aspect-ratio: 480 / 360; border-radius: 12px; overflow: hidden; transform: rotate(-6deg); pointer-events: none; }
+.intro .beam::before { content: ''; position: absolute; left: -4%; right: -4%; top: 0; height: 22%; background: linear-gradient(to bottom, transparent, rgba(42, 157, 143, 0.28) 85%, rgba(42, 157, 143, 0.85) 98%, transparent); box-shadow: 0 6px 18px rgba(42, 157, 143, 0.35); animation: beam 1300ms cubic-bezier(0.45, 0, 0.55, 1) 800ms both; }
+.intro .demo .phone { animation: phone-in 760ms var(--ease-out) 1300ms both; }
+.intro .demo .phone-card { animation: card-pop 460ms var(--ease-spring) 1900ms both; }
+.intro .demo .phone-today { animation-delay: 2700ms; }
+.intro .demo .phone-chip.on { animation: chip-on 360ms var(--ease-out) 2300ms both; }
+.intro .demo .phone-chip.on + .phone-chip.on { animation-delay: 2500ms; }
+.intro .demo .phone-row.done .phone-box { animation: box-tick 300ms var(--ease-out) 3300ms both; }
+.intro .demo .phone-row.done .phone-box .icon { animation: tick-in 380ms var(--ease-spring) 3400ms both; }
+.intro .demo .phone-play { animation: card-pop 460ms var(--ease-spring) 3500ms both; }
+.demo .phone-play-btn { position: relative; }
+.intro .demo .phone-play-btn::after { content: ''; position: absolute; inset: 0; border-radius: 50%; border: 2px solid var(--color-primary); opacity: 0; animation: ring 700ms ease-out 3900ms 2 both; }
+.demo:not(.play), .demo:not(.play) *, .demo:not(.play) *::before, .demo:not(.play) *::after { animation-play-state: paused; }
+@keyframes paper-in { from { opacity: 0; transform: translateX(-40px) rotate(-16deg); } to { transform: rotate(-6deg); } }
+@keyframes beam { from { transform: translateY(-30%); opacity: 1; } 85% { opacity: 1; } to { transform: translateY(460%); opacity: 0; } }
+@keyframes phone-in { from { opacity: 0; transform: translateY(56px) scale(0.94); } }
+@keyframes card-pop { from { opacity: 0; transform: translateY(12px) scale(0.96); } }
+@keyframes chip-on { from { background: var(--color-surface-2); color: var(--color-text-muted); } }
+@keyframes box-tick { from { background: transparent; border-color: var(--color-border-strong); } }
+@keyframes tick-in { from { opacity: 0; transform: scale(0.2) rotate(-20deg); } }
+@keyframes ring { from { opacity: 0.9; transform: scale(1); } to { opacity: 0; transform: scale(1.9); } }
+
+/* The promises rise in as they come into view, one after another; they lift a little under the mouse. */
+.watching li { opacity: 0; transform: translateY(22px); transition: opacity 560ms var(--ease-out), transform 560ms var(--ease-out), box-shadow var(--dur) var(--ease-out); }
+.watching li:nth-child(2) { transition-delay: 100ms; }
+.watching li:nth-child(3) { transition-delay: 200ms; }
+.watching li.seen { opacity: 1; transform: none; }
+.gets .tile { transition: transform 320ms var(--ease-spring); }
+@media (hover: hover) {
+  .gets li { transition: opacity 560ms var(--ease-out), transform 320ms var(--ease-out), box-shadow var(--dur) var(--ease-out); }
+  .gets li:hover { transform: translateY(-4px); box-shadow: 0 14px 30px -14px rgba(0, 0, 0, 0.28); transition-delay: 0ms; }
+  .gets li:hover .tile { transform: scale(1.08) rotate(-6deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .start *, .start *::before, .start *::after { animation: none !important; transition: none !important; translate: none !important; }
+  .phone { rotate: none !important; }
+  .watching li { opacity: 1; transform: none; }
+  .beam { display: none; }
+}
 
 @media (max-width: 575.98px) {
   .join, .have-login { width: 100%; justify-content: center; }

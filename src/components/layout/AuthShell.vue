@@ -1,7 +1,8 @@
 <!-- Owner: Isaac. Frame for Log in, Create account, Forgot and Reset (no app sidebar: nothing else works before you log in).
      The same top bar as Start (name, languages), a short teal band with a big Back button and the greeting, then the
-     form on a card. Under it, one plain line to the other choice: "New here? Create account" or "Already have an
-     account? Log in". Start (StartView.vue) tells what the app does, so this page is only about the form. -->
+     form on a card. One plain line to the other choice: "New here? Create account" under Log in's short form, and
+     "Already have an account? Log in" in the band right under the greeting on Create account, so nobody has to scroll
+     past the long form to find it. Start (StartView.vue) tells what the app does, so this page is only about the form. -->
 <script setup>
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
@@ -27,6 +28,11 @@ const back = computed(() => (['login', 'signup'].includes(props.active) ? { name
           <h1>{{ t(`auth.hello.${active}`) }}</h1>
           <p>{{ t(`auth.hello.${active}Lead`) }}</p>
         </div>
+        <!-- Create account is a long form: the way to Log in sits up here, in view straight away. Keeps ?next=. -->
+        <div v-if="active === 'signup'" class="auth-switch auth-switch-top" data-testid="auth-switch">
+          <span>{{ t('start.have') }}</span>
+          <RouterLink :to="{ name: 'login', query: route.query }" class="btn btn-on-hero-outline">{{ t('auth.login') }}</RouterLink>
+        </div>
       </div>
       <svg class="auth-wave" viewBox="0 0 1440 120" preserveAspectRatio="none" aria-hidden="true">
         <path class="wave-back" d="M0 70C240 20 480 10 760 46s520 64 680 16V120H0z" />
@@ -44,10 +50,6 @@ const back = computed(() => (['login', 'signup'].includes(props.active) ? { name
       <div v-if="active === 'login'" class="auth-switch" data-testid="auth-switch">
         <span>{{ t('auth.newHere') }}</span>
         <RouterLink :to="{ name: 'signup', query: route.query }" class="btn btn-outline">{{ t('auth.signup') }}</RouterLink>
-      </div>
-      <div v-else-if="active === 'signup'" class="auth-switch" data-testid="auth-switch">
-        <span>{{ t('start.have') }}</span>
-        <RouterLink :to="{ name: 'login', query: route.query }" class="btn btn-outline">{{ t('auth.login') }}</RouterLink>
       </div>
     </section>
   </div>
@@ -78,6 +80,9 @@ const back = computed(() => (['login', 'signup'].includes(props.active) ? { name
 .auth-switch { width: 100%; max-width: 560px; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 12px 16px; font-size: 19px; font-weight: 600; }
 .auth-switch .btn { min-height: 56px; padding: 0 28px; border-radius: var(--r-pill); }
 @media (max-width: 575.98px) { .auth-switch { flex-direction: column; } .auth-switch .btn { width: 100%; } }
+/* In the band (Create account): light words on teal, like Start's "Already have an account?", left-aligned under the greeting. */
+.auth-switch-top { justify-content: flex-start; color: #e0f7f5; } /* 5.4:1 on teal */
+@media (max-width: 575.98px) { .auth-switch-top { flex-direction: row; } .auth-switch-top .btn { width: auto; } }
 
 .auth-label { display: block; margin-bottom: var(--s-2); font-size: 18px; font-weight: 700; }
 .auth-field {
