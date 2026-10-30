@@ -297,30 +297,49 @@ test('public invitation probing is also limited by IP', async () => {
   await error(response, 429, 'RATE_LIMITED')
 })
 
-test("a caregiver sees the linked senior's saved timetable and ticks for today, and nobody else's", async () => {
+test("the medicine list belongs to the account: any device loads it, and the caregiver sees the doses worked out from it", async () => {
   const owner = await user('senior', 'Ah Ma'), cg = await user('caregiver'), stranger = await user('caregiver')
   assert.equal((await accept(cg, (await issued(owner)).token)).status, 200)
   const today = todayInSingapore()
-  const entry = (id, startDate, endDate, flagged = false) => ({ medicineId: id, label: `Medicine ${id}`, instruction: { count: 1, unit: 'tablet', food: null },
-    doses: [{ id: `${id}-morning`, time: '08:00' }, { id: `${id}-night`, time: '21:00' }], startDate, endDate, flagged })
-  const entries = [entry('m1', today, addDays(today, 6)), entry('old', addDays(today, -9), addDays(today, -3)), entry('prn', today, null, true)]
+  const medicine = (id, frequencyType, schedule) => ({ id, source: 'label', sample: false, ...(schedule && { schedule }),
+    medication: { name: `Medicine ${id}`, strength: '500 mg', doseAmount: 1, doseUnit: 'tablet', quantity: null, timesPerDay: frequencyType === 'daily' ? 2 : null,
+      timing: frequencyType === 'daily' ? ['morning', 'bedtime'] : null, withFood: null, frequencyType, rawInstruction: null, warnings: [] } })
+  const medicines = [
+    medicine('m1', 'daily', { startDate: today, days: 7, times: { bedtime: '21:30' } }),
+    medicine('old', 'daily', { startDate: addDays(today, -9), days: 7, times: {} }), // course ended
+    medicine('prn', 'as_needed'), // when needed: for the pharmacist, never on the timetable
+  ]
   const save = (token, body) => request('/schedule', { method: 'PUT', token, body })
-  assert.equal((await save(undefined, { entries })).status, 401)
-  assert.equal((await save(owner.token, { entries: [{ ...entries[0], startDate: 'soon' }] })).status, 400)
-  assert.deepEqual((await (await save(owner.token, { entries })).json()).data, { saved: 3 })
+  const load = async (token) => (await (await request('/schedule', { token })).json()).data.medicines
+
+  assert.equal((await save(undefined, { medicines })).status, 401)
+  assert.equal(await load(owner.token), null) // never saved: the app uploads its old browser list once
+  for (const bad of [{ ...medicines[0], photo: 'data:image/png;base64,AAAA' }, { ...medicines[0], id: 'no spaces' }, { ...medicines[0], schedule: { startDate: 'soon' } },
+    { ...medicines[0], medication: { ...medicines[0].medication, nric: 'S1234567A' } }]) {
+    assert.equal((await save(owner.token, { medicines: [bad] })).status, 400)
+  }
+  assert.equal((await save(owner.token, { medicines: [medicines[0], medicines[0]] })).status, 400) // duplicate ids
+  assert.deepEqual((await (await save(owner.token, { medicines })).json()).data, { saved: 3 })
+  // Another device of the same account gets exactly this list; another account gets nothing.
+  assert.deepEqual(await load(owner.token), medicines)
+  assert.equal(await load(stranger.token), null)
+  // A medicine typed in Ask has only a name and instructions.
+  const typed = { id: 'typed-1', source: 'typed', medication: { name: 'Panadol', rawInstruction: 'when there is pain' } }
+  assert.equal((await save(owner.token, { medicines: [...medicines, typed] })).status, 200)
   await Dose.create({ userId: owner.id, date: today, doseId: 'm1-morning', takenAt: new Date() })
 
   const body = (await (await care(`/seniors/${owner.id}/today`, { token: cg.token })).json()).data
   assert.equal(body.shared, true)
-  // Only today's course; the ended one and the "when needed" one are left out. The ticked dose is taken whatever the time.
-  assert.deepEqual(body.doses.map((d) => [d.doseId, d.time, d.label]), [['m1-morning', '08:00', 'Medicine m1'], ['m1-night', '21:00', 'Medicine m1']])
+  // Only today's course, with the time the senior changed; the ended, "when needed" and typed ones are left out.
+  assert.deepEqual(body.doses.map((d) => [d.doseId, d.time, d.label]), [['m1-morning', '08:00', 'Medicine m1 500 mg'], ['m1-bedtime', '21:30', 'Medicine m1 500 mg']])
   assert.equal(body.doses[0].status, 'taken')
   assert.ok(['missed', 'upcoming'].includes(body.doses[1].status))
   const [listed] = (await (await care('/seniors', { token: cg.token })).json()).data.seniors
   assert.deepEqual(listed.today, { taken: 1, missed: Number(body.doses[1].status === 'missed'), upcoming: Number(body.doses[1].status === 'upcoming') })
 
-  // Saving again replaces the copy (one per account), and a caregiver who is not linked sees nothing.
-  assert.equal((await save(owner.token, { entries: [] })).status, 200)
+  // Removing every medicine on any device empties it for the caregiver too, and a caregiver who is not linked sees nothing.
+  assert.equal((await save(owner.token, { medicines: [] })).status, 200)
+  assert.deepEqual(await load(owner.token), [])
   assert.deepEqual((await (await care(`/seniors/${owner.id}/today`, { token: cg.token })).json()).data.doses, [])
   await error(await care(`/seniors/${owner.id}/today`, { token: stranger.token }), 404, 'NOT_FOUND')
   assert.deepEqual((await (await care('/seniors', { token: stranger.token })).json()).data.seniors, [])

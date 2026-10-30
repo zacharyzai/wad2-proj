@@ -1,7 +1,7 @@
 // Gemini is never called for real: global fetch is stubbed per test.
 import { test, afterEach } from 'node:test'
 import assert from 'node:assert/strict'
-import { extractScan, forgetResting, ScanError } from '../services/gemini.js'
+import { attempts, extractScan, forgetResting, ScanError } from '../services/gemini.js'
 
 const IMG = 'data:image/png;base64,AAAA'
 const realFetch = globalThis.fetch
@@ -269,4 +269,11 @@ test('no second reading when it adds up, for labels, or when the daily cap says 
   prompts = billReplies(BILL(14))
   await extractScan('bill', IMG, { canRecheck: () => false })
   assert.equal(prompts.length, 1)
+})
+
+test('add-on keys are tried only after every model on the main key', (t) => {
+  process.env.GEMINI_EXTRA_KEYS = 'key-2, key-3'
+  t.after(() => delete process.env.GEMINI_EXTRA_KEYS)
+  const names = attempts({ gemini: ['a', 'b'], groq: [], geminiBody: {}, groqBody: {} }).map((x) => x.name)
+  assert.deepEqual(names, ['a', 'b', 'a#2', 'b#2', 'a#3', 'b#3'])
 })

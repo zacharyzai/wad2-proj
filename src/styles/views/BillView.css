@@ -25,17 +25,17 @@
 .summary-row dd { margin: 4px 0 0; font-size: var(--t20, 20px); font-weight: 800; color: var(--color-link); font-variant-numeric: tabular-nums; }
 
 /* What the subsidies are based on: the account's details, with a link to change them */
-.basis { display: flex; gap: 10px; align-items: flex-start; margin: 0; padding: 12px 16px; border-radius: 16px; background: var(--color-tint); color: var(--color-tint-text); font-size: 17px; font-weight: 600; line-height: 1.5; }
+.basis { display: flex; gap: 10px; align-items: flex-start; margin: 0; padding: 12px 16px; border-radius: var(--r-tile); background: var(--color-tint); color: var(--color-tint-text); font-size: 17px; font-weight: 600; line-height: 1.5; }
 .basis .icon { flex: none; margin-top: 3px; }
 .basis-link { display: inline-flex; align-items: center; gap: 4px; align-self: flex-start; min-height: var(--hit); color: inherit; font-weight: 800; }
 
 .lines { display: flex; flex-direction: column; gap: 12px; margin: 0; padding: 0; list-style: none; }
-.total { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 20px; border: 2px solid var(--color-primary); border-radius: 20px; background: var(--color-tint); color: var(--color-tint-text); font-size: var(--t20, 20px); font-weight: 700; }
+.total { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 20px; border: 2px solid var(--color-primary); border-radius: var(--r-panel); background: var(--color-tint); color: var(--color-tint-text); font-size: var(--t20, 20px); font-weight: 700; }
 .total strong { font-size: var(--t26, 26px); font-weight: 800; font-variant-numeric: tabular-nums; }
 
 .samples { display: grid; gap: 12px; }
 @media (min-width: 992px) { .samples { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-.sample { flex-direction: row; align-items: center; gap: 14px; padding: 12px; border-radius: 20px; text-align: left; color: var(--color-text); }
+.sample { flex-direction: row; align-items: center; gap: 14px; padding: 12px; border-radius: var(--r-panel); text-align: left; color: var(--color-text); }
 .sample:disabled { cursor: progress; opacity: 0.7; }
 .sample-thumb { width: var(--z64, 64px); height: var(--z64, 64px); flex: none; padding: 4px; object-fit: contain; border: 1px solid var(--color-border); border-radius: 14px; background: #fff; }
 .sample-name { font-size: 18px; font-weight: 700; line-height: 1.3; }

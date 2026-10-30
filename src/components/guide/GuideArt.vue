@@ -45,10 +45,10 @@ const LANGS = { en: 'EN', zh: '中文', ms: 'BM', ta: 'தமிழ்' }
 .langs button[aria-pressed='true'] { background: var(--color-primary); color: var(--color-on-primary); font-weight: 700; }
 
 /* 5: a question and an answer */
-.chat { width: 236px; padding: 14px; border-radius: 16px; transform: rotate(-3deg); }
+.chat { width: 236px; padding: 14px; border-radius: var(--r-tile); transform: rotate(-3deg); }
 .bubble { display: flex; flex-direction: column; gap: 7px; padding: 12px; }
 .bubble .bar { height: 9px; }
-.mine { align-self: flex-end; width: 62%; border-radius: 16px 16px 4px 16px; background: var(--color-primary); }
+.mine { align-self: flex-end; width: 62%; border-radius: var(--r-tile) var(--r-tile) 4px var(--r-tile); background: var(--color-primary); }
 .mine .bar { background: rgba(255, 255, 255, 0.85); }
-.theirs { width: 80%; border-radius: 16px 16px 16px 4px; background: var(--color-surface-2); }
+.theirs { width: 80%; border-radius: var(--r-tile) var(--r-tile) var(--r-tile) 4px; background: var(--color-surface-2); }
 </style>

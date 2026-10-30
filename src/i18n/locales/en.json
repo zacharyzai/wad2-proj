@@ -38,7 +38,9 @@
     "ask": "Ask about my medicine",
     "welcome": "Welcome",
     "billScan": "Scan a medical bill",
-    "account": "Your account"
+    "account": "Your account",
+    "forgot": "Forgot your password?",
+    "reset": "Choose a new password"
   },
   "care": {
     "lead": "The people who invited you. Tap a name to see today's medicines.",
@@ -125,7 +127,9 @@
     "LOOKS_LIKE_LABEL": "This looks like a medicine label, not a medical bill.",
     "MISMATCH": "This photo doesn’t match what you chose to scan.",
     "SESSION_ENDED": "You were logged out. Please log in again.",
-    "TIMEOUT": "This is taking too long, so we stopped. Please try again, or try a sample."
+    "TIMEOUT": "This is taking too long, so we stopped. Please try again, or try a sample.",
+    "MAIL_UNAVAILABLE": "We couldn’t send the email right now. Please try again later.",
+    "RESET_LINK_INVALID": "This link has expired or was already used. Please ask for a new one."
   },
   "home": {
     "title": "What would you like to understand?",
@@ -601,7 +605,11 @@
       "login": "Welcome back.",
       "loginLead": "Log in to see your medicines, bills and subsidies.",
       "signup": "Let's set you up.",
-      "signupLead": "One short form. Your date of birth and citizenship let us check your subsidies for you."
+      "signupLead": "One short form. Your date of birth and citizenship let us check your subsidies for you.",
+      "forgot": "Forgot your password?",
+      "forgotLead": "It happens. We’ll email you a link to choose a new one.",
+      "reset": "Choose a new password.",
+      "resetLead": "Then you’re logged in here, and logged out on every other phone or computer."
     },
     "promise": {
       "read": "Labels explained in simple words, and read aloud in 4 languages.",
@@ -612,7 +620,25 @@
     "about": "New here? See how it works",
     "forgot": {
       "title": "Forgot your password?",
-      "text": "Passwords can’t be reset in the app yet. Ask the family member who helped set up your account, or create a new account with another email. The medicines saved on this phone stay."
+      "intro": "Type the email you use for this app. We’ll send it a link to choose a new password.",
+      "send": "Send me a link",
+      "sentTitle": "Check your email",
+      "sentText": "If an account uses {email}, we’ve sent it a link to choose a new password. The link works for 30 minutes. If you can’t find it, look in your spam folder too.",
+      "again": "Send it again",
+      "againDone": "Sent again. Use the newest email.",
+      "back": "Back to Log in",
+      "family": "No email, or can’t find it? Ask the family member who helped set up your account.",
+      "tooMany": "We’ve already sent several links to this email. Please wait an hour, then try again."
+    },
+    "reset": {
+      "newPassword": "New password",
+      "save": "Save new password",
+      "doneTitle": "Password changed",
+      "doneText": "You’re logged in. Any other phone or computer that was logged in will need the new password.",
+      "continue": "Continue",
+      "badTitle": "This link has expired or was already used",
+      "badText": "Reset links work for 30 minutes, and only once. You can ask for a new one.",
+      "newLink": "Send me a new link"
     }
   },
   "landing": {
@@ -692,6 +718,12 @@
       "listen": "Read aloud",
       "doses": "Medicine times",
       "ask": "Ask"
+    },
+    "tunnel": {
+      "kicker": "Labels and bills",
+      "title": "Every label. Every bill. In your language.",
+      "text": "Medicine labels, clinic and hospital bills, pharmacy receipts: whatever the paper says, we explain it in plain words, in English, 中文, Melayu or தமிழ், and read it aloud.",
+      "hint": "Keep scrolling"
     }
   },
   "bill": {
@@ -1014,7 +1046,8 @@
     "tab": {
       "today": "Today",
       "week": "This week",
-      "meds": "My medicines"
+      "meds": "My medicines",
+      "reminders": "Reminders"
     },
     "add": "Add medicine",
     "back": "Back to schedule",

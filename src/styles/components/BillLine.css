@@ -1,18 +1,16 @@
 /* Scoped styles for BillLine.vue. */
 .min-w-0 { min-width: 0; }
 
-/* Each tone sets three colours. Five reuse the design tokens; purple and rose are bill-only, so they live here (light + night). */
+/* Each tone sets three colours, all design tokens (purple and rose are the bill-only ones, with night versions in tokens.css). */
 .tone-teal { --tone-text: var(--color-tint-text); --tone-bg: var(--color-tint); --tone-border: var(--color-tint-strong); }
 .tone-blue { --tone-text: var(--color-link); --tone-bg: var(--color-link-bg); --tone-border: var(--color-link-border); }
 .tone-orange { --tone-text: var(--color-warning-text); --tone-bg: var(--color-warning-bg); --tone-border: var(--color-warning-border); }
 .tone-green { --tone-text: var(--color-success-text); --tone-bg: var(--color-success-bg); --tone-border: var(--color-success-border); }
 .tone-grey { --tone-text: var(--color-text-muted); --tone-bg: var(--color-surface-2); --tone-border: var(--color-border-strong); }
-.tone-purple { --tone-text: #5b3f94; --tone-bg: #f1ecfa; --tone-border: #d3c6ec; }
-.tone-rose { --tone-text: #9d2463; --tone-bg: #fbeaf2; --tone-border: #efbcd5; }
-:root[data-theme='dark'] .tone-purple { --tone-text: #c8b6f0; --tone-bg: #241d33; --tone-border: #4a3d6b; }
-:root[data-theme='dark'] .tone-rose { --tone-text: #f3a3c8; --tone-bg: #2e1622; --tone-border: #6b2e4b; }
+.tone-purple { --tone-text: var(--color-purple-text); --tone-bg: var(--color-purple-bg); --tone-border: var(--color-purple-border); }
+.tone-rose { --tone-text: var(--color-rose-text); --tone-bg: var(--color-rose-bg); --tone-border: var(--color-rose-border); }
 
-.line { border: 1px solid var(--color-border); border-left: 6px solid var(--tone-border); border-radius: 20px; background: var(--color-card); box-shadow: var(--shadow-card); overflow: hidden; }
+.line { border: 1px solid var(--color-border); border-radius: var(--r-panel); background: var(--color-card); box-shadow: var(--shadow-card); overflow: hidden; }
 .line-btn { width: 100%; min-height: var(--z72, 72px); display: flex; align-items: center; gap: 14px; padding: 12px 14px; border: 0; background: none; color: var(--color-text); text-align: left; transition: background-color var(--dur) var(--ease-out); }
 .line-btn:hover { background: var(--color-surface-2); }
 .line-tile { width: var(--tile); height: var(--tile); flex: none; display: grid; place-items: center; border-radius: var(--r-sm); border: 1px solid var(--tone-border); background: var(--tone-bg); color: var(--tone-text); }

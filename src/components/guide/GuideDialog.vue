@@ -309,7 +309,7 @@ p { margin: 0; font-size: 18px; line-height: 1.55; text-wrap: pretty; }
 .ring { position: fixed; top: 0; left: 0; border-radius: 18px; box-shadow: 0 0 0 3px var(--color-accent), 0 0 24px 4px rgba(0, 184, 169, 0.55); animation: fade 240ms ease-out both; }
 .ring.ready { transition: transform 460ms var(--ease-out), width 460ms var(--ease-out), height 460ms var(--ease-out); }
 .ring.tap::after { content: ''; position: absolute; inset: -3px; border-radius: inherit; border: 3px solid var(--color-accent); animation: pulse 1.6s ease-out infinite; }
-.bubble { position: fixed; top: 0; left: 0; width: min(360px, calc(100vw - 24px)); padding: 18px 18px 16px; border-radius: 22px; background: var(--color-card); color: var(--color-text); box-shadow: 0 18px 48px rgba(0, 0, 0, 0.3); pointer-events: auto; }
+.bubble { position: fixed; top: 0; left: 0; width: min(360px, calc(100vw - 24px)); padding: 18px 18px 16px; border-radius: var(--r-card); background: var(--color-card); color: var(--color-text); box-shadow: 0 18px 48px rgba(0, 0, 0, 0.3); pointer-events: auto; }
 .bubble.ready { transition: transform 460ms var(--ease-out); }
 .bubble.centred { top: 50%; left: 50%; transform: translate(-50%, -50%); }
 .bubble-in { display: flex; flex-direction: column; gap: 10px; animation: pop 320ms var(--ease-spring) both; }

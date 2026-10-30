@@ -1,11 +1,15 @@
 // Owner: Sheen Hern (built by Claude, declared in README.txt). Contract: docs/auth-contract.md
+import { createHash } from 'node:crypto'
 import { Router } from 'express'
 import { sendError } from '../errors.js'
 import { withDb } from '../db.js'
 import { User, CITIZENSHIP, INCOME, LANGUAGES, THEMES, ROLES } from '../models/User.js'
-import { hashPassword, signToken, verifyPassword, jwtSecret } from '../services/auth.js'
+import { PasswordResetQuota } from '../models/PasswordResetQuota.js'
+import { hashPassword, signToken, verifyPassword, jwtSecret, signResetToken, readResetToken, resetTokenMatches, RESET_SECONDS } from '../services/auth.js'
+import { appUrl, resetLink, sendMail } from '../services/mail.js'
+import { resetEmail } from '../services/resetEmail.js'
 import { requireAuth } from '../middleware/requireAuth.js'
-import { authRateLimit } from '../middleware/rateLimit.js'
+import { authRateLimit, forgotRateLimit, resetRateLimit } from '../middleware/rateLimit.js'
 
 const MIN_PASSWORD = 8
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -127,6 +131,79 @@ router.patch('/me', requireAuth, (req, res) => {
     const user = await User.findByIdAndUpdate(req.userId, update, { returnDocument: 'after', runValidators: true }).catch(() => null)
     if (!user) return sendError(res, 401, 'NOT_LOGGED_IN', 'Please log in')
     res.json({ ok: true, data: { user: user.toPublic() } })
+  })
+})
+
+// ---- Forgot your password? (docs/auth-contract.md) ----
+const HOUR = 60 * 60 * 1000
+const EMAILS_PER_HOUR = 3
+const emailHash = (email) => createHash('sha256').update(email).digest('hex')
+
+// At most EMAILS_PER_HOUR per address per hour, across every server instance. False once the hour's budget is spent.
+async function takeEmailQuota(email, now = new Date()) {
+  const window = new Date(Math.floor(now.getTime() / HOUR) * HOUR)
+  const filter = { emailHash: emailHash(email), window, count: { $lt: EMAILS_PER_HOUR } }
+  const update = { $inc: { count: 1 }, $setOnInsert: { expiresAt: new Date(window.getTime() + 2 * HOUR) } }
+  try {
+    return Boolean(await PasswordResetQuota.findOneAndUpdate(filter, update, { upsert: true, returnDocument: 'after' }))
+  } catch (error) {
+    if (error?.code !== 11000) throw error
+    // A spent budget makes the upsert try a duplicate insert; concurrent first requests can too. Retry without upsert.
+    return Boolean(await PasswordResetQuota.findOneAndUpdate(filter, { $inc: { count: 1 } }, { returnDocument: 'after' }))
+  }
+}
+
+// Emails a reset link when an account uses this address. The answer is the same either way, so the form can't be used
+// to find out who has an account. The email is sent before answering (on Vercel the function may stop once it answers).
+// shortcut: a real account takes a little longer to answer (the email is sent); fine at this size.
+router.post('/forgot', forgotRateLimit, (req, res) => {
+  const email = typeof req.body?.email === 'string' ? req.body.email.trim().toLowerCase() : ''
+  if (!EMAIL.test(email) || email.length > 254) return sendError(res, 400, 'BAD_REQUEST', 'email is not valid')
+  if (!configured(res)) return
+  try {
+    appUrl()
+  } catch {
+    console.error('APP_URL is not set, so reset links cannot be made')
+    return sendError(res, 503, 'MAIL_UNAVAILABLE', 'Password reset emails are not available right now')
+  }
+  return withDb(res, async () => {
+    if (!(await takeEmailQuota(email))) return sendError(res, 429, 'RATE_LIMITED', 'Too many reset emails for this address, please wait an hour')
+    const user = await User.findOne({ email }).select('name email language passwordHash')
+    if (user) {
+      const language = user.language ?? (LANGUAGES.includes(req.body?.language) ? req.body.language : 'en')
+      try {
+        await sendMail({ to: user.email, ...resetEmail({ name: user.name, language, link: resetLink(signResetToken(user)) }) })
+      } catch (error) {
+        console.error('Password reset email failed:', error?.message) // never the address or the link
+        return sendError(res, 503, 'MAIL_UNAVAILABLE', 'We could not send the email right now, please try again later')
+      }
+    }
+    res.json({ ok: true, data: { minutes: RESET_SECONDS / 60 } })
+  })
+})
+
+// Sets the new password from an emailed link, logs out every other device, and logs this one in.
+router.post('/reset', resetRateLimit, (req, res) => {
+  const { token, password, remember = true } = req.body ?? {}
+  if (typeof password !== 'string' || password.length < MIN_PASSWORD || password.length > 200) {
+    return sendError(res, 400, 'BAD_REQUEST', `password must be ${MIN_PASSWORD} to 200 characters`)
+  }
+  if (!configured(res)) return
+  const link = readResetToken(token)
+  const badLink = () => sendError(res, 400, 'RESET_LINK_INVALID', 'This link has expired or was already used')
+  if (!link) return badLink()
+  return withDb(res, async () => {
+    const user = await User.findById(link.sub).catch(() => null)
+    if (!user || !resetTokenMatches(link, user)) return badLink()
+    // Only if the password is still the one the link was made for: a link pressed twice at once still works only once.
+    const changedAt = new Date(Math.floor(Date.now() / 1000) * 1000) // whole second: the login handed back below stays valid
+    const updated = await User.findOneAndUpdate(
+      { _id: user._id, passwordHash: user.passwordHash },
+      { $set: { passwordHash: await hashPassword(password), passwordChangedAt: changedAt } },
+      { returnDocument: 'after', runValidators: true },
+    )
+    if (!updated) return badLink()
+    answer(res, updated, remember)
   })
 })
 

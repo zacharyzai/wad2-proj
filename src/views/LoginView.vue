@@ -27,6 +27,10 @@ function destination() {
   return typeof next === 'string' && next.startsWith('/') && !next.startsWith('//') ? next : '/'
 }
 
+function forgot() {
+  router.push({ name: 'forgot', state: { email: email.value.trim() } })
+}
+
 async function submit() {
   if (busy.value) return
   if (!email.value.trim() || !password.value) return (errorCode.value = 'WRONG_LOGIN')
@@ -63,11 +67,9 @@ async function submit() {
         </div>
       </div>
 
-      <!-- H9/H10: a forgotten password must not be a dead end. shortcut: no reset by email yet (needs an email service). -->
-      <details class="auth-forgot" data-testid="login-forgot">
-        <summary>{{ t('auth.forgot.title') }}</summary>
-        <p class="auth-help m-0">{{ t('auth.forgot.text') }}</p>
-      </details>
+      <!-- H9/H10: a forgotten password is not a dead end: a reset link by email (ForgotView). The email typed so far goes
+           along in the history state, not the address, so it never lands in server logs. -->
+      <RouterLink :to="{ name: 'forgot' }" class="auth-forgot-link" data-testid="login-forgot" @click.prevent="forgot">{{ t('auth.forgot.title') }}</RouterLink>
 
       <label class="auth-check">
         <input v-model="remember" type="checkbox" aria-describedby="login-remember-help" data-testid="login-remember" />

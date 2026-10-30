@@ -1,6 +1,7 @@
 // The user's medicines, so Ask can answer about what they actually take and Schedule can lay out their doses.
 // Extracted text only (contract fields), never photos.
-// shortcut: kept in this browser only; move to the user's account (Sheen Hern's history API) once login exists.
+// The list belongs to the account: stores/scheduleSync.js loads it from GET /api/schedule and saves every change. What is kept
+// in this browser is only a cache of the logged-in account's list.
 import { reactive, toRaw, watch } from 'vue'
 import { addDays, supplyDays, todayInSingapore } from '../rules/schedule.js'
 

@@ -15,6 +15,12 @@ import BigButton from '../components/layout/BigButton.vue'
 import ErrorBanner from '../components/layout/ErrorBanner.vue'
 import AppIcon from '../components/layout/AppIcon.vue'
 import CaregiverCard from '../components/care/CaregiverCard.vue'
+import CalendarSync from '../components/schedule/CalendarSync.vue'
+import { medicines } from '../stores/medicines'
+import { buildSchedule } from '../rules/schedule'
+
+// The same whole schedule the Schedule page sends, so connecting or syncing here puts the right doses in the calendar.
+const entries = computed(() => medicines.map((m) => buildSchedule(m, m.schedule ?? {})))
 
 const CITIZENSHIPS = ['birth', 'became', 'pr', 'other']
 const today = new Date().toISOString().slice(0, 10)
@@ -163,6 +169,8 @@ function leave() {
     <!-- Seniors only: who can see my doses, and Invite a caregiver. -->
     <CaregiverCard v-if="(user.role ?? 'senior') !== 'caregiver'" />
 
+    <CalendarSync :entries="entries" next="/account" @notify="notify" />
+
     <Card :title="t('nav.language')">
       <p class="text-muted-a11y m-0">{{ t('account.languageNote') }}</p>
       <div class="segmented langs" role="group" :aria-label="t('nav.language')" data-testid="account-language">
@@ -214,7 +222,7 @@ dd { margin: 0; font-size: var(--fs-h3); font-weight: 700; overflow-wrap: anywhe
 .toast-slot { position: fixed; left: 16px; right: 16px; bottom: calc(96px + env(safe-area-inset-bottom)); z-index: 30; display: flex; justify-content: center; pointer-events: none; }
 @media (min-width: 992px) { .toast-slot { bottom: 32px; left: 248px; } } /* centred in the page area, beside the sidebar */
 .toast-ahma { padding: 14px 20px; }
-.toast-ahma.bad { background: #a31f2a; } /* fixed dark red: white text stays readable in night mode too */
+.toast-ahma.bad { background: var(--color-sos-pressed); } /* fixed dark red: white text stays readable in night mode too */
 .toast-enter-active { transition: opacity 220ms var(--ease-out), transform 220ms var(--ease-out); }
 .toast-leave-active { transition: opacity 160ms ease-in, transform 160ms ease-in; }
 .toast-enter-from, .toast-leave-to { opacity: 0; transform: translateY(12px); }

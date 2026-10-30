@@ -29,7 +29,7 @@ const route = useRoute()
 const VIEWS = ['today', 'week', 'meds', 'reminders']
 // Back from Google (?google=connected) opens Reminders, where the calendar card is; CalendarSync then tidies the address.
 const view = computed(() => (route.query.google !== undefined ? 'reminders' : VIEWS.includes(route.query.view) ? route.query.view : 'today'))
-const TABS = ['today', 'week', 'meds']
+const TABS = ['today', 'week', 'meds', 'reminders']
 const viewLink = (v) => ({ query: v === 'today' ? {} : { view: v } })
 
 // Every medicine with its ScheduleEntry. Flagged ones (no daily timetable) go to the pharmacist section.

@@ -9,10 +9,15 @@ import jwt from 'jsonwebtoken'
 import argon2 from 'argon2'
 import { User } from '../models/User.js'
 import { connectDb } from '../db.js'
-import { signToken, TOKEN_SECONDS } from '../services/auth.js'
+import { signToken, signResetToken, TOKEN_SECONDS } from '../services/auth.js'
+import { PasswordResetQuota } from '../models/PasswordResetQuota.js'
+import { sentMail } from '../services/mail.js'
 
 process.env.JWT_SECRET = randomBytes(48).toString('hex')
 process.env.AUTH_RATE_LIMIT = '100'
+process.env.FORGOT_RATE_LIMIT = '100'
+process.env.RESET_RATE_LIMIT = '100'
+for (const name of ['APP_URL', 'MAIL_PROVIDER', 'VERCEL', 'NODE_ENV']) delete process.env[name] // console mail, local links
 process.env.USE_MOCK_AI = 'true'
 const { default: app } = await import('../app.js')
 let mongo, server, base, token, userId
@@ -172,6 +177,31 @@ test('me rejects malformed, tampered, expired or wrongly scoped JWTs and deleted
   await error(await me(signToken(new mongoose.Types.ObjectId(), false)), 401, 'NOT_LOGGED_IN')
 })
 
+test('a password change ends every login made before it, on every protected route; logins after it work', async () => {
+  const user = await User.create({ ...profile, email: 'changed@example.com', passwordHash: await argon2.hash(password) })
+  const now = Date.now()
+  const before = signToken(user.id, true, now - 60_000)
+  const sameSecond = signToken(user.id, false, now)
+  const legacy = (() => { // the main branch's two-part token: no issue time
+    const body = Buffer.from(JSON.stringify({ sub: user.id, rem: false, exp: Math.floor(now / 1000) + 3600 })).toString('base64url')
+    return `${body}.${createHmac('sha256', process.env.JWT_SECRET).update(body).digest('base64url')}`
+  })()
+  for (const value of [before, sameSecond, legacy]) assert.equal((await me(value)).status, 200) // never changed: all fine
+
+  await User.updateOne({ _id: user._id }, { passwordChangedAt: new Date(Math.floor(now / 1000) * 1000) })
+  await error(await me(before), 401, 'NOT_LOGGED_IN')
+  await error(await request('/scan', { sampleId: 'med-1' }, { token: before }), 401, 'NOT_LOGGED_IN') // not only /me
+  await error(await me(legacy), 401, 'NOT_LOGGED_IN')
+  assert.equal((await me(sameSecond)).status, 200) // the login handed out by the change itself (same second) works
+  assert.equal((await me(signToken(user.id, true))).status, 200)
+  assert.equal((await post('login', { email: 'changed@example.com', password })).status, 200)
+  assert.equal('passwordChangedAt' in (await (await me(sameSecond)).json()).data.user, false) // never sent to the app
+})
+
+test('tokens that are not for a real account skip the password check (sample scans and e2e tokens)', async () => {
+  assert.equal((await request('/scan', { sampleId: 'med-1' }, { token: signToken('demo-user', true) })).status, 200)
+})
+
 test('missing database config fails safely and a later request can reconnect', async () => {
   await mongoose.disconnect()
   const uri = process.env.MONGODB_URI
@@ -185,4 +215,78 @@ test('login and signup share the configured IP rate limit', async () => {
   let response
   for (let i = 0; i < 101; i++) response = await request(`/auth/${i % 2 ? 'signup' : 'login'}`, {}, { ip: '192.0.2.99' })
   await error(response, 429, 'RATE_LIMITED')
+})
+
+// ---- Forgot your password? ----
+const quietly = async (work) => { // console mail prints each email; keep the test output readable
+  const log = console.log
+  console.log = () => {}
+  try { return await work() } finally { console.log = log }
+}
+const forgot = (body, ip = '198.51.100.1') => quietly(() => request('/auth/forgot', body, { ip }))
+const reset = (body, ip = '198.51.100.1') => request('/auth/reset', body, { ip })
+const linkIn = (mail) => decodeURIComponent(/\/reset#token=([^\s"]+)/.exec(mail.text)[1])
+
+test('forgot: the same answer whether or not the account exists; only a real account gets an email, in its language', async () => {
+  await User.create({ ...profile, email: 'forgot@example.com', language: 'zh', passwordHash: await argon2.hash(password) })
+  sentMail.length = 0
+  const known = await forgot({ email: '  Forgot@Example.com ' })
+  const unknown = await forgot({ email: 'nobody@example.com' })
+  assert.equal(known.status, 200)
+  assert.equal(unknown.status, 200)
+  assert.deepEqual(await known.json(), await unknown.json()) // { ok: true, data: { minutes: 30 } } both times
+  assert.equal(sentMail.length, 1)
+  assert.equal(sentMail[0].to, 'forgot@example.com')
+  assert.match(sentMail[0].subject, /密码/) // the account's language
+  assert.match(sentMail[0].text, / http:\/\/localhost:5173\/reset#token=\S+/)
+  await error(await forgot({ email: 'not-an-email' }), 400, 'BAD_REQUEST')
+  await error(await forgot({ email: { $ne: null } }), 400, 'BAD_REQUEST')
+})
+
+test('reset: the link sets the new password, logs this device in and logs every other device out', async () => {
+  const user = await User.create({ ...profile, email: 'reset@example.com', passwordHash: await argon2.hash(password) })
+  const oldLogin = signToken(user.id, true, Date.now() - 60_000)
+  assert.equal((await me(oldLogin)).status, 200)
+  sentMail.length = 0
+  await forgot({ email: 'reset@example.com' })
+  const done = await reset({ token: linkIn(sentMail[0]), password: 'brand-new-pass', remember: false })
+  assert.equal(done.status, 200)
+  const { data } = await done.json()
+  assert.equal(data.user.email, 'reset@example.com')
+  assert.equal((await me(data.token)).status, 200) // this device: logged in
+  await error(await me(oldLogin), 401, 'NOT_LOGGED_IN') // every other device: logged out
+  assert.equal((await post('login', { email: 'reset@example.com', password: 'brand-new-pass' })).status, 200)
+  await error(await post('login', { email: 'reset@example.com', password }), 401, 'WRONG_LOGIN')
+  assert.equal('passwordChangedAt' in data.user, false)
+})
+
+test('reset links work once; an older unused link dies too; bad links and short passwords are refused', async () => {
+  await User.create({ ...profile, email: 'once@example.com', passwordHash: await argon2.hash(password) })
+  sentMail.length = 0
+  await forgot({ email: 'once@example.com' })
+  await forgot({ email: 'once@example.com' })
+  const [older, newer] = sentMail.map(linkIn)
+  await error(await reset({ token: newer, password: 'short' }), 400, 'BAD_REQUEST')
+  assert.equal((await reset({ token: newer, password: 'first-new-pass' })).status, 200)
+  await error(await reset({ token: newer, password: 'second-new-pass' }), 400, 'RESET_LINK_INVALID') // used
+  await error(await reset({ token: older, password: 'second-new-pass' }), 400, 'RESET_LINK_INVALID') // superseded
+  const someone = await User.findOne({ email: 'once@example.com' })
+  for (const bad of [undefined, 'not-a-link', signToken(someone.id, true), newer.slice(0, -4) + 'abcd']) {
+    await error(await reset({ token: bad, password: 'another-pass-1' }), 400, 'RESET_LINK_INVALID')
+  }
+})
+
+test('a link pressed twice at the same moment changes the password only once', async () => {
+  const user = await User.create({ ...profile, email: 'double-press@example.com', passwordHash: await argon2.hash(password) })
+  const token = signResetToken(user)
+  const answers = await Promise.all(['race-pass-one', 'race-pass-two'].map((value, i) => reset({ token, password: value }, `198.51.100.${10 + i}`)))
+  assert.deepEqual(answers.map((r) => r.status).sort(), [200, 400])
+})
+
+test('at most 3 reset emails per address per hour, the same for unknown addresses; addresses are stored hashed', async () => {
+  for (let i = 0; i < 3; i++) assert.equal((await forgot({ email: 'limit@example.com' }, '203.0.113.7')).status, 200)
+  await error(await forgot({ email: 'LIMIT@example.com' }, '203.0.113.8'), 429, 'RATE_LIMITED') // per address, any IP
+  assert.equal((await forgot({ email: 'other@example.com' }, '203.0.113.7')).status, 200)
+  const rows = await PasswordResetQuota.find().lean()
+  assert.ok(rows.length > 0 && rows.every((row) => /^[a-f0-9]{64}$/.test(row.emailHash) && !JSON.stringify(row).includes('@')))
 })

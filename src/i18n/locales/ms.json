@@ -97,7 +97,9 @@
     "shared": "Jemputan penjaga",
     "care": "Warga emas saya",
     "careSenior": "Ubat hari ini",
-    "sharedScan": "Ringkasan dikongsi"
+    "sharedScan": "Ringkasan dikongsi",
+    "forgot": "Lupa kata laluan?",
+    "reset": "Pilih kata laluan baharu"
   },
   "errors": {
     "WRONG_ROLE": "Tindakan ini memerlukan peranan akaun yang berbeza.",
@@ -125,7 +127,9 @@
     "LOOKS_LIKE_LABEL": "Ini kelihatan seperti label ubat, bukan bil perubatan.",
     "MISMATCH": "Gambar ini tidak sepadan dengan apa yang anda pilih untuk diimbas.",
     "SESSION_ENDED": "Anda telah dilog keluar. Sila log masuk semula.",
-    "TIMEOUT": "Ini mengambil masa terlalu lama, jadi kami berhenti. Sila cuba lagi, atau cuba contoh."
+    "TIMEOUT": "Ini mengambil masa terlalu lama, jadi kami berhenti. Sila cuba lagi, atau cuba contoh.",
+    "MAIL_UNAVAILABLE": "Kami tidak dapat menghantar e-mel sekarang. Sila cuba lagi nanti.",
+    "RESET_LINK_INVALID": "Pautan ini sudah tamat tempoh atau sudah digunakan. Sila minta pautan baharu."
   },
   "home": {
     "title": "Apa yang anda ingin fahami?",
@@ -601,7 +605,11 @@
       "login": "Selamat kembali.",
       "loginLead": "Log masuk untuk melihat ubat, bil dan subsidi anda.",
       "signup": "Mari sediakan akaun anda.",
-      "signupLead": "Satu borang pendek. Tarikh lahir dan kewarganegaraan anda membolehkan kami menyemak subsidi untuk anda."
+      "signupLead": "Satu borang pendek. Tarikh lahir dan kewarganegaraan anda membolehkan kami menyemak subsidi untuk anda.",
+      "forgot": "Lupa kata laluan?",
+      "forgotLead": "Tidak mengapa. Kami akan e-melkan pautan untuk memilih yang baharu.",
+      "reset": "Pilih kata laluan baharu.",
+      "resetLead": "Selepas itu anda dilog masuk di sini, dan dilog keluar pada telefon atau komputer lain."
     },
     "promise": {
       "read": "Label diterangkan dengan kata-kata mudah, dan dibacakan dalam 4 bahasa.",
@@ -612,7 +620,25 @@
     "about": "Baru di sini? Lihat cara ia berfungsi",
     "forgot": {
       "title": "Lupa kata laluan?",
-      "text": "Kata laluan belum boleh ditetapkan semula dalam aplikasi. Tanya ahli keluarga yang membantu membuka akaun anda, atau buka akaun baharu dengan e-mel lain. Ubat yang disimpan di telefon ini kekal."
+      "intro": "Taip e-mel yang anda gunakan untuk aplikasi ini. Kami akan menghantar pautan untuk memilih kata laluan baharu.",
+      "send": "Hantar pautan kepada saya",
+      "sentTitle": "Semak e-mel anda",
+      "sentText": "Jika ada akaun yang menggunakan {email}, kami telah menghantar pautan untuk memilih kata laluan baharu. Pautan ini boleh digunakan selama 30 minit. Jika tidak jumpa, semak juga folder spam.",
+      "again": "Hantar sekali lagi",
+      "againDone": "Sudah dihantar semula. Gunakan e-mel yang terbaharu.",
+      "back": "Kembali ke Log masuk",
+      "family": "Tiada e-mel, atau tidak jumpa? Tanya ahli keluarga yang membantu membuka akaun anda.",
+      "tooMany": "Kami sudah menghantar beberapa pautan ke e-mel ini. Sila tunggu sejam, kemudian cuba lagi."
+    },
+    "reset": {
+      "newPassword": "Kata laluan baharu",
+      "save": "Simpan kata laluan baharu",
+      "doneTitle": "Kata laluan ditukar",
+      "doneText": "Anda sudah dilog masuk. Telefon atau komputer lain yang dilog masuk perlu menggunakan kata laluan baharu.",
+      "continue": "Teruskan",
+      "badTitle": "Pautan ini sudah tamat tempoh atau sudah digunakan",
+      "badText": "Pautan tetapan semula boleh digunakan selama 30 minit, dan sekali sahaja. Anda boleh meminta pautan baharu.",
+      "newLink": "Hantar pautan baharu kepada saya"
     }
   },
   "landing": {
@@ -692,6 +718,12 @@
       "listen": "Baca kuat",
       "doses": "Waktu ubat",
       "ask": "Tanya"
+    },
+    "tunnel": {
+      "kicker": "Label dan bil",
+      "title": "Setiap label. Setiap bil. Dalam bahasa anda.",
+      "text": "Label ubat, bil klinik dan hospital, resit farmasi: apa sahaja yang tertulis, kami terangkan dengan kata-kata mudah, dalam English, 中文, Melayu atau தமிழ், dan bacakannya.",
+      "hint": "Teruskan menatal"
     }
   },
   "bill": {
@@ -1014,7 +1046,8 @@
     "tab": {
       "today": "Hari ini",
       "week": "Minggu ini",
-      "meds": "Ubat saya"
+      "meds": "Ubat saya",
+      "reminders": "Peringatan"
     },
     "add": "Tambah ubat",
     "back": "Kembali ke jadual",

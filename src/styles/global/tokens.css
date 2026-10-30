@@ -22,6 +22,10 @@
   --color-success: #06a77d; --color-success-text: #04785a; --color-success-bg: #e7f6f1; --color-success-border: #a6dccb;
   --color-danger: #e63946; --color-danger-text: #c1272f; --color-danger-bg: #fdedee; --color-danger-border: #f4b8bc;
   --color-sos: #c62b36; /* white text 5.6:1 */
+  /* Bill categories only (BillLine): tests and scans, MediSave */
+  --color-purple-text: #5b3f94; --color-purple-bg: #f1ecfa; --color-purple-border: #d3c6ec;
+  --color-rose-text: #9d2463; --color-rose-bg: #fbeaf2; --color-rose-border: #efbcd5;
+  --color-sos-pressed: #a31f2a; /* pressed SOS, red words on white, and failure toasts: stays this dark in night mode so white text reads */
   --color-on-primary: #ffffff;
 
   --gradient-hero: linear-gradient(160deg, #135555 0%, #1a7070 55%, #00897b 100%);
@@ -35,7 +39,9 @@
   --focus-ring: 0 0 0 4px rgba(26, 112, 112, 0.25);
 
   /* Radii */
-  --r-sm: 12px; --r-field: 14px; --r-btn: 18px; --r-card: 24px; --r-hero: 28px; --r-pill: 999px;
+  /* sm: small tiles · field: inputs · tile: choices, segments, rows, large tiles · btn: buttons, alerts · panel: blocks inside a card
+     (stats, bill lines, samples) · card · hero: the hero and the camera frame · pill */
+  --r-sm: 12px; --r-field: 14px; --r-tile: 16px; --r-btn: 18px; --r-panel: 20px; --r-card: 24px; --r-hero: 28px; --r-pill: 999px;
 
   /* Spacing (4px base) */
   --s-1: 4px; --s-2: 8px; --s-3: 12px; --s-4: 16px; --s-5: 20px; --s-6: 24px; --s-8: 32px; --s-10: 40px; --s-12: 48px;
@@ -69,7 +75,7 @@
     --s-5: 16px; --s-6: 20px; --s-8: 24px; --s-10: 32px; --s-12: 40px;
     --fs-hero: 36px; --fs-display: 32px; --fs-h1: 28px; --fs-h2: 19px; --fs-h3: 17px; --fs-lead: 16px; --fs-body: 16px;
     --h-btn: 48px; --h-btn-sm: 48px; --h-field: 48px; --hit: 48px; --tile: 32px; --tile-lg: 42px; /* tap targets stay 48px */
-    --r-btn: 15px; --r-card: 20px; --r-hero: 24px;
+    --r-btn: 15px; --r-panel: 18px; --r-card: 20px; --r-hero: 24px;
     --t19: 16px; --t20: 16px; --t21: 17px; --t22: 17px; --t23: 18px; --t24: 19px; --t26: 20px; --t28: 22px; --t34: 26px; --t60: 44px;
     --z52: 48px; --z56: 48px; --z64: 48px; --z72: 54px;
   }
@@ -92,6 +98,8 @@
   --color-warning: #f78f1e; --color-warning-text: #ffb46b; --color-warning-bg: #2d2114; --color-warning-border: #6a4416;
   --color-success: #2bc495; --color-success-text: #6bd9b4; --color-success-bg: #122a22; --color-success-border: #255544;
   --color-danger: #f05a65; --color-danger-text: #ff9097; --color-danger-bg: #2f1618; --color-danger-border: #6b2b30;
+  --color-purple-text: #c8b6f0; --color-purple-bg: #241d33; --color-purple-border: #4a3d6b;
+  --color-rose-text: #f3a3c8; --color-rose-bg: #2e1622; --color-rose-border: #6b2e4b;
   --gradient-hero: linear-gradient(160deg, #0b3634 0%, #135555 55%, #0a6b61 100%);
   --gradient-result: linear-gradient(160deg, #173431 0%, #1b2322 75%);
   --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.45), 0 4px 12px rgba(0, 0, 0, 0.35);

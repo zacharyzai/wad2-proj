@@ -15,7 +15,7 @@ import { useI18n } from 'vue-i18n'
 import { setLocale } from '../../i18n'
 import AppIcon from './AppIcon.vue'
 
-defineProps({ active: { type: String, required: true } }) // 'login' or 'signup'
+defineProps({ active: { type: String, required: true } }) // 'login', 'signup', or 'forgot' / 'reset' (no tab chosen)
 const { t, locale } = useI18n()
 const route = useRoute()
 const LANGS = { en: 'EN', zh: '中文', ms: 'BM', ta: 'தமிழ்' }
@@ -123,7 +123,7 @@ onBeforeUnmount(() => { clearTimeout(timer); document.removeEventListener('visib
 .lang-ta .auth-hello h1 { font-family: var(--font-sans); font-weight: 800; font-size: clamp(30px, 6vw, 48px); line-height: 1.2; }
 .auth-papers { margin: 0; }
 .paper { display: none; }
-.paper-chip { display: grid; place-items: center; width: fit-content; text-align: center; text-wrap: balance; max-width: 100%; padding: 10px 16px; border-radius: 16px; background: var(--color-primary); color: var(--color-on-primary); font-family: var(--font-display); font-size: 18px; line-height: 1.35; font-variant-numeric: lining-nums; box-shadow: var(--shadow-glow); }
+.paper-chip { display: grid; place-items: center; width: fit-content; text-align: center; text-wrap: balance; max-width: 100%; padding: 10px 16px; border-radius: var(--r-tile); background: var(--color-primary); color: var(--color-on-primary); font-family: var(--font-display); font-size: 18px; line-height: 1.35; font-variant-numeric: lining-nums; box-shadow: var(--shadow-glow); }
 /* Tamil is the longest sentence and sets the chip's size: the plainer script face keeps it to two lines on a phone. */
 .paper-chip > [lang='ta'] { font-family: var(--font-sans); font-size: max(16px, 0.9em); font-weight: 600; }
 /* Each sentence comes into focus as the last one blurs away (exit faster than entrance). */
@@ -159,9 +159,14 @@ onBeforeUnmount(() => { clearTimeout(timer); document.removeEventListener('visib
 .auth-role.on { border: 2px solid var(--color-primary); padding: calc(var(--s-3) - 1px) calc(var(--s-4) - 1px); background: var(--color-tint); }
 .auth-role input { width: 26px; height: 26px; flex: none; margin-top: 2px; accent-color: var(--color-primary); }
 .auth-role:focus-within { box-shadow: var(--focus-ring); }
-/* "Forgot your password?": a big, plain tap target that opens a short help text (Login). */
-.auth-forgot summary { display: inline-flex; align-items: center; min-height: var(--hit); font-size: 18px; font-weight: 700; color: var(--color-link); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
-.auth-forgot summary::-webkit-details-marker { display: none; }
+/* "Forgot your password?": a big, plain link to the reset page (Login). */
+.auth-forgot-link { align-self: flex-start; display: inline-flex; align-items: center; min-height: var(--hit); font-size: 18px; font-weight: 700; color: var(--color-link); text-decoration: underline; text-underline-offset: 3px; }
+/* Forgot / Reset: what happened, in a calm panel (Check your email, Password changed, Link expired). */
+.auth-panel { display: flex; flex-direction: column; gap: 14px; padding: 20px; border-radius: var(--r-card); border: 1px solid var(--color-border); background: var(--color-surface-2); }
+.auth-panel h2 { display: flex; align-items: center; gap: 12px; margin: 0; font-size: var(--t24, 24px); line-height: 1.25; }
+.auth-panel p { margin: 0; font-size: 18px; line-height: 1.55; }
+.auth-panel .tile { width: 48px; height: 48px; border-radius: 14px; }
+.auth-panel-acts { display: flex; flex-direction: column; gap: 10px; }
 .auth-warn { display: flex; gap: 8px; align-items: flex-start; margin-top: var(--s-2); color: var(--color-danger-text); font-size: var(--fs-small); font-weight: 600; line-height: 1.45; }
 .auth-note { display: flex; gap: var(--s-2); margin: 0; font-size: var(--fs-small); line-height: 1.5; color: var(--color-text-muted); }
 .auth-note .icon { flex: none; margin-top: 1px; color: var(--color-primary-text); }
@@ -194,7 +199,7 @@ onBeforeUnmount(() => { clearTimeout(timer); document.removeEventListener('visib
   .auth-promises-desk { display: flex; padding: 0; background: none; }
   /* The pictures fill whatever height is left: sized from the box itself (container units), never hidden. */
   .auth-papers { display: block; position: relative; flex: 1 1 0; min-height: 120px; margin: 0; container-type: size; }
-  .paper { display: block; position: absolute; width: min(58cqw, 92cqh, 340px); border-radius: 10px; background: #fff; box-shadow: var(--shadow-hover); animation: paper-in 700ms var(--ease-out) both; }
+  .paper { display: block; position: absolute; width: min(58cqw, 92cqh, 340px); border-radius: var(--r-sm); background: #fff; box-shadow: var(--shadow-hover); animation: paper-in 700ms var(--ease-out) both; }
   .paper-bill { left: 34%; top: 0; transform: rotate(6deg); animation-delay: 80ms; }
   .paper-med { left: 2%; top: 18%; overflow: hidden; transform: rotate(-6deg); }
   .paper-med img { display: block; width: 100%; }
