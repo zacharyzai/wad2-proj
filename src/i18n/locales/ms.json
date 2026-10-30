@@ -718,6 +718,12 @@
       "listen": "Baca kuat",
       "doses": "Waktu ubat",
       "ask": "Tanya"
+    },
+    "tunnel": {
+      "kicker": "Label dan bil",
+      "title": "Setiap label. Setiap bil. Dalam bahasa anda.",
+      "text": "Label ubat, bil klinik dan hospital, resit farmasi: apa sahaja yang tertulis, kami terangkan dengan kata-kata mudah, dalam English, 中文, Melayu atau தமிழ், dan bacakannya.",
+      "hint": "Teruskan menatal"
     }
   },
   "bill": {
