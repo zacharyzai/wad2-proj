@@ -68,8 +68,9 @@ export async function useSampleLabel(page, name = 'Metformin label') {
 
 // Language is chosen on the Account page (the app bar has no switcher). Goes there, picks it and comes straight back,
 // so a page in the middle of a flow keeps its state. `label` is the button's text: 'EN', '中文', 'BM' or 'தமிழ்'.
+const LANG_CODE = { EN: 'en', 中文: 'zh', BM: 'ms', தமிழ்: 'ta' }
 export async function switchLanguage(page, label) {
   await page.locator('a.acct').click()
-  await page.getByTestId('account-language').getByRole('button', { name: label, exact: true }).click()
+  await page.getByTestId('account-language').locator(`[lang="${LANG_CODE[label]}"]`).click() // Account spells the names out (Bahasa Melayu)
   await page.goBack()
 }

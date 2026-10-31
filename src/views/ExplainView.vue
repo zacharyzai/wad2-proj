@@ -210,7 +210,7 @@ watch(locale, () => (picked.value = null))
         </section>
 
         <div class="d-flex flex-column gap-3">
-          <RouterLink v-if="view.canSchedule" :to="{ name: 'schedule' }" class="btn btn-primary"><AppIcon name="calendar" />{{ t('explain.add') }}</RouterLink>
+          <RouterLink v-if="view.canSchedule" :to="{ name: 'schedule', query: scan.medication.frequencyType !== 'daily' ? { view: 'meds' } : {} }" class="btn btn-primary"><AppIcon name="calendar" />{{ t('explain.add') }}</RouterLink>
           <RouterLink v-if="scan.type === 'medication'" :to="{ name: 'ask' }" class="btn btn-secondary"><AppIcon name="chat" />{{ t('explain.ask') }}</RouterLink>
           <RouterLink v-if="view.canBreakdown" :to="{ name: 'bill' }" class="btn btn-primary"><AppIcon name="receipt" />{{ t('explain.bill.breakdown') }}</RouterLink>
           <RouterLink :to="scan.type === 'bill' ? { name: 'scan', hash: '#bill' } : { name: 'scan', query: { type: 'medication' } }" :class="view.canSchedule || view.canBreakdown ? 'btn btn-ghost' : 'btn btn-primary'"><AppIcon name="scan" />{{ t('explain.another') }}</RouterLink>

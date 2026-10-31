@@ -232,7 +232,7 @@ test('language: picked on the login page wins over the account language, and is 
   await page.close()
 })
 
-test('language: changing it on Account saves it, says "Settings saved", and so does the switcher anywhere else', async ({ page }) => {
+test('language: changing it on Account saves it and says "Settings saved" (the language is only chosen there)', async ({ page }) => {
   const patches = []
   page.on('request', (r) => r.url().includes('/api/auth/me') && r.method() === 'PATCH' && patches.push(r.postDataJSON()))
   await page.goto('/account')
@@ -242,11 +242,10 @@ test('language: changing it on Account saves it, says "Settings saved", and so d
   await expect(page.getByTestId('account-language').getByRole('button', { name: 'Bahasa Melayu' })).toHaveAttribute('aria-pressed', 'true')
   await expect.poll(() => patches.at(-1)).toEqual({ language: 'ms' })
 
-  // The header or sidebar switcher saves it too (no message there: it is not the settings page).
-  await page.goto('/')
-  await page.getByRole('button', { name: '中文', exact: true }).first().click()
+  await page.getByTestId('account-language').getByRole('button', { name: '中文', exact: true }).click()
   await expect.poll(() => patches.at(-1)).toEqual({ language: 'zh' })
-  await page.getByRole('button', { name: 'EN', exact: true }).first().click()
+  await page.getByTestId('account-language').getByRole('button', { name: 'English', exact: true }).click()
+  await expect.poll(() => patches.at(-1)).toEqual({ language: 'en' })
 })
 
 test('Log out asks first in a pop-up, so one stray tap does not log a senior out (H5)', async ({ page }) => {

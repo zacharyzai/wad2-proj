@@ -165,6 +165,7 @@ test.describe('breakdown', () => {
   test('labels follow the chosen language', async ({ page }) => {
     await openSample(page, BEDOK)
     await switchLanguage(page, '中文')
+    await page.getByTestId('bill-items-toggle').click() // the page was reopened: the charges are folded again
     await expect(youPay(page, '您需要支付 $14.00')).toBeVisible()
     await expect(line(page, 'Consultation 看医生')).toBeVisible()
   })

@@ -3,6 +3,7 @@
 // Other specs start with the guide already seen (playwright.config.js); these start as someone who has never seen it.
 import { test, expect } from './fixtures.js'
 import AxeBuilder from '@axe-core/playwright'
+import { switchLanguage } from './helpers/auth.js'
 
 // Clear the "seen" flag once per test (not on every page load, so "it doesn't come back" can be tested).
 test.beforeEach(({ page }) =>
@@ -102,7 +103,7 @@ test('the language buttons on the welcome card switch the app; tap steps name th
   await page.getByTestId('guide-next').click()
   await expect(title(page)).toHaveText('点击“扫描”') // the same word as the Scan button
   await page.getByTestId('guide-skip').click()
-  await page.getByRole('button', { name: 'EN', exact: true }).first().click()
+  await switchLanguage(page, 'EN')
 })
 
 test('the finish card: "Try a sample label" opens a sample', async ({ page }) => {
