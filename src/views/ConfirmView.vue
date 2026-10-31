@@ -73,6 +73,17 @@ const flagged = computed(() => {
   return empty
 })
 const needs = (path) => flagged.value.includes(path)
+
+// Keep the form short: strength, quantity, when, food and notes only show when the label gave something for them (or one
+// needs checking). "Add more details" shows the rest, so nothing can't be added by hand. Decided once, when the page opens,
+// so clearing a field doesn't make it vanish under the person's finger.
+const more = ref(false)
+const OPTIONAL = ['medication.strength', 'medication.quantity', 'medication.timing', 'medication.withFood', 'medication.warnings']
+const filledAtStart = draft.type === 'medication' ? new Set(OPTIONAL.filter((path) => !isEmpty(get(path)))) : new Set()
+// A field the person typed into stays when they tap "Show fewer details"; only empty ones fold away.
+const showOptional = (path) => more.value || filledAtStart.has(path) || needs(path) || !isEmpty(get(path))
+// Anything that is empty and was not on the label: the button has something to show or fold away.
+const foldable = computed(() => draft.type === 'medication' && OPTIONAL.some((path) => !filledAtStart.has(path) && !needs(path) && (more.value || isEmpty(get(path))) && (path !== 'medication.timing' || draft.medication.frequencyType === 'daily')))
 // Why a field is flagged when it isn't simply empty (H5): the message says what to fix. null = the usual "We couldn't read this".
 const problem = (path) => invalid.value[path] ?? null
 
@@ -197,7 +208,7 @@ const scanAgain = () => router.push(fixing ? { name: 'schedule', query: { view: 
           <ConfirmField :label="t('confirm.med.name')" for="f-name" :flagged="needs('medication.name')">
             <input id="f-name" v-model.trim="draft.medication.name" class="field-input" :class="{ 'is-flagged': needs('medication.name') }" />
           </ConfirmField>
-          <ConfirmField :label="t('confirm.med.strength')" for="f-strength">
+          <ConfirmField v-if="showOptional('medication.strength')" :label="t('confirm.med.strength')" for="f-strength">
             <input id="f-strength" v-model.trim="draft.medication.strength" class="field-input" />
           </ConfirmField>
 
@@ -211,7 +222,7 @@ const scanAgain = () => router.push(fixing ? { name: 'schedule', query: { view: 
             </div>
           </ConfirmField>
           <!-- Optional: how much was given. With the dose and times a day, Schedule works out how many days it lasts. -->
-          <ConfirmField :label="t('confirm.med.quantity')" for="f-qty">
+          <ConfirmField v-if="showOptional('medication.quantity')" :label="t('confirm.med.quantity')" for="f-qty">
             <div class="d-flex align-items-center gap-2">
               <input id="f-qty" type="number" inputmode="decimal" min="0" step="1" class="field-input amount" :value="draft.medication.quantity ?? ''" aria-describedby="f-qty-help" @change="draft.medication.quantity = Number($event.target.value) > 0 ? Number($event.target.value) : null" />
               <span class="fw-semibold">{{ t(`unit.${draft.medication.doseUnit ?? 'other'}`, 2) }}</span>
@@ -229,7 +240,7 @@ const scanAgain = () => router.push(fixing ? { name: 'schedule', query: { view: 
             <ConfirmField class="span2" :label="t('confirm.med.times')" for="f-times" :flagged="needs('medication.timesPerDay')" :note="problem('medication.timesPerDay')">
               <input id="f-times" v-model.number="draft.medication.timesPerDay" type="number" inputmode="numeric" min="1" max="6" class="field-input amount" :class="{ 'is-flagged': needs('medication.timesPerDay') }" />
             </ConfirmField>
-            <ConfirmField class="span2" :label="t('confirm.med.when')" :flagged="needs('medication.timing')" :note="problem('medication.timing')">
+            <ConfirmField v-if="showOptional('medication.timing')" class="span2" :label="t('confirm.med.when')" :flagged="needs('medication.timing')" :note="problem('medication.timing')">
               <div class="d-flex flex-wrap gap-2">
                 <button v-for="key in TIMINGS" :key="key" type="button" class="choice" :aria-pressed="draft.medication.timing?.includes(key) ?? false" @click="toggleTiming(key)">
                   <AppIcon v-if="draft.medication.timing?.includes(key)" name="check" :size="18" :stroke="2.5" />{{ t(`timing.${key}`) }}
@@ -238,7 +249,7 @@ const scanAgain = () => router.push(fixing ? { name: 'schedule', query: { view: 
             </ConfirmField>
           </template>
 
-          <ConfirmField class="span2" :label="t('confirm.med.food')" :flagged="needs('medication.withFood')">
+          <ConfirmField v-if="showOptional('medication.withFood')" class="span2" :label="t('confirm.med.food')" :flagged="needs('medication.withFood')">
             <div class="d-flex flex-wrap gap-2">
               <button v-for="key in WITH_FOOD" :key="key" type="button" class="choice" :aria-pressed="draft.medication.withFood === key" @click="draft.medication.withFood = key">
                 {{ t(`food.${key}`) }}
@@ -246,9 +257,10 @@ const scanAgain = () => router.push(fixing ? { name: 'schedule', query: { view: 
             </div>
           </ConfirmField>
 
-          <ConfirmField class="span2" :label="t('confirm.med.other')" for="f-other">
+          <ConfirmField v-if="showOptional('medication.warnings')" class="span2" :label="t('confirm.med.other')" for="f-other">
             <textarea id="f-other" v-model.lazy="warnings" rows="2" class="field-input"></textarea>
           </ConfirmField>
+          <button v-if="foldable" type="button" class="btn btn-ghost btn-sm span2 align-self-start" data-testid="confirm-more" :aria-expanded="more" @click="more = !more"><AppIcon :name="more ? 'up' : 'down'" :size="20" />{{ t(more ? 'confirm.med.fewer' : 'confirm.med.more') }}</button>
         </div>
 
         <!-- Bill -->

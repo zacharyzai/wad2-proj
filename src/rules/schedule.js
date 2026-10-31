@@ -80,15 +80,35 @@ export function doseSlots(medication = {}) {
   return Number.isInteger(medication.timesPerDay) ? SLOTS_PER_DAY[medication.timesPerDay] ?? null : null
 }
 
+// A label warning like "Do not use more than 7 days" or "for up to 2 weeks" limits the course, however many tablets there are.
+// Our own pattern (English labels, like the rest of the label text); the smallest limit wins; null when no warning gives one.
+// shortcut: only these phrasings; a limit worded another way is not caught, so the user still checks the days on Schedule.
+const LIMIT = /\b(?:more than|longer than|beyond|exceed(?:ing)?|up to|at most|maximum(?: of)?|max\.?(?: of)?)\s+(\d{1,3})\s*(day|week)s?\b/i
+export function labelLimitDays(medication = {}) {
+  const limits = (medication.warnings ?? [])
+    .map((w) => LIMIT.exec(String(w)))
+    .filter(Boolean)
+    .map((m) => Number(m[1]) * (/week/i.test(m[2]) ? 7 : 1))
+    .filter(validDays)
+  return limits.length ? Math.min(...limits) : null
+}
+
 // How many whole days the medicine given lasts: quantity ÷ (amount each time × times a day). "Qty: 60 tablets, 1 tablet twice a
 // day" -> 30. A spare part-day is dropped, so it never promises more than there is. null when the label leaves anything out,
-// the medicine isn't daily, or it wouldn't last a day. Shown with its sums (supplySums), and the user can change the days.
-export function supplyDays(medication = {}) {
+// the medicine isn't daily, or it wouldn't last a day. Shown with its sums (supplyText), and the user can change the days.
+export function packDays(medication = {}) {
   const perDay = doseSlots(medication)?.length
   const { quantity, doseAmount } = medication
   if (!perDay || !(quantity > 0) || !(doseAmount > 0)) return null
   const days = Math.floor(quantity / (doseAmount * perDay) + 1e-9) // 1e-9: 0.3 ÷ 0.1 is 2.9999999999999996 in floating point
   return validDays(days) ? days : null
+}
+
+// What goes on the timetable: as long as the pack lasts, but never past a limit the label gives ("not more than 7 days").
+export function supplyDays(medication = {}) {
+  const days = packDays(medication)
+  const limit = labelLimitDays(medication)
+  return days && limit ? Math.min(days, limit) : days
 }
 
 export function buildSchedule(medicine, { startDate, days, times = {} } = {}) {

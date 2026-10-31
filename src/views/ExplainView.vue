@@ -38,6 +38,7 @@ function medication(m) {
       ],
       right: t('explain.check.askRight'),
       wrong: t('explain.check.askWrong'),
+      canSchedule: true, // same button as any medicine; Schedule lists this one under "Check with your pharmacist"
     }
   }
 

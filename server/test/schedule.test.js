@@ -1,7 +1,7 @@
 // Owner: Lokesh. Schedule rules for the Schedule page and Google sync (src/rules/schedule.js). Entry shape: docs/google-contract.md.
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { weekOf, weekSummary, supplyDays, buildSchedule, dosesOn, doseSlots, addDays, validTime, validDays, validDate, todayInSingapore, timeInSingapore, timeStates, tooEarly, syncEntries, MAX_DAYS } from '../../src/rules/schedule.js'
+import { weekOf, weekSummary, labelLimitDays, packDays, supplyDays, buildSchedule, dosesOn, doseSlots, addDays, validTime, validDays, validDate, todayInSingapore, timeInSingapore, timeStates, tooEarly, syncEntries, MAX_DAYS } from '../../src/rules/schedule.js'
 import med1 from '../fixtures/med-1.json' with { type: 'json' }
 import en from '../../src/i18n/locales/en.json' with { type: 'json' }
 import zh from '../../src/i18n/locales/zh.json' with { type: 'json' }
@@ -329,4 +329,20 @@ test('a refill: re-scanning a medicine whose course has ended starts it again fr
   setSchedule(id, { startDate: addDays(today, -29), days: 30, times: {} })
   rememberMedicine(label(60), 'label')
   assert.equal(medicines[0].schedule.startDate, addDays(today, -29))
+})
+
+test('a label warning that limits the course caps the days, however many tablets there are', () => {
+  const med = { frequencyType: 'daily', doseAmount: 1, timesPerDay: 1, quantity: 10 }
+  const warn = (...warnings) => ({ ...med, warnings })
+  assert.equal(labelLimitDays(warn('Do not use more than 7 days')), 7)
+  assert.equal(labelLimitDays(warn('For up to 2 weeks only')), 14)
+  assert.equal(labelLimitDays(warn('Do not take for longer than 5 days', 'Do not exceed 3 days')), 3) // the smallest wins
+  for (const w of [[], ['Take after food'], ['Do not take more than 3 times a day'], ['Do not use more than 999 days']]) assert.equal(labelLimitDays(warn(...w)), null)
+  assert.equal(labelLimitDays({}), null)
+
+  assert.equal(packDays(med), 10) // 10 tablets last 10 days...
+  assert.equal(supplyDays(warn('Do not use more than 7 days')), 7) // ...but the label says 7
+  assert.equal(supplyDays({ ...warn('Do not use more than 7 days'), quantity: 5 }), 5) // fewer tablets than the limit: unchanged
+  assert.equal(supplyDays(warn('Take after food')), 10)
+  assert.equal(supplyDays({ ...warn('Do not use more than 7 days'), quantity: null }), null) // no pack size: Schedule still asks
 })

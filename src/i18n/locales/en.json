@@ -347,7 +347,9 @@
       "food": "Before or after food",
       "other": "Other instructions on the label (one per line)",
       "quantity": "Amount in the pack",
-      "quantityHelp": "As on the label, for example Qty: 60. We use it to work out how many days it lasts. Leave it empty if the label doesn’t say."
+      "quantityHelp": "As on the label, for example Qty: 60. We use it to work out how many days it lasts. Leave it empty if the label doesn’t say.",
+      "more": "Add more details",
+      "fewer": "Show fewer details"
     },
     "bill": {
       "item": "Item",
@@ -819,6 +821,8 @@
       "chargesNet": "Charges after subsidy"
     },
     "charged": "What you were charged",
+    "showItems": "Show what each charge was ({n})",
+    "hideItems": "Hide each charge",
     "takenOff": "Taken off your bill",
     "total": "You pay",
     "takenOffAmount": "{amount} taken off",
@@ -1053,6 +1057,7 @@
       "title": "Change {name}",
       "days": "Number of days",
       "daysHelp": "How many days to take it for, counting the start date.",
+      "overLimit": "The label says not to use it for more than {days} day. | The label says not to use it for more than {days} days.",
       "start": "Start date",
       "times": "Time for each dose",
       "save": "Save",
@@ -1153,7 +1158,8 @@
       "times": "Your dose times",
       "timesHelp": "To change a time, open My medicines and choose Change."
     },
-    "supply": "From the label: {qty}, {per} a day, so it lasts {days} day. | From the label: {qty}, {per} a day, so it lasts {days} days."
+    "supply": "From the label: {qty}, {per} a day, so it lasts {days} day. | From the label: {qty}, {per} a day, so it lasts {days} days.",
+    "limit": "From the label: {qty}. It says not to use it for more than {days} day, so it is scheduled for {days} day. | From the label: {qty}. It says not to use it for more than {days} days, so it is scheduled for {days} days."
   },
   "start": {
     "title": "An easier way to understand your medicine and bills.",

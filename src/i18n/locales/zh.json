@@ -347,7 +347,9 @@
       "food": "饭前还是饭后",
       "other": "标签上的其他说明（每行一条）",
       "quantity": "包装里的数量",
-      "quantityHelp": "按标签填写，例如 Qty: 60。我们用它来算出能服用几天。标签上没有写就留空。"
+      "quantityHelp": "按标签填写，例如 Qty: 60。我们用它来算出能服用几天。标签上没有写就留空。",
+      "more": "添加更多详情",
+      "fewer": "收起详情"
     },
     "bill": {
       "item": "项目",
@@ -819,6 +821,8 @@
       "chargesNet": "扣除津贴后的费用"
     },
     "charged": "收费项目",
+    "showItems": "查看每一项收费 ({n})",
+    "hideItems": "收起各项收费",
     "takenOff": "从账单中扣除",
     "total": "您需要支付",
     "takenOffAmount": "扣除 {amount}",
@@ -1053,6 +1057,7 @@
       "title": "修改 {name}",
       "days": "天数",
       "daysHelp": "要吃几天（包括开始那天）。",
+      "overLimit": "标签说明不要使用超过 {days} 天。",
       "start": "开始日期",
       "times": "每次服药时间",
       "save": "保存",
@@ -1153,7 +1158,8 @@
       "times": "您的服药时间",
       "timesHelp": "要更改时间，请打开“我的药物”，然后选择“更改”。"
     },
-    "supply": "按标签：{qty}，每天 {per}，可以服用 {days} 天。 | 按标签：{qty}，每天 {per}，可以服用 {days} 天。"
+    "supply": "按标签：{qty}，每天 {per}，可以服用 {days} 天。 | 按标签：{qty}，每天 {per}，可以服用 {days} 天。",
+    "limit": "标签上写着：{qty}。但标签说明不要使用超过 {days} 天，所以排程 {days} 天。"
   },
   "start": {
     "title": "更轻松地看懂您的药物和账单。",

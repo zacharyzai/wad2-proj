@@ -11,7 +11,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { medicines, setSchedule, forgetMedicine, restoreMedicine, scanFromMedicine } from '../stores/medicines'
 import { scanStore } from '../stores/scan'
-import { buildSchedule, dosesOn, doseSlots, supplyDays, todayInSingapore, timeInSingapore, timeStates, tooEarly, validDate, validDays, validTime, MAX_DAYS } from '../rules/schedule'
+import { buildSchedule, dosesOn, doseSlots, labelLimitDays, packDays, supplyDays, todayInSingapore, timeInSingapore, timeStates, tooEarly, validDate, validDays, validTime, MAX_DAYS } from '../rules/schedule'
 import { dosesTaken, setDoseTaken } from '../api/client'
 import EmptyState from '../components/layout/EmptyState.vue'
 import ErrorBanner from '../components/layout/ErrorBanner.vue'
@@ -55,6 +55,8 @@ function supplyText(medication) {
   const days = supplyDays(medication)
   if (!days) return null
   const perDay = medication.doseAmount * doseSlots(medication).length
+  // The label's limit is shorter than the pack: say that, so nobody wonders why 10 tablets are only scheduled for 7 days.
+  if (days < packDays(medication)) return t('schedule.limit', { qty: amountText(medication.quantity, medication.doseUnit), days: labelLimitDays(medication) }, days)
   return t('schedule.supply', { qty: amountText(medication.quantity, medication.doseUnit), per: amountText(perDay, medication.doseUnit), days }, days)
 }
 
@@ -465,6 +467,8 @@ onBeforeUnmount(() => {
                   data-testid="schedule-days"
                 />
                 <p v-if="shown('days')" :id="`days-error-${r.medicine.id}`" class="field-error" role="alert">{{ shown('days') }}</p>
+                <!-- Not a block: the person may know better (a doctor told them), so this only says what the label says. -->
+                <p v-if="labelLimitDays(r.medicine.medication) && Number(form.days) > labelLimitDays(r.medicine.medication)" class="alert alert-warning m-0" data-testid="schedule-over-limit"><AppIcon name="alert" :size="20" />{{ t('schedule.form.overLimit', { days: labelLimitDays(r.medicine.medication) }, labelLimitDays(r.medicine.medication)) }}</p>
               </div>
               <div class="field">
                 <label :for="`start-${r.medicine.id}`" class="field-label">{{ t('schedule.form.start') }}</label>

@@ -87,6 +87,7 @@ const charged = computed(() =>
     const category = Object.hasOwn(CATEGORY_STYLE, item.category) ? item.category : 'other'
     return {
       id: `item-${i}`,
+      category,
       ...CATEGORY_STYLE[category],
       // Descriptions are copied from the bill, which is printed in English.
       name: item.description || t(`bill.category.${category}`),
@@ -97,6 +98,12 @@ const charged = computed(() =>
     }
   }),
 )
+
+// Most people only need the totals, GST and what comes off: each charge (every medicine, test…) is one tap away.
+const showItems = ref(false)
+watch(bill, () => (showItems.value = false))
+const itemLines = computed(() => charged.value.filter((l) => l.category !== 'tax'))
+const taxLines = computed(() => charged.value.filter((l) => l.category === 'tax'))
 
 const takenOff = computed(() => {
   const b = bill.value
@@ -236,8 +243,14 @@ const summary = computed(() => [
       <div>
         <section class="d-flex flex-column gap-3" aria-labelledby="bill-charged">
           <h2 id="bill-charged" class="section-label">{{ t('bill.charged') }}</h2>
-          <ul class="lines">
-            <BillLine v-for="line in charged" :key="line.id" :line="line" :open="openId === line.id" @toggle="toggle(line.id)" />
+          <button v-if="itemLines.length" type="button" class="btn btn-outline details-toggle" :aria-expanded="showItems" aria-controls="bill-items" data-testid="bill-items-toggle" @click="showItems = !showItems">
+            <AppIcon :name="showItems ? 'up' : 'down'" />{{ t(showItems ? 'bill.hideItems' : 'bill.showItems', { n: itemLines.length }) }}
+          </button>
+          <ul v-show="showItems" id="bill-items" class="lines">
+            <BillLine v-for="line in itemLines" :key="line.id" :line="line" :open="openId === line.id" @toggle="toggle(line.id)" />
+          </ul>
+          <ul v-if="taxLines.length" class="lines">
+            <BillLine v-for="line in taxLines" :key="line.id" :line="line" :open="openId === line.id" @toggle="toggle(line.id)" />
           </ul>
         </section>
         <section class="d-flex flex-column gap-3" aria-labelledby="bill-off">

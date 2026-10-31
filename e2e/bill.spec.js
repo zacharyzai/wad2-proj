@@ -13,6 +13,7 @@ async function openSample(page, name) {
   await page.goto('/bill')
   await page.getByRole('button', { name }).click()
   await expect(page.getByRole('heading', { name: 'What this means for you' })).toBeVisible()
+  await page.getByTestId('bill-items-toggle').click() // each charge is behind a dropdown (closed by default)
 }
 // The subsidies are in a closed "Press here to see more" section.
 async function openSubsidies(page) {
@@ -331,4 +332,18 @@ test.describe('layout and accessibility', () => {
       await expectNoAxeViolations(page)
     })
   }
+})
+
+test('each charge is behind a dropdown: closed at first, with the total, GST and what is taken off still showing', async ({ page }) => {
+  await page.goto('/bill')
+  await page.getByRole('button', { name: BEDOK }).click()
+  const toggle = page.getByTestId('bill-items-toggle')
+  await expect(toggle).toHaveAttribute('aria-expanded', 'false')
+  await expect(page.locator('#bill-items')).toBeHidden()
+  await expect(page.getByTestId('bill-total')).toBeVisible()
+  await toggle.click()
+  await expect(toggle).toHaveAttribute('aria-expanded', 'true')
+  await expect(page.locator('#bill-items')).toBeVisible()
+  await toggle.click() // and it can be closed again
+  await expect(page.locator('#bill-items')).toBeHidden()
 })

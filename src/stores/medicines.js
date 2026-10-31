@@ -3,7 +3,7 @@
 // The list belongs to the account: stores/scheduleSync.js loads it from GET /api/schedule and saves every change. What is kept
 // in this browser is only a cache of the logged-in account's list.
 import { reactive, toRaw, watch } from 'vue'
-import { addDays, supplyDays, todayInSingapore } from '../rules/schedule.js'
+import { addDays, labelLimitDays, supplyDays, todayInSingapore } from '../rules/schedule.js'
 
 const KEY = 'medicines'
 const MAX = 10 // same limit as the server
@@ -40,7 +40,11 @@ const fromLabel = (medication) => {
 // ended is a refill: it starts again from today, from the new label (or Schedule asks how many days). Changed times stay.
 const ended = (schedule) => Boolean(schedule?.days) && addDays(schedule.startDate, schedule.days - 1) < todayInSingapore()
 function scheduleFor(previous, medication) {
-  if (previous?.schedule && !ended(previous.schedule)) return { schedule: previous.schedule }
+  if (previous?.schedule && !ended(previous.schedule)) {
+    // Carries on, but never past a limit the label gives ("not more than 7 days"), even if it was scheduled for longer before.
+    const limit = labelLimitDays(medication)
+    return { schedule: limit && previous.schedule.days > limit ? { ...previous.schedule, days: limit } : previous.schedule }
+  }
   const times = previous?.schedule?.times ?? {}
   const fresh = fromLabel(medication).schedule
   return fresh ? { schedule: { ...fresh, times } } : previous?.schedule ? { schedule: { times } } : {}

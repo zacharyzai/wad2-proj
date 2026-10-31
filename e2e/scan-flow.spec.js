@@ -32,12 +32,15 @@ test('edits on Confirm change the explanation', async ({ page }) => {
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Take 2 tablets, 2 times a day.')
 })
 
-test('when-needed medicine is flagged for the pharmacist, not scheduled', async ({ page }) => {
+test('when-needed medicine is flagged for the pharmacist, and Add to schedule lands it under "Check with your pharmacist"', async ({ page }) => {
   await openSample(page, 'Cough syrup label')
   await page.getByRole('button', { name: 'Looks correct' }).click()
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Ask your pharmacist how to take this medicine.')
   await expect(page.getByText('Only when needed')).toBeVisible()
-  await expect(page.getByRole('link', { name: 'Add to schedule' })).toHaveCount(0)
+  await page.getByRole('link', { name: 'Add to schedule' }).click() // same button as any medicine
+  await expect(page).toHaveURL(/\/schedule/)
+  await expect(page.getByRole('heading', { name: 'Check with your pharmacist' })).toBeVisible()
+  await expect(page.getByText('Cough syrup')).toBeVisible()
 })
 
 test('bill sample shows what you pay', async ({ page }) => {
@@ -345,4 +348,22 @@ test('a file the browser cannot open says so, without asking the server', async 
   await expect(page.getByRole('alert')).toContainText('This file can’t be used.')
   await expect(page.getByRole('button', { name: 'Upload a different photo' })).toBeVisible()
   expect(apiCalls).toBe(0)
+})
+
+test('Confirm: "Add more details" shows the empty optional fields and "Show fewer details" puts them away again', async ({ page }) => {
+  await page.route('**/api/scan', async (route) => {
+    const res = await route.fetch()
+    const body = await res.json()
+    Object.assign(body.data.medication, { strength: null, quantity: null, withFood: null, timing: null, warnings: [] })
+    body.data.unclear = []
+    await route.fulfill({ response: res, json: body })
+  })
+  await openSample(page, 'Metformin label')
+  const more = page.getByTestId('confirm-more')
+  await expect(page.getByLabel('Strength')).toHaveCount(0)
+  await more.click()
+  await expect(page.getByLabel('Strength')).toBeVisible()
+  await expect(more).toHaveAttribute('aria-expanded', 'true')
+  await more.click()
+  await expect(page.getByLabel('Strength')).toHaveCount(0)
 })

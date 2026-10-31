@@ -347,7 +347,9 @@
       "food": "Sebelum atau selepas makan",
       "other": "Arahan lain pada label (satu setiap baris)",
       "quantity": "Jumlah dalam pek",
-      "quantityHelp": "Seperti pada label, contohnya Qty: 60. Kami gunakannya untuk mengira berapa hari ubat ini cukup. Biarkan kosong jika label tidak menyatakannya."
+      "quantityHelp": "Seperti pada label, contohnya Qty: 60. Kami gunakannya untuk mengira berapa hari ubat ini cukup. Biarkan kosong jika label tidak menyatakannya.",
+      "more": "Tambah butiran lanjut",
+      "fewer": "Tunjuk kurang butiran"
     },
     "bill": {
       "item": "Item",
@@ -819,6 +821,8 @@
       "chargesNet": "Caj selepas subsidi"
     },
     "charged": "Caj anda",
+    "showItems": "Tunjukkan setiap caj ({n})",
+    "hideItems": "Sembunyikan setiap caj",
     "takenOff": "Ditolak daripada bil anda",
     "total": "Anda bayar",
     "takenOffAmount": "{amount} ditolak",
@@ -1053,6 +1057,7 @@
       "title": "Ubah {name}",
       "days": "Bilangan hari",
       "daysHelp": "Berapa hari perlu diambil, termasuk tarikh mula.",
+      "overLimit": "Label menyatakan jangan gunakan lebih daripada {days} hari.",
       "start": "Tarikh mula",
       "times": "Masa untuk setiap dos",
       "save": "Simpan",
@@ -1153,7 +1158,8 @@
       "times": "Waktu dos anda",
       "timesHelp": "Untuk menukar waktu, buka Ubat saya dan pilih Ubah."
     },
-    "supply": "Daripada label: {qty}, {per} sehari, jadi ia cukup untuk {days} hari. | Daripada label: {qty}, {per} sehari, jadi ia cukup untuk {days} hari."
+    "supply": "Daripada label: {qty}, {per} sehari, jadi ia cukup untuk {days} hari. | Daripada label: {qty}, {per} sehari, jadi ia cukup untuk {days} hari.",
+    "limit": "Daripada label: {qty}. Label menyatakan jangan gunakan lebih daripada {days} hari, jadi dijadualkan untuk {days} hari."
   },
   "start": {
     "title": "Cara lebih mudah untuk memahami ubat dan bil anda.",
