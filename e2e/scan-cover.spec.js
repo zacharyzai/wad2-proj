@@ -28,7 +28,7 @@ test('if covering fails, nothing is sent and Try again covers again', async ({ p
   page.on('request', (r) => r.url().includes('/api/scan') && apiCalls++)
   await page.goto('/scan')
   await upload(page)
-  await expect(page.getByRole('alert')).toContainText("We couldn't cover your personal details on this phone, so nothing was sent.")
+  await expect(page.getByRole('alert')).toContainText("We couldn't cover your personal details on this device, so nothing was sent.")
   // The reader works now: Try again covers and sends.
   await page.evaluate(() => (window.__redactForTests = async (dataUrl) => ({ dataUrl, keep: [{ text: 'TAKE 1 TABLET' }], hits: [] })))
   await page.getByRole('button', { name: 'Try again' }).click()

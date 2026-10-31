@@ -70,6 +70,6 @@ export function resetTheme() {
   }
 }
 
-// "Same as my phone": follow the device when it switches (e.g. dark mode at sunset).
+// "Same as my device": follow the device when it switches (e.g. dark mode at sunset).
 deviceDark?.addEventListener?.('change', () => themeChoice.value === 'system' && apply())
 apply()

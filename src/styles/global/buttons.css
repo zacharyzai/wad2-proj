@@ -80,7 +80,7 @@
 .segmented > button { flex: 1 1 auto; min-height: var(--hit); padding: 6px 10px; border: 0; border-radius: 12px; background: transparent; color: var(--color-text-muted); font: 600 17px var(--font-sans); transition: background-color var(--dur) var(--ease-out), color var(--dur) var(--ease-out); }
 .segmented > button:hover { color: var(--color-text); }
 .segmented > [aria-pressed='true'], .segmented > [aria-checked='true'] { background: var(--color-card); color: var(--color-tint-text); font-weight: 700; box-shadow: var(--shadow-card); }
-/* Day / Night / Same as my phone (Sign up, Account): one per row at every width, so Tamil and Malay labels stay on one line. */
+/* Day / Night / Same as my device (Sign up, Account): one per row at every width, so Tamil and Malay labels stay on one line. */
 .segmented.theme-choices { display: grid; grid-template-columns: minmax(0, 1fr); }
 .theme-choices > button { display: flex; align-items: center; justify-content: center; gap: 8px; }
 

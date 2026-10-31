@@ -45,7 +45,7 @@ test.describe('logged out', () => {
     await page.getByRole('link', { name: 'Account' }).first().click()
     await page.getByTestId('account-logout').click()
     await page.getByTestId('account-logout-yes').click() // asks first (H5)
-    await expect(page).toHaveURL(/\/start$/) // logging out: Start, for whoever uses this phone next
+    await expect(page).toHaveURL(/\/start$/) // logging out: Start, for whoever uses this device next
     await page.getByTestId('start-login').click()
     await page.getByTestId('login-email').fill(DEMO_USER.email)
     await page.getByTestId('login-password').fill('password123')
@@ -253,7 +253,7 @@ test('Log out asks first in a pop-up, so one stray tap does not log a senior out
   await page.goto('/account')
   await page.getByTestId('account-logout').click()
   const ask = page.getByTestId('account-logout-ask')
-  await expect(ask).toContainText('Log out of this phone or computer?')
+  await expect(ask).toContainText('Log out of this device?')
   await expect(ask).toContainText('Come back soon!')
   expect(await ask.evaluate((d) => d.matches(':modal'))).toBe(true) // a real pop-up over the page
   await expect(page.getByTestId('account-logout-stay')).toBeFocused() // the safe choice comes first

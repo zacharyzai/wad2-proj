@@ -1,5 +1,5 @@
 <!-- Owner: Isaac. The day/night toggle in the sidebar (desktop) and the phone header, so night mode is one tap from every
-     page (the Account page still offers Day, Night or Same as my phone). A capsule-shaped track (a faint seam down the
+     page (the Account page still offers Day, Night or Same as my device). A capsule-shaped track (a faint seam down the
      middle, like a pill): the knob carries the icon for what is showing and slides across; the other icon waits at the
      far end. A real switch (role="switch", on = night), named "Night mode", with a 48px tap area. Pressing it cross-fades
      the whole screen to the other colours (src/theme.js). -->
@@ -13,7 +13,7 @@ import AppIcon from './AppIcon.vue'
 const { t } = useI18n()
 const isDark = computed(() => shownTheme.value === 'dark')
 
-// An explicit Day or Night (pressing it is a choice, even from "Same as my phone"). Saved to the account in the
+// An explicit Day or Night (pressing it is a choice, even from "Same as my device"). Saved to the account in the
 // background; this device remembers it either way.
 function toggle(event) {
   const next = isDark.value ? 'light' : 'dark'

@@ -66,7 +66,7 @@
       "upcoming": "To come"
     },
     "notShared": "Not shared yet",
-    "notSharedText": "{name}'s schedule will show here once they open the app on their phone while logged in."
+    "notSharedText": "{name}'s schedule will show here once they open the app on their device while logged in."
   },
   "invite": {
     "title": "{name} would like you to be their caregiver",
@@ -117,7 +117,7 @@
     "SERVER_ERROR": "Something went wrong. Please try again.",
     "NETWORK_ERROR": "Cannot connect. Please check your internet connection.",
     "UNSUPPORTED_FILE": "This file can’t be used. Please choose a photo (JPG or PNG).",
-    "COVER_FAILED": "We couldn't cover your personal details on this phone, so nothing was sent. Please try again.",
+    "COVER_FAILED": "We couldn't cover your personal details on this device, so nothing was sent. Please try again.",
     "WRONG_LOGIN": "That email or password is not right. Please try again.",
     "NOT_LOGGED_IN": "Please log in again.",
     "EMAIL_TAKEN": "An account with this email already exists. Try logging in instead.",
@@ -190,8 +190,8 @@
     "wait": "This usually takes about 10 seconds.",
     "cancel": "Cancel",
     "errorTag": "Error",
-    "photoHint": "Hold the phone steady in good light, with the whole page inside the box.",
-    "photoKept": "Your photo is still on this phone, so you won’t need to take it again.",
+    "photoHint": "Hold your device steady in good light, with the whole page inside the box.",
+    "photoKept": "Your photo is still on this device, so you won’t need to take it again.",
     "yourPhoto": "Your photo",
     "retake": "Retake photo",
     "uploadOther": "Upload a different photo",
@@ -200,7 +200,7 @@
     "capture": "Capture",
     "preview": "Camera preview",
     "cameraBlocked": "We can’t open the camera. Allow camera access in your browser, or upload a photo instead.",
-    "privacy": "Your name, NRIC and address are blacked out on this phone before your photo is read. It is never stored.",
+    "privacy": "Your name, NRIC and address are blacked out on this device before your photo is read. It is never stored.",
     "neverStored": "Your photo is never stored",
     "sampleOf": {
       "medication": "Sample medicine label",
@@ -259,7 +259,7 @@
     },
     "slow": "This is taking longer than usual. We will stop after 30 seconds so you can try again.",
     "steps": {
-      "cover": "Cover your personal details on this phone",
+      "cover": "Cover your personal details on this device",
       "read": {
         "medication": "Read your label",
         "bill": "Read your bill"
@@ -594,7 +594,7 @@
     },
     "missingFields": "Some boxes need checking. They are marked in red.",
     "remember": "Remember me on this device",
-    "rememberHelp": "You stay logged in for 30 days after each visit. Untick this on a shared phone or computer.",
+    "rememberHelp": "You stay logged in for 30 days after each visit. Untick this on a shared device.",
     "dobHelp": "Used to check which subsidies you can get on the Bill page.",
     "need": {
       "name": "Please type your name.",
@@ -611,12 +611,12 @@
       "forgot": "Forgot your password?",
       "forgotLead": "It happens. We’ll email you a link to choose a new one.",
       "reset": "Choose a new password.",
-      "resetLead": "Then you’re logged in here, and logged out on every other phone or computer."
+      "resetLead": "Then you’re logged in here, and logged out on every other device."
     },
     "promise": {
       "read": "Labels explained in simple words, and read aloud in 4 languages.",
       "bill": "Bills broken down, with the subsidies you may get.",
-      "private": "Your name and NRIC are blacked out on your phone before anything is read."
+      "private": "Your name and NRIC are blacked out on your device before anything is read."
     },
     "promiseLabel": "What you get",
     "about": "New here? See how it works",
@@ -636,7 +636,7 @@
       "newPassword": "New password",
       "save": "Save new password",
       "doneTitle": "Password changed",
-      "doneText": "You’re logged in. Any other phone or computer that was logged in will need the new password.",
+      "doneText": "You’re logged in. Any other device that was logged in will need the new password.",
       "continue": "Continue",
       "badTitle": "This link has expired or was already used",
       "badText": "Reset links work for 30 minutes, and only once. You can ask for a new one.",
@@ -654,7 +654,7 @@
     "scan": {
       "kicker": "Scan & understand",
       "title": "Snap a photo. We explain it simply.",
-      "text": "Point your phone at a bill or a medicine label. We tell you what each line means, what is already paid for, and what you still need to pay.",
+      "text": "Point your device’s camera at a bill or a medicine label. We tell you what each line means, what is already paid for, and what you still need to pay.",
       "billTitle": "Your medical bill",
       "plain": "Plain words",
       "visit": "Doctor's visit",
@@ -871,7 +871,7 @@
   },
   "account": {
     "toast": "Settings saved",
-    "languageNote": "The app uses this language on every phone or computer you log in on.",
+    "languageNote": "The app uses this language on every device you log in on.",
     "lead": "These are the details you gave us.",
     "details": "Your details",
     "logout": "Log out",
@@ -880,14 +880,14 @@
     "editTitle": "Edit your details",
     "save": "Save",
     "cancel": "Cancel",
-    "logoutAsk": "Log out of this phone or computer?",
+    "logoutAsk": "Log out of this device?",
     "logoutNote": "You will need your email and password to log in again.",
     "theme": {
       "title": "Day or night mode",
       "light": "Day",
       "dark": "Night",
-      "system": "Same as my phone",
-      "note": "Night mode has a dark background, easier on the eyes in a dark room. “Same as my phone” follows your phone or computer’s own setting.",
+      "system": "Same as my device",
+      "note": "Night mode has a dark background, easier on the eyes in a dark room. “Same as my device” follows your device’s own setting.",
       "later": "You can change this any time on your Account page."
     },
     "logoutBye": "Come back soon!",
@@ -919,7 +919,7 @@
       },
       "scanTake": {
         "t": "Take a photo of the label",
-        "b": "Or upload one. Your name and NRIC are blacked out on your phone before anything is read."
+        "b": "Or upload one. Your name and NRIC are blacked out on your device before anything is read."
       },
       "bill": {
         "t": "Tap {name}",
@@ -1000,7 +1000,7 @@
     },
     "calendar": {
       "title": "Reminders in Google Calendar",
-      "text": "Connect Google Calendar and each dose shows in your calendar with an alert, so your phone reminds you even when this app is closed.",
+      "text": "Connect Google Calendar and each dose shows in your calendar with an alert, so your device reminds you even when this app is closed.",
       "connect": "Connect Google Calendar",
       "reconnect": "Connect again",
       "connected": "Connected",
@@ -1079,7 +1079,7 @@
     },
     "rem": {
       "title": "Reminders",
-      "lead": "Your phone reminds you through Google Calendar, even when this app is closed.",
+      "lead": "Your device reminds you through Google Calendar, even when this app is closed.",
       "times": "Your dose times",
       "timesHelp": "To change a time, open My medicines and choose Change."
     },

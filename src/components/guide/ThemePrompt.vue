@@ -1,4 +1,4 @@
-<!-- Owner: Isaac. Day, night or "same as my phone": asked once, on Home, to an account that hasn't chosen (a new signup,
+<!-- Owner: Isaac. Day, night or "same as my device": asked once, on Home, to an account that hasn't chosen (a new signup,
      or an account from before this setting), then the Beginner's guide follows (stores/guide.js). Tapping a choice changes
      the page at once so they see it; Next (or Esc, which keeps what is showing) saves it to the account.
      Looks like the guide's own card: a bottom sheet on phones, a centred card from 768px. Native <dialog>: focus stays inside. -->

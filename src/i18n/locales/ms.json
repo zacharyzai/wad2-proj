@@ -43,7 +43,7 @@
       "upcoming": "Akan datang"
     },
     "notShared": "Belum dikongsi",
-    "notSharedText": "Jadual {name} akan dipaparkan di sini selepas mereka membuka aplikasi di telefon dan log masuk."
+    "notSharedText": "Jadual {name} akan dipaparkan di sini selepas mereka membuka aplikasi di peranti mereka dan log masuk."
   },
   "invite": {
     "title": "{name} mahu anda menjadi penjaganya",
@@ -117,7 +117,7 @@
     "SERVER_ERROR": "Ada masalah. Sila cuba lagi.",
     "NETWORK_ERROR": "Tidak dapat disambungkan. Sila semak sambungan internet anda.",
     "UNSUPPORTED_FILE": "Fail ini tidak boleh digunakan. Sila pilih gambar (JPG atau PNG).",
-    "COVER_FAILED": "Kami tidak dapat menutup butiran peribadi anda pada telefon ini, jadi tiada apa-apa yang dihantar. Sila cuba lagi.",
+    "COVER_FAILED": "Kami tidak dapat menutup butiran peribadi anda pada peranti ini, jadi tiada apa-apa yang dihantar. Sila cuba lagi.",
     "WRONG_LOGIN": "E-mel atau kata laluan itu tidak betul. Sila cuba lagi.",
     "NOT_LOGGED_IN": "Sila log masuk semula.",
     "EMAIL_TAKEN": "Akaun dengan e-mel ini sudah wujud. Cuba log masuk.",
@@ -190,8 +190,8 @@
     "wait": "Biasanya mengambil masa kira-kira 10 saat.",
     "cancel": "Batal",
     "errorTag": "Ralat",
-    "photoHint": "Pegang telefon dengan stabil di tempat yang terang, dengan seluruh kertas di dalam kotak.",
-    "photoKept": "Gambar anda masih ada dalam telefon ini, jadi anda tidak perlu mengambilnya semula.",
+    "photoHint": "Pegang peranti anda dengan stabil di tempat yang terang, dengan seluruh kertas di dalam kotak.",
+    "photoKept": "Gambar anda masih ada dalam peranti ini, jadi anda tidak perlu mengambilnya semula.",
     "yourPhoto": "Gambar anda",
     "retake": "Ambil gambar semula",
     "uploadOther": "Muat naik gambar lain",
@@ -200,7 +200,7 @@
     "capture": "Tangkap",
     "preview": "Pratonton kamera",
     "cameraBlocked": "Kamera tidak dapat dibuka. Benarkan akses kamera dalam pelayar anda, atau muat naik gambar.",
-    "privacy": "Nama, NRIC dan alamat anda dihitamkan pada telefon ini sebelum gambar anda dibaca. Gambar tidak disimpan.",
+    "privacy": "Nama, NRIC dan alamat anda dihitamkan pada peranti ini sebelum gambar anda dibaca. Gambar tidak disimpan.",
     "neverStored": "Gambar anda tidak disimpan",
     "sampleOf": {
       "medication": "Contoh label ubat",
@@ -259,7 +259,7 @@
     },
     "slow": "Ini lebih lama daripada biasa. Kami akan berhenti selepas 30 saat supaya anda boleh cuba lagi.",
     "steps": {
-      "cover": "Tutup butiran peribadi anda pada telefon ini",
+      "cover": "Tutup butiran peribadi anda pada peranti ini",
       "read": {
         "medication": "Baca label anda",
         "bill": "Baca bil anda"
@@ -594,7 +594,7 @@
     },
     "missingFields": "Beberapa ruang perlu disemak. Ia ditanda merah.",
     "remember": "Ingat saya pada peranti ini",
-    "rememberHelp": "Anda kekal log masuk selama 30 hari selepas setiap lawatan. Nyahtanda jika telefon atau komputer dikongsi.",
+    "rememberHelp": "Anda kekal log masuk selama 30 hari selepas setiap lawatan. Nyahtanda jika peranti ini dikongsi.",
     "dobHelp": "Digunakan untuk menyemak subsidi yang anda layak di halaman Bil.",
     "need": {
       "name": "Sila taip nama anda.",
@@ -611,12 +611,12 @@
       "forgot": "Lupa kata laluan?",
       "forgotLead": "Tidak mengapa. Kami akan e-melkan pautan untuk memilih yang baharu.",
       "reset": "Pilih kata laluan baharu.",
-      "resetLead": "Selepas itu anda dilog masuk di sini, dan dilog keluar pada telefon atau komputer lain."
+      "resetLead": "Selepas itu anda dilog masuk di sini, dan dilog keluar pada peranti lain."
     },
     "promise": {
       "read": "Label diterangkan dengan kata-kata mudah, dan dibacakan dalam 4 bahasa.",
       "bill": "Bil dipecahkan, bersama subsidi yang mungkin anda dapat.",
-      "private": "Nama dan NRIC anda dihitamkan pada telefon sebelum apa-apa dibaca."
+      "private": "Nama dan NRIC anda dihitamkan pada peranti anda sebelum apa-apa dibaca."
     },
     "promiseLabel": "Apa yang anda dapat",
     "about": "Baru di sini? Lihat cara ia berfungsi",
@@ -636,7 +636,7 @@
       "newPassword": "Kata laluan baharu",
       "save": "Simpan kata laluan baharu",
       "doneTitle": "Kata laluan ditukar",
-      "doneText": "Anda sudah dilog masuk. Telefon atau komputer lain yang dilog masuk perlu menggunakan kata laluan baharu.",
+      "doneText": "Anda sudah dilog masuk. Peranti lain yang dilog masuk perlu menggunakan kata laluan baharu.",
       "continue": "Teruskan",
       "badTitle": "Pautan ini sudah tamat tempoh atau sudah digunakan",
       "badText": "Pautan tetapan semula boleh digunakan selama 30 minit, dan sekali sahaja. Anda boleh meminta pautan baharu.",
@@ -654,7 +654,7 @@
     "scan": {
       "kicker": "Imbas & fahami",
       "title": "Ambil gambar. Kami terangkan dengan mudah.",
-      "text": "Halakan telefon anda ke bil atau label ubat. Kami beritahu maksud setiap baris, apa yang sudah dibayar, dan berapa yang anda masih perlu bayar.",
+      "text": "Halakan kamera peranti anda ke bil atau label ubat. Kami beritahu maksud setiap baris, apa yang sudah dibayar, dan berapa yang anda masih perlu bayar.",
       "billTitle": "Bil perubatan anda",
       "plain": "Kata mudah",
       "visit": "Lawatan doktor",
@@ -871,7 +871,7 @@
   },
   "account": {
     "toast": "Tetapan disimpan",
-    "languageNote": "Aplikasi akan menggunakan bahasa ini pada setiap telefon atau komputer yang anda log masuk.",
+    "languageNote": "Aplikasi akan menggunakan bahasa ini pada setiap peranti yang anda log masuk.",
     "lead": "Ini ialah butiran yang anda berikan.",
     "details": "Butiran anda",
     "logout": "Log keluar",
@@ -880,14 +880,14 @@
     "editTitle": "Ubah butiran anda",
     "save": "Simpan",
     "cancel": "Batal",
-    "logoutAsk": "Log keluar dari telefon atau komputer ini?",
+    "logoutAsk": "Log keluar dari peranti ini?",
     "logoutNote": "Anda perlu e-mel dan kata laluan untuk log masuk semula.",
     "theme": {
       "title": "Mod siang atau malam",
       "light": "Siang",
       "dark": "Malam",
-      "system": "Sama seperti telefon saya",
-      "note": "Mod malam menggunakan latar belakang gelap, lebih selesa untuk mata dalam bilik yang gelap. “Sama seperti telefon saya” mengikut tetapan telefon atau komputer anda sendiri.",
+      "system": "Sama seperti peranti saya",
+      "note": "Mod malam menggunakan latar belakang gelap, lebih selesa untuk mata dalam bilik yang gelap. “Sama seperti peranti saya” mengikut tetapan peranti anda sendiri.",
       "later": "Anda boleh menukarnya bila-bila masa di halaman Akaun anda."
     },
     "logoutBye": "Jumpa lagi!",
@@ -919,7 +919,7 @@
       },
       "scanTake": {
         "t": "Ambil gambar label",
-        "b": "Atau muat naik gambar. Nama dan NRIC anda dihitamkan pada telefon sebelum apa-apa dibaca."
+        "b": "Atau muat naik gambar. Nama dan NRIC anda dihitamkan pada peranti anda sebelum apa-apa dibaca."
       },
       "bill": {
         "t": "Ketik {name}",
@@ -1000,7 +1000,7 @@
     },
     "calendar": {
       "title": "Peringatan dalam Google Calendar",
-      "text": "Sambungkan Google Calendar dan setiap dos dipaparkan dalam kalendar anda dengan amaran, supaya telefon anda mengingatkan anda walaupun aplikasi ini ditutup.",
+      "text": "Sambungkan Google Calendar dan setiap dos dipaparkan dalam kalendar anda dengan amaran, supaya peranti anda mengingatkan anda walaupun aplikasi ini ditutup.",
       "connect": "Sambungkan Google Calendar",
       "reconnect": "Sambung semula",
       "connected": "Disambungkan",
@@ -1079,7 +1079,7 @@
     },
     "rem": {
       "title": "Peringatan",
-      "lead": "Telefon anda akan mengingatkan anda melalui Google Calendar, walaupun aplikasi ini ditutup.",
+      "lead": "Peranti anda akan mengingatkan anda melalui Google Calendar, walaupun aplikasi ini ditutup.",
       "times": "Waktu dos anda",
       "timesHelp": "Untuk menukar waktu, buka Ubat saya dan pilih Ubah."
     },

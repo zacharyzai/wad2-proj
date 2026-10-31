@@ -2,7 +2,7 @@
 // walk people through the real app: a welcome card, then it points at real buttons (nav ones must be tapped), then a finish card.
 // When it shows: the first time a logged-in person opens Home or Scan on this device. If they arrived mid-task
 // (a sample link or any other deep link), it waits and shows the next time Home opens. Never on public pages.
-// Before it, an account that hasn't chosen day, night or "same as my phone" is asked that first (ThemePrompt).
+// Before it, an account that hasn't chosen day, night or "same as my device" is asked that first (ThemePrompt).
 // shortcut: "seen" is per device (localStorage), not per account; a second device shows it once more.
 import { reactive } from 'vue'
 import { authStore } from './auth'
