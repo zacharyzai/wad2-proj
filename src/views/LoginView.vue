@@ -3,7 +3,7 @@
 import { ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { login } from '../stores/auth'
+import { enterApp, login } from '../stores/auth'
 import AuthShell from '../components/layout/AuthShell.vue'
 import ErrorBanner from '../components/layout/ErrorBanner.vue'
 import BigButton from '../components/layout/BigButton.vue'
@@ -38,7 +38,7 @@ async function submit() {
   errorCode.value = null
   const res = await login(email.value.trim(), password.value, remember.value)
   busy.value = false
-  if (res.ok) router.push(destination())
+  if (res.ok) enterApp(router, destination()) // one calm fade into the app, colours and language included
   else errorCode.value = res.error.code
 }
 </script>

@@ -4,6 +4,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { authStore, restore } from '../stores/auth'
 import { readToken } from '../api/client'
 import { guide } from '../stores/guide'
+import { screenFading } from '../screenFade'
 
 const routes = [
   { path: '/', name: 'home', component: () => import('../views/HomeView.vue') },
@@ -21,7 +22,9 @@ const routes = [
   { path: '/bill', name: 'bill', component: () => import('../views/BillView.vue') },
   // Old link: bills are scanned on the Scan page, under the medicine label.
   { path: '/bill/scan', name: 'bill-scan', redirect: (to) => ({ name: 'scan', query: to.query, hash: '#bill' }) },
-  // Isaac (+ auth API). Everything needs an account except pages marked public: welcome, login, signup, share links, 404.
+  // Isaac (+ auth API). Everything needs an account except pages marked public: welcome, start, login, signup, share links, 404.
+  // Start: the first page for anyone not logged in, with "Join for free" (Create account) and "Log in".
+  { path: '/start', name: 'start', component: () => import('../views/StartView.vue'), meta: { public: true, guestOnly: true, bare: true } },
   { path: '/login', name: 'login', component: () => import('../views/LoginView.vue'), meta: { public: true, guestOnly: true, bare: true } },
   { path: '/signup', name: 'signup', component: () => import('../views/SignupView.vue'), meta: { public: true, guestOnly: true, bare: true } },
   // Forgot your password? Ask for a link (logged out only), then choose a new password from the emailed link (works
@@ -95,7 +98,8 @@ router.beforeEach(async (to) => {
     return to.meta.guestOnly ? { name: 'home' } : true
   }
   if (to.meta.public) return true
-  return { name: 'login', query: to.fullPath === '/' ? {} : { next: to.fullPath } }
+  // Opening the app: Start (Join for free or Log in). A link to a page inside it: straight to Log in, then that page.
+  return to.fullPath === '/' ? { name: 'start' } : { name: 'login', query: { next: to.fullPath } }
 })
 
 // Page changes slide and fade (and the scanned photo moves into place on Confirm) where the browser supports it.
@@ -103,8 +107,9 @@ router.beforeEach(async (to) => {
 let finishTransition = null
 router.beforeResolve((to, from) => {
   // Skipped while the Beginner's guide is open: the guide moves its own glow and bubble between pages.
-  // Log in ↔ Sign up is a tab switch inside the same screen: it swaps at once instead of fading the whole screen.
-  if (!from.name || to.path === from.path || guide.open || (to.meta.guestOnly && from.meta.guestOnly) || !document.startViewTransition || matchMedia('(prefers-reduced-motion: reduce)').matches) return
+  // Start, Log in and Create account are pages of their own: the top bar stays put and the teal band reshapes (motion.css).
+  // Also skipped inside a whole-screen fade (arriving after logging in, leaving after logging out): that fade covers it.
+  if (!from.name || to.path === from.path || guide.open || screenFading() || !document.startViewTransition || matchMedia('(prefers-reduced-motion: reduce)').matches) return
   return new Promise((resolve) => {
     const transition = document.startViewTransition(() => new Promise((done) => ((finishTransition = done), resolve())))
     // Skipped transitions (window resized, tab hidden) still swap the page; they only reject these promises.

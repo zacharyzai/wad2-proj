@@ -1,25 +1,14 @@
-<!-- Owner: Isaac. The "loading" state every data page needs: a 3x3 pixel grid, a shimmering label and a running timer.
-     variant: Drive (square cells sweeping), Dots (round cells), Orbit (one cell circling the edge). -->
+<!-- Owner: Isaac. The "loading" state every data page needs: the turning pill (PillLoader), a gently brightening label and a running timer. -->
 <script setup>
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import PillLoader from './PillLoader.vue'
 
-const props = defineProps({
+defineProps({
   label: { type: String, default: null }, // falls back to "Loading…" in the page language
-  variant: { type: String, default: 'Drive', validator: (v) => ['Drive', 'Dots', 'Orbit'].includes(v) },
+  pill: { type: Boolean, default: true }, // false when a larger pill is already showing nearby (Scan)
 })
 const { t } = useI18n()
-
-const ORBIT = [0, 1, 2, 5, 8, 7, 6, 3] // perimeter, clockwise from the top-left
-const cells = computed(() =>
-  Array.from({ length: 9 }, (_, i) => {
-    if (props.variant === 'Orbit') {
-      return i === 4 ? { centre: true } : { style: { '--dur': '950ms', '--delay': `${ORBIT.indexOf(i) * 110}ms` } }
-    }
-    const r = Math.floor(i / 3), c = i % 3
-    return { style: { '--dur': '650ms', '--delay': `${(c + Math.abs(r - 1)) * 90}ms` } }
-  }),
-)
 
 const tenths = ref(0)
 let timer
@@ -33,9 +22,7 @@ const elapsed = computed(() => {
 
 <template>
   <div class="ls" role="status" aria-live="polite">
-    <span class="ls-grid" :class="{ 'ls-round': variant === 'Dots' }" aria-hidden="true">
-      <span v-for="(cell, i) in cells" :key="i" class="ls-cell" :class="{ 'ls-centre': cell.centre }" :style="cell.style"></span>
-    </span>
+    <PillLoader v-if="pill" :size="30" />
     <span class="ls-label">{{ label ?? t('common.loading') }}</span>
     <span class="ls-time" aria-hidden="true">{{ elapsed }}</span>
   </div>
@@ -43,20 +30,13 @@ const elapsed = computed(() => {
 
 <style scoped>
 .ls { display: inline-flex; align-items: center; gap: 10px; width: fit-content; }
-.ls-grid { display: grid; grid-template-columns: repeat(3, 4px); gap: 1.5px; }
-.ls-cell { width: 4px; height: 4px; border-radius: 1px; background: var(--color-text); opacity: 0.15; }
-.ls-round .ls-cell { border-radius: 50%; }
-.ls-cell:not(.ls-centre) { animation: pixel-on var(--dur) ease-in-out var(--delay) infinite; }
-.ls-centre { opacity: 0.07; }
 /* 16px, not 13px: the app's minimum text size for seniors. */
 .ls-label { font-size: 16px; font-weight: 500; color: var(--color-text-muted); animation: label-breathe 1.8s ease-in-out infinite; } /* solid words that gently brighten between two AA text colours, never a gradient */
 .ls-time { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 16px; font-variant-numeric: tabular-nums; color: var(--color-text-muted); }
 
-@keyframes pixel-on { 0%, 100% { opacity: 0.12; } 50% { opacity: 1; } }
 @keyframes label-breathe { 50% { color: var(--color-text); } }
 
 @media (prefers-reduced-motion: reduce) {
-  .ls-cell { animation: none !important; }
   .ls-label { animation: none; }
 }
 </style>

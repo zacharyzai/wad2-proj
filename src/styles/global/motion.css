@@ -1,7 +1,6 @@
 /* Owner: Isaac. Entry motion and loading states. Everything respects prefers-reduced-motion. */
 @keyframes ahma-rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
 @keyframes ahma-pulse { 0%, 100% { transform: scale(1); opacity: 0.5; } 50% { transform: scale(1.06); opacity: 1; } }
-@keyframes ahma-spin { to { transform: rotate(360deg); } }
 .rise { animation: ahma-rise var(--dur) var(--ease-out) both; }
 .stagger > * { animation: ahma-rise var(--dur) var(--ease-out) both; }
 .stagger > :nth-child(2) { animation-delay: calc(var(--stagger) * 1); }
@@ -10,13 +9,31 @@
 .stagger > :nth-child(5) { animation-delay: calc(var(--stagger) * 4); }
 .stagger > :nth-child(n + 6) { animation-delay: calc(var(--stagger) * 5); }
 
-/* Busy ring: a spinning arc with two pulsing inner rings */
+/* Busy ring (Scan): the turning pill (PillLoader) in a card, with two soft pulsing rings around it */
 .progress-ring { position: relative; width: 216px; height: 216px; display: grid; place-items: center; }
-.progress-ring > svg { position: absolute; inset: 0; animation: ahma-spin 1.6s linear infinite; }
 .progress-ring__pulse { position: absolute; border-radius: 50%; border: 2px solid var(--color-tint-strong); animation: ahma-pulse 2s ease-in-out infinite; }
 .progress-ring__pulse + .progress-ring__pulse { border-color: var(--color-tint); animation-delay: 0.4s; }
 .progress-ring__core { position: relative; width: 104px; height: 104px; border-radius: 50%; background: var(--color-card); box-shadow: var(--shadow-card); display: grid; place-items: center; color: var(--color-primary-text); }
 .reassure-pill { display: inline-flex; align-items: center; gap: 10px; padding: 12px 20px; border-radius: var(--r-pill); background: var(--color-card); border: 1px solid var(--color-border); box-shadow: var(--shadow-card); font-size: 17px; font-weight: 600; }
+
+/* Whole-screen fades (src/screenFade.js): day ↔ night, a new language, and arriving in or leaving the app. The screen
+   changes as one picture (the page's own transition layers are folded in), so every part changes together.
+   theme: half a second. lang: a third of a second. enter: the old screen fades out, the new one fades and settles in. */
+.fade-vt #main, .fade-vt .ft, .fade-vt .nav, .fade-vt .cover-view, .fade-vt .photo.stick,
+.fade-vt .ph, .fade-vt .band, .fade-vt .auth-band, .fade-vt .auth-form { view-transition-name: none !important; }
+.fade-vt::view-transition-group(root) { animation: none; }
+.fade-vt::view-transition-old(root) { animation: screen-out var(--fade-ms, 500ms) cubic-bezier(0.4, 0, 0.2, 1) both; }
+.fade-vt::view-transition-new(root) { animation: screen-in var(--fade-ms, 500ms) cubic-bezier(0.4, 0, 0.2, 1) both; }
+.fade-lang { --fade-ms: 320ms; }
+.fade-enter::view-transition-old(root) { animation: screen-out 360ms ease-out both; }
+.fade-enter::view-transition-new(root) { animation: screen-settle 640ms cubic-bezier(0.32, 0.72, 0, 1) 120ms both; }
+@keyframes screen-out { to { opacity: 0; } }
+@keyframes screen-in { from { opacity: 0; } }
+@keyframes screen-settle { from { opacity: 0; transform: translateY(10px) scale(0.995); } }
+/* Without View Transitions (older browsers): every colour fades together instead. */
+.theme-fade, .theme-fade *, .theme-fade *::before, .theme-fade *::after {
+  transition: background-color 500ms ease, color 500ms ease, border-color 500ms ease, fill 500ms ease, stroke 500ms ease, box-shadow 500ms ease !important;
+}
 
 /* Page transitions (src/router/index.js): only the page content moves; the sidebar and tab bar stay put. */
 #main { view-transition-name: page; }
@@ -44,9 +61,25 @@
 @keyframes vt-out { to { opacity: 0; } }
 @keyframes vt-in { from { opacity: 0; transform: translateY(8px); } }
 
+/* Start ↔ Log in ↔ Create account (and Forgot, Reset): one continuous place. The top bar stays exactly where it is,
+   the teal band reshapes from one page's height to the next (its pictures keep their size and are clipped, never
+   stretched), the form card fades and rises in (and grows or shrinks between Log in and Create account), and the rest
+   cross-fades with the page. */
+.ph { view-transition-name: public-header; }
+.band, .auth-band { view-transition-name: public-band; }
+.auth-form { view-transition-name: auth-card; }
+::view-transition-group(public-header), ::view-transition-new(public-header) { animation: none; }
+::view-transition-old(public-header) { display: none; } /* never fades, even when the last page was scrolled */
+::view-transition-group(public-band) { overflow: clip; animation-duration: 440ms; animation-timing-function: cubic-bezier(0.32, 0.72, 0, 1); }
+::view-transition-old(public-band), ::view-transition-new(public-band) { height: 100%; object-fit: none; object-position: top; animation-duration: 300ms; }
+::view-transition-group(auth-card) { animation-duration: 440ms; animation-timing-function: cubic-bezier(0.32, 0.72, 0, 1); }
+::view-transition-old(auth-card) { animation: vt-out 120ms var(--ease-out) both; }
+::view-transition-new(auth-card) { animation: card-in 420ms cubic-bezier(0.32, 0.72, 0, 1) 60ms both; }
+@keyframes card-in { from { opacity: 0; transform: translateY(14px); } }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; animation-delay: 0ms !important; transition-duration: 0.01ms !important; }
   .btn:active, .choice:active, .card-interactive:hover { transform: none !important; }
   .card-interactive:active { scale: none !important; }
-  .progress-ring > svg, .progress-ring__pulse { animation: none !important; }
+  .progress-ring__pulse { animation: none !important; }
 }

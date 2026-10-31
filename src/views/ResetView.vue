@@ -5,7 +5,7 @@
 import { nextTick, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { resetPassword } from '../stores/auth'
+import { enterApp, resetPassword } from '../stores/auth'
 import AuthShell from '../components/layout/AuthShell.vue'
 import ErrorBanner from '../components/layout/ErrorBanner.vue'
 import BigButton from '../components/layout/BigButton.vue'
@@ -52,7 +52,7 @@ async function submit() {
     <div v-if="state === 'done'" ref="panel" class="auth-panel" tabindex="-1" role="status" data-testid="reset-done">
       <h2><span class="tile tile-soft"><AppIcon name="checkCircle" :size="26" /></span>{{ t('auth.reset.doneTitle') }}</h2>
       <p>{{ t('auth.reset.doneText') }}</p>
-      <BigButton data-testid="reset-continue" @click="router.push('/')">{{ t('auth.reset.continue') }}<AppIcon name="right" /></BigButton>
+      <BigButton data-testid="reset-continue" @click="enterApp(router, '/')">{{ t('auth.reset.continue') }}<AppIcon name="right" /></BigButton>
     </div>
 
     <div v-else-if="state === 'bad'" ref="panel" class="auth-panel" tabindex="-1" role="alert" data-testid="reset-bad">

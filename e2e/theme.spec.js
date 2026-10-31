@@ -1,4 +1,4 @@
-// Day/night mode: Day, Night or Same as my phone, asked once on Home after signing up (before the guide) and changed on
+// Day/night mode: Day, Night or Same as my device, asked once on Home after signing up (before the guide) and changed on
 // the Account page; saved to the account. Day mode until they choose, even on a device set to dark. Auth API mocked (helpers/auth.js).
 import { test, expect } from './fixtures.js'
 import { DEMO_USER, mockAuth, login } from './helpers/auth.js'
@@ -30,10 +30,10 @@ test('Account: Night is saved to the account and kept after reload; Day switches
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'light')
 })
 
-test('Same as my phone follows the device, also when it changes while the app is open', async ({ page }) => {
+test('Same as my device follows the device, also when it changes while the app is open', async ({ page }) => {
   await page.emulateMedia({ colorScheme: 'dark' })
   await page.goto('/account')
-  await page.getByTestId('account-theme').getByRole('button', { name: 'Same as my phone' }).click()
+  await page.getByTestId('account-theme').getByRole('button', { name: 'Same as my device' }).click()
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
   await page.emulateMedia({ colorScheme: 'light' })
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'light')
@@ -93,5 +93,20 @@ test('Esc on the day/night question keeps day mode, saves it, and moves on', asy
   await page.keyboard.press('Escape')
   await saved
   await expect(page.getByTestId('theme-prompt')).toHaveCount(0)
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light')
+})
+
+test('logging out always goes back to day mode, also after a reload', async ({ page }) => {
+  await page.goto('/account')
+  await page.getByTestId('account-theme').getByRole('button', { name: 'Night' }).click()
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
+
+  await page.getByTestId('account-logout').click()
+  await page.getByTestId('account-logout-yes').click()
+  await expect(page).toHaveURL(/\/start/)
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light')
+  await expect(page.locator('body')).not.toHaveCSS('background-color', NIGHT_BG)
+
+  await page.reload() // index.html: no saved login, so day mode before the app loads too
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'light')
 })

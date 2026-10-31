@@ -44,6 +44,7 @@ test.describe('getting to a bill', () => {
 
   test('a checked bill goes from Explain to the full breakdown', async ({ page }) => {
     await page.goto('/bill/scan')
+    await page.getByTestId('scan-examples').click() // samples sit behind "Try an example"
     await page.getByRole('button', { name: 'Medical bill' }).click()
     await page.getByRole('button', { name: 'Looks correct' }).click()
     await page.getByRole('link', { name: 'See full breakdown' }).click()
@@ -277,6 +278,7 @@ test.describe('getting back', () => {
 
   test('from Explain (See full breakdown): Back returns to the explanation', async ({ page }) => {
     await page.goto('/bill/scan')
+    await page.getByTestId('scan-examples').click() // samples sit behind "Try an example"
     await page.getByRole('button', { name: 'Medical bill' }).click()
     await page.getByRole('button', { name: 'Looks correct' }).click()
     await page.getByRole('link', { name: 'See full breakdown' }).click()

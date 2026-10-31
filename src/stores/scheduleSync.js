@@ -40,7 +40,9 @@ async function load(email) {
   if (res.data.medicines) {
     replaceAll(res.data.medicines)
     sent = snapshot()
-  } else sent = '' // never saved: this browser's list (from before lists were kept on accounts) goes up once
+  // Never saved: this browser's list (from before lists were kept on accounts) goes up once. An empty one has nothing to
+  // bring over, and saving it would turn "not shared yet" into "no doses" for a linked caregiver.
+  } else sent = medicines.length ? '' : snapshot()
   ready = true
   push()
 }

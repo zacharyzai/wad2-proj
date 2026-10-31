@@ -4,6 +4,7 @@ import { test, expect } from './fixtures.js'
 
 async function checkSample(page) {
   await page.goto('/scan?type=medication')
+  await page.getByTestId('scan-examples').click() // samples sit behind "Try an example"
   await page.getByRole('button', { name: 'Metformin label' }).click()
   await page.getByRole('button', { name: 'Looks correct' }).click()
 }
@@ -43,8 +44,11 @@ test('a checked label is remembered, sent with questions, and can be removed', a
   await expect(myMedicines(page)).toContainText('Metformin 500 mg')
   await expect(myMedicines(page)).toContainText('Sample')
 
-  await page.getByRole('button', { name: 'Can I take my medicine with food?' }).click()
+  // The empty page asks about their own medicine first.
+  await expect(page.getByTestId('ask-starters').getByRole('button').first()).toHaveText('When do I take Metformin?')
+  await page.getByRole('button', { name: 'Can I take Metformin with food?' }).click()
   await expect(page.getByTestId('ask-answer')).toContainText('Take it after your meal.')
+  await expect(page.getByTestId('ask-about')).toContainText('Metformin') // the card says which medicine it's about
   expect(sent[0].medicines).toMatchObject([{ source: 'label', medication: { name: 'Metformin', strength: '500 mg' } }])
 
   // Typed question sent with Enter; a "not on the label" reply shows the fixed pharmacist line.

@@ -27,7 +27,8 @@ const SAMPLES = [
 const hour = new Date().getHours()
 const greet = hour < 12 ? 'morning' : hour < 18 ? 'afternoon' : 'evening'
 
-// Scan reads the picked file on arrival, so Home doesn't need its own copy of the upload logic.
+// Scan takes the picked file on arrival and asks what it is (medicine label or bill) before reading it, so Home doesn't
+// guess, and doesn't need its own copy of the upload logic.
 const upload = ref(null)
 function onFile(event) {
   const file = event.target.files[0]
@@ -69,7 +70,7 @@ function onFile(event) {
     <section class="d-flex flex-column gap-3">
       <h2 class="section-label">{{ t('home.what') }}</h2>
       <div class="bento">
-        <RouterLink v-for="c in CHOICES" :key="c.type" :to="c.type === 'bill' ? { name: 'scan', hash: '#bill' } : { name: 'scan' }" class="card card-interactive tile-link" :class="`b-${c.type}`">
+        <RouterLink v-for="c in CHOICES" :key="c.type" :to="{ name: 'scan', query: { type: c.type } }" class="card card-interactive tile-link" :class="`b-${c.type}`">
           <span class="tile tile-lg"><AppIcon :name="c.icon" :size="28" /></span>
           <span class="d-flex flex-column gap-1">
             <span class="choice-title">{{ t(`home.${c.key}.title`) }}</span>
@@ -92,6 +93,16 @@ function onFile(event) {
             <span class="choice-title">{{ t('pages.ask') }}</span>
             <span class="text-muted-a11y">{{ t('home.ask.text') }}</span>
           </span>
+        </RouterLink>
+
+        <!-- The Bill page has no tab of its own: this is the way back to the last bill and its subsidies (also in the desktop sidebar). -->
+        <RouterLink :to="{ name: 'bill' }" class="card card-interactive tile-link b-breakdown" data-testid="home-breakdown">
+          <span class="tile tile-lg"><AppIcon name="receipt" :size="28" /></span>
+          <span class="d-flex flex-column gap-1">
+            <span class="choice-title">{{ t('home.breakdown.title') }}</span>
+            <span class="text-muted-a11y">{{ t('home.breakdown.text') }}</span>
+          </span>
+          <span class="chev"><AppIcon name="right" :size="22" /></span>
         </RouterLink>
 
         <div class="b-samples">

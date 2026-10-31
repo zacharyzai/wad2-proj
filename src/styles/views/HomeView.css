@@ -44,6 +44,8 @@
   .b-bill { grid-area: bill; }
   .b-ask { grid-area: ask; }
   .b-samples { grid-area: samples; }
+  /* Bill breakdown: a slim row across the bottom, icon beside the words. */
+  .b-breakdown { grid-column: 1 / -1; flex-direction: row; align-items: center; }
   .b-ask > .d-flex { padding-right: 0; }
   /* The big tile shows a real label sliding out of its corner; the bill tile a smaller one. */
   .labels img { width: 270px; }

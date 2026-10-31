@@ -1,8 +1,9 @@
 <!-- Beginner's guide (Claude Design "Tour", extended into a walk through the real app). Steps come from stores/guide.js:
      card  - a centred card (bottom sheet on phones) over a dimmed page: the welcome and the finish.
-     tap   - the real nav button glows; everything else is dimmed and blocked. Tapping it opens that page and moves on
-             ("Take me there" does the same for anyone who can't find it, or uses a keyboard).
+     tap   - the real nav button glows; everything else is dimmed and blocked. Tapping it opens that page and moves on;
+             so does Next (for anyone who can't find it, or uses a keyboard).
      look  - on the page just opened, points at one key button; Next moves on.
+     Every step that leads on has the same Next button, in the same place, so there is one thing to press throughout.
      Skip / Esc end it any time (marked seen). Focus goes to each step's title; card steps keep focus inside. -->
 <script setup>
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
@@ -12,6 +13,7 @@ import { guide, STEPS, currentStep, endGuide, nextStep, openGuide } from '../../
 import { speak as sayAloud, stopSpeaking } from '../../stores/speech'
 import GuideArt from './GuideArt.vue'
 import AppIcon from '../layout/AppIcon.vue'
+import PillLoader from '../layout/PillLoader.vue'
 
 const { t, locale } = useI18n()
 const router = useRouter()
@@ -49,8 +51,9 @@ function next() {
   stopVoice()
   nextStep()
 }
-function takeMeThere() {
-  router.push(step.value.target)
+// Next on a tap step does the tap: opens that page and moves on.
+function nextOrGo() {
+  if (step.value.kind === 'tap') router.push(step.value.target)
   next()
 }
 function end(kind) {
@@ -223,7 +226,8 @@ onBeforeUnmount(() => {
     <div ref="panel" class="card-g" role="dialog" aria-modal="true" aria-labelledby="guide-title" aria-describedby="guide-text" data-testid="guide">
       <div class="top">
         <button type="button" class="speak" :class="{ wait: preparing }" :aria-busy="preparing" :aria-pressed="reading" :aria-label="reading ? t('guide.stop') : t('guide.listen')" data-testid="guide-speak" @click="speak">
-          <AppIcon :name="reading ? 'pause' : 'volume'" :size="24" />
+          <PillLoader v-if="preparing" :size="28" />
+          <AppIcon v-else :name="reading ? 'pause' : 'volume'" :size="24" />
         </button>
         <span class="step-text" aria-live="polite">{{ t('guide.step', { n: guide.step, total: STEPS.length }) }}</span>
         <button v-if="step.id !== 'finish'" type="button" class="g-skip" data-testid="guide-skip" @click="end('skip')">{{ t('guide.skip') }}<AppIcon name="x" :size="20" :stroke="2.5" /></button>
@@ -235,7 +239,7 @@ onBeforeUnmount(() => {
           <p id="guide-text">{{ say('b') }}</p>
         </div>
       </div>
-      <button v-if="step.id === 'intro'" type="button" class="btn btn-primary" data-testid="guide-next" @click="next">{{ t('guide.begin') }}<AppIcon name="right" /></button>
+      <button v-if="step.id === 'intro'" type="button" class="btn btn-primary" data-testid="guide-next" @click="next">{{ t('guide.next') }}<AppIcon name="right" /></button>
       <div v-else class="d-flex flex-column gap-3">
         <button type="button" class="btn btn-primary" data-testid="guide-sample" @click="end('sample')"><AppIcon name="pill" />{{ t('guide.try') }}</button>
         <button type="button" class="btn btn-outline g-outline" data-testid="guide-start" @click="end('start')">{{ t('guide.start') }}</button>
@@ -253,17 +257,15 @@ onBeforeUnmount(() => {
         <div class="top">
           <span class="step-text" aria-live="polite">{{ t('guide.step', { n: guide.step, total: STEPS.length }) }}</span>
           <button type="button" class="speak sm" :class="{ wait: preparing }" :aria-busy="preparing" :aria-pressed="reading" :aria-label="reading ? t('guide.stop') : t('guide.listen')" @click="speak">
-            <AppIcon :name="reading ? 'pause' : 'volume'" :size="20" />
+            <PillLoader v-if="preparing" :size="24" />
+            <AppIcon v-else :name="reading ? 'pause' : 'volume'" :size="20" />
           </button>
           <button type="button" class="g-skip sm" data-testid="guide-skip" @click="end('skip')">{{ t('guide.skip') }}<AppIcon name="x" :size="18" :stroke="2.5" /></button>
         </div>
         <h2 id="guide-title" ref="title" tabindex="-1">{{ say('t') }}</h2>
         <p id="guide-text">{{ say('b') }}</p>
-        <template v-if="step.kind === 'tap'">
-          <p class="tap-hint"><AppIcon name="sparkles" :size="20" />{{ t('guide.tapHint') }}</p>
-          <button type="button" class="there" data-testid="guide-there" @click="takeMeThere">{{ t('guide.there') }}<AppIcon name="right" :size="18" /></button>
-        </template>
-        <button v-else type="button" class="btn btn-primary btn-sm g-next" data-testid="guide-next" @click="next">{{ t('guide.next') }}<AppIcon name="right" :size="20" /></button>
+        <p v-if="step.kind === 'tap'" class="tap-hint"><AppIcon name="sparkles" :size="20" />{{ t('guide.tapHint') }}</p>
+        <button type="button" class="btn btn-primary btn-sm g-next" data-testid="guide-next" @click="nextOrGo">{{ t('guide.next') }}<AppIcon name="right" :size="20" /></button>
       </div>
     </div>
   </div>
@@ -284,8 +286,6 @@ onBeforeUnmount(() => {
 .step-text { flex: 1; min-width: 0; font-size: 16px; font-weight: 700; line-height: 1.3; color: var(--color-text-muted); }
 .speak { width: var(--z52, 52px); height: var(--z52, 52px); flex: none; display: grid; place-items: center; padding: 0; border: 2px solid var(--color-primary-text); border-radius: 50%; background: var(--color-card); color: var(--color-tint-text); }
 .speak[aria-pressed='true'] { background: var(--color-tint); }
-.speak.wait { animation: speak-wait 1.2s ease-in-out infinite; } /* getting the audio (no voice on this device) */
-@keyframes speak-wait { 50% { opacity: 0.55; } }
 .g-skip { min-height: var(--z52, 52px); flex: none; display: flex; align-items: center; gap: 8px; padding: 6px 16px; border: 0; border-radius: 18px; background: var(--color-tint); color: var(--color-tint-text); font-size: 18px; font-weight: 700; }
 .g-skip:hover { background: var(--color-tint-strong); }
 .body { display: flex; flex-direction: column; gap: 16px; animation: slide 260ms var(--ease-out) both; }
@@ -324,7 +324,6 @@ p { margin: 0; font-size: 18px; line-height: 1.55; text-wrap: pretty; }
 .side-below .arrow { top: 0; }
 .tap-hint { display: flex; align-items: center; gap: 8px; color: var(--color-tint-text); font-weight: 700; }
 .tap-hint .icon { flex: none; animation: bob 1.2s ease-in-out infinite; }
-.there { align-self: flex-start; display: inline-flex; align-items: center; gap: 4px; min-height: var(--hit); padding: 0 2px; border: 0; background: none; color: var(--color-link); font-size: 17px; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
 .g-next { align-self: flex-end; min-height: var(--z52, 52px); }
 
 /* ---- closing message (fades after 3 seconds) ---- */
@@ -343,6 +342,6 @@ p { margin: 0; font-size: 18px; line-height: 1.55; text-wrap: pretty; }
 @media (prefers-reduced-motion: reduce) {
   .scrim, .card-g, .body, .dim, .bubble-in, .guide-toast { animation: none; }
   .dim, .ring, .bubble { transition: none; }
-  .ring.tap::after, .tap-hint .icon, .speak.wait { animation: none; }
+  .ring.tap::after, .tap-hint .icon { animation: none; }
 }
 </style>

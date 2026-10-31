@@ -1,4 +1,4 @@
-<!-- Owner: Isaac. Day, night or "same as my phone": asked once, on Home, to an account that hasn't chosen (a new signup,
+<!-- Owner: Isaac. Day, night or "same as my device": asked once, on Home, to an account that hasn't chosen (a new signup,
      or an account from before this setting), then the Beginner's guide follows (stores/guide.js). Tapping a choice changes
      the page at once so they see it; Next (or Esc, which keeps what is showing) saves it to the account.
      Looks like the guide's own card: a bottom sheet on phones, a centred card from 768px. Native <dialog>: focus stays inside. -->
@@ -40,7 +40,7 @@ function finish() {
     <h2 id="theme-ask-title">{{ t('account.theme.title') }}</h2>
     <p id="theme-ask-text" class="m-0">{{ t('account.theme.note') }}</p>
     <div class="segmented theme-choices" role="group" aria-labelledby="theme-ask-title">
-      <button v-for="c in THEMES" :key="c" type="button" :aria-pressed="themeChoice === c" :autofocus="themeChoice === c" :data-theme-choice="c" @click="setTheme(c)">
+      <button v-for="c in THEMES" :key="c" type="button" :aria-pressed="themeChoice === c" :autofocus="themeChoice === c" :data-theme-choice="c" @click="setTheme(c, $event)">
         <AppIcon :name="THEME_ICONS[c]" :size="22" />{{ t(`account.theme.${c}`) }}
       </button>
     </div>

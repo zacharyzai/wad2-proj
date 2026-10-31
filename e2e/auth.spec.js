@@ -7,14 +7,14 @@ import { DEMO_USER, mockAuth, mockWrongLogin, fillLogin, login, signIn } from '.
 test.describe('logged out', () => {
   test.use({ loggedIn: false })
 
-  test('every app page sends you to log in, then back to the page you wanted', async ({ page }) => {
+  test('every app page sends you to log in, then back to the page you wanted; opening the app shows Start', async ({ page }) => {
     await mockAuth(page)
     for (const path of ['/scan', '/bill', '/ask', '/account']) {
       await page.goto(path)
       await expect(page).toHaveURL(new RegExp(`/login\\?next=(%2F|/)${path.slice(1)}$`))
     }
     await page.goto('/')
-    await expect(page).toHaveURL(/\/login$/)
+    await expect(page).toHaveURL(/\/start$/)
 
     await page.goto('/history')
     await fillLogin(page) // already on the login page, so do not navigate again
@@ -45,6 +45,8 @@ test.describe('logged out', () => {
     await page.getByRole('link', { name: 'Account' }).first().click()
     await page.getByTestId('account-logout').click()
     await page.getByTestId('account-logout-yes').click() // asks first (H5)
+    await expect(page).toHaveURL(/\/start$/) // logging out: Start, for whoever uses this device next
+    await page.getByTestId('start-login').click()
     await page.getByTestId('login-email').fill(DEMO_USER.email)
     await page.getByTestId('login-password').fill('password123')
     await page.getByTestId('login-remember').uncheck()
@@ -91,10 +93,10 @@ test.describe('logged out', () => {
   })
 
   for (const colorScheme of ['light', 'dark']) {
-    test(`Log in and Create account have no WCAG A/AA violations (${colorScheme})`, async ({ page }) => {
+    test(`Start, Log in and Create account have no WCAG A/AA violations (${colorScheme})`, async ({ page }) => {
       await page.emulateMedia({ colorScheme, reducedMotion: 'reduce' })
       const bad = []
-      for (const path of ['/login', '/signup']) {
+      for (const path of ['/start', '/login', '/signup']) {
         await page.goto(path)
         await page.waitForLoadState('networkidle') // dev styles arrive just after load
         if (path === '/signup') await page.getByTestId('signup-submit').click() // with every error showing
@@ -113,16 +115,45 @@ test.describe('logged out', () => {
     await expect(page.getByTestId('forgot-family')).toContainText('Ask the family member who helped set up your account')
   })
 
-  test('login page has no missing translations in any language', async ({ page }) => {
-    await page.goto('/login')
-    for (const language of ['中文', 'BM', 'தமிழ்', 'EN']) {
-      await page.getByRole('button', { name: language, exact: true }).click()
-      await expect(page.locator('main')).not.toContainText(/\b(auth|common|errors|pages|account)\.[A-Za-z]+/)
+  test('Start, Log in and Create account have no missing translations in any language', async ({ page }) => {
+    for (const path of ['/start', '/login', '/signup']) {
+      await page.goto(path)
+      for (const language of ['中文', 'BM', 'தமிழ்', 'EN']) {
+        await page.getByRole('button', { name: language, exact: true }).click()
+        await expect(page.locator('main')).not.toContainText(/\b(auth|common|errors|pages|account|start|timing|food|player|unit)\.[A-Za-z]+/)
+      }
     }
+  })
+
+  test('Start: "Join for free" opens Create account, "Log in" opens Log in, and Back returns to Start', async ({ page }) => {
+    await page.goto('/start')
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('An easier way to understand your medicine and bills.')
+    await page.getByTestId('start-join').click()
+    await expect(page).toHaveURL(/\/signup$/)
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText("Let's set you up.")
+    await page.getByTestId('auth-back').click()
+    await expect(page).toHaveURL(/\/start$/)
+    await page.getByTestId('start-login').click()
+    await expect(page).toHaveURL(/\/login$/)
+    await page.getByTestId('auth-back').click()
+    await page.getByTestId('start-header-login').click() // the top bar's Log in, too
+    await expect(page).toHaveURL(/\/login$/)
+  })
+
+  test('Log in and Create account point to each other in words, keeping where the person was going', async ({ page }) => {
+    await page.goto('/login?next=/scan')
+    await expect(page.getByTestId('auth-switch')).toContainText('New here?')
+    await page.getByTestId('auth-switch').getByRole('link', { name: 'Create account' }).click()
+    await expect(page).toHaveURL(/\/signup\?next=(%2F|\/)scan$/)
+    await expect(page.getByTestId('auth-switch')).toContainText('Already have an account?')
+    await page.getByTestId('auth-switch').getByRole('link', { name: 'Log in' }).click()
+    await expect(page).toHaveURL(/\/login\?next=(%2F|\/)scan$/)
   })
 })
 
-test('logged-in people opening Log in go Home instead', async ({ page }) => {
+test('logged-in people opening Start or Log in go Home instead', async ({ page }) => {
+  await page.goto('/start')
+  await expect(page).toHaveURL(/\/$/)
   await page.goto('/login')
   await expect(page).toHaveURL(/\/$/)
 })
@@ -153,7 +184,7 @@ test('Account shows the details, saves edits and logs out', async ({ page, isMob
 
   await page.getByTestId('account-logout').click()
   await page.getByTestId('account-logout-yes').click() // asks first (H5)
-  await expect(page).toHaveURL(/\/login$/)
+  await expect(page).toHaveURL(/\/start$/)
   await page.goto('/scan')
   await expect(page).toHaveURL(/\/login\?next=/)
 })
@@ -218,13 +249,21 @@ test('language: changing it on Account saves it, says "Settings saved", and so d
   await page.getByRole('button', { name: 'EN', exact: true }).first().click()
 })
 
-test('Log out asks first, so one stray tap does not log a senior out (H5)', async ({ page }) => {
+test('Log out asks first in a pop-up, so one stray tap does not log a senior out (H5)', async ({ page }) => {
   await page.goto('/account')
   await page.getByTestId('account-logout').click()
-  await expect(page.getByTestId('account-logout-ask')).toContainText('Log out of this phone or computer?')
-  await page.getByRole('button', { name: 'Cancel' }).click()
+  const ask = page.getByTestId('account-logout-ask')
+  await expect(ask).toContainText('Log out of this device?')
+  await expect(ask).toContainText('Come back soon!')
+  expect(await ask.evaluate((d) => d.matches(':modal'))).toBe(true) // a real pop-up over the page
+  await expect(page.getByTestId('account-logout-stay')).toBeFocused() // the safe choice comes first
+  await page.getByTestId('account-logout-stay').click()
+  await expect(ask).not.toBeVisible()
   await expect(page).toHaveURL(/\/account$/) // still logged in
-  await expect(page.getByTestId('account-logout')).toBeVisible()
+  await page.getByTestId('account-logout').click()
+  await page.keyboard.press('Escape') // Esc means stay too
+  await expect(ask).not.toBeVisible()
+  await expect(page).toHaveURL(/\/account$/)
 })
 
 test('the Bill page checks subsidies from the account, and links to Account to change the details', async ({ page }) => {

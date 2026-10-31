@@ -35,6 +35,8 @@ watch(speechRate, (rate) => {
 // One reading at a time: starting one stops the last. speak() resolves when the reading ends:
 // 'done', 'stopped' (stopSpeaking() or a newer reading), or 'failed' (no device voice and no audio from the server).
 // onPlaying runs once sound starts (straight away with a device voice; after the download, about 6 s, otherwise).
+// onWord(charIndex) follows the reading, for highlighting the word being said: the device voice reports each word;
+// server audio has no word timings, so the place is estimated from how far the clip has played.
 export const canSpeak = typeof window !== 'undefined' && ('speechSynthesis' in window || 'Audio' in window)
 const clips = new Map() // lang + text → data URL, so a replay doesn't download it again
 let audio = null
@@ -63,7 +65,7 @@ export const resumeSpeaking = () => (audio ? audio.play().catch(() => {}) : synt
 export const setSpeakingRate = (rate) => audio && (audio.playbackRate = rate)
 export const usesDeviceVoice = (lang) => Boolean(voiceFor(lang))
 
-export function speak(text, lang, { rate = speechRate.value, onPlaying } = {}) {
+export function speak(text, lang, { rate = speechRate.value, onPlaying, onWord } = {}) {
   stopSpeaking()
   return new Promise((resolve) => {
     let over = false
@@ -82,6 +84,7 @@ export function speak(text, lang, { rate = speechRate.value, onPlaying } = {}) {
       u.rate = rate
       u.onend = () => end('done')
       u.onerror = (e) => end(/interrupted|canceled/.test(e.error ?? '') ? 'stopped' : 'failed')
+      if (onWord) u.onboundary = (e) => !over && (e.name ?? 'word') === 'word' && onWord(e.charIndex)
       synth.speak(u)
       onPlaying?.()
       return
@@ -99,7 +102,17 @@ export function speak(text, lang, { rate = speechRate.value, onPlaying } = {}) {
       a.playbackRate = rate
       a.onended = () => end('done')
       a.onerror = () => end('failed')
-      a.play().then(() => !over && onPlaying?.(), () => end('failed'))
+      a.play().then(() => {
+        if (over) return
+        onPlaying?.()
+        if (!onWord) return
+        const follow = () => {
+          if (over || a !== audio) return
+          if (a.duration > 0) onWord(Math.floor((text.length * a.currentTime) / a.duration))
+          requestAnimationFrame(follow)
+        }
+        requestAnimationFrame(follow)
+      }, () => end('failed'))
     })
   })
 }

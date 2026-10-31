@@ -2,7 +2,7 @@
      step 1 (welcome): language buttons that really switch the app language. step 5 (finish): a question and an answer. -->
 <script setup>
 import { useI18n } from 'vue-i18n'
-import { setLocale } from '../../i18n'
+import { chooseLocale } from '../../i18n'
 import AppIcon from '../layout/AppIcon.vue'
 
 defineProps({ step: { type: Number, required: true } })
@@ -15,7 +15,7 @@ const LANGS = { en: 'EN', zh: '中文', ms: 'BM', ta: 'தமிழ்' }
     <span class="g-blob" aria-hidden="true"></span>
 
     <div v-if="step === 1" class="sheet langs" role="group" :aria-label="t('nav.language')">
-      <button v-for="(label, code) in LANGS" :key="code" type="button" :lang="code" :aria-pressed="locale === code" @click="setLocale(code)">{{ label }}</button>
+      <button v-for="(label, code) in LANGS" :key="code" type="button" :lang="code" :aria-pressed="locale === code" @click="chooseLocale(code)">{{ label }}</button>
       <span class="badge-dot big tr" aria-hidden="true"><AppIcon name="volume" :size="26" /></span>
     </div>
 

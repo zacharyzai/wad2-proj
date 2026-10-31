@@ -4,7 +4,7 @@
 import { computed, nextTick, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { signup } from '../stores/auth'
+import { enterApp, signup } from '../stores/auth'
 import AuthShell from '../components/layout/AuthShell.vue'
 import ErrorBanner from '../components/layout/ErrorBanner.vue'
 import BigButton from '../components/layout/BigButton.vue'
@@ -67,7 +67,7 @@ async function submit() {
     remember.value,
   )
   busy.value = false
-  if (res.ok) router.push(destination())
+  if (res.ok) enterApp(router, destination()) // one calm fade into the app
   else errorCode.value = res.error.code
 }
 </script>

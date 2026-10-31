@@ -105,6 +105,7 @@ test('an answer in a language the device has no voice for is read with audio fro
   await page.route('**/api/chat', (route) => route.fulfill({ json: answer('ஒரு நாளைக்கு 2 முறை.') }))
   await page.goto('/ask')
   await page.getByRole('button', { name: 'தமிழ்' }).click()
+  await expect(page.locator('html')).toHaveAttribute('lang', 'ta') // the switch fades in: Tamil from the next frame on
   await page.locator('textarea').fill('எப்போது சாப்பிட வேண்டும்?')
   await page.keyboard.press('Enter')
   const sent = page.waitForRequest('**/api/tts')

@@ -80,6 +80,8 @@ test('real profile signup, account editing, session restoration and protected sc
   await expect(page).toHaveURL('http://localhost:5173/scan')
   // A new account is asked day or night once, on its first Scan or Home (e2e/theme.spec.js); keep day mode and go on.
   await page.getByTestId('theme-prompt-next').click()
+  await page.getByTestId('choose-medication').click() // Scan asks label or bill first
+  await page.getByTestId('scan-examples').click() // samples sit behind "Try an example"
   await page.getByRole('button', { name: 'Metformin label' }).click()
   await expect(page).toHaveURL('http://localhost:5173/scan/confirm')
   await expect(page.getByLabel('Medicine name')).toHaveValue('Metformin')
