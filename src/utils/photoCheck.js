@@ -4,7 +4,9 @@
 // shortcut: thresholds are a first guess, not tuned on real label photos; the error screen has "Scan it anyway" so a wrong
 // call never blocks anyone. Tune DARK_BELOW / GLARE_ABOVE / BLUR_BELOW on a batch of real photos.
 const DARK_BELOW = 50 // average brightness (0-255); a well lit label is far above this
-const GLARE_ABOVE = 0.4 // share of pixels that are pure white; normal white paper is bright but not this saturated
+const GLARE_ABOVE = 0.4 // share of pixels that are pure white...
+const INK_BELOW = 0.04 // ...AND almost no text-like dark pixels (under 200) left: that is washed out. A PDF or screenshot of a bill is
+//                         mostly pure white too, but its text is crisp and dark (about 15% of its pixels), so it is not glare.
 const BLUR_BELOW = 15 // sharpness (variance of the Laplacian); printed text gives hundreds, a blur or flat colour gives ~0
 const MAX_SIDE = 480 // measured on a small copy: faster, and a blur is still a blur
 
@@ -15,14 +17,16 @@ export function photoProblem(rgba, width, height) {
   const gray = new Float32Array(n)
   let sum = 0
   let white = 0
+  let ink = 0
   for (let i = 0; i < n; i++) {
     const g = 0.299 * rgba[i * 4] + 0.587 * rgba[i * 4 + 1] + 0.114 * rgba[i * 4 + 2]
     gray[i] = g
     sum += g
     if (g >= 250) white++
+    else if (g < 200) ink++
   }
   if (sum / n < DARK_BELOW) return 'dark'
-  if (white / n > GLARE_ABOVE) return 'glare'
+  if (white / n > GLARE_ABOVE && ink / n < INK_BELOW) return 'glare'
 
   // Edges: the Laplacian of each inner pixel; sharp text makes it swing a lot, a blurred photo barely moves.
   let mean = 0
