@@ -548,7 +548,34 @@
     "placeholder": "Tanya tentang ubat anda…",
     "newChat": "Perbualan baharu",
     "cleared": "Perbualan dipadam.",
-    "left": "{n} huruf lagi"
+    "left": "{n} huruf lagi",
+    "stage": {
+      "checkOne": "Melihat {name} anda…",
+      "checkAll": "Menyemak ubat-ubatan anda…",
+      "lookUp": "Mencari jawapan…",
+      "writing": "Menulis jawapan anda…"
+    },
+    "card": {
+      "about": "Tentang"
+    },
+    "feedback": {
+      "ask": "Adakah ini membantu?",
+      "yes": "Ya",
+      "no": "Tidak",
+      "thanks": "Terima kasih!",
+      "sorry": "Maaf. Cuba “Terangkan dengan lebih mudah”, atau tanya ahli farmasi anda."
+    },
+    "quick": {
+      "simpler": "Terangkan dengan lebih mudah",
+      "simplerQ": "Sila terangkan jawapan tadi sekali lagi dengan perkataan yang lebih mudah.",
+      "sayIn": "Dalam bahasa"
+    },
+    "hello": "{greet}, {name}!",
+    "personal": {
+      "when": "Bila saya perlu ambil {name}?",
+      "food": "Bolehkah saya ambil {name} bersama makanan?"
+    },
+    "jump": "Jawapan terkini"
   },
   "common": {
     "retry": "Cuba lagi",

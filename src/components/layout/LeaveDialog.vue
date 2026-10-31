@@ -1,4 +1,4 @@
-<!-- Owner: Isaac. "Log out of this phone or computer?" as a calm pop-up, so a senior always knows what is about to happen:
+<!-- Owner: Isaac. "Log out of this device?" as a calm pop-up, so a senior always knows what is about to happen:
      the app's capsule waving goodbye, the question, "Come back soon!", the reminder that logging back in needs the email
      and password, and two big choices in words: Stay logged in (focused first, so a stray Enter never logs anyone out)
      and Log out. Esc or a tap outside also means stay. Native <dialog>: focus stays inside and returns afterwards. -->

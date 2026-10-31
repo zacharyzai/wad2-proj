@@ -548,7 +548,34 @@
     "placeholder": "Ask about your medicine…",
     "newChat": "New conversation",
     "cleared": "Conversation cleared.",
-    "left": "{n} letters left"
+    "left": "{n} letters left",
+    "stage": {
+      "checkOne": "Looking at your {name}…",
+      "checkAll": "Checking your medicines…",
+      "lookUp": "Looking this up…",
+      "writing": "Writing your answer…"
+    },
+    "card": {
+      "about": "About"
+    },
+    "feedback": {
+      "ask": "Was this helpful?",
+      "yes": "Yes",
+      "no": "No",
+      "thanks": "Thank you!",
+      "sorry": "Sorry about that. Try “Explain more simply”, or ask your pharmacist."
+    },
+    "quick": {
+      "simpler": "Explain more simply",
+      "simplerQ": "Please explain your last answer again in simpler words.",
+      "sayIn": "Say it in"
+    },
+    "hello": "{greet}, {name}!",
+    "personal": {
+      "when": "When do I take {name}?",
+      "food": "Can I take {name} with food?"
+    },
+    "jump": "Latest answer"
   },
   "common": {
     "retry": "Try again",

@@ -548,7 +548,34 @@
     "placeholder": "询问您的药物…",
     "newChat": "新对话",
     "cleared": "对话已清除。",
-    "left": "还可以输入 {n} 个字"
+    "left": "还可以输入 {n} 个字",
+    "stage": {
+      "checkOne": "正在查看您的 {name}…",
+      "checkAll": "正在查看您的药物…",
+      "lookUp": "正在查找…",
+      "writing": "正在写回答…"
+    },
+    "card": {
+      "about": "关于"
+    },
+    "feedback": {
+      "ask": "这个回答有帮助吗？",
+      "yes": "有",
+      "no": "没有",
+      "thanks": "谢谢您！",
+      "sorry": "很抱歉。试试“说得更简单”，或问问您的药剂师。"
+    },
+    "quick": {
+      "simpler": "说得更简单",
+      "simplerQ": "请用更简单的话再解释一次刚才的回答。",
+      "sayIn": "换成"
+    },
+    "hello": "{greet}，{name}！",
+    "personal": {
+      "when": "我什么时候吃 {name}？",
+      "food": "{name} 可以和食物一起吃吗？"
+    },
+    "jump": "最新回答"
   },
   "common": {
     "retry": "再试一次",
