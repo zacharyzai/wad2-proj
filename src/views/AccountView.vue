@@ -83,8 +83,8 @@ async function save() {
 async function chooseLanguage(code) {
   if (code === locale.value) return
   const saving = saveLanguage(code) // first, so the store's own language watcher doesn't save it twice
-  chooseLocale(code)
-  const res = await saving
+  // Wait for the new language to arrive too: the message below is built in it (a language downloads the first time it is used).
+  const [res] = await Promise.all([saving, chooseLocale(code)])
   notify(res?.ok ? t('account.toast') : t(`errors.${res?.error.code ?? 'SERVER_ERROR'}`), !res?.ok)
 }
 

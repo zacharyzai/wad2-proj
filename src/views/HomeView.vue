@@ -78,11 +78,11 @@ function onFile(event) {
           </span>
           <!-- Decoration, so hidden from screen readers. Paused on hover/focus; still with reduced motion. -->
           <span v-if="c.type === 'medication'" class="labels" aria-hidden="true">
-            <span class="labels-track"><img v-for="(id, i) in LABEL_LOOP" :key="i" :src="`/samples/${id}.svg`" alt="" width="480" :height="SIZE[id]" /></span>
+            <span class="labels-track"><img v-for="(id, i) in LABEL_LOOP" :key="i" :src="`/samples/${id}.svg`" alt="" loading="lazy" decoding="async" width="480" :height="SIZE[id]" /></span>
           </span>
           <span v-else class="receipt" aria-hidden="true">
             <span class="receipt-slot"></span>
-            <span class="receipt-paper"><span class="receipt-track"><img v-for="(id, i) in RECEIPT_LOOP" :key="i" :src="`/samples/${id}.svg`" alt="" width="480" :height="SIZE[id]" /></span></span>
+            <span class="receipt-paper"><span class="receipt-track"><img v-for="(id, i) in RECEIPT_LOOP" :key="i" :src="`/samples/${id}.svg`" alt="" loading="lazy" decoding="async" width="480" :height="SIZE[id]" /></span></span>
           </span>
           <span class="chev"><AppIcon name="right" :size="22" /></span>
         </RouterLink>

@@ -2,9 +2,6 @@
 import { createI18n } from 'vue-i18n'
 import { fadeScreen } from '../screenFade'
 import en from './locales/en.json'
-import zh from './locales/zh.json'
-import ms from './locales/ms.json'
-import ta from './locales/ta.json'
 
 export const LOCALES = { en: 'English', zh: '中文', ms: 'Bahasa Melayu', ta: 'தமிழ்' }
 const STORAGE_KEY = 'locale'
@@ -23,10 +20,27 @@ const i18n = createI18n({
   legacy: false,
   locale: savedLocale(),
   fallbackLocale: 'en',
-  messages: { en, zh, ms, ta },
+  messages: { en },
 })
 
-export function setLocale(code) {
+// Only English ships inside the first download. 中文, Bahasa Melayu and தமிழ் (about 55 kB each) are fetched the first time
+// someone uses them, then kept by the browser. main.js waits for the saved language before showing the app, so nobody
+// sees English flash first; a language that can't be fetched (offline) simply isn't switched to.
+const LOADERS = { zh: () => import('./locales/zh.json'), ms: () => import('./locales/ms.json'), ta: () => import('./locales/ta.json') }
+const loading = {}
+const hasMessages = (code) => i18n.global.availableLocales.includes(code)
+function loadMessages(code) {
+  if (hasMessages(code) || !LOADERS[code]) return Promise.resolve()
+  loading[code] ??= LOADERS[code]()
+    .then((module) => i18n.global.setLocaleMessage(code, module.default))
+    .catch(() => delete loading[code]) // try again next time
+  return loading[code]
+}
+export const localeReady = loadMessages(i18n.global.locale.value)
+
+export async function setLocale(code) {
+  await loadMessages(code)
+  if (!hasMessages(code)) return // could not be fetched: stay in the language that is showing
   i18n.global.locale.value = code
   // Screen readers and speech voices pick their language from <html lang>.
   document.documentElement.lang = code

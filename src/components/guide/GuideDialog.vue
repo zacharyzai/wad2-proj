@@ -312,7 +312,7 @@ p { margin: 0; font-size: 18px; line-height: 1.55; text-wrap: pretty; }
 .bubble { position: fixed; top: 0; left: 0; width: min(360px, calc(100vw - 24px)); padding: 18px 18px 16px; border-radius: var(--r-card); background: var(--color-card); color: var(--color-text); box-shadow: 0 18px 48px rgba(0, 0, 0, 0.3); pointer-events: auto; }
 .bubble.ready { transition: transform 460ms var(--ease-out); }
 .bubble.centred { top: 50%; left: 50%; transform: translate(-50%, -50%); }
-.bubble-in { display: flex; flex-direction: column; gap: 10px; animation: pop 320ms var(--ease-spring) both; }
+.bubble-in { display: flex; flex-direction: column; gap: 10px; animation: pop 320ms var(--ease-settle) both; }
 .bubble h2 { font-size: var(--t24, 24px); }
 .lang-ta .bubble h2 { font-size: var(--t20, 20px); }
 .bubble p { font-size: 17px; line-height: 1.5; }

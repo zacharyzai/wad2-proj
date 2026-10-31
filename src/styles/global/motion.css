@@ -78,7 +78,9 @@
 @keyframes card-in { from { opacity: 0; transform: translateY(14px); } }
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; animation-delay: 0ms !important; transition-duration: 0.01ms !important; }
+  /* Movement stops: animations jump to their final frame, and nothing slides or scales. What a change MEANS stays: colour,
+     opacity and the focus ring still ease over 120 ms, so a ticked dose, an opened line or a toast is still seen happening. */
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; animation-delay: 0ms !important; transition-delay: 0ms !important; transition-duration: 120ms !important; transition-property: opacity, color, background-color, border-color, box-shadow, outline-color !important; }
   .btn:active, .choice:active, .card-interactive:hover { transform: none !important; }
   .card-interactive:active { scale: none !important; }
   .progress-ring__pulse { animation: none !important; }

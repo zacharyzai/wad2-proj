@@ -29,6 +29,7 @@
 
 .col-main { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; background: var(--color-page); }
 .main { flex: 1 1 auto; padding: var(--gutter) var(--gutter) 28px; }
+/* The page container is focused by code after a route change (never by Tab), so it carries no ring; the heading inside gets the focus. */
 .main:focus { outline: none; box-shadow: none; }
 .wrap, .ft { width: 100%; max-width: 1040px; margin: 0 auto; }
 /* Disclaimer card under every page */

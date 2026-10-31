@@ -76,7 +76,7 @@ defineProps({
 .cb-speaking .talk path + path { animation-delay: 0.2s; }
 
 /* Happy: one small bounce. */
-.cb-happy .body { animation: hop 620ms var(--ease-spring) 1; }
+.cb-happy .body { animation: hop 620ms var(--ease-settle) 1; }
 
 /* Waving hello: three swings from the shoulder. */
 .cb-waving .arm { transform-origin: 0% 100%; animation: wave 0.7s ease-in-out 0.4s 3; }

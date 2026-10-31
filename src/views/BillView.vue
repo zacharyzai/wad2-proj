@@ -289,7 +289,7 @@ const summary = computed(() => [
       <h2 id="bill-samples" class="section-label">{{ bill ? t('bill.moreSamples') : t('bill.samplesTitle') }}</h2>
       <div class="samples" data-guide="bill-samples">
         <button v-for="sample in SAMPLES" :key="sample.id" type="button" class="card card-interactive sample" :disabled="loading" @click="openSample(sample.id)">
-          <img :src="`/samples/${sample.id}.svg`" alt="" class="sample-thumb" />
+          <img :src="`/samples/${sample.id}.svg`" alt="" loading="lazy" decoding="async" class="sample-thumb" />
           <span class="d-flex flex-column flex-grow-1">
             <span class="sample-name">{{ t(`bill.samples.${sample.key}`) }}</span>
             <span class="text-muted-a11y sample-kind">{{ t('bill.sampleTag') }}</span>

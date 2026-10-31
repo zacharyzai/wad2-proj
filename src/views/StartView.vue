@@ -209,7 +209,7 @@ let introPlayed = false
 .about:hover { color: #e0f7f5; }
 
 /* The picture: the sample label, tilted, behind a phone showing the plain words. Scaled down on phones. */
-.demo { position: relative; margin: 0; justify-self: center; width: min(100%, 460px); aspect-ratio: 1 / 1.02; }
+.demo { position: relative; margin: 0; justify-self: center; width: min(100%, 460px); aspect-ratio: 1 / 1.45; } /* tall enough for the phone's fixed-size content, so it never rides up over the link above */
 .paper { position: absolute; left: 0; top: 6%; width: 74%; height: auto; border-radius: 12px; background: #fff; transform: rotate(-6deg); box-shadow: 0 30px 60px -28px rgba(0, 0, 0, 0.55); }
 .phone { position: absolute; right: 0; bottom: 0; width: 58%; aspect-ratio: 9 / 16; display: flex; flex-direction: column; gap: 10px; padding: 14px 12px; border: 9px solid #172120; border-radius: 34px; background: var(--color-page); color: var(--color-text); box-shadow: 0 40px 70px -30px rgba(0, 0, 0, 0.6); font-size: 13px; line-height: 1.3; }
 .phone-top { display: flex; align-items: center; gap: 7px; font-family: var(--font-display); font-size: 12px; }
@@ -289,7 +289,7 @@ let introPlayed = false
 .join { position: relative; overflow: hidden; isolation: isolate; }
 .join::after { content: ''; position: absolute; inset: 0; z-index: -1; background: linear-gradient(105deg, transparent 35%, rgba(42, 157, 143, 0.18) 50%, transparent 65%); transform: translateX(-110%); }
 .intro .join::after { animation: sweep 1100ms var(--ease-out) 900ms both; }
-.join .icon, .about .icon { transition: transform 240ms var(--ease-spring); }
+.join .icon, .about .icon { transition: transform 240ms var(--ease-settle); }
 .join:hover .icon, .about:hover .icon { transform: translateX(5px); }
 .join:hover { box-shadow: 0 10px 28px rgba(0, 0, 0, 0.26); }
 @keyframes sweep { from { transform: translateX(-110%); } to { transform: translateX(110%); } }
@@ -300,17 +300,17 @@ let introPlayed = false
 .band-glow { translate: calc(var(--px, 0) * 60px) calc(var(--py, 0) * 40px); transition: translate 1200ms var(--ease-out); }
 
 /* The story, about 4.5 seconds, first visit only, paused on its first frame until the picture is on screen (.play). */
-.intro .demo .paper { animation: paper-in 760ms var(--ease-spring) 100ms both; }
+.intro .demo .paper { animation: paper-in 760ms var(--ease-settle) 100ms both; }
 .beam { position: absolute; left: 0; top: 6%; width: 74%; aspect-ratio: 480 / 360; border-radius: 12px; overflow: hidden; transform: rotate(-6deg); pointer-events: none; }
 .intro .beam::before { content: ''; position: absolute; left: -4%; right: -4%; top: 0; height: 22%; background: linear-gradient(to bottom, transparent, rgba(42, 157, 143, 0.28) 85%, rgba(42, 157, 143, 0.85) 98%, transparent); box-shadow: 0 6px 18px rgba(42, 157, 143, 0.35); animation: beam 1300ms cubic-bezier(0.45, 0, 0.55, 1) 800ms both; }
 .intro .demo .phone { animation: phone-in 760ms var(--ease-out) 1300ms both; }
-.intro .demo .phone-card { animation: card-pop 460ms var(--ease-spring) 1900ms both; }
+.intro .demo .phone-card { animation: card-pop 460ms var(--ease-settle) 1900ms both; }
 .intro .demo .phone-today { animation-delay: 2700ms; }
 .intro .demo .phone-chip.on { animation: chip-on 360ms var(--ease-out) 2300ms both; }
 .intro .demo .phone-chip.on + .phone-chip.on { animation-delay: 2500ms; }
 .intro .demo .phone-row.done .phone-box { animation: box-tick 300ms var(--ease-out) 3300ms both; }
-.intro .demo .phone-row.done .phone-box .icon { animation: tick-in 380ms var(--ease-spring) 3400ms both; }
-.intro .demo .phone-play { animation: card-pop 460ms var(--ease-spring) 3500ms both; }
+.intro .demo .phone-row.done .phone-box .icon { animation: tick-in 380ms var(--ease-settle) 3400ms both; }
+.intro .demo .phone-play { animation: card-pop 460ms var(--ease-settle) 3500ms both; }
 .demo .phone-play-btn { position: relative; }
 .intro .demo .phone-play-btn::after { content: ''; position: absolute; inset: 0; border-radius: 50%; border: 2px solid var(--color-primary); opacity: 0; animation: ring 700ms ease-out 3900ms 2 both; }
 .demo:not(.play), .demo:not(.play) *, .demo:not(.play) *::before, .demo:not(.play) *::after { animation-play-state: paused; }
@@ -328,7 +328,7 @@ let introPlayed = false
 .watching li:nth-child(2) { transition-delay: 100ms; }
 .watching li:nth-child(3) { transition-delay: 200ms; }
 .watching li.seen { opacity: 1; transform: none; }
-.gets .tile { transition: transform 320ms var(--ease-spring); }
+.gets .tile { transition: transform 320ms var(--ease-settle); }
 @media (hover: hover) {
   .gets li { transition: opacity 560ms var(--ease-out), transform 320ms var(--ease-out), box-shadow var(--dur) var(--ease-out); }
   .gets li:hover { transform: translateY(-4px); box-shadow: 0 14px 30px -14px rgba(0, 0, 0, 0.28); transition-delay: 0ms; }
@@ -352,6 +352,7 @@ let introPlayed = false
   .gets li { flex-direction: column; align-items: flex-start; }
 }
 @media (min-width: 992px) {
+  .demo { aspect-ratio: 1 / 1.02; }
   .band-in { grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr); padding: 56px 28px 24px; gap: 56px; }
   .phone { font-size: 14px; }
   .phone-dose { font-size: 18px; }

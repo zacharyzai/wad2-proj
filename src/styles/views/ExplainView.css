@@ -33,7 +33,7 @@
 .answer:active { transform: scale(0.98); }
 .letter { width: 36px; height: 36px; flex: none; display: grid; place-items: center; border-radius: 50%; background: var(--color-tint); color: var(--color-tint-text); font-weight: 800; }
 .answer.right { border: 2px solid var(--color-success); padding: 11px 17px; background: var(--color-success-bg); color: var(--color-success-text); font-weight: 700; }
-.answer.right .letter { background: var(--color-success); color: #fff; animation: answer-pop 420ms var(--ease-spring); }
+.answer.right .letter { background: var(--color-success); color: #fff; animation: answer-pop 420ms var(--ease-settle); }
 .answer.right { animation: answer-glow 900ms var(--ease-out); }
 @keyframes answer-pop { 0% { transform: scale(0.6); } 60% { transform: scale(1.18); } 100% { transform: scale(1); } }
 @keyframes answer-glow { 0% { box-shadow: 0 0 0 0 rgba(6, 167, 125, 0.45); } 100% { box-shadow: 0 0 0 14px rgba(6, 167, 125, 0); } }

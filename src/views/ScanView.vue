@@ -504,7 +504,7 @@ onMounted(() => {
             <div class="examples-list">
             <div class="examples-inner" :style="{ '--n': examples.length }">
             <button v-for="(sample, i) in examples" :key="sample.id" type="button" class="card card-interactive sample" :style="{ '--i': i }" @click="trySample(sample)">
-              <img :src="`/samples/${sample.id}.svg`" alt="" class="sample-thumb" />
+              <img :src="`/samples/${sample.id}.svg`" alt="" loading="lazy" decoding="async" class="sample-thumb" />
               <span class="d-flex flex-column flex-grow-1">
                 <span class="sample-name">{{ t(`scan.samples.${sample.key}`) }}</span>
                 <span class="text-muted-a11y sample-kind">{{ t(`scan.sampleOf.${sample.type}`) }}</span>

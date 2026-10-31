@@ -61,7 +61,7 @@ const onClick = (event) => event.target === box.value && emit('stay')
 
 <style scoped>
 .leave { width: min(440px, calc(100% - 32px)); max-height: calc(100dvh - 32px); padding: 0; margin: auto; overflow: auto; border: 0; border-radius: var(--r-card); background: var(--color-card); color: var(--color-text); box-shadow: 0 24px 64px rgba(0, 0, 0, 0.28); }
-.leave[open] { animation: pop 340ms var(--ease-spring) both; }
+.leave[open] { animation: pop 340ms var(--ease-settle) both; }
 .leave::backdrop { background: rgba(20, 18, 16, 0.6); animation: fade 220ms ease-out both; }
 
 /* The picture sits on a soft teal panel across the top of the card. */

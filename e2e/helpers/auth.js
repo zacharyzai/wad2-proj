@@ -72,5 +72,7 @@ const LANG_CODE = { EN: 'en', 中文: 'zh', BM: 'ms', தமிழ்: 'ta' }
 export async function switchLanguage(page, label) {
   await page.locator('a.acct').click()
   await page.getByTestId('account-language').locator(`[lang="${LANG_CODE[label]}"]`).click() // Account spells the names out (Bahasa Melayu)
+  // The language downloads the first time it is used: go back only once the page is really in it.
+  await expect(page.locator('html')).toHaveAttribute('lang', LANG_CODE[label])
   await page.goBack()
 }

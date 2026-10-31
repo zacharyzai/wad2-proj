@@ -43,7 +43,7 @@ function toggle(event) {
 .dark .track { background: var(--color-page); }
 
 /* Both circles are 24px; the knob slides 32px to the right in day mode, the other icon 32px to the left (they swap ends). */
-.knob, .other { position: relative; z-index: 1; flex: none; display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; transition: transform 320ms var(--ease-spring), background-color 300ms var(--ease-out), color 300ms var(--ease-out); }
+.knob, .other { position: relative; z-index: 1; flex: none; display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; transition: transform 320ms var(--ease-settle), background-color 300ms var(--ease-out), color 300ms var(--ease-out); }
 .knob { background: var(--color-surface-2); color: var(--color-text); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18); transform: translateX(32px); }
 .other { color: var(--color-text-muted); transform: translateX(-32px); }
 .dark .knob, .dark .other { transform: none; }
