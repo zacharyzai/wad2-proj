@@ -1,5 +1,6 @@
 // Ask page speech: voice input and read-aloud, with the browser speech APIs replaced by fakes so tests are repeatable.
 import { test, expect } from './fixtures.js'
+import { switchLanguage } from './helpers/auth.js'
 
 // Fake speech APIs. window.__spoken records what was read and at what speed; recognition "hears" window.__heard.
 function fakeSpeech(page, { recognition = true } = {}) {
@@ -55,7 +56,7 @@ test('the mic fills the text box in the app language and does not send', async (
   let asked = 0
   await page.route('**/api/chat', (route) => (asked++, route.fulfill({ json: answer('ok') })))
   await page.goto('/ask')
-  await page.getByRole('button', { name: 'BM' }).click()
+  await switchLanguage(page, 'BM')
   await page.evaluate(() => (window.__heard = 'Bila saya patut makan ubat ini'))
   await page.getByTestId('ask-mic').click()
   await expect(page.getByLabel('Atau taip soalan anda sendiri')).toHaveValue('Bila saya patut makan ubat ini')
@@ -66,7 +67,7 @@ test('the mic fills the text box in the app language and does not send', async (
 test('a browser that cannot hear Tamil says so, instead of "couldn\'t hear you"', async ({ page }) => {
   await fakeSpeech(page)
   await page.goto('/ask')
-  await page.getByRole('button', { name: 'தமிழ்' }).click()
+  await switchLanguage(page, 'தமிழ்')
   await page.evaluate(() => (window.__recError = 'language-not-supported'))
   await page.getByTestId('ask-mic').click()
   await expect(page.getByText('இந்த உலாவியில் இந்த மொழியில் பேச முடியாது', { exact: false })).toBeVisible()
@@ -104,7 +105,7 @@ test('an answer in a language the device has no voice for is read with audio fro
   await page.addInitScript(() => (window.speechSynthesis.getVoices = () => [{ lang: 'en-SG', name: 'English' }])) // no Tamil voice
   await page.route('**/api/chat', (route) => route.fulfill({ json: answer('ஒரு நாளைக்கு 2 முறை.') }))
   await page.goto('/ask')
-  await page.getByRole('button', { name: 'தமிழ்' }).click()
+  await switchLanguage(page, 'தமிழ்')
   await expect(page.locator('html')).toHaveAttribute('lang', 'ta') // the switch fades in: Tamil from the next frame on
   await page.locator('textarea').fill('எப்போது சாப்பிட வேண்டும்?')
   await page.keyboard.press('Enter')

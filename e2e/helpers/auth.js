@@ -65,3 +65,11 @@ export async function useSampleLabel(page, name = 'Metformin label') {
   await page.getByRole('button', { name }).click()
   await expect(page).toHaveURL(/\/scan\/confirm$/)
 }
+
+// Language is chosen on the Account page (the app bar has no switcher). Goes there, picks it and comes straight back,
+// so a page in the middle of a flow keeps its state. `label` is the button's text: 'EN', '中文', 'BM' or 'தமிழ்'.
+export async function switchLanguage(page, label) {
+  await page.locator('a.acct').click()
+  await page.getByTestId('account-language').getByRole('button', { name: label, exact: true }).click()
+  await page.goBack()
+}

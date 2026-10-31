@@ -2,7 +2,7 @@
 // Runs on desktop Chrome and iPhone 6 (playwright.config.js). Rules: src/rules/subsidies.js.
 import { test, expect } from './fixtures.js'
 import AxeBuilder from '@axe-core/playwright'
-import { DEMO_USER, signIn } from './helpers/auth.js'
+import { DEMO_USER, signIn, switchLanguage } from './helpers/auth.js'
 
 const BEDOK = 'Bedok: doctor visit and medicine' // bill-1
 const TAMPINES = 'Tampines: blood tests and MediSave' // bill-2
@@ -163,7 +163,7 @@ test.describe('breakdown', () => {
 
   test('labels follow the chosen language', async ({ page }) => {
     await openSample(page, BEDOK)
-    await page.getByRole('button', { name: '中文' }).click()
+    await switchLanguage(page, '中文')
     await expect(youPay(page, '您需要支付 $14.00')).toBeVisible()
     await expect(line(page, 'Consultation 看医生')).toBeVisible()
   })

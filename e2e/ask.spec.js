@@ -1,6 +1,7 @@
 // Feature 6: Ask about my medicine. Open any time; answers use the user's medicines (checked labels or typed in).
 // Answers are mocked in the browser (no AI quota); red flags hit the real server because they never reach the AI.
 import { test, expect } from './fixtures.js'
+import { switchLanguage } from './helpers/auth.js'
 
 async function checkSample(page) {
   await page.goto('/scan?type=medication')
@@ -158,7 +159,7 @@ test('a failed question can be retried', async ({ page }) => {
 test('questions are asked in the chosen language', async ({ page }) => {
   const sent = mockChat(page, [answer('放在阴凉干燥的地方。')])
   await page.goto('/ask')
-  await page.getByRole('button', { name: '中文' }).click()
+  await switchLanguage(page, '中文')
   await page.getByRole('button', { name: '药物怎样保存？' }).click()
   await expect(page.getByTestId('ask-answer')).toContainText('放在阴凉干燥的地方。')
   expect(sent[0]).toMatchObject({ question: '药物怎样保存？', lang: 'zh' })

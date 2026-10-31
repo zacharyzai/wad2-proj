@@ -1,5 +1,6 @@
 // Shell accessibility: skip link, page titles, focus and scroll after navigation.
 import { test, expect } from './fixtures.js'
+import { switchLanguage } from './helpers/auth.js'
 
 test('skip link jumps past the navigation', async ({ page, browserName }) => {
   test.skip(browserName === 'webkit', 'Safari only tabs to links with a system setting')
@@ -15,7 +16,7 @@ test('skip link jumps past the navigation', async ({ page, browserName }) => {
 test('tab title names the page in the chosen language', async ({ page }) => {
   await page.goto('/scan?type=medication')
   await expect(page).toHaveTitle('Scan a label or bill · Ah Ma Ah Gong Can')
-  await page.getByRole('button', { name: '中文' }).click()
+  await switchLanguage(page, '中文')
   await expect(page).toHaveTitle(/^扫描/)
 })
 

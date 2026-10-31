@@ -1,12 +1,12 @@
 // Foundation smoke test. Each owner adds their own <feature>.spec.js next to this one.
 import { test, expect } from './fixtures.js'
-import { testToken } from './helpers/auth.js'
+import { testToken, switchLanguage } from './helpers/auth.js'
 
 test('home page loads and switches language', async ({ page }) => {
   await page.goto('/')
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('What would you like to understand?')
 
-  await page.getByRole('button', { name: '中文' }).click()
+  await switchLanguage(page, '中文')
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('您想了解什么？')
   await expect(page.locator('html')).toHaveAttribute('lang', 'zh')
 })

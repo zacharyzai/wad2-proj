@@ -3,7 +3,7 @@
 // /api/doses is answered by a small in-memory stand-in for the server (no database needed).
 import AxeBuilder from '@axe-core/playwright'
 import { test, expect } from './fixtures.js'
-import { useSampleLabel } from './helpers/auth.js'
+import { useSampleLabel, switchLanguage } from './helpers/auth.js'
 
 const TODAY = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Singapore' }).format(new Date())
 const medicine = (id, fields, schedule) => ({
@@ -409,7 +409,7 @@ test('connected: the whole schedule goes to Google Calendar after an edit, once,
   expect(google.syncs).toHaveLength(2)
 
   // Switching language sends the schedule again, so the events read in the new language.
-  await page.getByRole('button', { name: '中文' }).first().click()
+  await switchLanguage(page, '中文')
   await expect.poll(() => google.syncs.length, { timeout: 5000 }).toBe(3)
   expect(google.syncs[2].lang).toBe('zh')
 })

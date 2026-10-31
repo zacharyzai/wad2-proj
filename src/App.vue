@@ -3,7 +3,6 @@
 import { computed, nextTick, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { chooseLocale } from './i18n'
 import AppIcon from './components/layout/AppIcon.vue'
 import GuideDialog from './components/guide/GuideDialog.vue'
 import ThemePrompt from './components/guide/ThemePrompt.vue'
@@ -16,7 +15,6 @@ const { t, locale } = useI18n()
 const route = useRoute()
 
 // Each language button is written in its own script.
-const LANG_BUTTONS = { en: 'EN', zh: '中文', ms: 'BM', ta: 'தமிழ்' }
 // `phone: false` items stay off the phone tab bar (5 tabs fit at 375px, Tamil included); on phones the logo goes Home.
 const NAV = [
   { to: '/', key: 'nav.home', icon: 'home', phone: false },
@@ -95,17 +93,8 @@ router.afterEach(async (to, from, failure) => {
         <span class="navi-label">{{ t('guide.open') }}</span>
       </button>
 
-      <!-- Day / night, one tap from every page: above Language in the sidebar, beside Account in the phone header. -->
+      <!-- Day / night, one tap from every page: above Account in the sidebar, beside Account in the phone header. Language lives on the Account page. -->
       <div class="theme-box"><ThemeToggle /></div>
-
-      <div class="lang-box">
-        <span class="section-label desk-only">{{ t('nav.language') }}</span>
-        <div class="segmented langs" role="group" :aria-label="t('nav.language')">
-          <button v-for="(label, code) in LANG_BUTTONS" :key="code" type="button" :lang="code" :aria-pressed="locale === code" @click="chooseLocale(code)">
-            {{ label }}
-          </button>
-        </div>
-      </div>
 
       <!-- Everyone has an account, so this is always Account (logged-out visitors are sent to Log in by the router). -->
       <RouterLink to="/account" class="acct" data-guide="/account" :aria-label="t('nav.account')" :aria-current="isOn('/account') ? 'page' : null">

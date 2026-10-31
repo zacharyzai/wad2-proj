@@ -1,6 +1,7 @@
 // Feature 1: Scan → Confirm → Explain. Samples only; the photo upload is answered in the browser.
 import { test, expect } from './fixtures.js'
 import { mockImageScan } from './helpers/mockImageScan.js'
+import { switchLanguage } from './helpers/auth.js'
 
 const TINY_PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', 'base64')
 
@@ -284,7 +285,7 @@ test('Scan errors can be read aloud (H10)', async ({ page }) => {
 test('explanation follows the language switch', async ({ page }) => {
   await openSample(page, 'Metformin label')
   await page.getByRole('button', { name: 'Looks correct' }).click()
-  await page.getByRole('button', { name: '中文' }).click()
+  await switchLanguage(page, '中文')
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('每次 1 粒，每天 2 次。')
 })
 
