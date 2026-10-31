@@ -15,15 +15,12 @@ test.beforeEach(({ page }) =>
 
 const guide = (page) => page.getByTestId('guide')
 const title = (page) => page.locator('#guide-title')
-const stepText = (page, n) => expect(page.getByText(`Step ${n} of 9`)).toBeVisible()
+const stepText = (page, n) => expect(page.getByText(`Step ${n} of 7`)).toBeVisible()
 
 // From the welcome card to the finish card pressing only Next (no hunting for buttons).
 async function walkToFinish(page) {
-  await page.getByTestId('guide-next').click() // welcome → Tap Scan
-  for (let i = 0; i < 4; i++) {
-    await page.getByTestId('guide-next').click() // tap step → its page
-    if (i < 3) await page.getByTestId('guide-next').click() // look step → next tap step
-  }
+  // Tap Scan → the two cards → Tap Ask → question box → Tap Account → finish.
+  for (let i = 0; i < 6; i++) await page.getByTestId('guide-next').click()
   await expect(title(page)).toHaveText('You are ready')
 }
 
@@ -46,14 +43,10 @@ test('first visit: welcome card, then it points at the real buttons and waits fo
   // The real Scan button opens Scan and the guide moves on to its key button.
   await page.locator('[data-guide="/scan"]').click()
   await expect(page).toHaveURL(/\/scan$/)
-  await expect(title(page)).toHaveText('Take a photo of the label')
+  // It points at the two cards: a medicine label or a medical bill.
+  await expect(title(page)).toHaveText('Choose what to scan')
   await stepText(page, 3)
-  await page.getByTestId('guide-next').click()
-
-  await expect(title(page)).toHaveText('Tap Bill')
-  await page.locator('[data-guide="/bill"]').click()
-  await expect(page).toHaveURL(/\/bill$/)
-  await expect(title(page)).toHaveText('Try a sample bill')
+  await expect(page.getByTestId('choose-bill')).toBeVisible()
   await page.getByTestId('guide-next').click()
 
   await expect(title(page)).toHaveText('Tap Ask')
@@ -66,7 +59,7 @@ test('first visit: welcome card, then it points at the real buttons and waits fo
   await page.locator('[data-guide="/account"]').click()
   await expect(page).toHaveURL(/\/account$/)
   await expect(title(page)).toHaveText('You are ready')
-  await stepText(page, 9)
+  await stepText(page, 7)
 
   await page.getByTestId('guide-start').click()
   await expect(guide(page)).toHaveCount(0)
@@ -89,11 +82,11 @@ test('every step that leads on has the same Next button; on a "Tap" step it does
   await expect(page.getByTestId('guide-next')).toHaveText('Next')
   await page.getByTestId('guide-next').click()
   await expect(page).toHaveURL(/\/scan$/)
-  await expect(title(page)).toHaveText('Take a photo of the label')
+  await expect(title(page)).toHaveText('Choose what to scan')
 })
 
 test('Skip or Esc end it at any step; the closing message fades after a few seconds', async ({ page }) => {
-  await page.goto('/scan')
+  await page.goto('/scan?type=medication')
   await page.getByTestId('guide-next').click()
   await page.keyboard.press('Escape')
   await expect(guide(page)).toHaveCount(0)
@@ -105,7 +98,7 @@ test('the language buttons on the welcome card switch the app; tap steps name th
   await page.goto('/')
   await guide(page).getByRole('button', { name: '中文' }).click()
   await expect(title(page)).toHaveText('选择语言，朗读页面')
-  await expect(page.getByText('第 1 步，共 9 步')).toBeVisible()
+  await expect(page.getByText('第 1 步，共 7 步')).toBeVisible()
   await page.getByTestId('guide-next').click()
   await expect(title(page)).toHaveText('点击“扫描”') // the same word as the Scan button
   await page.getByTestId('guide-skip').click()
@@ -125,7 +118,7 @@ test('arriving mid-task (another page first) waits, then shows on Home', async (
   await page.goto('/bill')
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Bill breakdown')
   await expect(guide(page)).toHaveCount(0)
-  await page.goto('/scan') // deferred: only Home shows it now
+  await page.goto('/scan?type=medication') // deferred: only Home shows it now
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
   await expect(guide(page)).toHaveCount(0)
   await page.goto('/')

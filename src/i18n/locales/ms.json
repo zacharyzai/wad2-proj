@@ -82,7 +82,7 @@
   },
   "pages": {
     "home": "Fahami ubat dan bil anda",
-    "scan": "Imbas label ubat",
+    "scan": "Imbas label atau bil",
     "confirm": "Semak butiran",
     "explain": "Apa maksudnya",
     "schedule": "Jadual ubat",
@@ -153,6 +153,10 @@
     "what": "Apa yang boleh diimbas?",
     "ask": {
       "text": "Tanya soalan tentang ubat anda dalam bahasa anda sendiri."
+    },
+    "breakdown": {
+      "title": "Pecahan bil anda",
+      "text": "Lihat semula bil terakhir anda, dan subsidi yang mungkin anda dapat."
     }
   },
   "scan": {
@@ -160,7 +164,6 @@
       "medication": "Masukkan seluruh label ke dalam kotak",
       "bill": "Masukkan seluruh bil ke dalam kotak"
     },
-    "take": "Ambil gambar",
     "upload": "Muat naik gambar",
     "tips": {
       "light": {
@@ -176,7 +179,6 @@
         "text": "Masukkan keempat-empat tepi, termasuk tulisan kecil."
       }
     },
-    "samplesTitle": "Tiada apa untuk diimbas? Cuba contoh",
     "samples": {
       "med1": "Label Metformin",
       "med2": "Label Amlodipine",
@@ -219,10 +221,6 @@
     },
     "addPhoto": "Tambah gambar anda",
     "or": "atau",
-    "lead": {
-      "medication": "Ambil gambar label yang jelas, atau muat naik gambar.",
-      "bill": "Ambil gambar jelas seluruh bil, atau muat naik gambar."
-    },
     "wrongDoc": {
       "bill": {
         "title": "Ini tidak kelihatan seperti bil perubatan",
@@ -264,6 +262,54 @@
         "medication": "Baca label anda",
         "bill": "Baca bil anda"
       }
+    },
+    "choose": {
+      "question": "Apakah yang anda mahu imbas hari ini?",
+      "medication": {
+        "title": "Label ubat",
+        "text": "Tablet, sirap, krim",
+        "go": "Imbas label"
+      },
+      "bill": {
+        "title": "Bil perubatan",
+        "text": "Jumlah bayaran dan subsidi",
+        "go": "Imbas bil"
+      },
+      "pending": "Gambar anda sudah sedia. Apakah ia? Ketik satu untuk mengimbasnya.",
+      "lead": "Pilih satu. Anda boleh kembali dan pilih yang lain bila-bila masa.",
+      "again": "Kembali ke “Apakah yang anda mahu imbas?”"
+    },
+    "takeOf": {
+      "medication": "Ambil gambar label",
+      "bill": "Ambil gambar bil"
+    },
+    "pendingScan": {
+      "medication": "Imbas gambar ini sebagai label",
+      "bill": "Imbas gambar ini sebagai bil"
+    },
+    "tipsTitle": "Petua untuk gambar yang jelas",
+    "tipsFor": {
+      "medication": {
+        "label": {
+          "title": "Label menghadap anda",
+          "text": "Pusingkan botol dan kotak supaya label bercetak menghadap kamera."
+        }
+      },
+      "bill": {
+        "flat": {
+          "title": "Letakkan rata",
+          "text": "Licinkan lipatan. Satu muka surat pada satu masa."
+        },
+        "total": {
+          "title": "Masukkan jumlah",
+          "text": "Pastikan jumlah yang perlu dibayar, di bahagian bawah, ada dalam gambar."
+        }
+      }
+    },
+    "examples": "Cuba contoh",
+    "lead": {
+      "medication": "Ambil gambar label yang jelas, atau muat naik gambar.",
+      "bill": "Ambil gambar jelas seluruh bil, atau muat naik gambar."
     }
   },
   "confirm": {
@@ -915,19 +961,11 @@
       },
       "scan": {
         "t": "Ketik {name}",
-        "b": "Di sini anda imbas label ubat."
+        "b": "Di sini anda mengimbas label ubat atau bil perubatan."
       },
-      "scanTake": {
-        "t": "Ambil gambar label",
-        "b": "Atau muat naik gambar. Nama dan NRIC anda dihitamkan pada peranti anda sebelum apa-apa dibaca."
-      },
-      "bill": {
-        "t": "Ketik {name}",
-        "b": "Di sini anda imbas bil perubatan."
-      },
-      "billSample": {
-        "t": "Cuba bil contoh",
-        "b": "Buka satu untuk melihat jumlah bayaran, dan subsidi yang mungkin anda dapat."
+      "scanChoose": {
+        "t": "Pilih apa yang hendak diimbas",
+        "b": "Label ubat atau bil perubatan. Kemudian ambil gambar, atau muat naik. Nama dan NRIC anda dihitamkan pada peranti anda sebelum apa-apa dibaca."
       },
       "ask": {
         "t": "Ketik {name}",

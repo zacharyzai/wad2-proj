@@ -3,7 +3,8 @@
 import { test, expect } from './fixtures.js'
 
 async function checkSample(page) {
-  await page.goto('/scan')
+  await page.goto('/scan?type=medication')
+  await page.getByTestId('scan-examples').click() // samples sit behind "Try an example"
   await page.getByRole('button', { name: 'Metformin label' }).click()
   await page.getByRole('button', { name: 'Looks correct' }).click()
 }

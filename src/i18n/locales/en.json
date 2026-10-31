@@ -23,7 +23,7 @@
   },
   "pages": {
     "home": "Understand your medicine and bills",
-    "scan": "Scan a medication label",
+    "scan": "Scan a label or bill",
     "confirm": "Check the details",
     "explain": "What this means",
     "schedule": "Medicine schedule",
@@ -153,6 +153,10 @@
     "what": "What can I scan?",
     "ask": {
       "text": "Ask a question about your medicine, in your own language."
+    },
+    "breakdown": {
+      "title": "Your bill breakdown",
+      "text": "Look at your last bill again, and the subsidies you may get."
     }
   },
   "scan": {
@@ -160,7 +164,6 @@
       "medication": "Fit the whole label inside the box",
       "bill": "Fit the whole bill inside the box"
     },
-    "take": "Take photo",
     "upload": "Upload photo",
     "tips": {
       "light": {
@@ -176,7 +179,6 @@
         "text": "Include all four edges, even the small print."
       }
     },
-    "samplesTitle": "Nothing to scan? Try a sample",
     "samples": {
       "med1": "Metformin label",
       "med2": "Amlodipine label",
@@ -219,10 +221,6 @@
     },
     "addPhoto": "Add your photo",
     "or": "or",
-    "lead": {
-      "medication": "Take a clear photo of the label, or upload one.",
-      "bill": "Take a clear photo of the whole bill, or upload one."
-    },
     "wrongDoc": {
       "bill": {
         "title": "This doesn’t look like a medical bill",
@@ -264,6 +262,54 @@
         "medication": "Read your label",
         "bill": "Read your bill"
       }
+    },
+    "choose": {
+      "question": "What would you like to scan today?",
+      "medication": {
+        "title": "Medicine label",
+        "text": "Tablets, syrups, creams",
+        "go": "Scan a label"
+      },
+      "bill": {
+        "title": "Medical bill",
+        "text": "What you pay, and subsidies",
+        "go": "Scan a bill"
+      },
+      "pending": "Your photo is ready. What is it? Tap one to scan it.",
+      "lead": "Pick one. You can always come back and choose the other.",
+      "again": "Back to “What would you like to scan?”"
+    },
+    "takeOf": {
+      "medication": "Take a photo of the label",
+      "bill": "Take a photo of the bill"
+    },
+    "pendingScan": {
+      "medication": "Scan this photo as a label",
+      "bill": "Scan this photo as a bill"
+    },
+    "tipsTitle": "Tips for a clear photo",
+    "tipsFor": {
+      "medication": {
+        "label": {
+          "title": "Label facing you",
+          "text": "Turn bottles and boxes so the printed label faces the camera."
+        }
+      },
+      "bill": {
+        "flat": {
+          "title": "Lay it flat",
+          "text": "Smooth out folds. One page at a time."
+        },
+        "total": {
+          "title": "Include the total",
+          "text": "Make sure the amount to pay, at the bottom, is in the photo."
+        }
+      }
+    },
+    "examples": "Try an example",
+    "lead": {
+      "medication": "Take a clear photo of the label, or upload one.",
+      "bill": "Take a clear photo of the whole bill, or upload one."
     }
   },
   "confirm": {
@@ -915,19 +961,11 @@
       },
       "scan": {
         "t": "Tap {name}",
-        "b": "This is where you scan a medicine label."
+        "b": "This is where you scan a medicine label or a medical bill."
       },
-      "scanTake": {
-        "t": "Take a photo of the label",
-        "b": "Or upload one. Your name and NRIC are blacked out on your device before anything is read."
-      },
-      "bill": {
-        "t": "Tap {name}",
-        "b": "This is where you scan a medical bill."
-      },
-      "billSample": {
-        "t": "Try a sample bill",
-        "b": "Open one to see what you pay, and which subsidies you may get."
+      "scanChoose": {
+        "t": "Choose what to scan",
+        "b": "A medicine label or a medical bill. Then take a photo, or upload one. Your name and NRIC are blacked out on your device before anything is read."
       },
       "ask": {
         "t": "Tap {name}",

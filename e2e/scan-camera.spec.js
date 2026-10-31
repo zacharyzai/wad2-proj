@@ -7,8 +7,8 @@ test.use({ launchOptions: { args: ['--use-fake-device-for-media-stream', '--use-
 
 test('Take photo opens the camera and Capture sends the frame', async ({ page }) => {
   await mockImageScan(page)
-  await page.goto('/scan')
-  await page.getByRole('button', { name: 'Take photo' }).click()
+  await page.goto('/scan?type=medication')
+  await page.getByTestId('scan-take').click()
   await expect(page.getByLabel('Camera preview')).toBeVisible()
   await page.getByRole('button', { name: 'Capture' }).click()
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Check what we read')
@@ -20,7 +20,7 @@ test('blocked camera points to Upload photo', async ({ page, context }) => {
   await page.addInitScript(() => {
     navigator.mediaDevices.getUserMedia = () => Promise.reject(new DOMException('denied', 'NotAllowedError'))
   })
-  await page.goto('/scan')
-  await page.getByRole('button', { name: 'Take photo' }).click()
+  await page.goto('/scan?type=medication')
+  await page.getByTestId('scan-take').click()
   await expect(page.getByRole('alert')).toContainText('Allow camera access')
 })

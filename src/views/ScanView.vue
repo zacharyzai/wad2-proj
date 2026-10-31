@@ -1,4 +1,8 @@
-<!-- Owner: Asher. From the Claude Design Scan screens: choose, camera/upload, samples, processing and unclear-photo states. -->
+<!-- Owner: Asher. From the Claude Design Scan screens: choose, camera/upload, samples, processing and unclear-photo states.
+     Choose first: "What would you like to scan today?" with two big picture cards (Medicine label / Medical bill),
+     centred, that zoom in a little under the mouse. Picking one opens that kind's page: one camera button and one upload box named for it, the
+     privacy line right under them, tips for that kind of paper, and samples behind "Try an example". The choice is in
+     the address (?type=bill), so Back returns to the question. Bills have no tab of their own: they start here. -->
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -25,8 +29,50 @@ const MAX_SIDE = 1600
 const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
-const type = computed(() => route.meta.scanType ?? 'medication') // /scan: labels; /bill/scan: bills
-const samples = computed(() => SAMPLES.filter((s) => s.type === type.value))
+// What the next photo is of. The question shows until a kind is picked; the pick goes in the address (?type=bill), so
+// Back returns to the question, and links that already know (?type=, #bill from old Bill links) open that kind straight away.
+const KINDS = ['medication', 'bill']
+const chosen = computed(() => (KINDS.includes(route.query.type) ? route.query.type : route.hash === '#bill' ? 'bill' : null))
+const type = ref(chosen.value ?? SAMPLES.find((x) => x.id === route.query.sample)?.type ?? 'medication')
+watch(chosen, (k) => k && (type.value = k))
+// A card: with a photo from Home waiting, read it as that kind straight away; otherwise open that kind's page.
+function pick(k) {
+  if (pending.value) {
+    type.value = k
+    return scanPending()
+  }
+  examplesOpen.value = false
+  router.push({ name: 'scan', query: { type: k } })
+}
+const KIND_PAPER = { medication: 'med-1', bill: 'bill-1' } // the sample each card shows
+// Samples sit behind "Try an example", a short list for the kind chosen.
+const examplesOpen = ref(false)
+const examples = computed(() => SAMPLES.filter((x) => x.type === type.value))
+// Tips for the kind chosen: good light for both, then what matters for that paper.
+const TIPS_FOR = {
+  medication: [
+    { key: 'tips.light', icon: 'sun' },
+    { key: 'tipsFor.medication.label', icon: 'pill' },
+    { key: 'tips.whole', icon: 'zoom' },
+  ],
+  bill: [
+    { key: 'tips.light', icon: 'sun' },
+    { key: 'tipsFor.bill.flat', icon: 'scan' },
+    { key: 'tipsFor.bill.total', icon: 'receipt' },
+  ],
+}
+// A photo picked on Home: it waits on the question until they say what it is (Home doesn't guess). { file, url }
+const pending = ref(null)
+function dropPending() {
+  if (pending.value) URL.revokeObjectURL(pending.value.url)
+  pending.value = null
+}
+function scanPending() {
+  const { file } = pending.value
+  dropPending()
+  useFile(file, type.value)
+}
+onBeforeUnmount(dropPending)
 
 const state = ref('idle') // idle | loading | error
 const covering = ref(false) // loading, step 1: blacking out personal details on this phone
@@ -99,6 +145,7 @@ async function startCamera() {
     cameraBlocked.value = true // permission denied or no camera
     return
   }
+  await nextTick() // the camera screen only exists once there is a stream
   video.value.srcObject = stream.value
 }
 
@@ -116,7 +163,7 @@ function capture() {
 
 async function retake() {
   state.value = 'idle'
-  await nextTick() // the <video> only exists on the idle screen
+  await nextTick()
   startCamera()
 }
 
@@ -147,7 +194,8 @@ function onFile(event) {
   if (file) useFile(file)
 }
 
-async function useFile(file) {
+async function useFile(file, k = type.value) {
+  type.value = k
   // H1: shrinking a big photo takes about a second on old phones; show that we're working, so nobody taps again.
   coverView.value = null
   readingType.value = type.value
@@ -216,6 +264,13 @@ function retry() {
   send(lastRequest.docType, lastRequest.request)
 }
 
+// "Use a sample instead" on the error screen: back to the page with the examples already open.
+function showExamples() {
+  examplesOpen.value = true
+  state.value = 'idle'
+  if (!chosen.value) router.replace({ name: 'scan', query: { type: type.value } }) // e.g. a photo from Home: its kind's page
+}
+
 function cancel() {
   run++
   covering.value = false
@@ -257,9 +312,12 @@ const TIPS = [
 
 // Home can hand over a picked photo or ask for a sample (/scan?sample=med-1).
 onMounted(() => {
-  const file = scanStore.pendingFile
+  const file = scanStore.pendingFile // a photo picked on Home: shown here, waiting for the choice above it
   scanStore.pendingFile = null
-  if (file) return useFile(file)
+  if (file) {
+    pending.value = { file, url: URL.createObjectURL(file) }
+    if (chosen.value) router.replace({ name: 'scan' }) // a photo from Home is always asked about first
+  }
   const sample = SAMPLES.find((s) => s.id === route.query.sample)
   // Opened to take or pick a photo: start downloading the reader now (not for a sample, which never needs it; tests use a fake).
   if (!sample) return window.__redactForTests || warmUp()
@@ -329,61 +387,120 @@ onMounted(() => {
       <template v-else-if="photoError || wrongDoc">
         <button type="button" class="btn btn-primary" @click="retake"><AppIcon name="camera" />{{ t('scan.retake') }}</button>
         <button type="button" class="btn btn-secondary" @click="upload.click()"><AppIcon name="upload" />{{ t('scan.uploadOther') }}</button>
-        <button v-if="wrongDoc" type="button" class="btn btn-ghost" @click="state = 'idle'"><AppIcon name="sparkles" />{{ t('scan.useSample') }}</button>
+        <button v-if="wrongDoc" type="button" class="btn btn-ghost" @click="showExamples"><AppIcon name="sparkles" />{{ t('scan.useSample') }}</button>
       </template>
       <template v-else>
         <button type="button" class="btn btn-primary" @click="retry"><AppIcon name="replay" />{{ t('scan.tryAgain') }}</button>
-        <button type="button" class="btn btn-secondary" @click="state = 'idle'"><AppIcon name="sparkles" />{{ t('scan.useSample') }}</button>
+        <button type="button" class="btn btn-secondary" @click="showExamples"><AppIcon name="sparkles" />{{ t('scan.useSample') }}</button>
       </template>
     </div>
   </div>
 
-  <div v-else class="page">
+  <!-- Live camera: its own screen, so the picture is big and Capture is the only thing to press. -->
+  <div v-else-if="stream" class="page">
+    <h1>{{ t(type === 'bill' ? 'home.bill.title' : 'home.med.title') }}</h1>
+    <div class="frame-area">
+      <video ref="video" class="live" autoplay playsinline muted @playing="cameraReady = true" :aria-label="t('scan.preview')"></video>
+      <span class="frame" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+      <span class="frame-hint"><AppIcon name="sun" :size="18" />{{ t(`scan.frame.${type}`) }}</span>
+    </div>
+    <button type="button" class="btn btn-primary" :disabled="!cameraReady" data-testid="scan-capture" @click="capture"><AppIcon name="camera" />{{ t('scan.capture') }}</button>
+    <button type="button" class="btn btn-secondary" @click="stopCamera"><AppIcon name="x" />{{ t('scan.cancel') }}</button>
+  </div>
+
+  <!-- The question: two picture cards. Picking one opens that kind's page (below). -->
+  <div v-else-if="!chosen || pending" class="page rise picker">
+    <div class="page-head">
+      <h1>{{ t('scan.choose.question') }}</h1>
+      <p v-if="!pending" class="lead-text pick-lead">{{ t('scan.choose.lead') }}</p>
+    </div>
+    <!-- A photo picked on Home waits here: picking a card reads it as that kind. -->
+    <div v-if="pending" class="pending card" data-testid="scan-pending">
+      <img :src="pending.url" :alt="t('scan.dz.previewAlt')" class="pending-thumb" />
+      <p class="m-0">{{ t('scan.choose.pending') }}</p>
+    </div>
+    <div class="picks" data-guide="scan-choice">
+      <button
+        v-for="k in KINDS"
+        :key="k"
+        type="button"
+        class="pick"
+        :class="`pick-${k}`"
+        :data-guide="`scan-choice-${k}`"
+        :data-testid="`choose-${k}`"
+        @click="pick(k)"
+      >
+        <span class="pick-art" aria-hidden="true">
+          <img :src="`/samples/${KIND_PAPER[k]}.svg`" alt="" class="pick-paper" />
+        </span>
+        <span class="pick-badge" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7" /><path d="M8 7h9v9" /></svg>
+        </span>
+        <span class="pick-words">
+          <span class="pick-title">{{ t(`scan.choose.${k}.title`) }}</span>
+          <span class="pick-text">{{ t(`scan.choose.${k}.text`) }}</span>
+        </span>
+        <span class="pick-go">{{ t(pending ? `scan.pendingScan.${k}` : `scan.choose.${k}.go`) }}<AppIcon name="right" :size="20" :stroke="2.5" /></span>
+      </button>
+    </div>
+    <button v-if="pending" type="button" class="btn btn-ghost" @click="dropPending"><AppIcon name="x" />{{ t('scan.dz.change') }}</button>
+  </div>
+
+  <!-- The kind picked: one place to add the photo, tips for that paper, and examples. -->
+  <div v-else :key="chosen" class="page rise">
     <div class="d-flex align-items-start gap-3">
-      <!-- Bills are scanned from the Bill page, so this goes back there. (Medicine Scan is a main tab: no Back.) -->
-      <RouterLink v-if="type === 'bill'" :to="{ name: 'bill' }" class="back" :aria-label="t('nav.back')" data-testid="scan-back"></RouterLink>
+      <RouterLink :to="{ name: 'scan' }" class="back" :aria-label="t('scan.choose.again')" :title="t('scan.choose.again')" data-testid="scan-back"></RouterLink>
       <div class="page-head">
         <h1>{{ t(type === 'bill' ? 'home.bill.title' : 'home.med.title') }}</h1>
         <p class="lead-text">{{ t(`scan.lead.${type}`) }}</p>
       </div>
     </div>
 
-    <div class="cols">
-      <!-- Everything for getting a photo in, in one place: camera first (most people scan with a phone), then upload. -->
-      <section aria-labelledby="add-title">
-        <h2 id="add-title" class="section-label">{{ t('scan.addPhoto') }}</h2>
-        <!-- The video stays mounted (hidden) so startCamera can attach the stream to it. -->
-        <div v-show="stream" class="frame-area">
-          <video ref="video" class="live" autoplay playsinline muted @playing="cameraReady = true" :aria-label="t('scan.preview')"></video>
-          <span class="frame" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
-          <span class="frame-hint"><AppIcon name="sun" :size="18" />{{ t(`scan.frame.${type}`) }}</span>
-        </div>
-        <template v-if="stream">
-          <button type="button" class="btn btn-primary" :disabled="!cameraReady" @click="capture"><AppIcon name="camera" />{{ t('scan.capture') }}</button>
-          <button type="button" class="btn btn-secondary" @click="stopCamera"><AppIcon name="x" />{{ t('scan.cancel') }}</button>
-        </template>
-        <template v-else>
-          <button type="button" class="btn btn-primary" data-guide="scan-take" @click="startCamera"><AppIcon name="camera" />{{ t('scan.take') }}</button>
-          <p v-if="cameraBlocked" class="alert alert-warning" role="alert"><AppIcon name="alert" />{{ t('scan.cameraBlocked') }}</p>
-          <p class="or">{{ t('scan.or') }}</p>
-          <UploadDropzone class="dz-full" @select="useFile" />
-        </template>
+    <div class="capture">
+      <section class="d-flex flex-column gap-3" aria-labelledby="add-title">
+        <h2 id="add-title" class="visually-hidden">{{ t('scan.addPhoto') }}</h2>
+        <!-- Camera first (most people scan with a phone), then upload. Both named for what is being scanned. -->
+        <button type="button" class="btn btn-primary" data-guide="scan-take" data-testid="scan-take" @click="startCamera"><AppIcon name="camera" />{{ t(`scan.takeOf.${type}`) }}</button>
+        <p v-if="cameraBlocked" class="alert alert-warning m-0" role="alert"><AppIcon name="alert" />{{ t('scan.cameraBlocked') }}</p>
+        <p class="or">{{ t('scan.or') }}</p>
+        <UploadDropzone class="dz-full" @select="(f) => useFile(f, type)" />
         <p class="privacy"><AppIcon name="shield" :size="20" />{{ t('scan.privacy') }}</p>
       </section>
 
-      <section aria-labelledby="samples-title">
-        <h2 id="samples-title" class="section-label">{{ t('scan.samplesTitle') }}</h2>
-        <div class="d-flex flex-column gap-3 stagger">
-          <button v-for="sample in samples" :key="sample.id" type="button" class="card card-interactive sample" @click="trySample(sample)">
-            <img :src="`/samples/${sample.id}.svg`" alt="" class="sample-thumb" />
-            <span class="d-flex flex-column flex-grow-1">
-              <span class="sample-name">{{ t(`scan.samples.${sample.key}`) }}</span>
-              <span class="text-muted-a11y sample-kind">{{ t(`scan.sampleOf.${sample.type}`) }}</span>
-            </span>
-            <AppIcon name="right" :size="22" class="text-teal" />
+      <div class="d-flex flex-column gap-3">
+        <section class="card tips-card" aria-labelledby="tips-title">
+          <h2 id="tips-title" class="section-label m-0">{{ t('scan.tipsTitle') }}</h2>
+          <ul class="tips" data-testid="scan-tips">
+            <li v-for="tip in TIPS_FOR[type]" :key="tip.key">
+              <span class="tile tile-soft"><AppIcon :name="tip.icon" :size="22" /></span>
+              <span><strong>{{ t(`scan.${tip.key}.title`) }}.</strong> {{ t(`scan.${tip.key}.text`) }}</span>
+            </li>
+          </ul>
+        </section>
+
+        <!-- Samples: one quiet link that opens a short list for this kind. It slides open (the samples fade in one after
+             another) and closes the same way in reverse (the samples lift away, last first, then it folds shut); the arrow
+             turns. Closed, the list can't be reached by Tab or a screen reader (inert). -->
+        <div class="examples" :class="{ open: examplesOpen }">
+          <button type="button" class="btn btn-ghost examples-toggle" :aria-expanded="examplesOpen" aria-controls="scan-examples" data-guide="scan-examples" data-testid="scan-examples" @click="examplesOpen = !examplesOpen">
+            <AppIcon name="sparkles" />{{ t('scan.examples') }}<AppIcon name="down" :size="20" class="examples-chev" />
           </button>
+          <div id="scan-examples" class="examples-drawer" :inert="examplesOpen ? null : ''">
+            <div class="examples-list">
+            <div class="examples-inner" :style="{ '--n': examples.length }">
+            <button v-for="(sample, i) in examples" :key="sample.id" type="button" class="card card-interactive sample" :style="{ '--i': i }" @click="trySample(sample)">
+              <img :src="`/samples/${sample.id}.svg`" alt="" class="sample-thumb" />
+              <span class="d-flex flex-column flex-grow-1">
+                <span class="sample-name">{{ t(`scan.samples.${sample.key}`) }}</span>
+                <span class="text-muted-a11y sample-kind">{{ t(`scan.sampleOf.${sample.type}`) }}</span>
+              </span>
+              <AppIcon name="right" :size="22" class="text-teal" />
+            </button>
+            </div>
+            </div>
+          </div>
         </div>
-      </section>
+      </div>
     </div>
   </div>
 </template>

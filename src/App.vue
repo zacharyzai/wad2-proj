@@ -22,7 +22,6 @@ const NAV = [
   { to: '/', key: 'nav.home', icon: 'home', phone: false },
   { to: '/scan', key: 'nav.scan', icon: 'scan' },
   { to: '/schedule', key: 'nav.schedule', icon: 'calendar' },
-  { to: '/bill', key: 'nav.bill', icon: 'receipt' },
   { to: '/ask', key: 'nav.ask', icon: 'chat' },
   { to: '/history', key: 'nav.history', icon: 'history' },
   { to: '/care', key: 'nav.care', icon: 'users', caregiverOnly: true },

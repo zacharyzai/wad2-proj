@@ -22,7 +22,8 @@ async function account(page, saved) {
 test('Looks correct saves the scan to History and the medicine to the account', async ({ page }) => {
   const sent = await account(page, [])
   const saved = page.waitForRequest((r) => r.url().endsWith('/api/schedule') && r.method() === 'PUT')
-  await page.goto('/scan')
+  await page.goto('/scan?type=medication')
+  await page.getByTestId('scan-examples').click() // samples sit behind "Try an example"
   await page.getByRole('button', { name: 'Metformin label' }).click()
   await page.getByRole('button', { name: 'Looks correct' }).click()
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Take 1 tablet, 2 times a day.')

@@ -28,9 +28,8 @@ const write = (value) => {
 export const STEPS = [
   { id: 'intro', kind: 'card' },
   { id: 'scan', kind: 'tap', target: '/scan' },
-  { id: 'scanTake', kind: 'look', target: 'scan-take' },
-  { id: 'bill', kind: 'tap', target: '/bill' },
-  { id: 'billSample', kind: 'look', target: 'bill-samples' },
+  // Labels and bills both start on Scan: point at the two cards.
+  { id: 'scanChoose', kind: 'look', target: 'scan-choice' },
   { id: 'ask', kind: 'tap', target: '/ask' },
   { id: 'askBox', kind: 'look', target: 'ask-box' },
   { id: 'account', kind: 'tap', target: '/account' },

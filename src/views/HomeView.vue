@@ -27,7 +27,8 @@ const SAMPLES = [
 const hour = new Date().getHours()
 const greet = hour < 12 ? 'morning' : hour < 18 ? 'afternoon' : 'evening'
 
-// Scan reads the picked file on arrival, so Home doesn't need its own copy of the upload logic.
+// Scan takes the picked file on arrival and asks what it is (medicine label or bill) before reading it, so Home doesn't
+// guess, and doesn't need its own copy of the upload logic.
 const upload = ref(null)
 function onFile(event) {
   const file = event.target.files[0]
@@ -53,7 +54,7 @@ function onFile(event) {
         <h1 class="display">{{ t('home.title') }}</h1>
         <p class="hero-lead">{{ t('home.lead') }}</p>
         <div class="hero-acts">
-          <RouterLink :to="{ name: 'scan' }" class="btn btn-on-hero"><AppIcon name="scan" />{{ t('home.med.title') }}</RouterLink>
+          <RouterLink :to="{ name: 'scan', query: { type: 'medication' } }" class="btn btn-on-hero"><AppIcon name="scan" />{{ t('home.med.title') }}</RouterLink>
           <button type="button" class="btn btn-on-hero-outline" @click="upload.click()"><AppIcon name="upload" />{{ t('scan.upload') }}</button>
           <input ref="upload" type="file" accept="image/*" class="d-none" @change="onFile" />
         </div>
@@ -69,7 +70,7 @@ function onFile(event) {
     <section class="d-flex flex-column gap-3">
       <h2 class="section-label">{{ t('home.what') }}</h2>
       <div class="bento">
-        <RouterLink v-for="c in CHOICES" :key="c.type" :to="{ name: c.type === 'bill' ? 'bill' : 'scan' }" class="card card-interactive tile-link" :class="`b-${c.type}`">
+        <RouterLink v-for="c in CHOICES" :key="c.type" :to="{ name: 'scan', query: { type: c.type } }" class="card card-interactive tile-link" :class="`b-${c.type}`">
           <span class="tile tile-lg"><AppIcon :name="c.icon" :size="28" /></span>
           <span class="d-flex flex-column gap-1">
             <span class="choice-title">{{ t(`home.${c.key}.title`) }}</span>
@@ -94,9 +95,19 @@ function onFile(event) {
           </span>
         </RouterLink>
 
+        <!-- The Bill page has no tab of its own: this is the way back to the last bill and its subsidies (also in the desktop sidebar). -->
+        <RouterLink :to="{ name: 'bill' }" class="card card-interactive tile-link b-breakdown" data-testid="home-breakdown">
+          <span class="tile tile-lg"><AppIcon name="receipt" :size="28" /></span>
+          <span class="d-flex flex-column gap-1">
+            <span class="choice-title">{{ t('home.breakdown.title') }}</span>
+            <span class="text-muted-a11y">{{ t('home.breakdown.text') }}</span>
+          </span>
+          <span class="chev"><AppIcon name="right" :size="22" /></span>
+        </RouterLink>
+
         <div class="b-samples">
           <h3 class="section-label">{{ t('home.sample') }}</h3>
-          <RouterLink v-for="s in SAMPLES" :key="s.id" :to="{ name: s.id.startsWith('bill') ? 'bill-scan' : 'scan', query: { sample: s.id } }" class="sample-link">
+          <RouterLink v-for="s in SAMPLES" :key="s.id" :to="{ name: 'scan', query: { sample: s.id } }" class="sample-link">
             <AppIcon name="sparkles" />
             <span class="flex-grow-1">{{ t(`scan.samples.${s.key}`) }}</span>
             <AppIcon name="right" :size="22" />
