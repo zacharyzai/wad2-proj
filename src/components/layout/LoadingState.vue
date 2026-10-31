@@ -1,12 +1,12 @@
-<!-- Owner: Isaac. The "loading" state every data page needs: the turning pill (PillLoader), a gently brightening label and a running timer. -->
+<!-- Owner: Isaac. The "loading" state every data page needs: the turning ring (Spinner), a gently brightening label and a running timer. -->
 <script setup>
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import PillLoader from './PillLoader.vue'
+import Spinner from './Spinner.vue'
 
 defineProps({
   label: { type: String, default: null }, // falls back to "Loading…" in the page language
-  pill: { type: Boolean, default: true }, // false when a larger pill is already showing nearby (Scan)
+  spinner: { type: Boolean, default: true }, // false when a larger spinner is already showing nearby (Scan)
 })
 const { t } = useI18n()
 
@@ -22,7 +22,7 @@ const elapsed = computed(() => {
 
 <template>
   <div class="ls" role="status" aria-live="polite">
-    <PillLoader v-if="pill" :size="30" />
+    <Spinner v-if="spinner" :size="30" />
     <span class="ls-label">{{ label ?? t('common.loading') }}</span>
     <span class="ls-time" aria-hidden="true">{{ elapsed }}</span>
   </div>

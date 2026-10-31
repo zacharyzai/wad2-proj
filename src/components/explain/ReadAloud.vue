@@ -5,7 +5,7 @@ import { onBeforeUnmount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { SPEEDS, speechRate, speak as say, stopSpeaking, pauseSpeaking, resumeSpeaking, setSpeakingRate, usesDeviceVoice } from '../../stores/speech'
 import AppIcon from '../layout/AppIcon.vue'
-import PillLoader from '../layout/PillLoader.vue'
+import Spinner from '../layout/Spinner.vue'
 
 const props = defineProps({ text: { type: String, required: true } })
 const { t, locale } = useI18n()
@@ -57,7 +57,7 @@ onBeforeUnmount(stop)
     <div class="player-label"><AppIcon name="volume" :size="20" /><span class="section-label">{{ t('player.reading') }}</span></div>
     <div class="d-flex align-items-center gap-3">
       <button type="button" class="play" :class="{ on: status === 'playing', wait: status === 'loading' }" :aria-busy="status === 'loading'" @click="toggle">
-        <span class="play-btn"><PillLoader v-if="status === 'loading'" :size="36" tone="light" /><AppIcon v-else :name="status === 'playing' ? 'pause' : 'play'" :size="30" /></span>
+        <span class="play-btn"><Spinner v-if="status === 'loading'" :size="36" tone="light" /><AppIcon v-else :name="status === 'playing' ? 'pause' : 'play'" :size="30" /></span>
         <span>{{ status === 'loading' ? t('player.preparing') : status === 'playing' ? t('player.pause') : t('player.play') }}</span>
       </button>
       <button type="button" class="btn btn-outline btn-icon replay" :aria-label="t('player.replay')" :title="t('player.replay')" @click="speak"><AppIcon name="replay" :size="22" /></button>

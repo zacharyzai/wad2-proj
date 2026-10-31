@@ -21,7 +21,7 @@ import { speak, stopSpeaking } from '../stores/speech'
 import { authStore } from '../stores/auth'
 import AppIcon from '../components/layout/AppIcon.vue'
 import CapsuleBuddy from '../components/layout/CapsuleBuddy.vue'
-import PillLoader from '../components/layout/PillLoader.vue'
+import Spinner from '../components/layout/Spinner.vue'
 
 const CHIPS = ['when', 'food', 'missed', 'store']
 // Fallback follow-ups under an answer, by the chip that was asked (typed questions use `typed`), when the AI suggested none.
@@ -525,7 +525,7 @@ onBeforeUnmount(() => {
                 </div>
                 <div class="actions">
                   <button type="button" class="btn btn-outline btn-sm listen" :aria-pressed="speaking === m.id" :aria-busy="speaking === m.id && preparing" @click="speaking === m.id ? stopReading() : play(m)">
-                    <PillLoader v-if="speaking === m.id && preparing" :size="22" />
+                    <Spinner v-if="speaking === m.id && preparing" :size="22" />
                     <AppIcon v-else :name="speaking === m.id ? 'pause' : 'volume'" :size="20" />
                     {{ speaking === m.id ? (preparing ? t('player.preparing') : t('ask.read.stop')) : t('ask.read.play') }}
                   </button>

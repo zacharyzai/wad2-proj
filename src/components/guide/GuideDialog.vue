@@ -13,7 +13,7 @@ import { guide, STEPS, currentStep, endGuide, nextStep, openGuide } from '../../
 import { speak as sayAloud, stopSpeaking } from '../../stores/speech'
 import GuideArt from './GuideArt.vue'
 import AppIcon from '../layout/AppIcon.vue'
-import PillLoader from '../layout/PillLoader.vue'
+import Spinner from '../layout/Spinner.vue'
 
 const { t, locale } = useI18n()
 const router = useRouter()
@@ -60,6 +60,8 @@ function end(kind) {
   stopVoice()
   endGuide(kind)
   if (kind === 'sample') router.push({ name: 'scan', query: { sample: 'med-1' } })
+  // Finished the tour: back to Home (the last step leaves them on Account, which reads as "stuck there").
+  else if (kind === 'start') router.push({ name: 'home' })
 }
 
 // ---- where the glow and the bubble go (tap and look steps) ----
@@ -226,7 +228,7 @@ onBeforeUnmount(() => {
     <div ref="panel" class="card-g" role="dialog" aria-modal="true" aria-labelledby="guide-title" aria-describedby="guide-text" data-testid="guide">
       <div class="top">
         <button type="button" class="speak" :class="{ wait: preparing }" :aria-busy="preparing" :aria-pressed="reading" :aria-label="reading ? t('guide.stop') : t('guide.listen')" data-testid="guide-speak" @click="speak">
-          <PillLoader v-if="preparing" :size="28" />
+          <Spinner v-if="preparing" :size="28" />
           <AppIcon v-else :name="reading ? 'pause' : 'volume'" :size="24" />
         </button>
         <span class="step-text" aria-live="polite">{{ t('guide.step', { n: guide.step, total: STEPS.length }) }}</span>
@@ -257,7 +259,7 @@ onBeforeUnmount(() => {
         <div class="top">
           <span class="step-text" aria-live="polite">{{ t('guide.step', { n: guide.step, total: STEPS.length }) }}</span>
           <button type="button" class="speak sm" :class="{ wait: preparing }" :aria-busy="preparing" :aria-pressed="reading" :aria-label="reading ? t('guide.stop') : t('guide.listen')" @click="speak">
-            <PillLoader v-if="preparing" :size="24" />
+            <Spinner v-if="preparing" :size="24" />
             <AppIcon v-else :name="reading ? 'pause' : 'volume'" :size="20" />
           </button>
           <button type="button" class="g-skip sm" data-testid="guide-skip" @click="end('skip')">{{ t('guide.skip') }}<AppIcon name="x" :size="18" :stroke="2.5" /></button>

@@ -9,7 +9,7 @@
 .stagger > :nth-child(5) { animation-delay: calc(var(--stagger) * 4); }
 .stagger > :nth-child(n + 6) { animation-delay: calc(var(--stagger) * 5); }
 
-/* Busy ring (Scan): the turning pill (PillLoader) in a card, with two soft pulsing rings around it */
+/* Busy ring (Scan): the turning ring (Spinner) in a card, with two soft pulsing rings around it */
 .progress-ring { position: relative; width: 216px; height: 216px; display: grid; place-items: center; }
 .progress-ring__pulse { position: absolute; border-radius: 50%; border: 2px solid var(--color-tint-strong); animation: ahma-pulse 2s ease-in-out infinite; }
 .progress-ring__pulse + .progress-ring__pulse { border-color: var(--color-tint); animation-delay: 0.4s; }
