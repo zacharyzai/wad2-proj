@@ -9,6 +9,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { scanImage, scanSample } from '../api/client'
 import { redactImage, warmUp } from '../utils/redact'
+import { checkPhoto } from '../utils/photoCheck'
 import { scanStore } from '../stores/scan'
 import AppIcon from '../components/layout/AppIcon.vue'
 import LoadingState from '../components/layout/LoadingState.vue'
@@ -23,7 +24,9 @@ const SAMPLES = [
   { id: 'bill-1', type: 'bill', key: 'bill1' },
 ]
 // A new photo can fix these; anything else is on our side, so the same photo is kept for "Try again".
-const PHOTO_ERRORS = ['UNREADABLE_IMAGE', 'IMAGE_TOO_LARGE', 'BAD_REQUEST', 'UNSUPPORTED_FILE']
+// PHOTO_*: we looked at the photo on this device and can say why it won't read (utils/photoCheck.js). "Scan it anyway" skips that.
+const CHECK_ERRORS = { dark: 'PHOTO_DARK', blurry: 'PHOTO_BLURRY', glare: 'PHOTO_GLARE' }
+const PHOTO_ERRORS = ['UNREADABLE_IMAGE', 'IMAGE_TOO_LARGE', 'BAD_REQUEST', 'UNSUPPORTED_FILE', ...Object.values(CHECK_ERRORS)]
 const MAX_SIDE = 1600
 
 const { t } = useI18n()
@@ -218,7 +221,7 @@ async function useFile(file, k = type.value) {
 // If covering fails, nothing is sent. The covered photo is also what Confirm shows, so the user sees exactly what was sent.
 // e2e tests swap in a fake via window.__redactForTests (e2e/helpers/mockImageScan.js); real covering needs the reader download.
 let coverDocType = null
-async function coverAndSend(docType) {
+async function coverAndSend(docType, skipCheck = false) {
   const id = ++run
   const deadline = Date.now() + SCAN_LIMIT_MS
   coverDocType = docType
@@ -229,6 +232,16 @@ async function coverAndSend(docType) {
   coverView.value = { original: photo.value, covered: null }
   let covered = null
   let tooSlow = false
+  // Too dark, blurry or glary: say so now, before covering and uploading. (Tests that fake covering skip this check too.)
+  const check = window.__photoCheckForTests ?? (window.__redactForTests ? async () => null : checkPhoto)
+  const problem = skipCheck ? null : await check(photo.value)
+  if (id !== run) return // cancelled
+  if (problem) {
+    covering.value = false
+    errorCode.value = CHECK_ERRORS[problem]
+    state.value = 'error'
+    return
+  }
   const timeUp = new Promise((resolve) => setTimeout(() => resolve((tooSlow = true) && null), COVER_LIMIT_MS))
   try {
     covered = await Promise.race([(window.__redactForTests ?? redactImage)(photo.value), timeUp])
@@ -278,6 +291,7 @@ function cancel() {
 }
 
 const photoError = computed(() => PHOTO_ERRORS.includes(errorCode.value))
+const checkFailed = computed(() => Object.values(CHECK_ERRORS).includes(errorCode.value))
 // A clear photo of the wrong document: say so, keep the photo, no lighting tips. MISMATCH = they said it isn't the other kind either.
 const wrongDoc = computed(() => errorCode.value === 'WRONG_DOCUMENT' || errorCode.value === 'MISMATCH')
 const wrongDocKey = computed(() => (errorCode.value === 'MISMATCH' ? `scan.mismatch.${type.value}` : `scan.wrongDoc.${type.value}`))
@@ -387,6 +401,7 @@ onMounted(() => {
       <template v-else-if="photoError || wrongDoc">
         <button type="button" class="btn btn-primary" @click="retake"><AppIcon name="camera" />{{ t('scan.retake') }}</button>
         <button type="button" class="btn btn-secondary" @click="upload.click()"><AppIcon name="upload" />{{ t('scan.uploadOther') }}</button>
+        <button v-if="checkFailed" type="button" class="btn btn-ghost" data-testid="scan-anyway" @click="coverAndSend(coverDocType, true)"><AppIcon name="scan" />{{ t('scan.anyway') }}</button>
         <button v-if="wrongDoc" type="button" class="btn btn-ghost" @click="showExamples"><AppIcon name="sparkles" />{{ t('scan.useSample') }}</button>
       </template>
       <template v-else>

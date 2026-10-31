@@ -80,3 +80,25 @@ test('while reading, step 2 is shown, and a slow read says so and when it will s
   await page.clock.runFor(14_000)
   await expect(page.getByTestId('scan-wait')).toHaveText('This is taking longer than usual. We will stop after 30 seconds so you can try again.')
 })
+
+// utils/photoCheck.js looks at the photo on the device first; the check itself is unit-tested (photoCheck.test.js), faked here.
+for (const [problem, message] of [
+  ['dark', 'This photo is too dark. Move near a window or under a lamp, then try again.'],
+  ['blurry', 'This photo is blurry. Hold your device steady and let it focus, then try again.'],
+  ['glare', 'There is too much glare on the paper.'],
+]) {
+  test(`a ${problem} photo says why, sends nothing, and "Scan it anyway" still reads it`, async ({ page }) => {
+    await mockImageScan(page)
+    await page.addInitScript((p) => (window.__photoCheckForTests = async () => p), problem)
+    let apiCalls = 0
+    page.on('request', (r) => r.url().includes('/api/scan') && apiCalls++)
+    await page.goto('/scan?type=medication')
+    await upload(page)
+    await expect(page.getByRole('alert')).toContainText(message)
+    expect(apiCalls).toBe(0)
+    await expect(page.getByRole('button', { name: 'Retake photo' })).toBeVisible()
+    await page.getByTestId('scan-anyway').click()
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Check what we read')
+    expect(apiCalls).toBe(1)
+  })
+}
