@@ -281,3 +281,15 @@
   .rescan { display: none; }
   .phone, .phone::before, .phone::after, .notif { animation: none; }
 }
+
+/* Scrolling stops at each of the five sections, on purpose. A section taller than the screen can still be scrolled freely
+   inside (it only stops again at its top and bottom edge), so nothing is skipped. The class is on <html> only while this
+   page is open (LandingPage.vue). Snapping animates, so people who ask for less motion get plain scrolling. */
+:global(html.snap-sections) { scroll-snap-type: y mandatory; }
+/* The tunnel (the long scroll-tied scene between the hero and "scan") is a stop too: it is taller than the screen, so you scroll
+   through it freely and it only stops at its edges. Without this, snapping treats it as empty space and pulls the page back. */
+.sec, .tunnel { scroll-snap-align: start; } /* .sec lands below the top bar: scroll-margin-top above */
+@media (prefers-reduced-motion: reduce) { :global(html.snap-sections) { scroll-snap-type: none; } }
+
+/* On a phone the reminder phone picture (172px wide, 380px tall) is bigger than the card it decorates: the card says it already. */
+@media (max-width: 575.98px) { .phone-wrap { display: none; } }

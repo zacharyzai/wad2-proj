@@ -285,3 +285,108 @@ test('read-aloud demo: when the server has no audio either, it says so instead o
   await page.getByTestId('landing-listen').getByRole('button', { name: 'English' }).click() // picking a language clears the note
   await expect(page.getByTestId('landing-no-voice')).toHaveCount(0)
 })
+
+test('on a phone the reminder phone picture is left out (the card says it already); bigger screens keep it', async ({ page }) => {
+  await page.goto('/welcome')
+  const phone = page.getByTestId('landing-phone')
+  if (page.viewportSize().width < 576) await expect(phone).toBeHidden()
+  else await expect(phone).toBeAttached().then(() => phone.scrollIntoViewIfNeeded()).then(() => expect(phone).toBeVisible())
+})
+
+test('scrolling stops at each section: the page snaps while it is open, and only then', async ({ page }) => {
+  await page.goto('/welcome')
+  const html = page.locator('html')
+  await expect(html).toHaveClass(/snap-sections/)
+  expect(await html.evaluate((el) => getComputedStyle(el).scrollSnapType)).toBe('y mandatory')
+  expect(await page.locator('section.sec').evaluateAll((els) => els.map((el) => getComputedStyle(el).scrollSnapAlign.split(' ')[0]))).toEqual(Array(5).fill('start'))
+
+  // The tunnel between the hero and "scan" is scrolled through freely (it is taller than the screen): a scroll into the middle
+  // of it stays there, and is not pulled back to the hero or thrown ahead to the next section.
+  const scanTop = await page.locator('#scan').evaluate((el) => el.offsetTop - 66) // its scroll-margin-top
+  await page.mouse.move(100, 400)
+  for (let i = 0; i < 12; i++) await page.mouse.wheel(0, 120)
+  await page.waitForTimeout(900)
+  const inside = await page.evaluate(() => Math.round(window.scrollY))
+  expect(inside).toBeGreaterThan(900)
+  expect(inside).toBeLessThan(scanTop - 100)
+
+  // Coming up to the next section it lands on that section's top, never between two.
+  await page.evaluate((y) => window.scrollTo(0, y), scanTop - 150)
+  await expect.poll(() => page.evaluate(() => Math.round(window.scrollY)), { timeout: 8000 }).toBeGreaterThan(scanTop - 4)
+  await expect.poll(() => page.evaluate(() => Math.round(window.scrollY)), { timeout: 8000 }).toBeLessThan(scanTop + 4)
+
+  // Leaving the page (a link, not a reload) takes the snapping away: Login scrolls normally.
+  await page.getByTestId('landing-cta-hero').or(page.getByRole('link', { name: /log in|log masuk|登录|உள்நுழை/i }).first()).first().click()
+  await expect(page).toHaveURL(/\/login|\/signup/)
+  await expect(html).not.toHaveClass(/snap-sections/)
+})
+
+test('with reduced motion the page scrolls normally, with no snapping', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await page.goto('/welcome')
+  expect(await page.locator('html').evaluate((el) => getComputedStyle(el).scrollSnapType)).toBe('none')
+})
+
+test('the "Add to Google Calendar" button is gone from the reminders section', async ({ page }) => {
+  await page.goto('/welcome')
+  await expect(page.locator('#doses').getByRole('link', { name: /google calendar|calendar/i })).toHaveCount(0)
+  await expect(page.locator('a[href*="calendar.google.com"]')).toHaveCount(0)
+  await expect(page.locator('#doses').getByRole('heading', { level: 2 })).toBeVisible() // the section itself is still there
+})
+
+// The hand-drawn underline on the three "Try me out" buttons (header, hero, final): drawn from the middle outwards.
+const TRY = ['[data-testid="landing-nav"] .cta', '[data-testid="landing-cta-hero"]', '[data-testid="landing-cta-final"]']
+const line = (page, css) => page.locator(`${css} .hand-line`)
+const clip = (loc) => loc.evaluate((el) => getComputedStyle(el).clipPath)
+// The browser writes inset(0 50% 0 50%) back as inset(0px 50%): hidden = a zero-width slice from the middle.
+const HIDDEN = /^inset\(0(px)? 50%( 0(px)? 50%)?\)$/
+const SHOWN = /^(inset\(0(px)?\)|none)$/
+
+test('every "Try me out" button has a hand-drawn underline that is hidden until hover or keyboard focus', async ({ page }) => {
+  await page.goto('/welcome')
+  for (const css of TRY) {
+    const l = line(page, css)
+    await expect(l).toHaveCount(1)
+    expect(await l.evaluate((el) => el.closest('svg') !== null || el.tagName.toLowerCase() === 'svg')).toBe(true)
+    expect(await l.getAttribute('aria-hidden')).toBe('true') // decoration only
+    expect(await clip(l)).toMatch(HIDDEN)
+  }
+})
+
+test('hover draws the line from the middle outwards without moving the button; leaving takes it back', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'hover is a mouse thing; touch shows the line while pressed')
+  await page.goto('/welcome')
+  const cta = page.getByTestId('landing-cta-hero')
+  const l = line(page, '[data-testid="landing-cta-hero"]')
+  // How tall the button is and how far down its words sit (not its width: the welcome page cycles its language, which changes it).
+  const layout = () => cta.evaluate((el) => { const b = el.getBoundingClientRect(); const w = el.querySelector('.hand-label').getBoundingClientRect(); return { h: b.height, dy: w.top - b.top } })
+  const before = await layout()
+  await cta.hover()
+  await expect.poll(async () => SHOWN.test(await clip(l)), { timeout: 3000 }).toBe(true)
+  const after = await layout()
+  for (const k of Object.keys(before)) expect(Math.abs(after[k] - before[k]), `${k} moved`).toBeLessThan(1.5) // nothing shifted (the 14px line would show)
+  await page.mouse.move(5, 5)
+  await expect.poll(async () => HIDDEN.test(await clip(l)), { timeout: 3000 }).toBe(true)
+})
+
+test('keyboard focus draws the line too, and the button is still a link with its own name', async ({ page }) => {
+  await page.goto('/welcome')
+  const cta = page.getByTestId('landing-cta-hero')
+  for (let i = 0; i < 12 && !(await cta.evaluate((el) => el === document.activeElement)); i++) await page.keyboard.press('Tab')
+  await expect(cta).toBeFocused()
+  await expect.poll(async () => SHOWN.test(await clip(line(page, '[data-testid="landing-cta-hero"]'))), { timeout: 3000 }).toBe(true)
+  await expect(cta).toHaveRole('link')
+  await expect(cta).toHaveAccessibleName(/\S/)
+})
+
+test('with reduced motion the line only fades in (no sweeping)', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'uses hover')
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await page.goto('/welcome')
+  const l = line(page, '[data-testid="landing-cta-hero"]')
+  expect(await l.evaluate((el) => getComputedStyle(el).opacity)).toBe('0')
+  await page.getByTestId('landing-cta-hero').hover()
+  await expect.poll(() => l.evaluate((el) => getComputedStyle(el).opacity), { timeout: 2000 }).toBe('1')
+  // No sweep: only opacity is allowed to change over time.
+  expect(await l.evaluate((el) => getComputedStyle(el).transitionProperty)).not.toContain('clip-path')
+})
