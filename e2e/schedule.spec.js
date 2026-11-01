@@ -775,3 +775,22 @@ test('stopping a medicine that only started today takes it off the list at once,
   await expect(tick(page, 'Metformin 500 mg', '8:00\\s+AM')).toBeVisible() // back, exactly as it was
   expect(await savedSchedule(page)).toEqual({ startDate: TODAY, days: 30, times: {} })
 })
+
+// Each medicine can have its own time, so a time of day may hold several. Reminders keeps one row per time of day.
+test('Reminders: one row per time of day, each time with what is due then; finished courses are left out', async ({ page }) => {
+  await mockDoses(page)
+  const course = { startDate: TODAY, days: 30 }
+  await seed(page, [
+    medicine('m1', {}, { ...course, times: {} }), // Metformin: morning 8:00, evening 6:00
+    medicine('m2', { name: 'Amlodipine', strength: '5 mg', timesPerDay: 1, timing: ['morning'] }, { ...course, times: { morning: '07:30' } }),
+    medicine('m3', { name: 'Losartan', strength: '50 mg', timesPerDay: 1, timing: ['morning'] }, { ...course, times: {} }),
+    medicine('m4', { name: 'Amoxicillin', strength: null, timesPerDay: 1, timing: ['bedtime'] }, { startDate: '2026-01-01', days: 5, times: {} }), // finished
+  ])
+  await page.goto('/schedule?view=reminders')
+  const times = page.getByTestId('schedule-times')
+  await expect(times.locator(':scope > ul > li')).toHaveCount(2) // Morning and Evening; no Bedtime from the finished course
+  const morning = page.getByTestId('times-morning')
+  await expect(morning.locator('.slot-times li')).toHaveText([/7:30\sAM\s*Amlodipine 5 mg/, /8:00\sAM\s*Metformin 500 mg, Losartan 50 mg/])
+  await expect(page.getByTestId('times-evening')).toContainText('Metformin 500 mg')
+  await expect(times).not.toContainText('Amoxicillin')
+})
