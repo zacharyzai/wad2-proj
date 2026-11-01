@@ -27,6 +27,28 @@ test('medication: as-needed does not require timesPerDay', () => {
   assert.deepEqual(scan.unclear, [])
 })
 
+// A TTSH hospital bill, net lines: "9% GST 610.13" then "GST absorbed by Govt -610.13". The model kept listing the GST.
+test('bill: GST the government absorbs is left out, whichever way the model gave it, so the lines add up', () => {
+  const raw = {
+    items: [
+      { description: 'Surgical Procedure', category: 'procedure', amount: 2038.2 },
+      { description: 'Implants', category: 'procedure', amount: 3793.75 },
+      { description: '9% GST', category: 'tax', amount: 610.13 },
+      { description: 'GST absorbed by Govt', category: 'tax', amount: -610.13 },
+    ],
+    // Cut down to two lines: insurance, MediSave and what was paid cover the rest of the $5,831.95.
+    subsidies: [{ scheme: 'insurance', amount: 4295.59 }, { scheme: 'paid', amount: 540.54 }, { scheme: 'government', amount: 9991.23, includedInItems: true }],
+    medisave: 995.82,
+    totalPayable: 0,
+    gstAbsorbed: true,
+  }
+  const scan = normalizeBill(raw)
+  assert.deepEqual(scan.bill.items.map((i) => i.description), ['Surgical Procedure', 'Implants'])
+  assert.equal(addsUp(scan), true)
+  // Without the absorbed line printed, GST stays a charge as before.
+  assert.ok(normalizeBill({ ...raw, gstAbsorbed: false }).bill.items.some((i) => i.category === 'tax'))
+})
+
 test('bill: dollars become integer cents, and totals that do not add up keep the printed total (with the gap)', () => {
   const raw = {
     items: [{ description: 'Consultation', category: 'consultation', amount: 14.5 }, { description: 'Meds', category: 'medication', amount: 8.2 }],

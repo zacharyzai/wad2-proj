@@ -103,6 +103,9 @@ export function normalizeBill(raw = {}) {
     }
     // "GST at 7% is included in this bill": already inside the charges, so never added again.
     if (description && /\bgst\b/i.test(description) && /includ/i.test(description)) continue
+    // "GST absorbed by Govt" (subsidised patients): the government pays the GST, so it is no charge to the patient. The
+    // model only says whether that line is printed; dropping the GST is our rule, since the model kept listing it anyway.
+    if (raw.gstAbsorbed === true && description && (/\bgst\b/i.test(description) || line?.category === 'tax')) continue
     const off = dollars !== null && dollars < 0
     if (description && MEDISAVE.test(description) && dollars !== null) medisaveLines.push(Math.abs(dollars))
     else if (off || (description && DEDUCTION.test(description) && dollars !== null)) subsidies.push({ scheme: schemeFor(description ?? ''), amountCents: dollarsToCents(Math.abs(dollars)), includedInItems: false, moved: true })

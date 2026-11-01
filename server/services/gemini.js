@@ -83,6 +83,7 @@ const SCHEMAS = {
     subsidies: { type: 'ARRAY', items: obj({ scheme: E(SUBSIDY_SCHEMES), amount: N, includedInItems: { type: 'BOOLEAN' } }) },
     medisave: N,
     totalPayable: N,
+    gstAbsorbed: { type: 'BOOLEAN' },
   }),
 }
 
@@ -130,6 +131,8 @@ Extract the bill.
   NET amount for every item, and mark the subsidy already taken off those lines with "includedInItems": true.
   GST that the government absorbs ("GST absorbed by Govt", shown as a minus that cancels the GST) is not an item and
   not a subsidy: leave both out, the net lines already exclude it.
+- gstAbsorbed: true if the bill prints a line saying the government absorbs the GST (e.g. "GST absorbed by Govt"),
+  otherwise false.
   GST is its own "tax" item, unless the bill says GST is already included in the charges (e.g. "GST at 7% is included
   in this bill"): then do not list it at all.
 - subtotals: each subtotal printed under one group of charge lines, with that group's heading as section, exactly as
