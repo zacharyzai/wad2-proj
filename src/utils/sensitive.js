@@ -30,7 +30,7 @@ const isPhone = (raw) => /^(\+?65)?[3689]\d{7}$/.test(raw.replace(/[\s()-]/g, ''
 
 // Whatever follows these labels is covered. "patient" alone needs a colon, so bill lines like "Patient payable $4.20" survive.
 // Also the people around the patient (bills name whoever pays: "MediSave account holder: Ong Kok Leong (Son)").
-const LABEL = /^(patient'?s?\s*name|name|nric(\/fin)?|fin|ic\s*no\.?|id\s*no\.?|d\.?o\.?b\.?|date\s*of\s*birth|birth\s*date|(home\s*)?address|addr\.?|tel\.?|phone|mobile|hp|contact(\s*no\.?)?|(medisave\s*)?(account\s*)?holder|payer|paid\s*by|next\s*of\s*kin|nok|guardian)$/i
+const LABEL = /^(patient'?s?\s*name|name|nric(\/fin)?|fin|ic\s*no\.?|id\s*no\.?|d\.?o\.?b\.?|date\s*of\s*birth|birth\s*date|(home\s*)?address|addr\.?|tel\.?|phone|mobile|hp|contact(\s*no\.?)?|(medisave\s*)?(account\s*)?holder|payer|payor(\(?s\)?)?|paid\s*by|next\s*of\s*kin|nok|guardian)$/i
 const COLON_LABEL = /^(patient|pt\.?)$/i
 // Column headings after a label: then the label heads a table ("Payer  Adjustment  Payment  Amount Due") and the names are
 // in the rows below, not after it on the same line.
@@ -118,7 +118,41 @@ export function findSensitive(lines) {
       }
     }
   }
+  for (const w of repeatedNames(lines)) hit(w, 'name')
   return hits
+}
+
+// Unlabelled names on bill rows ("ANG CHEE SUAN ALICIA   TOTAL AMOUNT PAYABLE   1,487.44"): the row is kept for its amount,
+// and nothing says the words before it are a name. But a patient's or payer's name comes back on several rows of a bill,
+// while charge descriptions rarely repeat word for word. So 2+ ALL-CAPS words that are not bill or label words, found on 2+
+// lines (one of them with money), are covered everywhere they appear. Labels are spared: a repeated drug name there has no money.
+// shortcut: a name printed only once on an unlabelled money row still goes through; learn names across pages if that shows up.
+const CAPS_WORD = /^[A-Z][A-Z'-]+$/
+const PLAIN = /^(and|of|the|for|to|in|on|by|with|at|or|no|ref)$/i
+const isNameWord = (word) => CAPS_WORD.test(word) && !PLAIN.test(word) && !KEEP.some((re) => re.test(word))
+function repeatedNames(lines) {
+  const runs = [] // { words, key, money } for every run of 2+ name-like words
+  lines.forEach((line, n) => {
+    const words = line.words.filter((w) => w.text.trim())
+    const money = /\d\.\d{2}\b/.test(words.map((w) => w.text).join(' '))
+    let run = []
+    for (const w of [...words, null]) {
+      if (w && isNameWord(clean(w.text))) run.push(w)
+      else {
+        // Every stretch of 2+ words inside the run, so "ANG CHEE SUAN ALICIA MSV" still matches "ANG CHEE SUAN ALICIA".
+        for (let a = 0; a < run.length; a++)
+          for (let b = a + 2; b <= run.length; b++) runs.push({ words: run.slice(a, b), key: run.slice(a, b).map((x) => clean(x.text)).join(' '), line: n, money })
+        run = []
+      }
+    }
+  })
+  const lineCount = new Map()
+  const withMoney = new Set()
+  for (const r of runs) {
+    lineCount.set(r.key, (lineCount.get(r.key) ?? new Set()).add(r.line))
+    if (r.money) withMoney.add(r.key)
+  }
+  return runs.filter((r) => lineCount.get(r.key).size >= 2 && withMoney.has(r.key)).flatMap((r) => r.words)
 }
 
 // A line is worth sending if it has one of these. Bill and label wording, in English (the reader only reads English).
