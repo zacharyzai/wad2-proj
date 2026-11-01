@@ -18,7 +18,7 @@
 .tab:focus-visible { outline: none; box-shadow: var(--focus-ring); }
 
 .med-grid, .rem-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 400px), 1fr)); gap: 20px; align-items: start; }
-.med-grid { list-style: none; margin: 0; padding: 0; }
+.med-grid { list-style: none; margin: 0; padding: 0; align-items: stretch; } /* cards in a row are the same height */
 
 /* Toasts: above the phone tab bar; bottom of the page area on desktop (same places as Account and Ask). */
 .toast-slot { position: fixed; left: 16px; right: 16px; bottom: calc(96px + env(safe-area-inset-bottom)); z-index: 30; display: flex; justify-content: center; pointer-events: none; }
@@ -27,8 +27,6 @@
 .toast-enter-active { transition: opacity 220ms var(--ease-out), transform 220ms var(--ease-out); }
 .toast-leave-active { transition: opacity 150ms var(--ease-out), transform 150ms var(--ease-out); }
 .toast-enter-from, .toast-leave-to { opacity: 0; transform: translateY(12px); }
-.toast-undo { position: fixed; left: 16px; right: 16px; bottom: calc(96px + env(safe-area-inset-bottom)); z-index: 20; justify-content: space-between; max-width: 32em; margin: 0 auto; }
-.toast-undo .btn { flex: none; }
 
 /* Phones: the two actions share one row (they wrap only if a language's labels need it). */
 @media (max-width: 575.98px) {
@@ -37,5 +35,4 @@
 }
 @media (min-width: 992px) {
   .toast-slot { bottom: 32px; left: 248px; }
-  .toast-undo { left: auto; right: 32px; bottom: 32px; }
 }
