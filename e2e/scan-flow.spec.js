@@ -483,3 +483,22 @@ test('the "i" help opens on mouse hover too, and closes when the mouse leaves', 
   await page.mouse.move(5, 5)
   await expect(page.getByTestId('info-tip-text')).toBeHidden()
 })
+
+// The list holds 10 medicines. When an 11th arrives, a finished course goes first, never one you are still taking.
+test('a full list makes room by dropping a finished course, not the oldest medicine still being taken', async ({ page }) => {
+  const TODAY = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Singapore' }).format(new Date())
+  const ago = (n) => new Date(new Date(`${TODAY}T00:00:00Z`).getTime() - n * 864e5).toISOString().slice(0, 10)
+  const med = (i, name, schedule) => ({ id: `m${i}`, source: 'label', sample: false, medication: { name, strength: '5 mg', doseAmount: 1, doseUnit: 'tablet', timesPerDay: 1, timing: null, withFood: null, frequencyType: 'daily', rawInstruction: null, warnings: [] }, ...(schedule ? { schedule } : {}) })
+  // Newest first: Med0 ... Med9 (the oldest, still running); a finished course sits in the middle.
+  const list = Array.from({ length: 10 }, (_, i) => (i === 4 ? med(i, 'Finished4', { startDate: ago(20), days: 5, times: {} }) : med(i, `Med${i}`, { startDate: ago(1), days: 30, times: {} })))
+  await page.addInitScript((list) => localStorage.setItem('medicines', JSON.stringify(list)), list)
+  await answerWith(page, {})
+  await openSample(page, 'Metformin label')
+  await page.getByRole('button', { name: 'Looks correct' }).click()
+  await expect(page.getByTestId('explain-purpose').or(page.getByRole('heading', { level: 1 }))).toBeVisible()
+  const names = await page.evaluate(() => JSON.parse(localStorage.getItem('medicines')).map((m) => m.medication.name))
+  expect(names).toHaveLength(10)
+  expect(names[0]).toBe('Metformin') // the new one, first
+  expect(names).not.toContain('Finished4') // the finished course made room...
+  expect(names).toContain('Med9') // ...so the oldest medicine still being taken is kept
+})

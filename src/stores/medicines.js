@@ -52,6 +52,21 @@ function scheduleFor(previous, medication) {
 
 const same = (a, b) => a.name.trim().toLowerCase() === b.name.trim().toLowerCase() && (a.strength ?? '') === (b.strength ?? '')
 
+// Over the limit of 10: a finished or stopped course goes first (the oldest of those: it is only history now), and only when there
+// is none does the oldest of the rest go. So stopping medicines never pushes out one you are still taking.
+function trim() {
+  while (medicines.length > MAX) {
+    let drop = medicines.length - 1
+    for (let i = medicines.length - 1; i >= 0; i--) {
+      if (ended(medicines[i].schedule)) {
+        drop = i
+        break
+      }
+    }
+    medicines.splice(drop, 1)
+  }
+}
+
 // Re-adding a medicine replaces the old entry, so a re-scanned label updates its instructions.
 // It keeps the old id, and the schedule while the course is still running (scheduleFor), so ticks and calendar events carry on.
 // A name typed in Ask never replaces a checked label: that would drop its daily instructions, and so its timetable.
@@ -67,7 +82,7 @@ export function rememberMedicine(medication, source, sample = false) {
     medication: copy,
     ...scheduleFor(previous, copy),
   })
-  medicines.splice(MAX)
+  trim()
 }
 
 // "Fix what we read" (Schedule → Confirm): the corrected details replace that medicine in place. Same id, schedule and

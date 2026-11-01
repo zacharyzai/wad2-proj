@@ -55,8 +55,8 @@ async function mockDoses(page, { failChanges = false, at = '22:00' } = {}) {
 
 const tick = (page, name, time) => page.getByRole('button', { name: new RegExp(`^Taken: ${name}, ${time}$`, 'i') })
 
-// Each medicine's options open from its one "Change" button: Days and times, Fix what we read, Remove.
-const OPTIONS = { days: (name) => `Days and times for ${name}`, fix: (name) => `Fix what we read for ${name}`, remove: (name) => `Remove ${name}` }
+// Each medicine's options open from its one "Change" button: Days and times, Fix what we read, Delete from my list.
+const OPTIONS = { days: (name) => `Days and times for ${name}`, fix: (name) => `Fix what we read for ${name}`, remove: (name) => `Delete ${name} from my list` }
 // The tabs are links to ?view=week | meds | reminders; Today has none.
 async function toTab(page, view) {
   if (page.url().includes('view=reminders')) await page.getByRole('link', { name: 'Back to schedule' }).click() // no tabs on Reminders
@@ -186,7 +186,7 @@ test('"when necessary" medicines go to the pharmacist list and never get times',
   // One Change button; behind it Fix and Remove, but no Days and times (nothing to schedule).
   await expect(page.getByRole('button', { name: /Panadol/ })).toHaveText(['Change'])
   await page.getByRole('button', { name: 'Change Panadol' }).click()
-  await expect(page.getByRole('button', { name: /Panadol/ })).toHaveText(['Change', 'Fix what we read', 'Remove'])
+  await expect(page.getByRole('button', { name: /Panadol/ })).toHaveText(['Change', 'Fix what we read', 'Delete from my list'])
   // Another medicine's Change closes this one: one set of options open at a time.
   await page.getByRole('button', { name: 'Change Metformin 500 mg' }).click()
   await expect(page.getByRole('button', { name: 'Change Panadol' })).toHaveAttribute('aria-expanded', 'false')
@@ -213,12 +213,12 @@ test('tabs: Today, This week and My medicines are pages of their own; time cards
   await expect(page.getByTestId('schedule-today')).toBeVisible()
 })
 
-test('Remove takes a medicine off, and Undo puts it back', async ({ page }) => {
+test('Delete from my list takes a medicine off, and Undo puts it back', async ({ page }) => {
   await mockDoses(page)
   await seed(page, [PANADOL, SCHEDULED])
   await page.goto('/schedule')
   await pick(page, 'Metformin 500 mg', 'remove')
-  await expect(page.getByTestId('schedule-undo')).toContainText('Metformin 500 mg removed')
+  await expect(page.getByTestId('schedule-undo')).toContainText('Metformin 500 mg deleted from your list')
   await expect(page.getByRole('button', { name: 'Undo' })).toBeFocused()
   await expect(page.getByTestId('med-m1')).toHaveCount(0)
 
@@ -651,4 +651,127 @@ test('what each medicine is usually for shows beside it on Today and in My medic
   await expect(page.getByTestId('dose-purpose').first()).toHaveText('Usually used for high blood pressure')
   await page.goto('/schedule?view=meds')
   await expect(page.getByTestId('med-purpose')).toHaveText('Usually used for high blood pressure')
+})
+
+// ---- "I don't need this any more": ends the course (kept as finished), after a short check-in, with Undo and Start again -------
+const ago = (n) => new Date(new Date(`${TODAY}T00:00:00Z`).getTime() - n * 864e5).toISOString().slice(0, 10)
+const RUNNING = medicine('m1', {}, { startDate: ago(3), days: 10, times: {} }) // day 4 of 10
+const savedSchedule = (page) => page.evaluate(() => JSON.parse(localStorage.getItem('medicines'))[0].schedule)
+
+test('a running medicine has a plain "I don\'t need this any more" on its card (no need to open Change); as-needed ones do not', async ({ page }) => {
+  await mockDoses(page)
+  await seed(page, [RUNNING, PANADOL])
+  await page.goto('/schedule?view=meds')
+  const stop = page.getByTestId('stop-m1')
+  await expect(stop).toHaveText("I don't need this any more")
+  await expect(stop).toHaveAccessibleName("I don't need this any more: Metformin 500 mg") // starts with the words you can see
+  expect((await stop.boundingBox()).height).toBeGreaterThanOrEqual(44)
+  await expect(page.getByTestId('stop-m2')).toHaveCount(0) // nothing is scheduled for "when needed" medicines
+})
+
+test('the check-in says it only stops reminders and never that stopping is safe; Keep it and Esc change nothing', async ({ page }) => {
+  await mockDoses(page)
+  await seed(page, [RUNNING])
+  await page.goto('/schedule?view=meds')
+  await page.getByTestId('stop-m1').click()
+  const ask = page.getByTestId('stop-ask-m1')
+  await expect(ask).toHaveRole('alertdialog')
+  await expect(ask).toContainText('Stop reminders for Metformin 500 mg?')
+  await expect(ask).toContainText('This only stops the reminders.')
+  await expect(ask).toContainText('ask your doctor or pharmacist first')
+  await expect(ask.getByRole('button', { name: 'Stop reminders' })).toBeFocused()
+  await page.keyboard.press('Escape')
+  await expect(ask).toHaveCount(0)
+  await expect(page.getByTestId('stop-m1')).toBeFocused()
+  await page.getByTestId('stop-m1').click()
+  await page.getByRole('button', { name: 'Keep it' }).click()
+  expect(await savedSchedule(page)).toEqual({ startDate: ago(3), days: 10, times: {} }) // untouched
+})
+
+test('Stop reminders ends the course yesterday: finished in My medicines, gone from Today, kept on the account, with Undo', async ({ page }) => {
+  await mockDoses(page)
+  await seed(page, [RUNNING])
+  await page.goto('/schedule')
+  await expect(tick(page, 'Metformin 500 mg', '8:00\\sAM')).toBeVisible() // due today before stopping
+  await toTab(page, 'meds')
+  await page.getByTestId('stop-m1').click()
+  await page.getByRole('button', { name: 'Stop reminders' }).click()
+  await expect(page.getByTestId('schedule-stop-undo')).toContainText('Reminders for Metformin 500 mg stopped')
+  await expect(page.getByTestId('med-m1')).toContainText('Finished')
+  expect(await savedSchedule(page)).toEqual({ startDate: ago(3), days: 3, times: {} }) // the 3 days already taken: 1st to 3rd
+  await toTab(page, 'today')
+  await expect(page.getByRole('button', { name: /^Taken: Metformin/ })).toHaveCount(0)
+
+  await page.getByRole('button', { name: 'Undo' }).click() // within a few seconds: exactly as it was
+  expect(await savedSchedule(page)).toEqual({ startDate: ago(3), days: 10, times: {} })
+  await expect(tick(page, 'Metformin 500 mg', '8:00\\sAM')).toBeVisible()
+})
+
+test('a finished medicine offers Start again: from today for as long as its pack lasts', async ({ page }) => {
+  await mockDoses(page)
+  await seed(page, [medicine('m1', { quantity: 20 }, { startDate: ago(3), days: 10, times: {} })]) // 20 tablets, 2 a day: 10 days
+  await page.goto('/schedule?view=meds')
+  await page.getByTestId('stop-m1').click()
+  await page.getByRole('button', { name: 'Stop reminders' }).click()
+  await expect(page.getByTestId('stop-m1')).toHaveCount(0)
+  await expect(page.getByTestId('again-m1')).toHaveAccessibleName('Start again: Metformin 500 mg')
+  await page.getByTestId('again-m1').click()
+  await expect(page.getByTestId('stop-m1')).toBeVisible() // running again
+  expect(await savedSchedule(page)).toEqual({ startDate: TODAY, days: 10, times: {} })
+})
+
+test('Start again with no pack size on the label asks how many days, like any medicine without a number of days', async ({ page }) => {
+  await mockDoses(page)
+  await seed(page, [RUNNING]) // no quantity on the label
+  await page.goto('/schedule?view=meds')
+  await page.getByTestId('stop-m1').click()
+  await page.getByRole('button', { name: 'Stop reminders' }).click()
+  await page.getByTestId('again-m1').click()
+  await expect(page.getByText('How many days is this medicine for?')).toBeVisible()
+  expect((await savedSchedule(page)).startDate).toBe(TODAY)
+})
+
+test('connected: stopping a medicine sends the shorter course to Google Calendar, so its reminders stop', async ({ page }) => {
+  await mockDoses(page)
+  const google = await mockGoogle(page)
+  await seed(page, [RUNNING])
+  await page.goto('/schedule?view=reminders')
+  await expect(page.getByTestId('calendar-connected')).toHaveText('Connected')
+  expect(google.syncs).toHaveLength(1)
+  expect(google.syncs[0].entries[0].endDate).toBe(ago(3 - 9)) // 10 days from the 29th: the 7th
+  await page.getByRole('link', { name: 'Back to schedule' }).click()
+  await toTab(page, 'meds')
+  await page.getByTestId('stop-m1').click()
+  await page.getByRole('button', { name: 'Stop reminders' }).click()
+  await expect.poll(() => google.syncs.length, { timeout: 6000 }).toBe(2)
+  expect(google.syncs[1].entries[0].endDate).toBe(ago(1)) // the last day is yesterday
+})
+
+test('finished courses sit at the bottom of My medicines, under the ones you are taking', async ({ page }) => {
+  await mockDoses(page)
+  // Newest first, like the real list: the finished one was added last, so it would come first without the ordering.
+  await seed(page, [medicine('m2', { name: 'Old finished', strength: null }, { startDate: ago(10), days: 3, times: {} }), RUNNING])
+  await page.goto('/schedule?view=meds')
+  await expect(page.locator('li.med-card')).toHaveCount(2)
+  await expect(page.locator('li.med-card').first()).toContainText('Metformin 500 mg')
+  await expect(page.locator('li.med-card').last()).toContainText('Old finished')
+})
+
+// Found by trying it on a real account: a medicine added today (the usual case when you try it out) used to look unchanged
+// after "Stop reminders", because a course cannot end before it starts. With no day lived, it now comes off the list.
+test('stopping a medicine that only started today takes it off the list at once, and Undo brings it back', async ({ page }) => {
+  await mockDoses(page)
+  await seed(page, [SCHEDULED]) // started today
+  await page.goto('/schedule?view=meds')
+  await page.getByTestId('stop-m1').click()
+  await page.getByRole('button', { name: 'Stop reminders' }).click()
+  await expect(page.getByTestId('med-m1')).toHaveCount(0)
+  await expect(page.getByTestId('schedule-stop-undo')).toContainText('Reminders for Metformin 500 mg stopped')
+  await expect(page.getByRole('button', { name: 'Undo' })).toBeFocused()
+  await expect(page.getByRole('button', { name: /^Taken: Metformin/ })).toHaveCount(0) // and with nothing left, the page is empty (no tabs)
+
+  await page.getByRole('button', { name: 'Undo' }).click()
+  await toTab(page, 'today')
+  await expect(tick(page, 'Metformin 500 mg', '8:00\\s+AM')).toBeVisible() // back, exactly as it was
+  expect(await savedSchedule(page)).toEqual({ startDate: TODAY, days: 30, times: {} })
 })

@@ -11,7 +11,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { medicines, setSchedule, forgetMedicine, restoreMedicine, scanFromMedicine } from '../stores/medicines'
 import { scanStore } from '../stores/scan'
-import { buildSchedule, dosesOn, doseSlots, labelLimitDays, packDays, supplyDays, todayInSingapore, timeInSingapore, timeStates, tooEarly, validDate, validDays, validTime, MAX_DAYS } from '../rules/schedule'
+import { buildSchedule, dosesOn, doseSlots, labelLimitDays, packDays, stopCourse, supplyDays, todayInSingapore, timeInSingapore, timeStates, tooEarly, validDate, validDays, validTime, MAX_DAYS } from '../rules/schedule'
 import { dosesTaken, setDoseTaken } from '../api/client'
 import EmptyState from '../components/layout/EmptyState.vue'
 import ErrorBanner from '../components/layout/ErrorBanner.vue'
@@ -35,7 +35,9 @@ const viewLink = (v) => ({ query: v === 'today' ? {} : { view: v } })
 // Every medicine with its ScheduleEntry. Flagged ones (no daily timetable) go to the pharmacist section.
 const rows = computed(() => medicines.map((medicine) => ({ medicine, entry: buildSchedule(medicine, medicine.schedule ?? {}) })))
 const entries = computed(() => rows.value.map((r) => r.entry)) // the whole schedule, as Google sync gets it
-const timetable = computed(() => rows.value.filter((r) => !r.entry.flagged))
+// Finished and stopped courses sit at the bottom, so what you are taking now comes first.
+const finishedRow = (r) => Boolean(r.entry.endDate && r.entry.endDate < today.value)
+const timetable = computed(() => rows.value.filter((r) => !r.entry.flagged).sort((a, b) => finishedRow(a) - finishedRow(b)))
 const flagged = computed(() => rows.value.filter((r) => r.entry.flagged))
 
 // --- Words for dates, times and doses, in the page language ---------------------------------------------------------------
@@ -257,6 +259,59 @@ async function remove(medicine) {
   await nextTick()
   undoButton.value?.focus()
 }
+// --- "I don't need this any more": ends the course (kept in the list as finished), after a short check-in, with Undo ----------------
+const stopAsk = ref(null) // id of the medicine whose check-in is open
+const stopped = ref(null) // { id, name, previous } for the Undo bar
+const stopUndoButton = ref(null)
+let stopTimer = 0
+async function askStop(id) {
+  managing.value = null
+  editing.value = null
+  stopAsk.value = id
+  await nextTick()
+  document.querySelector(`[data-stop-yes="${id}"]`)?.focus() // into the question, like the other pop-ups
+}
+async function cancelStop(id) {
+  stopAsk.value = null
+  await nextTick()
+  document.querySelector(`[data-stop="${id}"]`)?.focus()
+}
+async function confirmStop(medicine) {
+  const previous = JSON.parse(JSON.stringify(medicine.schedule ?? null)) // a plain copy: the page's own data is wrapped and can't be stored as it is
+  const next = stopCourse(previous, today.value)
+  stopAsk.value = null
+  if (!next) return
+  clearTimeout(stopTimer)
+  const name = nameOf(medicine.medication)
+  if (previous.startDate >= today.value) {
+    // It only started today: no day has been lived yet, so there is nothing to keep as "finished" (and a course cannot end
+    // before it starts, so it would look unchanged). It comes off the list instead; Undo brings it back as it was.
+    stopped.value = { id: medicine.id, name, gone: forgetMedicine(medicine.id) }
+  } else {
+    stopped.value = { id: medicine.id, name, previous }
+    setSchedule(medicine.id, next)
+  }
+  stopTimer = setTimeout(() => (stopped.value = null), 8000)
+  await nextTick()
+  stopUndoButton.value?.focus()
+}
+async function undoStop() {
+  clearTimeout(stopTimer)
+  const { id, previous, gone } = stopped.value
+  if (gone) restoreMedicine(gone)
+  else setSchedule(id, previous)
+  stopped.value = null
+  await nextTick()
+  document.querySelector(`[data-stop="${id}"]`)?.focus()
+}
+// A finished course starts again from today, for as long as the label says (or the page asks how many days).
+function startAgain(medicine) {
+  const days = supplyDays(medicine.medication)
+  const times = JSON.parse(JSON.stringify(medicine.schedule?.times ?? {}))
+  setSchedule(medicine.id, days ? { startDate: today.value, days, times } : { startDate: today.value, times })
+  notify(t('schedule.stop.back', { name: nameOf(medicine.medication) }))
+}
+
 async function undo() {
   clearTimeout(undoTimer)
   const { id } = removed.value.entry
@@ -278,6 +333,7 @@ function notify(text, bad = false) {
 
 onBeforeUnmount(() => {
   clearTimeout(undoTimer)
+  clearTimeout(stopTimer)
   clearTimeout(toastTimer)
   clearInterval(dayTimer)
   document.removeEventListener('visibilitychange', onVisible)
@@ -451,6 +507,26 @@ onBeforeUnmount(() => {
               </button>
             </div>
 
+            <!-- The one thing people want when they are better: stop, in one tap and in plain words. It ends the course (the medicine
+                 stays in the list as finished, with Start again) instead of deleting it. A short check-in first: we only stop the
+                 reminders, and never say that stopping is safe. -->
+            <template v-if="r.entry.endDate && dateStatus(r.entry).kind === 'now'">
+              <button v-if="stopAsk !== r.medicine.id" type="button" class="btn btn-outline" :data-stop="r.medicine.id" :data-testid="`stop-${r.medicine.id}`" :aria-label="`${t('schedule.stop.button')}: ${r.entry.label}`" @click="askStop(r.medicine.id)">
+                <AppIcon name="xCircle" :size="22" />{{ t('schedule.stop.button') }}
+              </button>
+              <div v-else class="alert alert-warning flex-column" role="alertdialog" :aria-labelledby="`stop-q-${r.medicine.id}`" :aria-describedby="`stop-text-${r.medicine.id}`" :data-testid="`stop-ask-${r.medicine.id}`" @keydown.esc="cancelStop(r.medicine.id)">
+                <strong :id="`stop-q-${r.medicine.id}`">{{ t('schedule.stop.ask', { name: r.entry.label }) }}</strong>
+                <span :id="`stop-text-${r.medicine.id}`">{{ t('schedule.stop.text') }}</span>
+                <div class="d-flex flex-column flex-sm-row gap-2">
+                  <button type="button" class="btn btn-primary" :data-stop-yes="r.medicine.id" @click="confirmStop(r.medicine)"><AppIcon name="check" :size="22" />{{ t('schedule.stop.yes') }}</button>
+                  <button type="button" class="btn btn-secondary" @click="cancelStop(r.medicine.id)">{{ t('schedule.stop.no') }}</button>
+                </div>
+              </div>
+            </template>
+            <button v-else-if="r.entry.endDate && dateStatus(r.entry).kind === 'ended'" type="button" class="btn btn-outline" :data-testid="`again-${r.medicine.id}`" :aria-label="`${t('schedule.stop.again')}: ${r.entry.label}`" @click="startAgain(r.medicine)">
+              <AppIcon name="replay" :size="22" />{{ t('schedule.stop.again') }}
+            </button>
+
             <div v-if="managing === r.medicine.id" :id="`manage-${r.medicine.id}`" class="manage" data-testid="schedule-manage">
               <button type="button" class="btn btn-outline btn-sm" :aria-label="t('schedule.meds.daysTimesOne', { name: r.entry.label })" @click="openEdit(r)"><AppIcon name="clock" :size="20" />{{ t('schedule.meds.daysTimes') }}</button>
               <button type="button" class="btn btn-outline btn-sm" :aria-label="t('schedule.fix.buttonOne', { name: r.entry.label })" @click="fix(r.medicine)"><AppIcon name="scan" :size="20" />{{ t('schedule.fix.button') }}</button>
@@ -592,6 +668,11 @@ onBeforeUnmount(() => {
           <AppIcon :name="toast.bad ? 'alert' : 'checkCircle'" :size="22" />{{ toast.text }}
         </p>
       </Transition>
+    </div>
+
+    <div v-if="stopped" class="toast-ahma toast-undo rise" role="status" data-testid="schedule-stop-undo">
+      <span>{{ t('schedule.stop.done', { name: stopped.name }) }}</span>
+      <button ref="stopUndoButton" type="button" class="btn btn-on-hero btn-sm" @click="undoStop">{{ t('schedule.undo') }}</button>
     </div>
 
     <div v-if="removed" class="toast-ahma toast-undo rise" role="status" data-testid="schedule-undo">

@@ -1,7 +1,7 @@
 // Owner: Lokesh. Schedule rules for the Schedule page and Google sync (src/rules/schedule.js). Entry shape: docs/google-contract.md.
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { weekOf, weekSummary, labelLimitDays, packDays, supplyDays, buildSchedule, dosesOn, doseSlots, addDays, validTime, validDays, validDate, todayInSingapore, timeInSingapore, timeStates, tooEarly, syncEntries, MAX_DAYS } from '../../src/rules/schedule.js'
+import { weekOf, weekSummary, labelLimitDays, packDays, stopCourse, supplyDays, buildSchedule, dosesOn, doseSlots, addDays, validTime, validDays, validDate, todayInSingapore, timeInSingapore, timeStates, tooEarly, syncEntries, MAX_DAYS } from '../../src/rules/schedule.js'
 import med1 from '../fixtures/med-1.json' with { type: 'json' }
 import en from '../../src/i18n/locales/en.json' with { type: 'json' }
 import zh from '../../src/i18n/locales/zh.json' with { type: 'json' }
@@ -345,4 +345,18 @@ test('a label warning that limits the course caps the days, however many tablets
   assert.equal(supplyDays({ ...warn('Do not use more than 7 days'), quantity: 5 }), 5) // fewer tablets than the limit: unchanged
   assert.equal(supplyDays(warn('Take after food')), 10)
   assert.equal(supplyDays({ ...warn('Do not use more than 7 days'), quantity: null }), null) // no pack size: Schedule still asks
+})
+
+test('"I don\'t need this any more": the course ends yesterday (today\'s reminders stop), or today when it only started today', () => {
+  const course = { startDate: '2026-11-01', days: 10, times: { morning: '07:30' } }
+  assert.deepEqual(stopCourse(course, '2026-11-04'), { startDate: '2026-11-01', days: 3, times: { morning: '07:30' } }) // 1st, 2nd, 3rd taken; the 4th is not
+  assert.equal(addDays(course.startDate, stopCourse(course, '2026-11-04').days - 1), '2026-11-03') // last day = yesterday
+  assert.equal(stopCourse(course, '2026-11-02').days, 1)
+  assert.equal(stopCourse(course, '2026-11-01').days, 1) // started today: it can't end before it starts
+  assert.equal(stopCourse(course, '2026-10-30').days, 1) // not started yet: still one valid day, never zero or negative
+  assert.equal(stopCourse({ ...course, startDate: '2026-02-27' }, '2026-03-02').days, 3) // across a month end (28 Feb, 1 Mar... 2026 is not a leap year)
+  assert.ok(validDays(stopCourse(course, '2026-11-04').days))
+  assert.equal(stopCourse({ times: {} }, '2026-11-04'), null) // nothing scheduled yet: nothing to stop
+  assert.equal(stopCourse(course, 'not a date'), null)
+  assert.equal(course.days, 10) // the original is untouched
 })
