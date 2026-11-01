@@ -348,6 +348,7 @@
       "other": "Arahan lain pada label (satu setiap baris)",
       "quantity": "Jumlah dalam pek",
       "quantityHelp": "Seperti pada label, contohnya Qty: 60. Kami gunakannya untuk mengira berapa hari ubat ini cukup. Biarkan kosong jika label tidak menyatakannya.",
+      "purpose": "Kegunaannya",
       "more": "Tambah butiran lanjut",
       "fewer": "Tunjuk kurang butiran"
     },
@@ -379,6 +380,23 @@
       "keep": "Teruskan menyemak",
       "yes": "Buang dan keluar"
     }
+  },
+  "purpose": {
+    "lead": "Biasanya digunakan untuk",
+    "note": "Tidak pasti? Tanya ahli farmasi anda.",
+    "pain": "sakit dan bengkak",
+    "blood_pressure": "tekanan darah tinggi",
+    "diabetes": "diabetes (gula darah)",
+    "cholesterol": "kolesterol tinggi",
+    "heart": "jantung",
+    "infection": "jangkitan (antibiotik)",
+    "stomach": "perut dan asid",
+    "allergy": "alahan",
+    "cough_cold": "batuk dan selsema",
+    "breathing": "pernafasan (asma)",
+    "mood_sleep": "mood atau tidur",
+    "skin": "kulit",
+    "vitamins": "vitamin dan suplemen"
   },
   "unit": {
     "tablet": "biji",

@@ -43,6 +43,7 @@ Example medication detail:
         "timing": ["morning", "evening"], "withFood": "after",
         "frequencyType": "daily",
         "rawInstruction": "Take 1 tablet twice a day after food",
+        "purpose": "diabetes",
         "warnings": ["Do not skip meals while taking this medicine"]
       }
     }

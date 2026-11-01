@@ -348,6 +348,7 @@
       "other": "标签上的其他说明（每行一条）",
       "quantity": "包装里的数量",
       "quantityHelp": "按标签填写，例如 Qty: 60。我们用它来算出能服用几天。标签上没有写就留空。",
+      "purpose": "用途",
       "more": "添加更多详情",
       "fewer": "收起详情"
     },
@@ -379,6 +380,23 @@
       "keep": "继续检查",
       "yes": "放弃并离开"
     }
+  },
+  "purpose": {
+    "lead": "通常用于",
+    "note": "不确定？请询问药剂师。",
+    "pain": "疼痛和肿胀",
+    "blood_pressure": "高血压",
+    "diabetes": "糖尿病（血糖）",
+    "cholesterol": "高胆固醇",
+    "heart": "心脏",
+    "infection": "感染（抗生素）",
+    "stomach": "胃部和胃酸",
+    "allergy": "过敏",
+    "cough_cold": "咳嗽和感冒",
+    "breathing": "呼吸（哮喘）",
+    "mood_sleep": "情绪或睡眠",
+    "skin": "皮肤",
+    "vitamins": "维他命和补充剂"
   },
   "unit": {
     "tablet": "粒",

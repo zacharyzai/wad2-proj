@@ -1,6 +1,8 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { normalizeMedication, normalizeBill, addsUp } from '../services/normalizeScan.js'
+import { normalizeMedication, normalizeBill, addsUp, PURPOSES } from '../services/normalizeScan.js'
+import { checkConfirmedScan } from '../validation/history.js'
+import { checkMedicines } from '../validation/medicines.js'
 import { billGap, sectionsOff } from '../../src/rules/billCheck.js'
 
 test('medication: clean label has nothing unclear and drops unknown fields', () => {
@@ -189,4 +191,26 @@ test('GST already included is not added again, and a deposit already paid comes 
   assert.equal(bill.items.length, 2) // the total line and the included GST are gone
   assert.deepEqual(bill.subsidies, [{ scheme: 'paid', amountCents: 1500000, includedInItems: false }])
   assert.equal(bill.totalPayableCents, 9569813)
+})
+
+test('purpose: only a value from the fixed list is kept; anything else, or nothing, is null and never flagged as unclear', () => {
+  const base = { name: 'Metformin', doseAmount: 1, doseUnit: 'tablet', timesPerDay: 2, frequencyType: 'daily' }
+  for (const purpose of PURPOSES) assert.equal(normalizeMedication({ ...base, purpose }).medication.purpose, purpose)
+  for (const purpose of ['for the heart and some other things', 'DIABETES', '', 7, undefined]) {
+    const scan = normalizeMedication({ ...base, purpose })
+    assert.equal(scan.medication.purpose, null)
+    assert.deepEqual(scan.unclear, []) // a purpose we are unsure of is simply not shown
+  }
+})
+
+test('purpose is accepted on a checked scan and on the account medicine list, and an invented one is refused', () => {
+  const med = { name: 'Metformin', strength: '500 mg', doseAmount: 1, doseUnit: 'tablet', quantity: null, timesPerDay: 2, timing: null, withFood: null, frequencyType: 'daily', rawInstruction: null, warnings: [] }
+  const scan = (purpose) => ({ scan: { type: 'medication', source: 'ai', unclear: [], medication: { ...med, purpose } } })
+  assert.equal(checkConfirmedScan(scan('diabetes')).scan.medication.purpose, 'diabetes')
+  assert.equal(checkConfirmedScan(scan(null)).scan.medication.purpose, null)
+  assert.equal(checkConfirmedScan({ scan: { type: 'medication', source: 'ai', unclear: [], medication: med } }).scan.medication.purpose, null) // old clients
+  assert.ok(checkConfirmedScan(scan('cures cancer')).error)
+  const entry = (purpose) => [{ id: 'm1', source: 'label', sample: false, medication: { ...med, purpose } }]
+  assert.equal(checkMedicines(entry('pain')).medicines[0].medication.purpose, 'pain')
+  assert.ok(checkMedicines(entry('cures cancer')).error)
 })

@@ -9,6 +9,7 @@ import {
   WITH_FOOD,
   FREQUENCY_TYPES,
   BILL_CATEGORIES,
+  PURPOSES,
   SUBSIDY_SCHEMES,
   BILL_PLACES,
 } from './normalizeScan.js'
@@ -64,6 +65,7 @@ const SCHEMAS = {
     withFood: E(WITH_FOOD),
     frequencyType: E(FREQUENCY_TYPES),
     rawInstruction: S,
+    purpose: E(PURPOSES),
     warnings: { type: 'ARRAY', items: { type: 'STRING' } },
   }),
   bill: obj({
@@ -101,6 +103,9 @@ Extract the medicine on this label.
 - timing: only the times of day the label explicitly states ("morning and night" -> ["morning","bedtime"]); otherwise null.
 - withFood: "before" / "after" / "with" food, "any" if the label says with or without food, null if not stated.
 - frequencyType: "daily" for a fixed daily pattern; "as_needed" for "when necessary"/PRN; "weekly"; "tapering" if the dose changes over days; otherwise "other".
+- purpose: what this medicine is usually used for, ONLY if you are sure of it from the medicine's name: one of pain, blood_pressure,
+  diabetes, cholesterol, heart, infection, stomach, allergy, cough_cold, breathing, mood_sleep, skin, vitamins. If it could be
+  for several of these, or you are not sure, use null. Never guess: a wrong purpose is worse than none.
 - rawInstruction: the dosing instruction exactly as printed. warnings: each caution line as printed (e.g. "May cause drowsiness").
 ${RULES}`,
   bill: `You read medical bills, invoices and receipts in Singapore, from any medical place: polyclinic, GP clinic, dental clinic,

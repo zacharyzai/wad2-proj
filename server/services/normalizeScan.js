@@ -7,6 +7,9 @@ export const DOSE_UNITS = ['tablet', 'capsule', 'ml', 'puff', 'drop', 'other']
 export const TIMINGS = ['morning', 'afternoon', 'evening', 'bedtime']
 export const WITH_FOOD = ['before', 'after', 'with', 'any']
 export const FREQUENCY_TYPES = ['daily', 'as_needed', 'weekly', 'tapering', 'other']
+// What a medicine is usually for, as a short fixed list. The AI only picks one of these (or null); the words people read come
+// from human-checked templates (i18n `purpose.<key>`), never from the AI. docs/scan-contract.md.
+export const PURPOSES = ['pain', 'blood_pressure', 'diabetes', 'cholesterol', 'heart', 'infection', 'stomach', 'allergy', 'cough_cold', 'breathing', 'mood_sleep', 'skin', 'vitamins']
 export const BILL_CATEGORIES = ['consultation', 'medication', 'investigation', 'procedure', 'ward', 'tax', 'other']
 // insurance: MediShield Life, Integrated Shield, private or employer insurance. Lowers what is paid, like a subsidy.
 // paid: money already paid earlier (a deposit at admission, an earlier payment), taken off what is still due.
@@ -46,6 +49,7 @@ export function normalizeMedication(raw = {}) {
     withFood: oneOf(raw.withFood, WITH_FOOD),
     frequencyType: oneOf(raw.frequencyType, FREQUENCY_TYPES),
     rawInstruction: str(raw.rawInstruction),
+    purpose: oneOf(raw.purpose, PURPOSES), // optional: null when unsure, and never flagged as unclear
     warnings: Array.isArray(raw.warnings) ? raw.warnings.map(str).filter(Boolean) : [],
   }
 

@@ -9,7 +9,7 @@ import { saveScan } from '../api/client'
 import { rememberMedicine, replaceMedicine } from '../stores/medicines'
 import ConfirmField from '../components/scan/ConfirmField.vue'
 import AppIcon from '../components/layout/AppIcon.vue'
-import { DOSE_UNITS, TIMINGS, WITH_FOOD, FREQUENCY_TYPES } from '../../server/services/normalizeScan.js'
+import { DOSE_UNITS, TIMINGS, WITH_FOOD, FREQUENCY_TYPES, PURPOSES } from '../../server/services/normalizeScan.js'
 import { billGap, linesTotal, sectionsOff } from '../rules/billCheck'
 import { money } from '../components/bill/lines'
 
@@ -78,7 +78,7 @@ const needs = (path) => flagged.value.includes(path)
 // needs checking). "Add more details" shows the rest, so nothing can't be added by hand. Decided once, when the page opens,
 // so clearing a field doesn't make it vanish under the person's finger.
 const more = ref(false)
-const OPTIONAL = ['medication.strength', 'medication.quantity', 'medication.timing', 'medication.withFood', 'medication.warnings']
+const OPTIONAL = ['medication.strength', 'medication.purpose', 'medication.quantity', 'medication.timing', 'medication.withFood', 'medication.warnings']
 const filledAtStart = draft.type === 'medication' ? new Set(OPTIONAL.filter((path) => !isEmpty(get(path)))) : new Set()
 // A field the person typed into stays when they tap "Show fewer details"; only empty ones fold away.
 const showOptional = (path) => more.value || filledAtStart.has(path) || needs(path) || !isEmpty(get(path))
@@ -210,6 +210,13 @@ const scanAgain = () => router.push(fixing ? { name: 'schedule', query: { view: 
           </ConfirmField>
           <ConfirmField v-if="showOptional('medication.strength')" :label="t('confirm.med.strength')" for="f-strength">
             <input id="f-strength" v-model.trim="draft.medication.strength" class="field-input" />
+          </ConfirmField>
+          <!-- What it is usually for: the AI only picks from our list, and only when sure. Shown to the senior as our own words. -->
+          <ConfirmField v-if="showOptional('medication.purpose')" :label="t('confirm.med.purpose')" for="f-purpose">
+            <select id="f-purpose" v-model="draft.medication.purpose" class="field-input" data-testid="confirm-purpose">
+              <option :value="null">–</option>
+              <option v-for="p in PURPOSES" :key="p" :value="p">{{ t(`purpose.${p}`) }}</option>
+            </select>
           </ConfirmField>
 
           <ConfirmField :label="t('confirm.med.amount')" for="f-amount" :flagged="needs('medication.doseAmount')" :note="problem('medication.doseAmount')">

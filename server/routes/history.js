@@ -50,7 +50,7 @@ router.get('/', (req, res) => {
   return database(req, res, async () => {
     const owner = { userId: req.userId }
     const [docs, total] = await Promise.all([
-      Scan.find(owner).select('type source createdAt medication.name medication.strength bill.clinic bill.totalPayableCents shareToken shareExpiresAt').sort({ createdAt: -1, _id: -1 }).skip((page - 1) * PAGE_SIZE).limit(PAGE_SIZE).lean(),
+      Scan.find(owner).select('type source createdAt medication.name medication.strength medication.purpose bill.clinic bill.totalPayableCents shareToken shareExpiresAt').sort({ createdAt: -1, _id: -1 }).skip((page - 1) * PAGE_SIZE).limit(PAGE_SIZE).lean(),
       Scan.countDocuments(owner),
     ])
     const now = new Date()
@@ -59,6 +59,7 @@ router.get('/', (req, res) => {
       const sharing = d.shareToken && d.shareExpiresAt > now
       return { id: String(d._id), type: d.type, source: d.source, createdAt: d.createdAt,
         title: d.type === 'medication' ? [d.medication.name, d.medication.strength].filter(Boolean).join(' ') : d.bill.clinic ?? null,
+        purpose: d.type === 'medication' ? d.medication.purpose ?? null : null,
         totalPayableCents: d.type === 'bill' ? d.bill.totalPayableCents : null,
         shareToken: sharing ? d.shareToken : null, shareExpiresAt: sharing ? d.shareExpiresAt : null }
     })

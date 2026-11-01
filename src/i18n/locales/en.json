@@ -348,6 +348,7 @@
       "other": "Other instructions on the label (one per line)",
       "quantity": "Amount in the pack",
       "quantityHelp": "As on the label, for example Qty: 60. We use it to work out how many days it lasts. Leave it empty if the label doesn’t say.",
+      "purpose": "What it is for",
       "more": "Add more details",
       "fewer": "Show fewer details"
     },
@@ -379,6 +380,23 @@
       "keep": "Keep checking",
       "yes": "Throw away and leave"
     }
+  },
+  "purpose": {
+    "lead": "Usually used for",
+    "note": "Not sure? Ask your pharmacist.",
+    "pain": "pain and swelling",
+    "blood_pressure": "high blood pressure",
+    "diabetes": "diabetes (blood sugar)",
+    "cholesterol": "high cholesterol",
+    "heart": "the heart",
+    "infection": "infection (antibiotic)",
+    "stomach": "the stomach and acid",
+    "allergy": "allergy",
+    "cough_cold": "cough and cold",
+    "breathing": "breathing (asthma)",
+    "mood_sleep": "mood or sleep",
+    "skin": "the skin",
+    "vitamins": "vitamins and supplements"
   },
   "unit": {
     "tablet": "tablet | tablets",

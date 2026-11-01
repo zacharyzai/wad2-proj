@@ -23,7 +23,9 @@ const TIME_ICONS = { morning: 'sunrise', afternoon: 'sun', evening: 'sunset', be
 function medication(m) {
   const unit = (n) => t(`unit.${m.doseUnit ?? 'other'}`, n)
   const dose = { amount: m.doseAmount, unit: unit(m.doseAmount) }
-  const base = { tag: t('explain.tag.medication'), icon: 'pill', name: m.name, sub: m.strength, warnings: m.warnings }
+  // What it is usually for: a word from our own templates (the AI only picked the key), or nothing when it wasn't sure.
+  const purpose = m.purpose ? t(`purpose.${m.purpose}`) : null
+  const base = { tag: t('explain.tag.medication'), icon: 'pill', name: m.name, sub: m.strength, purpose, warnings: m.warnings }
 
   if (m.frequencyType !== 'daily') {
     return {
@@ -102,7 +104,7 @@ const view = computed(() => {
 })
 
 const speech = computed(() =>
-  view.value ? [view.value.title, ...(view.value.lines ?? []).map((line) => line.join(' ')), view.value.note, ...view.value.paras].filter(Boolean).join(' ') : '',
+  view.value ? [view.value.purpose && `${t('purpose.lead')} ${view.value.purpose}.`, view.value.title, ...(view.value.lines ?? []).map((line) => line.join(' ')), view.value.note, ...view.value.paras].filter(Boolean).join(' ') : '',
 )
 
 const picked = ref(null)
@@ -128,6 +130,11 @@ watch(locale, () => (picked.value = null))
               <span v-if="view.sub" class="text-muted-a11y">{{ view.sub }}</span>
             </div>
           </div>
+          <!-- The plain-language purpose, beside the medicine's own name: people care what it is FOR. -->
+          <p v-if="view.purpose" class="purpose" data-testid="explain-purpose">
+            <span>{{ t('purpose.lead') }}</span> <strong>{{ view.purpose }}</strong>
+            <small class="d-block text-muted-a11y">{{ t('purpose.note') }}</small>
+          </p>
 
           <!-- Bill: the amount inside the sentence is the big hero number. -->
           <i18n-t v-if="view.lines" keypath="explain.bill.title" tag="h1" class="explain-title">

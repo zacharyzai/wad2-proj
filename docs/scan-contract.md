@@ -65,6 +65,7 @@ Shared fields:
   "withFood": "after",
   "frequencyType": "daily",
   "rawInstruction": "Take 1 tablet twice a day after food",
+  "purpose": "diabetes",
   "warnings": ["Do not skip meals while taking this medicine"]
 }
 ```
@@ -78,6 +79,7 @@ Shared fields:
 | `timesPerDay` | number \| null |
 | `timing` | array of `morning` `afternoon` `evening` `bedtime`, or null when the label doesn't say |
 | `withFood` | `before` `after` `with` `any` \| null |
+| `purpose` | `pain` `blood_pressure` `diabetes` `cholesterol` `heart` `infection` `stomach` `allergy` `cough_cold` `breathing` `mood_sleep` `skin` `vitamins` \| null: what the medicine is usually for. The AI only picks from this list, and only when sure (null otherwise, never flagged as unclear); the words people read are the human-checked templates `purpose.<key>` in every language. Shown on Explain, Schedule and History; the person can change it on Confirm. |
 | `frequencyType` | `daily` `as_needed` `weekly` `tapering` `other` \| null. Anything other than `daily` (including null) is **flagged for a pharmacist and not scheduled** |
 | `warnings` | string[] |
 

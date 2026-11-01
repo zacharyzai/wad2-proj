@@ -1,5 +1,6 @@
 // Feature 1: Scan → Confirm → Explain. Samples only; the photo upload is answered in the browser.
 import { test, expect } from './fixtures.js'
+import { readFileSync } from 'node:fs'
 import { mockImageScan } from './helpers/mockImageScan.js'
 import { switchLanguage } from './helpers/auth.js'
 
@@ -412,4 +413,39 @@ test('a PDF shows a preview of its first page, like a photo', async ({ page }) =
   await expect(preview).toBeVisible()
   await expect(preview).toHaveAttribute('src', /^data:image\/jpeg;base64,/)
   await expect(page.getByText('label.pdf')).toBeVisible()
+})
+
+// What a medicine is usually for: the AI only picks a key from a fixed list; the words are our own templates.
+// The scan answer is made here, so these tests need no AI and no real server.
+const MED1 = JSON.parse(readFileSync('server/fixtures/med-1.json', 'utf8'))
+const answerWith = (page, medication) =>
+  page.route('**/api/scan', (route) => route.fulfill({ json: { ok: true, data: { ...MED1, source: 'sample', medication: { ...MED1.medication, ...medication } } } }))
+
+test('purpose: checked on Confirm, then shown beside the medicine name on Explain, in our own words', async ({ page }) => {
+  await answerWith(page, { purpose: 'diabetes' })
+  await openSample(page, 'Metformin label')
+  await expect(page.getByTestId('confirm-purpose')).toHaveValue('diabetes')
+  await page.getByRole('button', { name: 'Looks correct' }).click()
+  const purpose = page.getByTestId('explain-purpose')
+  await expect(purpose).toContainText('Usually used for diabetes (blood sugar)')
+  await expect(purpose).toContainText('Not sure? Ask your pharmacist.')
+  await expect(page.getByText('Metformin', { exact: true }).first()).toBeVisible() // the professional name stays
+})
+
+test('purpose: the person can correct it on Confirm, and the correction is what Explain shows', async ({ page }) => {
+  await answerWith(page, { purpose: 'diabetes' })
+  await openSample(page, 'Metformin label')
+  await page.getByTestId('confirm-purpose').selectOption('pain')
+  await page.getByRole('button', { name: 'Looks correct' }).click()
+  await expect(page.getByTestId('explain-purpose')).toContainText('pain and swelling')
+})
+
+test('purpose: when the AI was not sure, nothing is shown, and the field waits under "Add more details"', async ({ page }) => {
+  await answerWith(page, { purpose: null })
+  await openSample(page, 'Metformin label')
+  await expect(page.getByTestId('confirm-purpose')).toHaveCount(0)
+  await page.getByTestId('confirm-more').click()
+  await expect(page.getByTestId('confirm-purpose')).toBeVisible()
+  await page.getByRole('button', { name: 'Looks correct' }).click()
+  await expect(page.getByTestId('explain-purpose')).toHaveCount(0)
 })

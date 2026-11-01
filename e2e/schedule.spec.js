@@ -643,3 +643,12 @@ test('changing the amount on Confirm changes the days; leaving it empty means Sc
   await expect(page.getByTestId('schedule-need-days')).toContainText('How many days is this medicine for?')
   await expect(page.getByTestId('med-supply')).toHaveCount(0)
 })
+
+test('what each medicine is usually for shows beside it on Today and in My medicines', async ({ page }) => {
+  await seed(page, [medicine('m1', { purpose: 'blood_pressure' }, { startDate: TODAY, days: 30, times: {} })])
+  await mockDoses(page)
+  await page.goto('/schedule')
+  await expect(page.getByTestId('dose-purpose').first()).toHaveText('Usually used for high blood pressure')
+  await page.goto('/schedule?view=meds')
+  await expect(page.getByTestId('med-purpose')).toHaveText('Usually used for high blood pressure')
+})

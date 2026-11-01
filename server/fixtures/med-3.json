@@ -13,6 +13,7 @@
     "withFood": "any",
     "frequencyType": "as_needed",
     "rawInstruction": "Take 10 ml up to 3 times a day when needed for cough",
+    "purpose": "cough_cold",
     "warnings": ["May cause drowsiness"]
   }
 }

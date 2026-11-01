@@ -128,7 +128,7 @@ test('history pages contain only summaries, newest first, with deterministic tim
     assert.equal(data.pages, 3)
     assert.equal(data.items.length, page < 3 ? 10 : page === 3 ? 3 : 0)
     for (const item of data.items) {
-      assert.deepEqual(Object.keys(item).sort(), ['createdAt', 'id', 'shareExpiresAt', 'shareToken', 'source', 'title', 'totalPayableCents', 'type'])
+      assert.deepEqual(Object.keys(item).sort(), ['createdAt', 'id', 'purpose', 'shareExpiresAt', 'shareToken', 'source', 'title', 'totalPayableCents', 'type'])
       assert.equal(item.shareToken, null)
       assert.match(item.title, /^Medicine \d+ 500 mg$/)
     }

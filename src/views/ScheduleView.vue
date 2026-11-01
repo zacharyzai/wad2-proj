@@ -51,6 +51,11 @@ const doseText = ({ count, unit, food }) =>
 const timesText = (entry) => entry.doses.map((d) => timeText(d.time)).join(', ')
 // "From the label: 60 tablets, 2 tablets a day, so it lasts 30 days." Only when supplyDays can do the sums.
 const amountText = (n, unit) => `${n} ${t(`unit.${unit ?? 'other'}`, n)}`
+// "Usually used for high blood pressure": from the medicine on the account, in our own words; nothing when it wasn't known.
+function purposeOf(medicineId) {
+  const purpose = medicines.find((m) => m.id === medicineId)?.medication?.purpose
+  return purpose ? `${t('purpose.lead')} ${t(`purpose.${purpose}`)}` : null
+}
 function supplyText(medication) {
   const days = supplyDays(medication)
   if (!days) return null
@@ -389,6 +394,7 @@ onBeforeUnmount(() => {
                       :disabled="!ticksReady"
                       @click="toggle(d)"
                     >{{ d.label }}</button>
+                    <span v-if="purposeOf(d.medicineId)" class="dose-detail" data-testid="dose-purpose">{{ purposeOf(d.medicineId) }}</span>
                     <span :id="`dose-detail-${d.id}`" class="dose-detail">{{ doseText(d.instruction) }}</span>
                     <span class="dose-word" aria-hidden="true"><AppIcon v-if="taken.has(d.id)" name="check" :size="16" :stroke="3" />{{ taken.has(d.id) ? t('schedule.taken') : t('schedule.tapWhenTaken') }}</span>
                   </span>
@@ -426,6 +432,7 @@ onBeforeUnmount(() => {
               <span class="tile tile-soft" aria-hidden="true"><AppIcon name="pill" :size="24" /></span>
               <span class="med-info">
                 <span class="med-name">{{ r.entry.label }}</span>
+                <span v-if="purposeOf(r.medicine.id)" class="text-muted-a11y fw-semibold" data-testid="med-purpose">{{ purposeOf(r.medicine.id) }}</span>
                 <span class="text-muted-a11y">{{ doseText(r.entry.instruction) }}</span>
                 <span class="med-times"><AppIcon name="clock" :size="18" />{{ timesText(r.entry) }}</span>
                 <span v-if="supplyText(r.medicine.medication)" class="med-supply" data-testid="med-supply"><AppIcon name="pill" :size="18" />{{ supplyText(r.medicine.medication) }}</span>
@@ -534,6 +541,7 @@ onBeforeUnmount(() => {
               <span class="med-info">
                 <span v-if="r.medicine.medication.frequencyType && r.medicine.medication.frequencyType !== 'daily'" class="badge badge-warning align-self-start">{{ t(`freq.${r.medicine.medication.frequencyType}`) }}</span>
                 <span class="med-name">{{ r.entry.label }}</span>
+                <span v-if="purposeOf(r.medicine.id)" class="text-muted-a11y fw-semibold">{{ purposeOf(r.medicine.id) }}</span>
                 <span v-if="r.medicine.medication.rawInstruction" class="text-muted-a11y" :lang="r.medicine.source === 'label' ? 'en' : null">“{{ r.medicine.medication.rawInstruction }}”</span>
               </span>
               <button
