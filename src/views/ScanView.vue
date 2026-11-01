@@ -331,6 +331,16 @@ const TIPS = [
   { key: 'whole', icon: 'zoom' },
 ]
 
+// The last scan, offered back on the picker: coming back from Ask, a refresh or any other page no longer loses it.
+const resume = computed(() => {
+  const s = scanStore.current
+  if (!s || pending.value) return null
+  const bill = s.type === 'bill'
+  const name = bill ? s.bill?.clinic || t('explain.tag.bill') : s.medication?.name
+  if (!name) return null
+  return { icon: bill ? 'receipt' : 'pill', name, checked: scanStore.confirmed, to: { name: scanStore.confirmed ? 'explain' : 'confirm' } }
+})
+
 // Home can hand over a picked photo or ask for a sample (/scan?sample=med-1).
 onMounted(() => {
   const file = scanStore.pendingFile // a photo picked on Home: shown here, waiting for the choice above it
@@ -436,6 +446,14 @@ onMounted(() => {
       <h1>{{ t('scan.choose.question') }}</h1>
       <p v-if="!pending" class="lead-text pick-lead">{{ t('scan.choose.lead') }}</p>
     </div>
+    <section v-if="resume" class="resume card" aria-labelledby="resume-title" data-testid="scan-resume">
+      <span class="tile tile-soft" aria-hidden="true"><AppIcon :name="resume.icon" :size="28" /></span>
+      <div class="resume-text">
+        <h2 id="resume-title" class="h3 m-0">{{ t('scan.resume.title') }}: {{ resume.name }}</h2>
+        <p class="m-0 text-muted-a11y">{{ t(resume.checked ? 'scan.resume.checked' : 'scan.resume.unchecked') }}</p>
+      </div>
+      <RouterLink :to="resume.to" class="btn btn-primary" data-testid="scan-resume-go"><AppIcon name="right" :size="22" />{{ t(resume.checked ? 'scan.resume.seeAgain' : 'scan.resume.carryOn') }}</RouterLink>
+    </section>
     <!-- A photo picked on Home waits here: picking a card reads it as that kind. -->
     <div v-if="pending" class="pending card" data-testid="scan-pending">
       <img :src="pending.url" :alt="t('scan.dz.previewAlt')" class="pending-thumb" />

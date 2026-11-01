@@ -267,6 +267,13 @@
         "bill": "Baca bil anda"
       }
     },
+    "resume": {
+      "title": "Imbasan terakhir anda",
+      "checked": "Anda sudah menyemak yang ini. Lihat maksudnya semula.",
+      "unchecked": "Belum disemak. Teruskan menyemak.",
+      "seeAgain": "Lihat semula",
+      "carryOn": "Teruskan"
+    },
     "choose": {
       "question": "Apakah yang anda mahu imbas hari ini?",
       "medication": {
@@ -338,7 +345,6 @@
     "scanOther": "Imbas yang lain",
     "med": {
       "name": "Nama ubat",
-      "strength": "Kekuatan",
       "amount": "Jumlah setiap kali",
       "unit": "Unit",
       "howOften": "Cara mengambil",

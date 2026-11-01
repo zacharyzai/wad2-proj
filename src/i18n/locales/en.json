@@ -267,6 +267,13 @@
         "bill": "Read your bill"
       }
     },
+    "resume": {
+      "title": "Your last scan",
+      "checked": "You checked this one. See what it means again.",
+      "unchecked": "Not checked yet. Carry on checking it.",
+      "seeAgain": "See again",
+      "carryOn": "Carry on"
+    },
     "choose": {
       "question": "What would you like to scan today?",
       "medication": {
@@ -338,7 +345,6 @@
     "scanOther": "Scan something else",
     "med": {
       "name": "Medicine name",
-      "strength": "Strength",
       "amount": "Amount each time",
       "unit": "Unit",
       "howOften": "How to take it",

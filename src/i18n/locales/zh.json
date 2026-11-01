@@ -267,6 +267,13 @@
         "bill": "读取您的账单"
       }
     },
+    "resume": {
+      "title": "您上一次的扫描",
+      "checked": "这份您已经核对过了。可以再看一遍它的意思。",
+      "unchecked": "还没有核对完。请继续核对。",
+      "seeAgain": "再看一遍",
+      "carryOn": "继续"
+    },
     "choose": {
       "question": "您今天想扫描什么？",
       "medication": {
@@ -338,7 +345,6 @@
     "scanOther": "扫描其他内容",
     "med": {
       "name": "药名",
-      "strength": "规格",
       "amount": "每次用量",
       "unit": "单位",
       "howOften": "服用方式",

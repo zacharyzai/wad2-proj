@@ -25,7 +25,7 @@ function medication(m) {
   const dose = { amount: m.doseAmount, unit: unit(m.doseAmount) }
   // What it is usually for: a word from our own templates (the AI only picked the key), or nothing when it wasn't sure.
   const purpose = m.purpose ? t(`purpose.${m.purpose}`) : null
-  const base = { tag: t('explain.tag.medication'), icon: 'pill', name: m.name, sub: m.strength, purpose, warnings: m.warnings }
+  const base = { tag: t('explain.tag.medication'), icon: 'pill', name: m.name, purpose, warnings: m.warnings }
 
   if (m.frequencyType !== 'daily') {
     return {
