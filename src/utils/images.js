@@ -17,7 +17,7 @@ export function toJpeg(source, width, height, quality = 0.8) {
 
 // An <img> decodes everything the browser can show (JPEG, PNG, WebP, SVG, …) and applies photo rotation;
 // createImageBitmap can't read SVG.
-function loadImage(src) {
+export function loadImage(src) {
   return new Promise((resolve, reject) => {
     const img = new Image()
     img.onload = () => resolve(img)

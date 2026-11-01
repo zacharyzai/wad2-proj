@@ -42,7 +42,7 @@ router.post('/', chatRateLimit, async (req, res) => {
   if (isRedFlag(q)) return res.json({ ok: true, data: { type: 'URGENT' } })
 
   if (!takeDailyQuota('chat')) return sendError(res, 429, 'RATE_LIMITED', 'Daily question limit reached, please try again tomorrow')
-  if (process.env.USE_MOCK_AI !== 'false') return res.json({ ok: true, data: mockReply(facts, q) })
+  if (process.env.USE_MOCK_AI === 'true') return res.json({ ok: true, data: mockReply(facts, q) })
 
   try {
     res.json({ ok: true, data: await askAboutMedicine(facts, q, lang, turns) })

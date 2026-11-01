@@ -19,8 +19,8 @@ const mongo = await MongoMemoryServer.create({
 })
 process.env.MONGODB_URI = mongo.getUri('wad2_local')
 console.log('Local MongoDB ready; accounts are saved in .local/mongodb')
-const { connectDatabase } = await import('../db.js')
-await connectDatabase()
+const { connectDb } = await import('../db.js')
+await connectDb()
 await import('../index.js')
 
 for (const signal of ['SIGINT', 'SIGTERM']) {

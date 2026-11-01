@@ -51,18 +51,35 @@ export function syncMedicinesWithAccount() {
     push()
   }
 
+  let saving = null // the save on its way, so a reload waits for it
+  async function save() {
+    timer = null
+    const now = snapshot()
+    if (now === sent) return
+    sent = now
+    saving = saveMedicines(JSON.parse(now))
+    const res = await saving
+    saving = null
+    if (!res.ok) sent = '' // retried with the next change or page load
+  }
   function push() {
     if (!ready) return void (authStore.user && !loading && load(authStore.user.email)) // the last load failed: try again
     clearTimeout(timer)
-    timer = setTimeout(async () => {
-      timer = null
-      const now = snapshot()
-      if (now === sent) return
-      sent = now
-      const res = await saveMedicines(JSON.parse(now))
-      if (!res.ok) sent = '' // retried with the next change or page load
-    }, 1500)
+    timer = setTimeout(save, 1500)
   }
+
+  // Leaving the app (closing it, switching away): save now, not in 1.5 s, or the change is lost. Coming back: load the
+  // account's list again, since another device may have changed it meanwhile (each save sends the whole list).
+  document.addEventListener('visibilitychange', async () => {
+    if (document.visibilityState === 'hidden') {
+      if (!timer) return // nothing waiting to be saved
+      clearTimeout(timer)
+      save()
+    } else if (authStore.user) {
+      await saving
+      load(authStore.user.email)
+    }
+  })
 
   watch(medicines, push, { deep: true })
   watch(() => authStore.user?.email ?? (authStore.checked ? '' : undefined), load, { immediate: true })

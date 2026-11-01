@@ -5,6 +5,7 @@
 // self-host them in public/ before shipping so it works offline and no third party is involved.
 import { createWorker } from 'tesseract.js'
 import { baselineAt, planRedaction } from './sensitive.js'
+import { loadImage } from './images.js'
 
 let worker = null
 function getWorker() {
@@ -21,15 +22,6 @@ function getWorker() {
 export function warmUp() {
   if (navigator.connection?.saveData) return
   getWorker().catch(() => {})
-}
-
-function loadImage(src) {
-  return new Promise((resolve, reject) => {
-    const img = new Image()
-    img.onload = () => resolve(img)
-    img.onerror = reject
-    img.src = src
-  })
 }
 
 // Tesseract reads best with text about 30px tall and strong contrast; phone photos of small labels are often below that.
@@ -65,13 +57,12 @@ function hasDarkAreas(img) {
 }
 
 // One reading of the photo: Tesseract's lines, in reading-canvas pixels (scale × the photo).
-export async function readLines(img, filter = NORMAL) {
+async function readLines(img, filter = NORMAL) {
   const { canvas, scale } = forReading(img, filter)
   const ocr = await getWorker()
   const { data } = await ocr.recognize(canvas, {}, { blocks: true, text: true })
   return { lines: (data.blocks ?? []).flatMap((block) => block.paragraphs.flatMap((p) => p.lines)), text: data.text, scale }
 }
-export { loadImage }
 
 /**
  * @param dataUrl the (already compressed) JPEG data URL

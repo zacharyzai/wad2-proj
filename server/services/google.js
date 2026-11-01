@@ -107,7 +107,7 @@ export async function exchangeCode(code) {
 }
 
 // A short-lived (1 hour) access token for the Calendar calls.
-export const accessToken = async (refreshToken) => (await tokenRequest({ refresh_token: refreshToken, grant_type: 'refresh_token' })).access_token
+const accessToken = async (refreshToken) => (await tokenRequest({ refresh_token: refreshToken, grant_type: 'refresh_token' })).access_token
 
 // Best effort: if Google is down, the token is still deleted on our side.
 export const revoke = (refreshToken) => fetch(REVOKE_URL, { method: 'POST', body: new URLSearchParams({ token: refreshToken }) }).catch(() => {})

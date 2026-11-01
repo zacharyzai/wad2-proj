@@ -16,7 +16,7 @@ router.post('/', ttsRateLimit, async (req, res) => {
   if (!text || text.length > MAX_TTS_CHARS || !LANGS.has(lang)) {
     return sendError(res, 400, 'BAD_REQUEST', `text (1–${MAX_TTS_CHARS} characters) and lang (en, zh, ms or ta) are required`)
   }
-  if (process.env.USE_MOCK_AI !== 'false') return res.json({ ok: true, data: { audio: silentWav(), source: 'mock' } })
+  if (process.env.USE_MOCK_AI === 'true') return res.json({ ok: true, data: { audio: silentWav(), source: 'mock' } })
 
   const cached = cachedSpeech(text, lang)
   if (cached) return res.json({ ok: true, data: { audio: cached } }) // already made: costs nothing, so no quota taken
