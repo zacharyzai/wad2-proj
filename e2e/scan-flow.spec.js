@@ -380,12 +380,12 @@ test('Confirm: "Add more details" shows the empty optional fields and "Show fewe
   })
   await openSample(page, 'Metformin label')
   const more = page.getByTestId('confirm-more')
-  await expect(page.getByLabel('Amount in the pack')).toHaveCount(0)
+  await expect(page.getByLabel('Amount in the pack', { exact: true })).toHaveCount(0)
   await more.click()
-  await expect(page.getByLabel('Amount in the pack')).toBeVisible()
+  await expect(page.getByLabel('Amount in the pack', { exact: true })).toBeVisible()
   await expect(more).toHaveAttribute('aria-expanded', 'true')
   await more.click()
-  await expect(page.getByLabel('Amount in the pack')).toHaveCount(0)
+  await expect(page.getByLabel('Amount in the pack', { exact: true })).toHaveCount(0)
 })
 
 // A one-page PDF with a line of text, written by hand (no xref table: PDF.js rebuilds it).

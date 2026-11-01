@@ -143,7 +143,7 @@ test('ticks are saved to the server and are still there after a reload; keyboard
   await morning.click()
   await expect(morning).toHaveAttribute('aria-pressed', 'true')
   await expect(page.getByTestId('schedule-progress-words')).toHaveText('1 of 2 doses taken')
-  expect(sent).toEqual([{ method: 'POST', doseId: 'm1-morning', date: TODAY }])
+  await expect.poll(() => sent).toEqual([{ method: 'POST', doseId: 'm1-morning', date: TODAY }])
 
   await page.reload()
   await expect(morning).toHaveAttribute('aria-pressed', 'true')
@@ -157,7 +157,7 @@ test('ticks are saved to the server and are still there after a reload; keyboard
   // Untick.
   await morning.press('Enter')
   await expect(morning).toHaveAttribute('aria-pressed', 'false')
-  expect(sent.at(-1)).toEqual({ method: 'DELETE', doseId: 'm1-morning', date: TODAY })
+  await expect.poll(() => sent.at(-1)).toEqual({ method: 'DELETE', doseId: 'm1-morning', date: TODAY })
 })
 
 test('a tick the server could not save goes back, with a short message', async ({ page }) => {
@@ -424,7 +424,7 @@ test('access removed in Google: Reconnect, not an error page; back from Google i
   await expect(calendar).toContainText('Google Calendar was disconnected. Please connect it again.')
   await calendar.getByTestId('calendar-reconnect').click()
   await expect(page).toHaveURL(/\/schedule\?view=reminders$/) // back from "Google" on Reminders, ?google=connected tidied away
-  expect(google.connects).toEqual([{ next: '/schedule' }])
+  await expect.poll(() => google.connects).toEqual([{ next: '/schedule' }])
   await expect(calendar.getByTestId('calendar-connected')).toBeVisible()
   await expect.poll(() => google.syncs.length).toBe(2)
   expect(google.syncs[1].entries[0].doses).toHaveLength(2)
@@ -518,7 +518,7 @@ test('left open past midnight: the new day starts unticked, and ticks are saved 
   await expect(today).toContainText('October 27')
   await morning.click()
   await expect(morning).toHaveAttribute('aria-pressed', 'true')
-  expect(sent.at(-1)).toMatchObject({ method: 'POST', date: '2026-10-27' })
+  await expect.poll(() => sent.at(-1)).toMatchObject({ method: 'POST', date: '2026-10-27' })
 
   await page.clock.runFor('03:00') // 12:01 am: the page checks the day every minute
   await expect(today).toContainText('October 28')
@@ -527,7 +527,7 @@ test('left open past midnight: the new day starts unticked, and ticks are saved 
   // Just after midnight, the 8 am dose is hours away, so it asks first.
   await page.getByRole('button', { name: 'Yes, I took it' }).click()
   await expect(morning).toHaveAttribute('aria-pressed', 'true')
-  expect(sent.at(-1)).toEqual({ method: 'POST', doseId: 'm1-morning', date: '2026-10-28' })
+  await expect.poll(() => sent.at(-1)).toEqual({ method: 'POST', doseId: 'm1-morning', date: '2026-10-28' })
 })
 
 // --- Morning, afternoon, evening, bedtime: each band looks different, and the one that's due stands out ----------------------
@@ -554,13 +554,15 @@ test('in the morning: the morning band says "Take now", the evening and bedtime 
   // Night mode: the same colours, darker, still readable.
   // Chosen on the Account page, as a person would: the account's choice wins over anything stored on the device.
   await page.goto('/account')
+  const saved = page.waitForResponse((r) => r.url().endsWith('/api/auth/me') && r.request().method() === 'PATCH')
   await page.getByTestId('account-theme').getByRole('button', { name: 'Night' }).click()
+  await saved // reloading before the account has it would load the day theme again
   await page.goto('/schedule')
   await expect(band(page, '08:00')).toHaveAttribute('data-state', 'now')
   // Really the night colours: every card and its time-of-day tile is dark, not the light one.
   for (const time of ['08:00', '18:00', '21:00']) {
-    const [r, g, b] = (await band(page, time).locator('.slot-tile').evaluate((el) => getComputedStyle(el).backgroundColor)).match(/\d+/g).map(Number)
-    expect(r + g + b, time).toBeLessThan(200)
+    const brightness = async () => (await band(page, time).locator('.slot-tile').evaluate((el) => getComputedStyle(el).backgroundColor)).match(/\d+/g).slice(0, 3).map(Number).reduce((a, b) => a + b)
+    await expect.poll(brightness, { message: time }).toBeLessThan(200) // the theme may still be switching
   }
   await noAxeViolations(page)
 })
@@ -603,7 +605,7 @@ test('ticking a dose more than 2 hours early asks first; "Not yet" leaves it unt
   await evening.click()
   await page.getByRole('button', { name: 'Yes, I took it' }).click()
   await expect(evening).toHaveAttribute('aria-pressed', 'true')
-  expect(sent).toEqual([{ method: 'POST', doseId: 'm1-evening', date: TODAY }])
+  await expect.poll(() => sent).toEqual([{ method: 'POST', doseId: 'm1-evening', date: TODAY }])
 
   // The 8 am dose at 7:30: due now, so one tap. Unticking never asks.
   await tick(page, 'Metformin 500 mg', '8:00\\sAM').click()
@@ -618,7 +620,7 @@ test('ticking a dose more than 2 hours early asks first; "Not yet" leaves it unt
 test('a label that says how many tablets goes on the timetable for as long as they last, with the sums shown', async ({ page }) => {
   await mockDoses(page)
   await useSampleLabel(page, 'Metformin label') // Qty: 60 tablets, 1 tablet twice a day
-  await expect(page.getByLabel('Amount in the pack')).toHaveValue('60') // checked on Confirm like everything else
+  await expect(page.getByLabel('Amount in the pack', { exact: true })).toHaveValue('60') // checked on Confirm like everything else
   await page.getByRole('button', { name: 'Looks correct' }).click()
 
   await page.goto('/schedule')
@@ -636,8 +638,8 @@ test('a label that says how many tablets goes on the timetable for as long as th
 test('changing the amount on Confirm changes the days; leaving it empty means Schedule asks', async ({ page }) => {
   await mockDoses(page)
   await useSampleLabel(page, 'Metformin label')
-  await page.getByLabel('Amount in the pack').fill('')
-  await page.getByLabel('Amount in the pack').blur()
+  await page.getByLabel('Amount in the pack', { exact: true }).fill('')
+  await page.getByLabel('Amount in the pack', { exact: true }).blur()
   await page.getByRole('button', { name: 'Looks correct' }).click()
   await page.goto('/schedule?view=meds')
   await expect(page.getByTestId('schedule-need-days')).toContainText('How many days is this medicine for?')

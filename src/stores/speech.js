@@ -18,8 +18,6 @@ function load() {
 }
 
 const synth = typeof window !== 'undefined' && 'speechSynthesis' in window ? window.speechSynthesis : null
-// Speaking without a device voice needs the Audio element.
-export const canSpeak = typeof window !== 'undefined' && ('speechSynthesis' in window || 'Audio' in window)
 const clips = new Map() // lang + text → data URL, so a replay doesn't download it again
 
 // A tenth of a second of silence. Played inside the tap, it lets iPhones play the real clip after the download.

@@ -1,0 +1,15 @@
+/* Scoped styles for components/schedule/MedicineCard.vue and PharmacistList.vue. */
+.med-card { display: flex; flex-direction: column; gap: 14px; padding: 18px; }
+/* The details keep at least 13rem; on a narrow phone the Change button wraps under them instead of squeezing the name. */
+.med-line { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 10px 14px; }
+.med-info { flex: 1 1 13rem; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.med-name { font-size: var(--t20, 20px); font-weight: 800; line-height: 1.3; overflow-wrap: anywhere; }
+.med-times { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; }
+.med-supply { display: inline-flex; align-items: flex-start; gap: 6px; color: var(--color-text-muted); }
+.med-supply > :first-child { flex: none; margin-top: 3px; }
+.change { flex: none; }
+.manage { display: flex; flex-direction: column; gap: 8px; padding: 12px; border-radius: var(--r-tile); background: var(--color-surface-2); }
+.manage .btn { justify-content: flex-start; }
+.pharm { display: flex; flex-direction: column; gap: 16px; padding: 20px; }
+.pharm-list { list-style: none; margin: 0; padding: 0; }
+.pharm-row { display: flex; flex-direction: column; gap: 10px; padding: 14px 0; border-top: 1px solid var(--color-warning-border); }
