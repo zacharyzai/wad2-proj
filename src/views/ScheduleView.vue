@@ -97,10 +97,20 @@ const takeAll = (g) => g.doses.filter((d) => !taken.has(d.id)).forEach((d) => to
 const nextDose = computed(() => groups.value.filter((g) => g.state === 'later').flatMap((g) => g.doses).find((d) => !taken.has(d.id)))
 const RING = 2 * Math.PI * 30 // the progress ring's circumference (r = 30)
 // Reminders page: each time of day in use, with its time (from the medicines on the timetable).
+// Reminders: one row per time of day, however many medicines, with each time in it and what is due then. A medicine can have
+// its own time ("Change"), so a slot may hold several (Morning 7:30 and 8:00). Finished courses send no reminders, so they're left out.
 const doseTimes = computed(() => {
-  const byTime = new Map()
-  for (const r of timetable.value) for (const d of r.entry.doses) byTime.set(d.time, d.id.slice(r.medicine.id.length + 1))
-  return [...byTime].sort(([a], [b]) => a.localeCompare(b)).map(([time, slot]) => ({ time, slot }))
+  const slots = new Map(Object.keys(SLOT_ICONS).map((slot) => [slot, new Map()]))
+  for (const r of timetable.value) {
+    if (finishedRow(r)) continue
+    for (const d of r.entry.doses) {
+      const times = slots.get(d.id.slice(r.medicine.id.length + 1))
+      times?.set(d.time, [...(times.get(d.time) ?? []), nameOf(r.medicine.medication)])
+    }
+  }
+  return [...slots]
+    .filter(([, times]) => times.size)
+    .map(([slot, times]) => ({ slot, times: [...times].sort(([a], [b]) => a.localeCompare(b)).map(([time, names]) => ({ time, names })) }))
 })
 // What the band's label says. Taken is taken, whatever the time; a missed one says "Not ticked yet", never "take it now".
 function bandStatus(g) {
@@ -650,10 +660,15 @@ onBeforeUnmount(() => {
       <section v-if="doseTimes.length" class="card d-flex flex-column gap-2" aria-labelledby="times-title" data-testid="schedule-times">
         <h2 id="times-title" class="h3 m-0">{{ t('schedule.rem.times') }}</h2>
         <ul class="time-list">
-          <li v-for="d in doseTimes" :key="d.time">
+          <li v-for="d in doseTimes" :key="d.slot" :data-testid="`times-${d.slot}`">
             <span class="slot-tile sm" :class="`slot-${d.slot}`" aria-hidden="true"><AppIcon :name="SLOT_ICONS[d.slot] ?? 'clock'" :size="20" /></span>
             <span class="flex-grow-1">{{ t(`timing.${d.slot}`) }}</span>
-            <strong class="tnum">{{ timeText(d.time) }}</strong>
+            <ul class="slot-times">
+              <li v-for="x in d.times" :key="x.time">
+                <strong class="tnum">{{ timeText(x.time) }}</strong>
+                <span class="text-muted-a11y">{{ x.names.join(', ') }}</span>
+              </li>
+            </ul>
           </li>
         </ul>
         <p class="m-0 text-muted-a11y">{{ t('schedule.rem.timesHelp') }}</p>
