@@ -42,6 +42,14 @@ export function addDays(date, n) {
   return formatDate(utc)
 }
 
+// "I don't need this any more": the course ends now. Its last day becomes yesterday, so today's reminders stop at once and the
+// days already taken stay on record. A course that only started today ends today (it can't end before it starts).
+export function stopCourse(schedule, today) {
+  if (!schedule || !validDate(schedule.startDate) || !validDate(today)) return null
+  const daysSoFar = Math.round((parseDate(today) - parseDate(schedule.startDate)) / 86_400_000) // start..yesterday, counted in days
+  return { ...schedule, days: Math.max(1, daysSoFar) }
+}
+
 // Today's date in Singapore, whatever time zone the device is set to.
 export function todayInSingapore(now = new Date()) {
   return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Singapore', year: 'numeric', month: '2-digit', day: '2-digit' }).format(now)

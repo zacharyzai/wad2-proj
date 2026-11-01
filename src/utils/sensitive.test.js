@@ -28,6 +28,28 @@ test('whoever pays is covered too: account holder, payer, next of kin', () => {
   assert.deepEqual(covered('Next of kin: Lim Ah Beng'), ['Lim', 'Ah', 'Beng'])
 })
 
+test('an unlabelled name that comes back on several bill rows is covered on every one; charges stay', () => {
+  // Page 2 of a TTSH tax invoice: the patient's name on payment rows, with no label in front.
+  const page = [
+    'PAYMENT SUMMARY',
+    'TOTAL AMOUNT (AFTER GOVT SUBSIDY) 6,778.85',
+    'SCHEMES (SCHEME ID) / PAYOR REFERENCE NO AMOUNT PAYABLE ($)',
+    'INTEGRATED SHIELD PLAN',
+    '• MEDISHIELD LIFE 3,934.23',
+    '• INTEGRATED GREAT EASTERN SUPREMEHEALTH 361.36',
+    '• ANG CHEE SUAN ALICIA - MSV INPAT & DAY 995.82',
+    'ANG CHEE SUAN ALICIA 1,487.44',
+    'ANG CHEE SUAN ALICIA TOTAL AMOUNT PAYABLE 1,487.44',
+    'ANG CHEE SUAN ALICIA 23 MAR 2026 HEALTH HUB -1,487.44',
+  ]
+  const hits = covered(...page)
+  assert.equal(hits.filter((w) => w === 'ALICIA').length, 4)
+  for (const word of ['MEDISHIELD', 'LIFE', 'SHIELD', 'PLAN', 'TOTAL', 'AMOUNT', 'PAYABLE', 'GREAT', 'EASTERN']) assert.ok(!hits.includes(word), word)
+  // Charges whose service and description repeat in other case, and a drug name repeated on a label (no money), stay.
+  assert.deepEqual(covered('MEDICAL SUPPLIES, CONSUMABLES Medical Supplies, Consumables 702.64', 'OTHERS Others 33.00'), [])
+  assert.deepEqual(covered('AMLODIPINE BESYLATE 5MG TABLET', 'AMLODIPINE BESYLATE: take 1 every morning'), [])
+})
+
 test('a Payer or Name heading a table: the names in the rows below are covered, not the column headings', () => {
   // Real reader output from a Yishun Health interim bill (payer table).
   assert.deepEqual(

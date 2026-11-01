@@ -32,7 +32,8 @@ export async function api(path, { method = 'GET', body, timeout } = {}) {
 }
 
 // Contract: docs/scan-contract.md
-export const scanImage = (type, image, timeout) => api('/scan', { method: 'POST', body: { type, image }, timeout })
+// images: the covered pages of one label or bill, in order (usually one photo).
+export const scanImage = (type, images, timeout) => api('/scan', { method: 'POST', body: { type, images }, timeout })
 export const scanSample = (sampleId, timeout) => api('/scan', { method: 'POST', body: { sampleId }, timeout })
 
 // Contract: docs/chat-contract.md

@@ -13,6 +13,7 @@
     "withFood": "any",
     "frequencyType": "daily",
     "rawInstruction": "Take 1 tablet once a day in the morning",
+    "purpose": "blood_pressure",
     "warnings": ["Do not stop taking this medicine without asking your doctor"]
   }
 }

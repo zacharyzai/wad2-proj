@@ -10,6 +10,7 @@ import { setLocale } from '../i18n'
 import { speak as sayAloud, stopSpeaking } from '../stores/speech'
 import AppIcon from '../components/layout/AppIcon.vue'
 import DocTunnel from '../components/landing/DocTunnel.vue'
+import HandLabel from '../components/landing/HandLabel.vue'
 
 const { t, locale } = useI18n()
 
@@ -101,8 +102,6 @@ async function speak() {
 const remind = ref(true)
 // Lock-screen date: today, in the page language (only the time is made up).
 const phoneDate = () => new Date().toLocaleDateString(locale.value, { weekday: 'long', day: 'numeric', month: 'long' })
-const calendarUrl = () =>
-  `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(t('landing.doses.calEvent'))}&details=${encodeURIComponent(t('landing.doses.morningText'))}&recur=RRULE%3AFREQ%3DDAILY`
 
 // ---- Ask: once the three messages have landed, the chat carries on by itself, one message at a time, round and round.
 // Bot answers show "typing" first. It waits while off screen or in a hidden tab, and starts over when you scroll back
@@ -307,6 +306,7 @@ onMounted(() => {
   } catch {
     // Storage blocked (private mode): the welcome page just shows again next time.
   }
+  document.documentElement.classList.add('snap-sections') // scrolling stops at each section (LandingPage.css); only on this page
   addEventListener('scroll', onScroll, { passive: true })
   addEventListener('scroll', updateNav, { passive: true })
   root.value?.addEventListener('focusin', onFocusIn)
@@ -320,6 +320,7 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
+  document.documentElement.classList.remove('snap-sections')
   clearInterval(timer)
   clearInterval(scanTimer)
   clearTimeout(chatTimer)
@@ -347,7 +348,7 @@ onBeforeUnmount(() => {
       </nav>
       <div class="lnav-acts">
         <RouterLink :to="{ name: 'login' }" class="lnav-login">{{ t('nav.login') }}</RouterLink>
-        <RouterLink :to="{ name: 'login' }" class="cta sm">{{ t('landing.try') }}</RouterLink>
+        <RouterLink :to="{ name: 'login' }" class="cta sm"><HandLabel>{{ t('landing.try') }}</HandLabel></RouterLink>
       </div>
     </header>
 
@@ -373,7 +374,7 @@ onBeforeUnmount(() => {
             </div>
             <p class="lede">{{ t('landing.hero.lead') }}</p>
             <div class="ctas">
-              <RouterLink :to="{ name: 'login' }" class="cta" data-testid="landing-cta-hero">{{ t('landing.try') }}</RouterLink>
+              <RouterLink :to="{ name: 'login' }" class="cta" data-testid="landing-cta-hero"><HandLabel>{{ t('landing.try') }}</HandLabel></RouterLink>
               <button type="button" class="ghost" @click="scrollToScan">{{ t('landing.hero.how') }} <span aria-hidden="true">↓</span></button>
             </div>
           </div>
@@ -515,7 +516,6 @@ onBeforeUnmount(() => {
           <span class="kicker">{{ t('landing.doses.kicker') }}</span>
           <h2 id="doses-title" class="title2 serif">{{ t('landing.doses.title') }}</h2>
           <p class="lede">{{ t('landing.doses.text') }}</p>
-          <a :href="calendarUrl()" target="_blank" rel="noopener" class="outline"><AppIcon name="calendar" :size="22" />{{ t('landing.doses.calendar') }}</a>
         </div>
         <div class="demo">
           <div class="plan-wrap">
@@ -542,7 +542,7 @@ onBeforeUnmount(() => {
               </div>
               <div data-morph="out" data-ma="0.4" data-mb="0.56" class="blister" aria-hidden="true"><span v-for="n in 6" :key="n"></span></div>
             </div>
-            <!-- The morning dose arriving as a Calendar reminder on the phone: what "Add to Google Calendar" gives you today. -->
+            <!-- The morning dose arriving as a Calendar reminder on the phone: what Reminders gives you today. -->
             <div data-fall="4" data-a="0.66" data-b="0.97" data-r0="-10" data-dx="-40" class="phone-wrap" aria-hidden="true">
               <div ref="phoneEl" class="phone" :class="{ off: !remind, idle: !phoneSeen }" data-testid="landing-phone">
                 <span class="side vol-up"></span><span class="side vol-down"></span><span class="side power"></span>
@@ -600,7 +600,7 @@ onBeforeUnmount(() => {
       </div>
       <div class="final" data-testid="landing-final">
         <RouterLink :to="{ name: 'login' }" class="big-cta" data-fall="5" data-a="0.45" data-b="0.88" data-r0="-30" data-dx="0" data-testid="landing-cta-final">
-          <span data-morph="in" data-ma="0.86" data-mb="0.98" class="big-face">{{ t('landing.try') }} <span aria-hidden="true">→</span></span>
+          <span data-morph="in" data-ma="0.86" data-mb="0.98" class="big-face"><HandLabel>{{ t('landing.try') }}</HandLabel> <span aria-hidden="true">→</span></span>
           <span data-morph="out" data-ma="0.84" data-mb="0.96" class="capsule fill" :style="pill('coral')" aria-hidden="true"></span>
         </RouterLink>
         <p class="muted note">{{ t('landing.note') }}</p>

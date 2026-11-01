@@ -213,13 +213,19 @@
       "bill": "Contoh bil perubatan"
     },
     "covering": "Menutup butiran peribadi anda…",
+    "coveringPage": "Menutup butiran peribadi anda pada halaman {n} daripada {total}…",
     "dz": {
       "title": "Ketik untuk muat naik atau lepaskan gambar di sini",
-      "hint": "PNG, JPG, HEIC atau PDF · maksimum 10MB",
+      "hint": "PNG, JPG, HEIC atau PDF · hingga {max} halaman · maksimum 10MB setiap satu",
       "browse": "Pilih gambar",
       "change": "Tukar gambar",
       "scan": "Imbas",
       "previewAlt": "Gambar yang anda pilih",
+      "pageAlt": "Halaman {n} daripada {total}",
+      "count": "{n} halaman, dibaca mengikut susunan ini",
+      "addPage": "Tambah halaman lain",
+      "tooMany": "Anda boleh mengimbas hingga {max} halaman sekali gus.",
+      "pdfAlone": "PDF sudah mengandungi halamannya. Imbas PDF itu sahaja, atau pilih hingga {max} gambar.",
       "tooBig": "Sila pilih gambar yang kurang daripada 10MB.",
       "wrongType": "Sila pilih fail PNG, JPG, HEIC atau PDF."
     },
@@ -266,6 +272,13 @@
         "medication": "Baca label anda",
         "bill": "Baca bil anda"
       }
+    },
+    "resume": {
+      "title": "Imbasan terakhir anda",
+      "checked": "Anda sudah menyemak yang ini. Lihat maksudnya semula.",
+      "unchecked": "Belum disemak. Teruskan menyemak.",
+      "seeAgain": "Lihat semula",
+      "carryOn": "Teruskan"
     },
     "choose": {
       "question": "Apakah yang anda mahu imbas hari ini?",
@@ -330,6 +343,8 @@
     "pleaseCheck": "Sila semak",
     "couldntRead": "Kami tidak dapat membaca bahagian ini, jadi ia dibiarkan kosong. Semak label atau tanya ahli farmasi.",
     "yourPhoto": "Gambar anda",
+    "yourPages": "{n} halaman anda",
+    "pageAlt": "Halaman {n} daripada {total}",
     "showPhoto": "Tunjuk gambar",
     "hidePhoto": "Sembunyi gambar",
     "ok": "Semuanya betul",
@@ -338,7 +353,6 @@
     "scanOther": "Imbas yang lain",
     "med": {
       "name": "Nama ubat",
-      "strength": "Kekuatan",
       "amount": "Jumlah setiap kali",
       "unit": "Unit",
       "howOften": "Cara mengambil",
@@ -348,6 +362,7 @@
       "other": "Arahan lain pada label (satu setiap baris)",
       "quantity": "Jumlah dalam pek",
       "quantityHelp": "Seperti pada label, contohnya Qty: 60. Kami gunakannya untuk mengira berapa hari ubat ini cukup. Biarkan kosong jika label tidak menyatakannya.",
+      "purpose": "Kegunaannya",
       "more": "Tambah butiran lanjut",
       "fewer": "Tunjuk kurang butiran"
     },
@@ -373,12 +388,40 @@
       "times": "Kali sehari mesti nombor bulat dari 1 hingga 6.",
       "timing": "Anda menanda {ticked} waktu, tetapi ia menyatakan {times} kali sehari. Tanda waktu yang betul, atau ubah nombornya."
     },
+    "duplicate": {
+      "title": "{name} sudah ada dalam senarai anda",
+      "text": "Menyimpan label ini akan mengemas kini ubat itu dengan butiran yang anda semak di sini. Jika anda masih mengambilnya, jadual dan tandanya kekal sama.",
+      "yes": "Kemas kini ubat saya",
+      "no": "Kembali"
+    },
     "discard": {
       "title": "Buang perubahan anda?",
       "text": "Anda telah mengubah beberapa butiran. Jika anda keluar sekarang, perubahan itu akan hilang.",
       "keep": "Teruskan menyemak",
       "yes": "Buang dan keluar"
-    }
+    },
+    "pagesAll": "PDF ini ada {total} halaman. Kami telah membaca semuanya.",
+    "pagesSome": "PDF ini ada {total} halaman. Kami membaca {read} halaman: halaman pertama dan halaman terakhir, tempat jumlah keseluruhan. Semak jumlahnya, dan imbas halaman di antara secara berasingan jika ada caj yang tiada."
+  },
+  "purpose": {
+    "lead": "Biasanya digunakan untuk",
+    "note": "Tidak pasti? Tanya ahli farmasi anda.",
+    "pain": "sakit dan bengkak",
+    "blood_pressure": "tekanan darah tinggi",
+    "diabetes": "diabetes (gula darah)",
+    "cholesterol": "kolesterol tinggi",
+    "heart": "jantung",
+    "infection": "jangkitan (antibiotik)",
+    "stomach": "perut dan asid",
+    "allergy": "alahan",
+    "cough_cold": "batuk dan selsema",
+    "breathing": "pernafasan (asma)",
+    "mood_sleep": "mood atau tidur",
+    "skin": "kulit",
+    "vitamins": "vitamin dan suplemen"
+  },
+  "tip": {
+    "more": "Maklumat lanjut: {name}"
   },
   "unit": {
     "tablet": "biji",
@@ -1035,8 +1078,18 @@
     "tickLabel": "Sudah ambil: {name}, {time}",
     "tickFailed": "Tanda itu tidak disimpan. Sila cuba lagi.",
     "saved": "Jadual disimpan",
-    "removed": "{name} dibuang",
+    "removed": "{name} dipadam daripada senarai anda",
     "undo": "Buat asal",
+    "stop": {
+      "button": "Saya tidak perlukan ubat ini lagi",
+      "ask": "Hentikan peringatan untuk {name}?",
+      "text": "Ini hanya menghentikan peringatan. Jika anda tidak pasti sama ada selamat untuk berhenti, tanya doktor atau ahli farmasi anda dahulu.",
+      "yes": "Hentikan peringatan",
+      "no": "Kekalkan",
+      "done": "Peringatan untuk {name} dihentikan",
+      "back": "{name} kembali dalam jadual anda",
+      "again": "Mula semula"
+    },
     "meds": {
       "title": "Ubat saya",
       "until": "{start} hingga {end}",
@@ -1046,8 +1099,8 @@
       "needDaysHelp": "Semak label atau tanya ahli farmasi anda. Kami tambah ke jadual anda setelah anda beritahu kami.",
       "setDays": "Masukkan bilangan hari",
       "setDaysOne": "Masukkan bilangan hari untuk {name}",
-      "remove": "Buang",
-      "removeOne": "Buang {name}",
+      "remove": "Padam daripada senarai saya",
+      "removeOne": "Padam {name} daripada senarai saya",
       "change": "Ubah",
       "changeOne": "Ubah {name}",
       "daysTimes": "Hari dan masa",

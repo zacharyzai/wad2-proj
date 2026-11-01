@@ -48,7 +48,7 @@ async function openSample(id) {
   if (!res.ok) return (errorCode.value = res.error.code)
   // Samples are fixed, known-good data, so they don't need checking on Confirm.
   scanStore.current = res.data
-  scanStore.photo = null
+  scanStore.photos = []
   scanStore.confirmed = true
   openedHere.value = true
 }

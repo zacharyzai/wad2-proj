@@ -7,6 +7,7 @@
 // A language picked while logged out (Login, Sign up, welcome page) wins at login and becomes the account's.
 // Day/night mode is part of the account too: asked once after signing up (ThemePrompt), changed on the Account page.
 import { reactive, watch } from 'vue'
+import { forgetScan } from './scan'
 import { api, TOKEN_KEY, readToken } from '../api/client'
 import i18n, { setLocale } from '../i18n'
 import { resetTheme, setTheme } from '../theme'
@@ -191,5 +192,6 @@ export function logout() {
   save(null)
   authStore.user = null
   authStore.checked = true
+  forgetScan()
   resetTheme()
 }

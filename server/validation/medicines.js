@@ -1,11 +1,11 @@
 // The medicine list saved to an account (PUT /api/schedule, src/stores/medicines.js shape). Checked field by field, so only
 // contract fields, sizes and our own enums are stored: never a photo or anything else a client adds.
 // Lenient where Confirm is: a medicine typed in Ask has only a name and instructions.
-import { DOSE_UNITS, FREQUENCY_TYPES, TIMINGS, WITH_FOOD } from '../services/normalizeScan.js'
+import { DOSE_UNITS, FREQUENCY_TYPES, PURPOSES, TIMINGS, WITH_FOOD } from '../services/normalizeScan.js'
 import { validDate, validDays, validTime } from '../../src/rules/schedule.js'
 
 export const MAX_MEDICINES = 10 // same limit as src/stores/medicines.js
-const MED_KEYS = ['name', 'strength', 'doseAmount', 'doseUnit', 'quantity', 'timesPerDay', 'timing', 'withFood', 'frequencyType', 'rawInstruction', 'warnings']
+const MED_KEYS = ['name', 'strength', 'doseAmount', 'doseUnit', 'quantity', 'timesPerDay', 'timing', 'withFood', 'frequencyType', 'rawInstruction', 'purpose', 'warnings']
 
 const fail = (field) => { throw new Error(`Invalid medicine: ${field}`) }
 const plain = (value, keys, field) => {
@@ -39,7 +39,7 @@ function checkMedicine(raw) {
       doseAmount: number(m.doseAmount, 'doseAmount', 100), doseUnit: choice(m.doseUnit, DOSE_UNITS, 'doseUnit'),
       quantity: number(m.quantity, 'quantity', 100000), timesPerDay: number(m.timesPerDay, 'timesPerDay', 6, true), timing,
       withFood: choice(m.withFood, WITH_FOOD, 'withFood'), frequencyType: choice(m.frequencyType, FREQUENCY_TYPES, 'frequencyType'),
-      rawInstruction: text(m.rawInstruction, 'rawInstruction'), warnings: (m.warnings ?? []).map((w) => text(w, 'warning') ?? fail('warning')),
+      rawInstruction: text(m.rawInstruction, 'rawInstruction'), purpose: choice(m.purpose, PURPOSES, 'purpose'), warnings: (m.warnings ?? []).map((w) => text(w, 'warning') ?? fail('warning')),
     },
   }
   if (raw.schedule != null) {

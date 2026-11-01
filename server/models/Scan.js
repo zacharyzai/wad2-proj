@@ -1,6 +1,6 @@
 // Owner: Sheen Hern. Confirmed contract data only; never an uploaded photo or account profile.
 import mongoose from 'mongoose'
-import { BILL_CATEGORIES, BILL_PLACES, DOSE_UNITS, FREQUENCY_TYPES, SUBSIDY_SCHEMES, TIMINGS, WITH_FOOD } from '../services/normalizeScan.js'
+import { BILL_CATEGORIES, BILL_PLACES, DOSE_UNITS, FREQUENCY_TYPES, PURPOSES, SUBSIDY_SCHEMES, TIMINGS, WITH_FOOD } from '../services/normalizeScan.js'
 
 const nested = { _id: false, strict: 'throw' }
 const text = { type: String, default: null, maxlength: 2000 }
@@ -14,7 +14,8 @@ const medication = new mongoose.Schema({
   timing: { type: [{ type: String, enum: TIMINGS }], default: null },
   withFood: { type: String, enum: [...WITH_FOOD, null], default: null },
   frequencyType: { type: String, required: true, enum: FREQUENCY_TYPES },
-  rawInstruction: text, warnings: [{ type: String, maxlength: 2000 }],
+  rawInstruction: text, purpose: { type: String, enum: [...PURPOSES, null], default: null },
+  warnings: [{ type: String, maxlength: 2000 }],
 }, nested)
 const bill = new mongoose.Schema({
   clinic: text, place: { type: String, enum: [...BILL_PLACES, null], default: null },

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 
 // Low limits so the rate-limit tests stay fast. Must be set before the app is imported.
 process.env.USE_MOCK_AI = 'true'
-process.env.SCAN_RATE_LIMIT = '6'
+process.env.SCAN_RATE_LIMIT = '12' // room for the bad-input cases before the rate limit test uses up the rest
 process.env.AI_DAILY_CAP = '1000'
 process.env.JWT_SECRET = 'test-secret-for-auth-checks-at-least-32-bytes'
 const { default: app } = await import('../app.js')
@@ -63,13 +63,30 @@ test('unknown or path-like sampleId is 404', async () => {
 })
 
 test('invalid input is 400 with error envelope', async () => {
-  for (const body of [{}, { type: 'xray', image: TINY_PNG }, { type: 'constructor', image: TINY_PNG }, { type: 'bill', image: 'hello' }, '{bad json']) {
+  const pages = (n) => Array(n).fill(TINY_PNG)
+  for (const body of [
+    {},
+    { type: 'xray', image: TINY_PNG },
+    { type: 'constructor', image: TINY_PNG },
+    { type: 'bill', image: 'hello' },
+    { type: 'bill', images: [] },
+    { type: 'bill', images: pages(5) },
+    { type: 'bill', images: [TINY_PNG, 'hello'] },
+    { type: 'bill', images: TINY_PNG },
+    '{bad json',
+  ]) {
     const res = await scan(body)
     assert.equal(res.status, 400)
     const json = await res.json()
     assert.equal(json.ok, false)
     assert.equal(json.error.code, 'BAD_REQUEST')
   }
+})
+
+test('the pages of one bill can be sent together', async () => {
+  const res = await scan({ type: 'bill', images: [TINY_PNG, TINY_PNG, TINY_PNG, TINY_PNG] })
+  assert.equal(res.status, 200)
+  assert.equal((await res.json()).data.type, 'bill')
 })
 
 test('oversized body is 413 IMAGE_TOO_LARGE', async () => {
@@ -94,7 +111,7 @@ test('scanning without a login is refused before anything else runs', async () =
 test('image scans are rate limited per IP, samples are not', async () => {
   // Earlier tests already sent image requests, so the limit may be hit before the loop ends.
   let res
-  for (let i = 0; i < 8; i++) res = await scan({ type: 'medication', image: TINY_PNG })
+  for (let i = 0; i < 14; i++) res = await scan({ type: 'medication', image: TINY_PNG })
   assert.equal(res.status, 429)
   assert.equal((await res.json()).error.code, 'RATE_LIMITED')
   assert.ok(res.headers.get('ratelimit'))

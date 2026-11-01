@@ -213,13 +213,19 @@
       "bill": "Sample medical bill"
     },
     "covering": "Covering your personal details…",
+    "coveringPage": "Covering your personal details on page {n} of {total}…",
     "dz": {
       "title": "Tap to upload or drop a photo",
-      "hint": "PNG, JPG, HEIC or PDF · max 10MB",
+      "hint": "PNG, JPG, HEIC or PDF · up to {max} pages · max 10MB each",
       "browse": "Browse photos",
       "change": "Change photo",
       "scan": "Scan",
       "previewAlt": "The photo you chose",
+      "pageAlt": "Page {n} of {total}",
+      "count": "{n} pages, read in this order",
+      "addPage": "Add another page",
+      "tooMany": "You can scan up to {max} pages at a time.",
+      "pdfAlone": "A PDF already has its pages. Scan it on its own, or choose up to {max} photos.",
       "tooBig": "Please choose a photo under 10MB.",
       "wrongType": "Please choose a PNG, JPG, HEIC or PDF file."
     },
@@ -266,6 +272,13 @@
         "medication": "Read your label",
         "bill": "Read your bill"
       }
+    },
+    "resume": {
+      "title": "Your last scan",
+      "checked": "You checked this one. See what it means again.",
+      "unchecked": "Not checked yet. Carry on checking it.",
+      "seeAgain": "See again",
+      "carryOn": "Carry on"
     },
     "choose": {
       "question": "What would you like to scan today?",
@@ -330,6 +343,8 @@
     "pleaseCheck": "Please check",
     "couldntRead": "We couldn’t read this, so nothing is filled in. Check the label or ask the pharmacist.",
     "yourPhoto": "Your photo",
+    "yourPages": "Your {n} pages",
+    "pageAlt": "Page {n} of {total}",
     "showPhoto": "Show photo",
     "hidePhoto": "Hide photo",
     "ok": "Looks correct",
@@ -338,7 +353,6 @@
     "scanOther": "Scan something else",
     "med": {
       "name": "Medicine name",
-      "strength": "Strength",
       "amount": "Amount each time",
       "unit": "Unit",
       "howOften": "How to take it",
@@ -348,6 +362,7 @@
       "other": "Other instructions on the label (one per line)",
       "quantity": "Amount in the pack",
       "quantityHelp": "As on the label, for example Qty: 60. We use it to work out how many days it lasts. Leave it empty if the label doesn’t say.",
+      "purpose": "What it is for",
       "more": "Add more details",
       "fewer": "Show fewer details"
     },
@@ -373,12 +388,40 @@
       "times": "Times a day must be a whole number from 1 to 6.",
       "timing": "You ticked {ticked} time of day, but it says {times} times a day. Tick the right times, or change the number. | You ticked {ticked} times of day, but it says {times} times a day. Tick the right times, or change the number."
     },
+    "duplicate": {
+      "title": "You already have {name} on your list",
+      "text": "Saving this label updates it with the details you checked here. If you are still taking it, its schedule and ticks stay the same.",
+      "yes": "Update my medicine",
+      "no": "Go back"
+    },
     "discard": {
       "title": "Throw away your changes?",
       "text": "You changed some details. If you leave now, those changes are lost.",
       "keep": "Keep checking",
       "yes": "Throw away and leave"
-    }
+    },
+    "pagesAll": "This PDF has {total} pages. We read all of them.",
+    "pagesSome": "This PDF has {total} pages. We read {read} of them: the first pages and the last page, where the total is. Check the amounts, and scan the pages in between separately if a charge is missing."
+  },
+  "purpose": {
+    "lead": "Usually used for",
+    "note": "Not sure? Ask your pharmacist.",
+    "pain": "pain and swelling",
+    "blood_pressure": "high blood pressure",
+    "diabetes": "diabetes (blood sugar)",
+    "cholesterol": "high cholesterol",
+    "heart": "the heart",
+    "infection": "infection (antibiotic)",
+    "stomach": "the stomach and acid",
+    "allergy": "allergy",
+    "cough_cold": "cough and cold",
+    "breathing": "breathing (asthma)",
+    "mood_sleep": "mood or sleep",
+    "skin": "the skin",
+    "vitamins": "vitamins and supplements"
+  },
+  "tip": {
+    "more": "More about: {name}"
   },
   "unit": {
     "tablet": "tablet | tablets",
@@ -1035,8 +1078,18 @@
     "tickLabel": "Taken: {name}, {time}",
     "tickFailed": "That tick was not saved. Please try again.",
     "saved": "Schedule saved",
-    "removed": "{name} removed",
+    "removed": "{name} deleted from your list",
     "undo": "Undo",
+    "stop": {
+      "button": "I don't need this any more",
+      "ask": "Stop reminders for {name}?",
+      "text": "This only stops the reminders. If you are not sure it is safe to stop, ask your doctor or pharmacist first.",
+      "yes": "Stop reminders",
+      "no": "Keep it",
+      "done": "Reminders for {name} stopped",
+      "back": "{name} is back on your timetable",
+      "again": "Start again"
+    },
     "meds": {
       "title": "My medicines",
       "until": "{start} to {end}",
@@ -1046,8 +1099,8 @@
       "needDaysHelp": "Check the label or ask your pharmacist. We add it to your timetable once you tell us.",
       "setDays": "Add number of days",
       "setDaysOne": "Add number of days for {name}",
-      "remove": "Remove",
-      "removeOne": "Remove {name}",
+      "remove": "Delete from my list",
+      "removeOne": "Delete {name} from my list",
       "change": "Change",
       "changeOne": "Change {name}",
       "daysTimes": "Days and times",

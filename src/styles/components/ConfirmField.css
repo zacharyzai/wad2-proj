@@ -1,5 +1,6 @@
 /* Scoped styles for ConfirmField.vue. A flagged field becomes an amber box with a "Please check" badge. */
-.field-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+.field-row { position: relative; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; } /* position: the "i" help opens across this row */
+.label-group { display: inline-flex; align-items: center; gap: 10px; }
 /* Every field has the box, see-through unless flagged, and the negative margin keeps it outside the layout:
    fixing a field fades the amber away instead of the fields below jumping up. 8px, so two flagged side by side keep a gap. */
 .field { padding: 6px; margin: -8px; border: 2px solid transparent; border-radius: 18px; transition: background-color 200ms var(--ease-out), border-color 200ms var(--ease-out); }

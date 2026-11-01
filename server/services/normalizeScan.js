@@ -7,6 +7,9 @@ export const DOSE_UNITS = ['tablet', 'capsule', 'ml', 'puff', 'drop', 'other']
 export const TIMINGS = ['morning', 'afternoon', 'evening', 'bedtime']
 export const WITH_FOOD = ['before', 'after', 'with', 'any']
 export const FREQUENCY_TYPES = ['daily', 'as_needed', 'weekly', 'tapering', 'other']
+// What a medicine is usually for, as a short fixed list. The AI only picks one of these (or null); the words people read come
+// from human-checked templates (i18n `purpose.<key>`), never from the AI. docs/scan-contract.md.
+export const PURPOSES = ['pain', 'blood_pressure', 'diabetes', 'cholesterol', 'heart', 'infection', 'stomach', 'allergy', 'cough_cold', 'breathing', 'mood_sleep', 'skin', 'vitamins']
 export const BILL_CATEGORIES = ['consultation', 'medication', 'investigation', 'procedure', 'ward', 'tax', 'other']
 // insurance: MediShield Life, Integrated Shield, private or employer insurance. Lowers what is paid, like a subsidy.
 // paid: money already paid earlier (a deposit at admission, an earlier payment), taken off what is still due.
@@ -46,6 +49,7 @@ export function normalizeMedication(raw = {}) {
     withFood: oneOf(raw.withFood, WITH_FOOD),
     frequencyType: oneOf(raw.frequencyType, FREQUENCY_TYPES),
     rawInstruction: str(raw.rawInstruction),
+    purpose: oneOf(raw.purpose, PURPOSES), // optional: null when unsure, and never flagged as unclear
     warnings: Array.isArray(raw.warnings) ? raw.warnings.map(str).filter(Boolean) : [],
   }
 
@@ -73,6 +77,8 @@ const schemeFor = (d) =>
           : /subsid/i.test(d) ? 'government'
             : 'other'
 
+// A row that only continues the description above it: starts with a dosage form or a strength.
+const CONTINUATION = /^\(?\s*(tablets?|tabs?|capsules?|caps?|syrup|cream|ointment|drops?|\d+(\.\d+)?\s?(mg|mcg|ml|g|iu)\b)/i
 export function normalizeBill(raw = {}) {
   const unclear = []
   const list = (v) => (Array.isArray(v) ? v : [])
@@ -97,14 +103,25 @@ export function normalizeBill(raw = {}) {
     }
     // "GST at 7% is included in this bill": already inside the charges, so never added again.
     if (description && /\bgst\b/i.test(description) && /includ/i.test(description)) continue
+    // "GST absorbed by Govt" (subsidised patients): the government pays the GST, so it is no charge to the patient. The
+    // model only says whether that line is printed; dropping the GST is our rule, since the model kept listing it anyway.
+    if (raw.gstAbsorbed === true && description && (/\bgst\b/i.test(description) || line?.category === 'tax')) continue
     const off = dollars !== null && dollars < 0
     if (description && MEDISAVE.test(description) && dollars !== null) medisaveLines.push(Math.abs(dollars))
     else if (off || (description && DEDUCTION.test(description) && dollars !== null)) subsidies.push({ scheme: schemeFor(description ?? ''), amountCents: dollarsToCents(Math.abs(dollars)), includedInItems: false, moved: true })
+    else if (description && CONTINUATION.test(description) && description.length <= 20 && charges.length && charges.at(-1).section === str(line?.section)) {
+      // A wrapped description ("Paracetamol" / "Tablet (42mg)") read as its own line: join it back to the item above.
+      // If it carried an amount too, we can't tell which of the two is the real price, so the person is asked to check.
+      const prev = charges.at(-1)
+      prev.description = `${prev.description} ${description}`
+      if (dollars !== null) prev.check = true
+    }
     else charges.push({ description, category: oneOf(line?.category, BILL_CATEGORIES) ?? 'other', amountCents: dollars === null ? null : dollarsToCents(dollars), section: str(line?.section) })
   }
   const items = charges.map((item, i) => {
     if (item.description === null) unclear.push(`bill.items.${i}.description`)
-    if (item.amountCents === null) unclear.push(`bill.items.${i}.amountCents`)
+    if (item.amountCents === null || item.check) unclear.push(`bill.items.${i}.amountCents`)
+    delete item.check
     return item
   })
 

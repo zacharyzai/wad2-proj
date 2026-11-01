@@ -213,13 +213,19 @@
       "bill": "示例医药账单"
     },
     "covering": "正在遮盖您的个人资料…",
+    "coveringPage": "正在遮盖第 {n} 页（共 {total} 页）的个人资料…",
     "dz": {
       "title": "点击上传或拖入照片",
-      "hint": "PNG、JPG、HEIC 或 PDF · 最大 10MB",
+      "hint": "PNG、JPG、HEIC 或 PDF · 最多 {max} 页 · 每个最大 10MB",
       "browse": "选择照片",
       "change": "更换照片",
       "scan": "扫描",
       "previewAlt": "您选择的照片",
+      "pageAlt": "第 {n} 页，共 {total} 页",
+      "count": "{n} 页，按这个顺序读取",
+      "addPage": "再加一页",
+      "tooMany": "每次最多可以扫描 {max} 页。",
+      "pdfAlone": "PDF 已经包含所有页面。请单独扫描 PDF，或选择最多 {max} 张照片。",
       "tooBig": "请选择小于 10MB 的照片。",
       "wrongType": "请选择 PNG、JPG、HEIC 或 PDF 文件。"
     },
@@ -266,6 +272,13 @@
         "medication": "读取您的药物标签",
         "bill": "读取您的账单"
       }
+    },
+    "resume": {
+      "title": "您上一次的扫描",
+      "checked": "这份您已经核对过了。可以再看一遍它的意思。",
+      "unchecked": "还没有核对完。请继续核对。",
+      "seeAgain": "再看一遍",
+      "carryOn": "继续"
     },
     "choose": {
       "question": "您今天想扫描什么？",
@@ -330,6 +343,8 @@
     "pleaseCheck": "请核对",
     "couldntRead": "这部分读不清楚，所以没有填写。请看标签或询问药剂师。",
     "yourPhoto": "您的照片",
+    "yourPages": "您的 {n} 页",
+    "pageAlt": "第 {n} 页，共 {total} 页",
     "showPhoto": "显示照片",
     "hidePhoto": "隐藏照片",
     "ok": "没有问题",
@@ -338,7 +353,6 @@
     "scanOther": "扫描其他内容",
     "med": {
       "name": "药名",
-      "strength": "规格",
       "amount": "每次用量",
       "unit": "单位",
       "howOften": "服用方式",
@@ -348,6 +362,7 @@
       "other": "标签上的其他说明（每行一条）",
       "quantity": "包装里的数量",
       "quantityHelp": "按标签填写，例如 Qty: 60。我们用它来算出能服用几天。标签上没有写就留空。",
+      "purpose": "用途",
       "more": "添加更多详情",
       "fewer": "收起详情"
     },
@@ -373,12 +388,40 @@
       "times": "每天次数必须是 1 到 6 的整数。",
       "timing": "您勾选了 {ticked} 个时间，但上面写每天 {times} 次。请勾选正确的时间，或改数字。"
     },
+    "duplicate": {
+      "title": "您的列表里已经有 {name}",
+      "text": "保存这张标签会用您在这里检查过的资料更新它。如果您还在服用，它的时间表和已打勾的记录不变。",
+      "yes": "更新我的药",
+      "no": "返回"
+    },
     "discard": {
       "title": "要放弃您的修改吗？",
       "text": "您改了一些资料。如果现在离开，这些修改会丢失。",
       "keep": "继续检查",
       "yes": "放弃并离开"
-    }
+    },
+    "pagesAll": "这份 PDF 共有 {total} 页，我们已全部读取。",
+    "pagesSome": "这份 PDF 共有 {total} 页，我们读取了其中 {read} 页：前几页和最后一页（总额所在页）。请核对金额；如果缺少费用，请单独扫描中间的页面。"
+  },
+  "purpose": {
+    "lead": "通常用于",
+    "note": "不确定？请询问药剂师。",
+    "pain": "疼痛和肿胀",
+    "blood_pressure": "高血压",
+    "diabetes": "糖尿病（血糖）",
+    "cholesterol": "高胆固醇",
+    "heart": "心脏",
+    "infection": "感染（抗生素）",
+    "stomach": "胃部和胃酸",
+    "allergy": "过敏",
+    "cough_cold": "咳嗽和感冒",
+    "breathing": "呼吸（哮喘）",
+    "mood_sleep": "情绪或睡眠",
+    "skin": "皮肤",
+    "vitamins": "维他命和补充剂"
+  },
+  "tip": {
+    "more": "了解更多：{name}"
   },
   "unit": {
     "tablet": "粒",
@@ -1035,8 +1078,18 @@
     "tickLabel": "已服：{name}，{time}",
     "tickFailed": "刚才的打勾没有保存，请再试一次。",
     "saved": "时间表已保存",
-    "removed": "已移除 {name}",
+    "removed": "已从列表中删除{name}",
     "undo": "撤销",
+    "stop": {
+      "button": "我不再需要这个药",
+      "ask": "停止{name}的提醒吗？",
+      "text": "这只会停止提醒。如果不确定能否停药，请先询问医生或药剂师。",
+      "yes": "停止提醒",
+      "no": "继续保留",
+      "done": "已停止{name}的提醒",
+      "back": "{name}已回到您的服药时间表",
+      "again": "重新开始"
+    },
     "meds": {
       "title": "我的药物",
       "until": "{start} 至 {end}",
@@ -1046,8 +1099,8 @@
       "needDaysHelp": "请看标签或问药剂师。告诉我们后，就会加入您的时间表。",
       "setDays": "填写天数",
       "setDaysOne": "填写 {name} 的天数",
-      "remove": "移除",
-      "removeOne": "移除 {name}",
+      "remove": "从我的列表中删除",
+      "removeOne": "从我的列表中删除{name}",
       "change": "更改",
       "changeOne": "更改 {name}",
       "daysTimes": "天数和时间",

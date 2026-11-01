@@ -303,7 +303,7 @@ test("the medicine list belongs to the account: any device loads it, and the car
   const today = todayInSingapore()
   const medicine = (id, frequencyType, schedule) => ({ id, source: 'label', sample: false, ...(schedule && { schedule }),
     medication: { name: `Medicine ${id}`, strength: '500 mg', doseAmount: 1, doseUnit: 'tablet', quantity: null, timesPerDay: frequencyType === 'daily' ? 2 : null,
-      timing: frequencyType === 'daily' ? ['morning', 'bedtime'] : null, withFood: null, frequencyType, rawInstruction: null, warnings: [] } })
+      timing: frequencyType === 'daily' ? ['morning', 'bedtime'] : null, withFood: null, frequencyType, rawInstruction: null, purpose: null, warnings: [] } })
   const medicines = [
     medicine('m1', 'daily', { startDate: today, days: 7, times: { bedtime: '21:30' } }),
     medicine('old', 'daily', { startDate: addDays(today, -9), days: 7, times: {} }), // course ended

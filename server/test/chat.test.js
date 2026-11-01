@@ -68,6 +68,17 @@ test('mock mode: answers from the medicine list, or asks which medicine', async 
   assert.equal(data.type, 'ANSWER')
 })
 
+test('ten busy labels in full are accepted, and an oversized or nameless list says what is wrong', async () => {
+  const busy = { source: 'label', medication: { ...med1.medication, rawInstruction: 'x'.repeat(300), warnings: Array(5).fill('May cause dizziness or drowsiness. Do not drive.') } }
+  assert.equal((await ask({ ...valid, medicines: Array(10).fill(busy) })).status, 200) // used to sit at the old 6000-character limit
+  const big = await ask({ ...valid, medicines: [{ source: 'label', medication: { ...med1.medication, warnings: ['x'.repeat(10000)] } }] })
+  assert.equal(big.status, 400)
+  assert.match((await big.json()).error.message, /too much medicine text/) // not "each medicine needs a source and a name"
+  const nameless = await ask({ ...valid, medicines: [{ source: 'typed', medication: { rawInstruction: 'no name' } }] })
+  assert.equal(nameless.status, 400)
+  assert.match((await nameless.json()).error.message, /needs a source/)
+})
+
 test('bad input is 400', async () => {
   const bad = [
     { ...valid, lang: 'fr' },
@@ -78,7 +89,7 @@ test('bad input is 400', async () => {
     { ...valid, medicines: [null] },
     { ...valid, medicines: [{ source: 'ai', medication: med1.medication }] },
     { ...valid, medicines: [{ source: 'typed', medication: { rawInstruction: 'no name' } }] },
-    { ...valid, medicines: [{ source: 'label', medication: { ...med1.medication, warnings: ['x'.repeat(7000)] } }] },
+    { ...valid, medicines: [{ source: 'label', medication: { ...med1.medication, warnings: ['x'.repeat(10000)] } }] },
     { ...valid, history: 'earlier' },
     { ...valid, history: Array(5).fill({ q: 'Hi', a: 'Hello' }) },
     { ...valid, history: [{ q: 'Hi' }] },

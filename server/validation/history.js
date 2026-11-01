@@ -1,5 +1,5 @@
 // Validate confirmed contract JSON, not raw AI output. Do not normalize bill cents as dollars.
-import { BILL_CATEGORIES, BILL_PLACES, DOSE_UNITS, FREQUENCY_TYPES, SUBSIDY_SCHEMES, TIMINGS, WITH_FOOD } from '../services/normalizeScan.js'
+import { BILL_CATEGORIES, BILL_PLACES, DOSE_UNITS, FREQUENCY_TYPES, PURPOSES, SUBSIDY_SCHEMES, TIMINGS, WITH_FOOD } from '../services/normalizeScan.js'
 
 const fail = (field) => { throw new Error(`Invalid confirmed scan: ${field}`) }
 function object(value, keys, field) {
@@ -37,7 +37,7 @@ export function checkConfirmedScan(body) {
     if (type === 'medication') {
       if (s.bill !== undefined) fail('bill on a medication scan')
       const m = s.medication
-      object(m, ['name', 'strength', 'doseAmount', 'doseUnit', 'quantity', 'timesPerDay', 'timing', 'withFood', 'frequencyType', 'rawInstruction', 'warnings'], 'medication fields')
+      object(m, ['name', 'strength', 'doseAmount', 'doseUnit', 'quantity', 'timesPerDay', 'timing', 'withFood', 'frequencyType', 'rawInstruction', 'purpose', 'warnings'], 'medication fields')
       if (typeof m.doseAmount !== 'number' || !Number.isFinite(m.doseAmount) || m.doseAmount <= 0 || m.doseAmount > 100) fail('doseAmount')
       // How much was given ("Qty: 60 tablets"): optional; Schedule works out how long it lasts from it (docs/scan-contract.md).
       const quantity = m.quantity ?? null
@@ -53,6 +53,7 @@ export function checkConfirmedScan(body) {
         doseUnit: choice(m.doseUnit, DOSE_UNITS, 'doseUnit', true), quantity, timesPerDay: times, timing,
         withFood: choice(m.withFood, WITH_FOOD, 'withFood', true), frequencyType,
         rawInstruction: text(m.rawInstruction, 'rawInstruction'),
+        purpose: choice(m.purpose, PURPOSES, 'purpose', true),
         warnings: list(m.warnings, 'warnings', 50).map((w) => text(w, 'warning', true)),
       } } }
     }

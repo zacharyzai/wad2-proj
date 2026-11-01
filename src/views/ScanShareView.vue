@@ -42,8 +42,9 @@ const view = computed(() => {
     const perDay = m.timesPerDay != null ? `${m.timesPerDay}× ${t('explain.stat.perDay')}` : ''
     const when = m.timing?.length ? m.timing.map((k) => t(`timing.${k}`)).join(t('explain.sep')) : ''
     const food = m.withFood ? t(`food.${m.withFood}`) : ''
-    const facts = [dose && { icon: 'pill', text: dose }, perDay && { icon: 'clock', text: perDay }, when && { icon: 'sun', text: when }, food && { icon: 'food', text: food }].filter(Boolean)
-    return { tag: t('explain.tag.medication'), icon: 'pill', name: m.name, sub: m.strength, facts, warnings: m.warnings ?? [], speech: [m.name, ...facts.map((f) => f.text), ...(m.warnings ?? [])].filter(Boolean).join('. ') }
+    const purpose = m.purpose ? `${t('purpose.lead')} ${t(`purpose.${m.purpose}`)}` : ''
+    const facts = [purpose && { icon: 'heart', text: purpose }, dose && { icon: 'pill', text: dose }, perDay && { icon: 'clock', text: perDay }, when && { icon: 'sun', text: when }, food && { icon: 'food', text: food }].filter(Boolean)
+    return { tag: t('explain.tag.medication'), icon: 'pill', name: m.name, facts, warnings: m.warnings ?? [], speech: [m.name, ...facts.map((f) => f.text), ...(m.warnings ?? [])].filter(Boolean).join('. ') }
   }
   const b = s.bill
   const pay = b.totalPayableCents != null ? money(b.totalPayableCents) : ''

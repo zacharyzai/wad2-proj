@@ -6,10 +6,10 @@ import { useI18n } from 'vue-i18n'
 import { scanStore } from '../stores/scan'
 import { authStore } from '../stores/auth'
 import { saveScan } from '../api/client'
-import { rememberMedicine, replaceMedicine } from '../stores/medicines'
+import { rememberMedicine, replaceMedicine, savedMedicine } from '../stores/medicines'
 import ConfirmField from '../components/scan/ConfirmField.vue'
 import AppIcon from '../components/layout/AppIcon.vue'
-import { DOSE_UNITS, TIMINGS, WITH_FOOD, FREQUENCY_TYPES } from '../../server/services/normalizeScan.js'
+import { DOSE_UNITS, TIMINGS, WITH_FOOD, FREQUENCY_TYPES, PURPOSES } from '../../server/services/normalizeScan.js'
 import { billGap, linesTotal, sectionsOff } from '../rules/billCheck'
 import { money } from '../components/bill/lines'
 
@@ -20,7 +20,10 @@ const scan = scanStore.current
 if (!scan) router.replace({ name: 'scan' })
 // Edit a copy so "Retake" leaves the store untouched.
 const draft = reactive(scan ? structuredClone(toRaw(scan)) : {})
-const photo = scanStore.photo
+// The covered photo, or each page of a long bill; the first stands for them all where there is room for one.
+const photos = scanStore.photos
+const photo = photos[0] ?? null
+const pageAlt = (i) => (photos.length > 1 ? t('confirm.pageAlt', { n: i + 1, total: photos.length }) : t('confirm.yourPhoto'))
 const showPhoto = ref(false)
 // Lokesh: "Fix what we read" on Schedule opens a saved medicine here (no photo). Looks correct replaces that medicine and
 // goes back to Schedule, keeping its days, ticks and calendar reminders. `savedId` lives on the scan, so a new scan clears it.
@@ -74,11 +77,11 @@ const flagged = computed(() => {
 })
 const needs = (path) => flagged.value.includes(path)
 
-// Keep the form short: strength, quantity, when, food and notes only show when the label gave something for them (or one
+// Keep the form short: purpose, quantity, when, food and notes only show when the label gave something for them (or one
 // needs checking). "Add more details" shows the rest, so nothing can't be added by hand. Decided once, when the page opens,
 // so clearing a field doesn't make it vanish under the person's finger.
 const more = ref(false)
-const OPTIONAL = ['medication.strength', 'medication.quantity', 'medication.timing', 'medication.withFood', 'medication.warnings']
+const OPTIONAL = ['medication.purpose', 'medication.quantity', 'medication.timing', 'medication.withFood', 'medication.warnings']
 const filledAtStart = draft.type === 'medication' ? new Set(OPTIONAL.filter((path) => !isEmpty(get(path)))) : new Set()
 // A field the person typed into stays when they tap "Show fewer details"; only empty ones fold away.
 const showOptional = (path) => more.value || filledAtStart.has(path) || needs(path) || !isEmpty(get(path))
@@ -105,12 +108,16 @@ onBeforeRouteLeave((to) => {
 // The guard lets `leaveTo` through now that it's set.
 const discard = () => router.push(leaveTo)
 const discardBox = ref(null)
-watch(askDiscard, async (open) => {
-  if (!open) return
+async function showBox(box) {
   await nextTick()
-  discardBox.value?.scrollIntoView({ block: 'center', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })
-  discardBox.value?.querySelector('button')?.focus({ preventScroll: true })
-})
+  box.value?.scrollIntoView({ block: 'center', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })
+  box.value?.querySelector('button')?.focus({ preventScroll: true })
+}
+watch(askDiscard, (open) => open && showBox(discardBox))
+// The same medicine is already on the list: ask before this label replaces it.
+const duplicate = ref(null)
+const duplicateBox = ref(null)
+watch(duplicate, (entry) => entry && showBox(duplicateBox))
 function keepChecking() {
   leaveTo = null
   askDiscard.value = false
@@ -126,7 +133,7 @@ const warnings = computed({
   set: (text) => (draft.medication.warnings = text.split('\n').map((s) => s.trim()).filter(Boolean)),
 })
 
-function confirm() {
+function confirm(sure = false) {
   if (draft.type === 'medication') {
     // Number inputs give '' when cleared; the contract uses null.
     for (const key of Object.keys(draft.medication)) if (draft.medication[key] === '') draft.medication[key] = null
@@ -135,6 +142,7 @@ function confirm() {
       done = true
       return router.push({ name: 'schedule', query: { view: 'meds' }, state: { fixedId: draft.savedId } }) // back to its Change button
     }
+    if (!sure && (duplicate.value = savedMedicine(draft.medication) ?? null)) return
     // Ask (the chatbot) answers about the medicines the user has checked.
     rememberMedicine(draft.medication, 'label', draft.source === 'sample')
   }
@@ -177,17 +185,24 @@ const scanAgain = () => router.push(fixing ? { name: 'schedule', query: { view: 
 
     <div class="row g-4">
       <div v-if="photo" class="col-lg-5">
+        <p v-if="scanStore.pdfPages?.total > 1" class="small mb-2" data-testid="pdf-pages">
+          {{ t(scanStore.pdfPages.read < scanStore.pdfPages.total ? 'confirm.pagesSome' : 'confirm.pagesAll', scanStore.pdfPages) }}
+        </p>
         <div class="d-lg-none card d-flex flex-column gap-3">
           <div class="d-flex align-items-center gap-3">
             <img :src="photo" alt="" class="thumb" />
-            <span class="fw-bold flex-grow-1">{{ t('confirm.yourPhoto') }}</span>
+            <span class="fw-bold flex-grow-1">{{ photos.length > 1 ? t('confirm.yourPages', { n: photos.length }) : t('confirm.yourPhoto') }}</span>
             <button type="button" class="btn btn-outline btn-sm" :aria-expanded="showPhoto" @click="showPhoto = !showPhoto">
               {{ showPhoto ? t('confirm.hidePhoto') : t('confirm.showPhoto') }}
             </button>
           </div>
-          <img v-if="showPhoto" :src="photo" :alt="t('confirm.yourPhoto')" class="photo" />
+          <template v-if="showPhoto"><img v-for="(src, i) in photos" :key="i" :src="src" :alt="pageAlt(i)" class="photo" /></template>
         </div>
-        <img :src="photo" :alt="t('confirm.yourPhoto')" class="photo stick d-none d-lg-block" />
+        <img v-if="photos.length === 1" :src="photo" :alt="t('confirm.yourPhoto')" class="photo stick d-none d-lg-block" />
+        <!-- Several pages scroll on their own beside the fields, so every page can be checked against them. -->
+        <div v-else class="pages stick d-none d-lg-flex" data-testid="confirm-pages">
+          <img v-for="(src, i) in photos" :key="i" :src="src" :alt="pageAlt(i)" class="photo" />
+        </div>
       </div>
 
       <div :class="photo ? 'col-lg-7' : 'col-lg-9'" class="d-flex flex-column gap-4">
@@ -205,14 +220,18 @@ const scanAgain = () => router.push(fixing ? { name: 'schedule', query: { view: 
 
         <!-- Medication -->
         <div v-if="draft.type === 'medication'" class="card fgrid">
-          <ConfirmField :label="t('confirm.med.name')" for="f-name" :flagged="needs('medication.name')">
+          <ConfirmField class="span2" :label="t('confirm.med.name')" for="f-name" :flagged="needs('medication.name')">
             <input id="f-name" v-model.trim="draft.medication.name" class="field-input" :class="{ 'is-flagged': needs('medication.name') }" />
           </ConfirmField>
-          <ConfirmField v-if="showOptional('medication.strength')" :label="t('confirm.med.strength')" for="f-strength">
-            <input id="f-strength" v-model.trim="draft.medication.strength" class="field-input" />
+          <!-- What it is usually for: the AI only picks from our list, and only when sure. Shown to the senior as our own words. -->
+          <ConfirmField v-if="showOptional('medication.purpose')" class="span2" :label="t('confirm.med.purpose')" for="f-purpose">
+            <select id="f-purpose" v-model="draft.medication.purpose" class="field-input" data-testid="confirm-purpose">
+              <option :value="null">–</option>
+              <option v-for="p in PURPOSES" :key="p" :value="p">{{ t(`purpose.${p}`) }}</option>
+            </select>
           </ConfirmField>
 
-          <ConfirmField :label="t('confirm.med.amount')" for="f-amount" :flagged="needs('medication.doseAmount')" :note="problem('medication.doseAmount')">
+          <ConfirmField class="span2" :label="t('confirm.med.amount')" for="f-amount" :flagged="needs('medication.doseAmount')" :note="problem('medication.doseAmount')">
             <div class="d-flex gap-2">
               <input id="f-amount" v-model.number="draft.medication.doseAmount" type="number" inputmode="decimal" min="0" step="0.5" class="field-input amount" :class="{ 'is-flagged': needs('medication.doseAmount') }" />
               <select v-model="draft.medication.doseUnit" class="field-input" :aria-label="t('confirm.med.unit')">
@@ -222,12 +241,11 @@ const scanAgain = () => router.push(fixing ? { name: 'schedule', query: { view: 
             </div>
           </ConfirmField>
           <!-- Optional: how much was given. With the dose and times a day, Schedule works out how many days it lasts. -->
-          <ConfirmField v-if="showOptional('medication.quantity')" :label="t('confirm.med.quantity')" for="f-qty">
+          <ConfirmField v-if="showOptional('medication.quantity')" :label="t('confirm.med.quantity')" for="f-qty" :help="t('confirm.med.quantityHelp')">
             <div class="d-flex align-items-center gap-2">
               <input id="f-qty" type="number" inputmode="decimal" min="0" step="1" class="field-input amount" :value="draft.medication.quantity ?? ''" aria-describedby="f-qty-help" @change="draft.medication.quantity = Number($event.target.value) > 0 ? Number($event.target.value) : null" />
               <span class="fw-semibold">{{ t(`unit.${draft.medication.doseUnit ?? 'other'}`, 2) }}</span>
             </div>
-            <span id="f-qty-help" class="field-help">{{ t('confirm.med.quantityHelp') }}</span>
           </ConfirmField>
           <ConfirmField :label="t('confirm.med.howOften')" for="f-freq" :flagged="needs('medication.frequencyType')">
             <select id="f-freq" v-model="draft.medication.frequencyType" class="field-input" :class="{ 'is-flagged': needs('medication.frequencyType') }">
@@ -297,8 +315,16 @@ const scanAgain = () => router.push(fixing ? { name: 'schedule', query: { view: 
         </div>
 
         <div class="d-flex flex-column gap-2">
+          <div v-if="duplicate" ref="duplicateBox" class="alert alert-warning flex-column" role="alertdialog" aria-labelledby="duplicate-q" aria-describedby="duplicate-text" data-testid="confirm-duplicate">
+            <strong id="duplicate-q">{{ t('confirm.duplicate.title', { name: duplicate.medication.name }) }}</strong>
+            <span id="duplicate-text">{{ t('confirm.duplicate.text') }}</span>
+            <div class="d-flex flex-column flex-sm-row gap-3">
+              <button type="button" class="btn btn-primary" data-testid="confirm-duplicate-yes" @click="confirm(true)">{{ t('confirm.duplicate.yes') }}</button>
+              <button type="button" class="btn btn-secondary" data-testid="confirm-duplicate-no" @click="duplicate = null">{{ t('confirm.duplicate.no') }}</button>
+            </div>
+          </div>
           <div class="acts">
-            <button type="button" class="btn btn-primary ok" :disabled="flagged.length > 0" :aria-describedby="flagged.length ? 'ok-reason' : null" @click="confirm">{{ t('confirm.ok') }}<AppIcon name="right" /></button>
+            <button type="button" class="btn btn-primary ok" :disabled="flagged.length > 0" :aria-describedby="flagged.length ? 'ok-reason' : null" @click="confirm()">{{ t('confirm.ok') }}<AppIcon name="right" /></button>
             <button v-if="fixing" type="button" class="btn btn-ghost" @click="scanAgain">{{ t('schedule.fix.cancel') }}</button>
             <button v-else type="button" class="btn btn-ghost" @click="scanAgain"><AppIcon name="camera" :size="22" />{{ photo ? t('confirm.retake') : t('confirm.scanOther') }}</button>
           </div>

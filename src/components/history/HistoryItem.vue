@@ -21,7 +21,7 @@ const isMed = computed(() => props.item.type === 'medication')
 const fmt = (iso, opts) => (iso ? new Date(iso).toLocaleDateString(locale.value, opts) : '')
 const savedText = computed(() => t('history.saved', { date: fmt(props.item.createdAt, { day: 'numeric', month: 'short', year: 'numeric' }) }))
 const subtitle = computed(() =>
-  isMed.value ? props.item.subtitle : props.item.totalPayableCents == null ? '' : t('history.youPaid', { amount: '$' + (props.item.totalPayableCents / 100).toFixed(2) }),
+  isMed.value ? (props.item.purpose ? `${t('purpose.lead')} ${t(`purpose.${props.item.purpose}`)}` : props.item.subtitle) : props.item.totalPayableCents == null ? '' : t('history.youPaid', { amount: '$' + (props.item.totalPayableCents / 100).toFixed(2) }),
 )
 const link = computed(() => (props.item.shareToken ? `${location.origin}/shared/scan/${props.item.shareToken}` : ''))
 const whatsapp = computed(() => `https://wa.me/?text=${encodeURIComponent(`${t('history.shareMessage')} ${link.value}`)}`)
