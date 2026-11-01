@@ -9,8 +9,8 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { medicines, setSchedule, forgetMedicine, restoreMedicine, scanFromMedicine } from '../stores/medicines'
-import { scanStore } from '../stores/scan'
+import { useMedicinesStore, scanFromMedicine } from '../stores/medicines'
+import { useScanStore } from '../stores/scan'
 import { buildSchedule, dosesOn, doseSlots, labelLimitDays, packDays, stopCourse, supplyDays, todayInSingapore, timeInSingapore, timeStates, tooEarly, validDate, validDays, validTime, MAX_DAYS } from '../rules/schedule'
 import { dosesTaken, setDoseTaken } from '../api/client'
 import EmptyState from '../components/layout/EmptyState.vue'
@@ -18,6 +18,8 @@ import ErrorBanner from '../components/layout/ErrorBanner.vue'
 import AppIcon from '../components/layout/AppIcon.vue'
 import CalendarSync from '../components/schedule/CalendarSync.vue'
 import WeekView from '../components/schedule/WeekView.vue'
+const { medicines, setSchedule, forgetMedicine, restoreMedicine } = useMedicinesStore()
+const scanStore = useScanStore()
 
 const SLOT_ICONS = { morning: 'sunrise', afternoon: 'sun', evening: 'sunset', bedtime: 'bed' } // same as Explain
 

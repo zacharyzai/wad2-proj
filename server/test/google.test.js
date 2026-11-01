@@ -1,6 +1,6 @@
 // Google Calendar: state, token encryption, event building, the sync plan, and the routes' answers before the database.
 // Google is never called for real (fetch is stubbed).
-import { test, before, after, afterEach } from 'node:test'
+import { test, beforeAll, afterAll, afterEach } from 'vitest'
 import assert from 'node:assert/strict'
 import { randomBytes } from 'node:crypto'
 
@@ -15,11 +15,11 @@ const { signToken, readToken } = await import('../services/auth.js')
 const g = await import('../services/google.js')
 
 let server, base
-before(() => {
+beforeAll(() => {
   server = app.listen(0)
   base = `http://localhost:${server.address().port}`
 })
-after(() => server.close())
+afterAll(() => server.close())
 const realFetch = globalThis.fetch
 afterEach(() => (globalThis.fetch = realFetch))
 const AUTH = { authorization: `Bearer ${signToken('64b000000000000000000001', false)}` }

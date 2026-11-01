@@ -11,12 +11,13 @@ import { scanImage, scanSample } from '../api/client'
 import { redactImage, warmUp } from '../utils/redact'
 import { checkPhoto } from '../utils/photoCheck'
 import { isPdf, pdfToJpegs, MAX_PAGES } from '../utils/pdfToImage'
-import { scanStore } from '../stores/scan'
+import { useScanStore } from '../stores/scan'
 import AppIcon from '../components/layout/AppIcon.vue'
 import LoadingState from '../components/layout/LoadingState.vue'
 import PillLoader from '../components/layout/PillLoader.vue'
 import UploadDropzone from '../components/scan/UploadDropzone.vue'
 import ReadAloud from '../components/explain/ReadAloud.vue'
+const scanStore = useScanStore()
 
 const SAMPLES = [
   { id: 'med-1', type: 'medication', key: 'med1' },

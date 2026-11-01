@@ -7,9 +7,12 @@ import AppIcon from './components/layout/AppIcon.vue'
 import GuideDialog from './components/guide/GuideDialog.vue'
 import ThemePrompt from './components/guide/ThemePrompt.vue'
 import ThemeToggle from './components/layout/ThemeToggle.vue'
-import { maybeShowGuide, openGuide } from './stores/guide'
-import { authStore } from './stores/auth'
-import './stores/scheduleSync'
+import { useGuideStore } from './stores/guide'
+import { useAuthStore } from './stores/auth'
+import { syncMedicinesWithAccount } from './stores/scheduleSync'
+const { maybeShowGuide, openGuide } = useGuideStore()
+const authStore = useAuthStore()
+syncMedicinesWithAccount() // the medicine list follows the logged-in account
 
 const { t, locale } = useI18n()
 const route = useRoute()

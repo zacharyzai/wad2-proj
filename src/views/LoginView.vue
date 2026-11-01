@@ -3,11 +3,12 @@
 import { ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { enterApp, login } from '../stores/auth'
+import { useAuthStore } from '../stores/auth'
 import AuthShell from '../components/layout/AuthShell.vue'
 import ErrorBanner from '../components/layout/ErrorBanner.vue'
 import BigButton from '../components/layout/BigButton.vue'
 import AppIcon from '../components/layout/AppIcon.vue'
+const { enterApp, login } = useAuthStore()
 
 const { t } = useI18n()
 const route = useRoute()

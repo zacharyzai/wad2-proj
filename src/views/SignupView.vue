@@ -4,12 +4,13 @@
 import { computed, nextTick, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { enterApp, signup } from '../stores/auth'
+import { useAuthStore } from '../stores/auth'
 import AuthShell from '../components/layout/AuthShell.vue'
 import ErrorBanner from '../components/layout/ErrorBanner.vue'
 import BigButton from '../components/layout/BigButton.vue'
 import AppIcon from '../components/layout/AppIcon.vue'
 import { INCOMES, isCitizen } from '../utils/account'
+const { enterApp, signup } = useAuthStore()
 
 const MIN_PASSWORD = 8
 // Same values as the subsidy rules (src/rules/subsidies.js, via BillView) and the server (server/models/User.js).

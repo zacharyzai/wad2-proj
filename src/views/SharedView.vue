@@ -4,7 +4,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { authStore } from '../stores/auth'
+import { useAuthStore } from '../stores/auth'
 import { getInvite, acceptInvite } from '../api/client'
 import Card from '../components/layout/Card.vue'
 import BigButton from '../components/layout/BigButton.vue'
@@ -12,6 +12,7 @@ import LoadingState from '../components/layout/LoadingState.vue'
 import EmptyState from '../components/layout/EmptyState.vue'
 import ErrorBanner from '../components/layout/ErrorBanner.vue'
 import AppIcon from '../components/layout/AppIcon.vue'
+const authStore = useAuthStore()
 
 const { t } = useI18n()
 const route = useRoute()

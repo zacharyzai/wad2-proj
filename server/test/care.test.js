@@ -1,5 +1,5 @@
 // Real account linking and races against disposable MongoDB. Never loads .env or shared Atlas data.
-import { test, before, after } from 'node:test'
+import { test, beforeAll, afterAll } from 'vitest'
 import assert from 'node:assert/strict'
 import { once } from 'node:events'
 import { createHash, randomBytes } from 'node:crypto'
@@ -50,14 +50,14 @@ async function error(response, status, code) {
   assert.equal(body.error.code, code)
   return body
 }
-before(async () => {
+beforeAll(async () => {
   mongo = await MongoMemoryServer.create()
   process.env.MONGODB_URI = mongo.getUri('care_test')
   server = app.listen(0, '127.0.0.1')
   await once(server, 'listening')
   api = `http://127.0.0.1:${server.address().port}/api`
 })
-after(async () => {
+afterAll(async () => {
   if (server) await new Promise((resolve) => server.close(resolve))
   await mongoose.disconnect()
   await mongo?.stop()

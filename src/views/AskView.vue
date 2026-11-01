@@ -16,13 +16,16 @@ const messages = reactive([])
 import { computed, markRaw, nextTick, onBeforeUnmount, onMounted, ref, toRaw, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { askMedicine } from '../api/client'
-import { medicines, rememberMedicine, forgetMedicine, restoreMedicine, isFinished } from '../stores/medicines'
+import { useMedicinesStore, isFinished } from '../stores/medicines'
 import { factsFor, namedIn } from '../rules/askFacts'
-import { speak, stopSpeaking } from '../stores/speech'
-import { authStore } from '../stores/auth'
+import { useSpeechStore } from '../stores/speech'
+import { useAuthStore } from '../stores/auth'
 import AppIcon from '../components/layout/AppIcon.vue'
 import CapsuleBuddy from '../components/layout/CapsuleBuddy.vue'
 import PillLoader from '../components/layout/PillLoader.vue'
+const { medicines, rememberMedicine, forgetMedicine, restoreMedicine } = useMedicinesStore()
+const { speak, stopSpeaking } = useSpeechStore()
+const authStore = useAuthStore()
 
 const CHIPS = ['when', 'food', 'missed', 'store']
 // Fallback follow-ups under an answer, by the chip that was asked (typed questions use `typed`), when the AI suggested none.

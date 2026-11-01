@@ -9,18 +9,21 @@
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { guide, STEPS, currentStep, endGuide, nextStep, openGuide } from '../../stores/guide'
-import { speak as sayAloud, stopSpeaking } from '../../stores/speech'
+import { useGuideStore, STEPS } from '../../stores/guide'
+import { useSpeechStore } from '../../stores/speech'
 import GuideArt from './GuideArt.vue'
 import AppIcon from '../layout/AppIcon.vue'
 import PillLoader from '../layout/PillLoader.vue'
+const guide = useGuideStore()
+const { endGuide, nextStep, openGuide } = guide
+const { speak: sayAloud, stopSpeaking } = useSpeechStore()
 
 const { t, locale } = useI18n()
 const router = useRouter()
 const PAD = 8 // space between the glow and the button
 const GAP = 18 // space between the glow and the speech bubble
 
-const step = computed(() => currentStep())
+const step = computed(() => guide.currentStep)
 // Text for a step; tap steps put the real nav label in the title ("Tap Scan"), so the words always match the button.
 const say = (part) => t(`guide.steps.${step.value.id}.${part}`, { name: step.value.kind === 'tap' ? t(`nav.${step.value.target.slice(1)}`) : '' })
 const isCard = computed(() => step.value.kind === 'card')

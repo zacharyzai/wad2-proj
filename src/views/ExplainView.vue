@@ -3,11 +3,12 @@
 import { computed, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { scanStore } from '../stores/scan'
+import { useScanStore } from '../stores/scan'
 import ReadAloud from '../components/explain/ReadAloud.vue'
 import AppIcon from '../components/layout/AppIcon.vue'
 import { billGap, linesTotal, sumCents } from '../rules/billCheck'
 import { money, minusMoney } from '../components/bill/lines'
+const scanStore = useScanStore()
 
 const { t, locale } = useI18n()
 const router = useRouter()

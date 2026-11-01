@@ -1,7 +1,9 @@
-// The only way the client calls the backend. Always resolves to { ok, data } or { ok: false, error: { code, message } }.
-// Show errors with t(`errors.${error.code}`).
+// The only way the client calls the backend (Axios, Week 5). Always resolves to { ok, data } or
+// { ok: false, error: { code, message } }. Show errors with t(`errors.${error.code}`).
 // Logged-in users send their token (server/middleware/requireAuth.js reads "Authorization: Bearer <token>").
 // It is in localStorage with "Remember me", otherwise in sessionStorage (stores/auth.js decides).
+import axios from 'axios'
+
 export const TOKEN_KEY = 'token'
 export function readToken() {
   try {
@@ -10,24 +12,27 @@ export function readToken() {
     return null // storage blocked (private mode)
   }
 }
-function authHeader() {
-  const token = readToken()
-  return token ? { authorization: `Bearer ${token}` } : {}
-}
+const isEnvelope = (data) => typeof data === 'object' && data !== null && 'ok' in data
+const NETWORK_ERROR = { ok: false, error: { code: 'NETWORK_ERROR', message: 'Could not reach the server' } }
+
 // timeout (ms): give up and return TIMEOUT instead of waiting as long as the server takes.
 export async function api(path, { method = 'GET', body, timeout } = {}) {
+  const token = readToken()
   try {
-    const res = await fetch(`/api${path}`, {
+    const response = await axios({
+      url: `/api${path}`,
       method,
-      signal: timeout ? AbortSignal.timeout(Math.max(1, timeout)) : undefined,
-      headers: { ...(body ? { 'content-type': 'application/json' } : {}), ...authHeader() },
-      body: body ? JSON.stringify(body) : undefined,
+      data: body,
+      timeout: timeout ? Math.max(1, timeout) : 0,
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
     })
-    return await res.json()
-  } catch (err) {
-    if (err?.name === 'TimeoutError') return { ok: false, error: { code: 'TIMEOUT', message: 'The server took too long' } }
-    // Offline, server down, or a non-JSON response (e.g. a hosting error page).
-    return { ok: false, error: { code: 'NETWORK_ERROR', message: 'Could not reach the server' } }
+    // A non-JSON reply (e.g. a hosting error page) counts as not reaching the server.
+    return isEnvelope(response.data) ? response.data : NETWORK_ERROR
+  } catch (error) {
+    // Axios rejects every 4xx/5xx; our server still sends { ok: false, error } with them.
+    if (isEnvelope(error.response?.data)) return error.response.data
+    if (error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT') return { ok: false, error: { code: 'TIMEOUT', message: 'The server took too long' } }
+    return NETWORK_ERROR // offline or server down
   }
 }
 

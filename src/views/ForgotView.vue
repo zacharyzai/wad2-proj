@@ -4,11 +4,12 @@
 <script setup>
 import { nextTick, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { requestReset } from '../stores/auth'
+import { useAuthStore } from '../stores/auth'
 import AuthShell from '../components/layout/AuthShell.vue'
 import ErrorBanner from '../components/layout/ErrorBanner.vue'
 import BigButton from '../components/layout/BigButton.vue'
 import AppIcon from '../components/layout/AppIcon.vue'
+const { requestReset } = useAuthStore()
 
 const { t } = useI18n()
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/

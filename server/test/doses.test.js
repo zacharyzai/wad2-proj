@@ -1,5 +1,5 @@
 // Owner: Lokesh. Dose ticks (server/routes/doses.js) against an in-memory MongoDB. Never reads the shared Atlas database.
-import { test, before, after } from 'node:test'
+import { test, beforeAll, afterAll } from 'vitest'
 import assert from 'node:assert/strict'
 import { once } from 'node:events'
 import { randomBytes } from 'node:crypto'
@@ -22,7 +22,7 @@ const day = (offset) => new Date(Date.now() + 8 * 3_600_000 + offset * 86_400_00
 const TODAY = day(0)
 const YESTERDAY = day(-1)
 
-before(async () => {
+beforeAll(async () => {
   mongo = await MongoMemoryServer.create()
   process.env.MONGODB_URI = mongo.getUri('doses_test')
   await connectDb()
@@ -30,7 +30,7 @@ before(async () => {
   await once(server, 'listening')
   base = `http://127.0.0.1:${server.address().port}/api/doses`
 })
-after(async () => {
+afterAll(async () => {
   if (server) await new Promise((resolve) => server.close(resolve))
   await mongoose.disconnect()
   await mongo?.stop()

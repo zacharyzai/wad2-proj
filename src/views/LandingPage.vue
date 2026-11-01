@@ -7,10 +7,11 @@ import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { WELCOME_KEY } from '../router'
 import { setLocale } from '../i18n'
-import { speak as sayAloud, stopSpeaking } from '../stores/speech'
+import { useSpeechStore } from '../stores/speech'
 import AppIcon from '../components/layout/AppIcon.vue'
 import DocTunnel from '../components/landing/DocTunnel.vue'
 import HandLabel from '../components/landing/HandLabel.vue'
+const { speak: sayAloud, stopSpeaking } = useSpeechStore()
 
 const { t, locale } = useI18n()
 

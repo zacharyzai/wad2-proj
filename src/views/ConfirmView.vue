@@ -3,15 +3,18 @@
 import { computed, nextTick, reactive, ref, toRaw, watch } from 'vue'
 import { onBeforeRouteLeave, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { scanStore } from '../stores/scan'
-import { authStore } from '../stores/auth'
+import { useScanStore } from '../stores/scan'
+import { useAuthStore } from '../stores/auth'
 import { saveScan } from '../api/client'
-import { rememberMedicine, replaceMedicine, savedMedicine } from '../stores/medicines'
+import { useMedicinesStore } from '../stores/medicines'
 import ConfirmField from '../components/scan/ConfirmField.vue'
 import AppIcon from '../components/layout/AppIcon.vue'
 import { DOSE_UNITS, TIMINGS, WITH_FOOD, FREQUENCY_TYPES, PURPOSES } from '../../server/services/normalizeScan.js'
 import { billGap, linesTotal, sectionsOff } from '../rules/billCheck'
 import { money } from '../components/bill/lines'
+const scanStore = useScanStore()
+const authStore = useAuthStore()
+const { rememberMedicine, replaceMedicine, savedMedicine } = useMedicinesStore()
 
 const { t } = useI18n()
 const router = useRouter()

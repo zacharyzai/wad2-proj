@@ -7,8 +7,9 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { setTheme, shownTheme } from '../../theme'
-import { saveTheme } from '../../stores/auth'
+import { useAuthStore } from '../../stores/auth'
 import AppIcon from './AppIcon.vue'
+const { saveTheme } = useAuthStore()
 
 const { t } = useI18n()
 const isDark = computed(() => shownTheme.value === 'dark')

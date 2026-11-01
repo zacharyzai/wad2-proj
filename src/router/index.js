@@ -1,9 +1,9 @@
 // Every route is registered here up front so teammates only edit their own view files.
 import { nextTick } from 'vue'
 import { createRouter, createWebHistory } from 'vue-router'
-import { authStore, restore } from '../stores/auth'
+import { useAuthStore } from '../stores/auth'
 import { readToken } from '../api/client'
-import { guide } from '../stores/guide'
+import { useGuideStore } from '../stores/guide'
 import { screenFading } from '../screenFade'
 
 const routes = [
@@ -76,16 +76,18 @@ router.beforeEach((to) => {
 
 // Every page needs an account. Logged-out visitors go to Login, then back to the page they wanted;
 // logged-in people who open Login or Signup go Home instead.
+// Navigation guard (Week 11): the stores are used inside the guard, after Pinia is installed (main.js).
 router.beforeEach(async (to) => {
+  const authStore = useAuthStore()
   if (authStore.user) {
     // Signed in before: open straight away with the saved copy; the server check runs in the background,
     // and only a login the server refuses (expired, account removed) moves them to Login.
-    restore().then(() => {
+    authStore.restore().then(() => {
       // H1: say why they are here ("You were logged out"), instead of silently showing Login.
       if (!authStore.user && !router.currentRoute.value.meta.public) router.replace({ name: 'login', query: { expired: '1' } })
     })
   } else {
-    await restore()
+    await authStore.restore()
   }
   if (authStore.user) {
     // Has an account on this device: from now on, logged out means Login, not the welcome page.
@@ -109,7 +111,7 @@ router.beforeResolve((to, from) => {
   // Skipped while the Beginner's guide is open: the guide moves its own glow and bubble between pages.
   // Start, Log in and Create account are pages of their own: the top bar stays put and the teal band reshapes (motion.css).
   // Also skipped inside a whole-screen fade (arriving after logging in, leaving after logging out): that fade covers it.
-  if (!from.name || to.path === from.path || guide.open || screenFading() || !document.startViewTransition || matchMedia('(prefers-reduced-motion: reduce)').matches) return
+  if (!from.name || to.path === from.path || useGuideStore().open || screenFading() || !document.startViewTransition || matchMedia('(prefers-reduced-motion: reduce)').matches) return
   return new Promise((resolve) => {
     const transition = document.startViewTransition(() => new Promise((done) => ((finishTransition = done), resolve())))
     // Skipped transitions (window resized, tab hidden) still swap the page; they only reject these promises.

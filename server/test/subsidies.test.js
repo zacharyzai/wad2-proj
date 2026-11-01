@@ -1,5 +1,5 @@
 // Owner: Lokesh. Subsidy rules for the bill questionnaire (src/rules/subsidies.js). Sources and figures: see each rule's sourceUrl.
-import { test } from 'node:test'
+import { test } from 'vitest'
 import assert from 'node:assert/strict'
 import { RULES, PLACES, UNKNOWN, checkRules, chasTier, normalizeAnswers, validYear, billPlace, discountCents, compareWithBill } from '../../src/rules/subsidies.js'
 import bill1 from '../fixtures/bill-1.json' with { type: 'json' }

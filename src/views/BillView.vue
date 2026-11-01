@@ -4,8 +4,8 @@
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { scanStore } from '../stores/scan'
-import { authStore } from '../stores/auth'
+import { useScanStore } from '../stores/scan'
+import { useAuthStore } from '../stores/auth'
 import { scanSample } from '../api/client'
 import BillLine from '../components/bill/BillLine.vue'
 import SubsidyResults from '../components/bill/SubsidyResults.vue'
@@ -16,6 +16,8 @@ import AppIcon from '../components/layout/AppIcon.vue'
 import { CATEGORY_STYLE, SUBSIDY_STYLE, MEDISAVE_STYLE, money, minusMoney, sumCents, deducted } from '../components/bill/lines'
 import { citizenshipText } from '../utils/account'
 import { billGap, linesTotal, sectionsOff } from '../rules/billCheck'
+const scanStore = useScanStore()
+const authStore = useAuthStore()
 
 const { t, locale } = useI18n()
 const router = useRouter()

@@ -3,8 +3,9 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { scanStore } from '../stores/scan'
+import { useScanStore } from '../stores/scan'
 import AppIcon from '../components/layout/AppIcon.vue'
+const scanStore = useScanStore()
 
 const { t } = useI18n()
 const router = useRouter()

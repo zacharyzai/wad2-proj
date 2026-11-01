@@ -5,12 +5,13 @@ import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { listScans, getScan } from '../api/client'
-import { scanStore } from '../stores/scan'
+import { useScanStore } from '../stores/scan'
 import HistoryItem from '../components/history/HistoryItem.vue'
 import LoadingState from '../components/layout/LoadingState.vue'
 import EmptyState from '../components/layout/EmptyState.vue'
 import ErrorBanner from '../components/layout/ErrorBanner.vue'
 import AppIcon from '../components/layout/AppIcon.vue'
+const scanStore = useScanStore()
 
 const { t } = useI18n()
 const router = useRouter()
