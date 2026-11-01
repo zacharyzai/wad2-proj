@@ -119,7 +119,7 @@
     "NOT_IMPLEMENTED": "此功能即将推出。",
     "SERVER_ERROR": "出了点问题，请再试一次。",
     "NETWORK_ERROR": "无法连接，请检查网络。",
-    "UNSUPPORTED_FILE": "无法使用这个文件。请选择一张照片（JPG 或 PNG）。",
+    "UNSUPPORTED_FILE": "无法使用这个文件。请选择一张照片或 PDF 文件。",
     "COVER_FAILED": "我们无法在这台设备上遮盖您的个人资料，所以没有发送任何内容。请再试一次。",
     "WRONG_LOGIN": "电子邮件或密码不正确，请再试一次。",
     "NOT_LOGGED_IN": "请重新登录。",
@@ -215,13 +215,13 @@
     "covering": "正在遮盖您的个人资料…",
     "dz": {
       "title": "点击上传或拖入照片",
-      "hint": "PNG、JPG 或 HEIC · 最大 10MB",
+      "hint": "PNG、JPG、HEIC 或 PDF · 最大 10MB",
       "browse": "选择照片",
       "change": "更换照片",
       "scan": "扫描",
       "previewAlt": "您选择的照片",
       "tooBig": "请选择小于 10MB 的照片。",
-      "wrongType": "请选择 PNG、JPG 或 HEIC 格式的照片。"
+      "wrongType": "请选择 PNG、JPG、HEIC 或 PDF 文件。"
     },
     "addPhoto": "添加照片",
     "or": "或",

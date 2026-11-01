@@ -119,7 +119,7 @@
     "NOT_IMPLEMENTED": "Ciri ini akan datang.",
     "SERVER_ERROR": "Ada masalah. Sila cuba lagi.",
     "NETWORK_ERROR": "Tidak dapat disambungkan. Sila semak sambungan internet anda.",
-    "UNSUPPORTED_FILE": "Fail ini tidak boleh digunakan. Sila pilih gambar (JPG atau PNG).",
+    "UNSUPPORTED_FILE": "Fail ini tidak boleh digunakan. Sila pilih gambar atau fail PDF.",
     "COVER_FAILED": "Kami tidak dapat menutup butiran peribadi anda pada peranti ini, jadi tiada apa-apa yang dihantar. Sila cuba lagi.",
     "WRONG_LOGIN": "E-mel atau kata laluan itu tidak betul. Sila cuba lagi.",
     "NOT_LOGGED_IN": "Sila log masuk semula.",
@@ -215,13 +215,13 @@
     "covering": "Menutup butiran peribadi anda…",
     "dz": {
       "title": "Ketik untuk muat naik atau lepaskan gambar di sini",
-      "hint": "PNG, JPG atau HEIC · maksimum 10MB",
+      "hint": "PNG, JPG, HEIC atau PDF · maksimum 10MB",
       "browse": "Pilih gambar",
       "change": "Tukar gambar",
       "scan": "Imbas",
       "previewAlt": "Gambar yang anda pilih",
       "tooBig": "Sila pilih gambar yang kurang daripada 10MB.",
-      "wrongType": "Sila pilih gambar PNG, JPG atau HEIC."
+      "wrongType": "Sila pilih fail PNG, JPG, HEIC atau PDF."
     },
     "addPhoto": "Tambah gambar anda",
     "or": "atau",

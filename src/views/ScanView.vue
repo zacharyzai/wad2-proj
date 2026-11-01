@@ -10,6 +10,7 @@ import { useI18n } from 'vue-i18n'
 import { scanImage, scanSample } from '../api/client'
 import { redactImage, warmUp } from '../utils/redact'
 import { checkPhoto } from '../utils/photoCheck'
+import { isPdf, pdfToJpeg } from '../utils/pdfToImage'
 import { scanStore } from '../stores/scan'
 import AppIcon from '../components/layout/AppIcon.vue'
 import LoadingState from '../components/layout/LoadingState.vue'
@@ -126,6 +127,7 @@ function loadImage(file) {
 }
 
 async function compress(file) {
+  if (isPdf(file)) return pdfToJpeg(file) // a bill saved as a PDF: drawn to one picture, then handled like a photo
   const img = await loadImage(file)
   if (!img.naturalWidth || !img.naturalHeight) throw new Error('Image has no size')
   return toJpeg(img, img.naturalWidth, img.naturalHeight)
@@ -159,6 +161,7 @@ function stopCamera() {
 }
 
 function capture() {
+  fromPdf = false
   photo.value = toJpeg(video.value, video.value.videoWidth, video.value.videoHeight)
   stopCamera()
   coverAndSend(type.value)
@@ -199,6 +202,7 @@ function onFile(event) {
 
 async function useFile(file, k = type.value) {
   type.value = k
+  fromPdf = isPdf(file)
   // H1: shrinking a big photo takes about a second on old phones; show that we're working, so nobody taps again.
   coverView.value = null
   readingType.value = type.value
@@ -221,6 +225,8 @@ async function useFile(file, k = type.value) {
 // If covering fails, nothing is sent. The covered photo is also what Confirm shows, so the user sees exactly what was sent.
 // e2e tests swap in a fake via window.__redactForTests (e2e/helpers/mockImageScan.js); real covering needs the reader download.
 let coverDocType = null
+// A PDF is already clean and sharp (never dark, blurry or glary), so the photo check is skipped for it, including on Try again.
+let fromPdf = false
 async function coverAndSend(docType, skipCheck = false) {
   const id = ++run
   const deadline = Date.now() + SCAN_LIMIT_MS
@@ -234,7 +240,7 @@ async function coverAndSend(docType, skipCheck = false) {
   let tooSlow = false
   // Too dark, blurry or glary: say so now, before covering and uploading. (Tests that fake covering skip this check too.)
   const check = window.__photoCheckForTests ?? (window.__redactForTests ? async () => null : checkPhoto)
-  const problem = skipCheck ? null : await check(photo.value)
+  const problem = skipCheck || fromPdf ? null : await check(photo.value)
   if (id !== run) return // cancelled
   if (problem) {
     covering.value = false
@@ -266,6 +272,7 @@ async function coverAndSend(docType, skipCheck = false) {
 }
 
 function trySample(sample) {
+  fromPdf = false
   // H6: the sample's picture goes to Confirm too, so there is something to check the fields against.
   photo.value = `/samples/${sample.id}.svg`
   coverView.value = null
@@ -343,7 +350,7 @@ onMounted(() => {
 <template>
   <!-- Kept outside the states so Retake/Upload work from the error screen too. -->
   <input ref="camera" type="file" accept="image/*" capture="environment" class="d-none" data-testid="camera-input" @change="onFile" />
-  <input ref="upload" type="file" accept="image/*" class="d-none" @change="onFile" />
+  <input ref="upload" type="file" accept="image/*,application/pdf" class="d-none" @change="onFile" />
 
   <div v-if="state === 'loading'" class="busy rise">
     <div v-if="coverView" class="cover-view" :class="{ done: coverView.covered }" aria-hidden="true">

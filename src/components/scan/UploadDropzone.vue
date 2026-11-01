@@ -5,7 +5,7 @@ import { onBeforeUnmount, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AppIcon from '../layout/AppIcon.vue'
 
-const TYPES = ['image/png', 'image/jpeg', 'image/heic', 'image/heif', 'image/webp']
+const TYPES = ['image/png', 'image/jpeg', 'image/heic', 'image/heif', 'image/webp', 'application/pdf']
 const MAX_BYTES = 10 * 1024 * 1024
 
 const emit = defineEmits(['select'])
@@ -20,8 +20,8 @@ const dragging = ref(false)
 
 function choose(f) {
   if (!f) return
-  // Some browsers give HEIC files no type, so the name decides.
-  if (!TYPES.includes(f.type) && !/\.(heic|heif)$/i.test(f.name)) return (error.value = t('scan.dz.wrongType'))
+  // Some browsers give HEIC (and some PDF) files no type, so the name decides.
+  if (!TYPES.includes(f.type) && !/\.(heic|heif|pdf)$/i.test(f.name)) return (error.value = t('scan.dz.wrongType'))
   if (f.size > MAX_BYTES) return (error.value = t('scan.dz.tooBig'))
   error.value = null
   if (url.value) URL.revokeObjectURL(url.value)
@@ -50,7 +50,7 @@ onBeforeUnmount(() => url.value && URL.revokeObjectURL(url.value))
 
 <template>
   <div class="dz-card">
-    <input ref="input" type="file" accept="image/png,image/jpeg,image/heic,image/heif,image/webp" class="d-none" data-testid="upload-input" @change="onInput" />
+    <input ref="input" type="file" accept="image/png,image/jpeg,image/heic,image/heif,image/webp,application/pdf" class="d-none" data-testid="upload-input" @change="onInput" />
 
     <div v-if="file" class="dz-chosen">
       <img v-if="!noThumb" :src="url" :alt="t('scan.dz.previewAlt')" class="dz-thumb" @error="noThumb = true" />
