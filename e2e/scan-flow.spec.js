@@ -404,3 +404,12 @@ test('a damaged PDF says the file cannot be used and sends nothing', async ({ pa
   await expect(page.getByRole('alert')).toContainText('This file can’t be used.')
   expect(apiCalls).toBe(0)
 })
+
+test('a PDF shows a preview of its first page, like a photo', async ({ page }) => {
+  await page.goto('/scan?type=medication')
+  await page.getByTestId('upload-input').setInputFiles({ name: 'label.pdf', mimeType: 'application/pdf', buffer: PDF })
+  const preview = page.getByRole('img', { name: 'The photo you chose' })
+  await expect(preview).toBeVisible()
+  await expect(preview).toHaveAttribute('src', /^data:image\/jpeg;base64,/)
+  await expect(page.getByText('label.pdf')).toBeVisible()
+})
