@@ -43,6 +43,8 @@ let lean = { x: 0, y: 0 }
 let leanTo = { x: 0, y: 0 }
 let raf = 0
 let onScreen = false
+// On screen and moving: only then do the papers get their own GPU layers (will-change), so off screen or still they cost nothing.
+const live = ref(false)
 
 function measure() {
   const box = sec.value.getBoundingClientRect()
@@ -110,6 +112,7 @@ function useMotionSetting() {
 
 const seen = new IntersectionObserver(([entry]) => {
   onScreen = entry.isIntersecting
+  live.value = onScreen
   kick()
 })
 
@@ -135,7 +138,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <section ref="sec" class="tunnel" :class="{ calm }" aria-labelledby="tunnel-title" data-testid="landing-tunnel">
+  <section ref="sec" class="tunnel" :class="{ calm, live: live && !calm }" aria-labelledby="tunnel-title" data-testid="landing-tunnel">
     <div class="stage">
       <span class="dots" aria-hidden="true"></span>
       <span class="glow" aria-hidden="true"></span>
@@ -180,7 +183,7 @@ onBeforeUnmount(() => {
 .ring.outer { width: 78vmin; height: 78vmin; border: 1.5px dashed oklch(0.85 0.02 75); }
 
 /* The words: real text in the middle of the tunnel, at depth 0 (far papers pass behind, near ones in front). */
-.copy { position: absolute; left: 50%; top: 50%; width: min(34rem, 100%); padding: 0 24px; display: flex; flex-direction: column; align-items: center; gap: 16px; text-align: center; transform: translate3d(-50%, -50%, 0) scale(0.92); will-change: transform, opacity; }
+.copy { position: absolute; left: 50%; top: 50%; width: min(34rem, 100%); padding: 0 24px; display: flex; flex-direction: column; align-items: center; gap: 16px; text-align: center; transform: translate3d(-50%, -50%, 0) scale(0.92); }
 /* A soft mist of the page colour behind the words (part of their plane): far papers fade behind it, so the words stay
    clear; papers come through it only as they reach you. */
 .copy::before { content: ''; position: absolute; inset: -22% -26%; z-index: -1; background: radial-gradient(closest-side, color-mix(in oklch, var(--l-bg) 96%, transparent) 0%, color-mix(in oklch, var(--l-bg) 88%, transparent) 58%, transparent 100%); pointer-events: none; }
@@ -191,7 +194,8 @@ onBeforeUnmount(() => {
 
 /* The papers fly in a 3D space centred on the screen. Inline transform and opacity come from the script. */
 .space { position: absolute; inset: 0; transform-style: preserve-3d; }
-.paper { position: absolute; left: 50%; top: 50%; width: clamp(190px, 17vw, 280px); opacity: 0; will-change: transform, opacity; user-select: none; pointer-events: none; }
+.paper { position: absolute; left: 50%; top: 50%; width: clamp(190px, 17vw, 280px); opacity: 0; user-select: none; pointer-events: none; }
+.live .paper, .live .copy { will-change: transform, opacity; } /* only while the tunnel is on screen (the script sets .live) */
 /* Plain-words cards size to their sentence (a narrow box would break Chinese and Tamil a word at a time). */
 .paper.chip { width: max-content; max-width: min(300px, 72vw); }
 .doc img { display: block; width: 100%; height: auto; border-radius: 12px; background: #fff; box-shadow: 0 30px 60px -28px var(--l-shadow), 0 1px 0 oklch(0.87 0.022 70); }
