@@ -1,5 +1,6 @@
 // Photo scans never reach the API in e2e: they'd use rate-limit budget (and Gemini quota if USE_MOCK_AI=false).
-// Checks the client sent a compressed JPEG, then answers with the Metformin sample.
+// Checks the client sent compressed JPEG pages, then answers with the Metformin sample (or the bill sample for a bill).
+// window.__scanBodies keeps what was sent, so a test can look at every page.
 import { expect } from '@playwright/test'
 
 export async function mockImageScan(page, { cover = 'keep' } = {}) {
@@ -15,9 +16,10 @@ export async function mockImageScan(page, { cover = 'keep' } = {}) {
   await page.route('**/api/scan', async (route) => {
     const body = route.request().postDataJSON()
     if (body.sampleId) return route.continue()
-    expect(body.type).toBe('medication')
-    expect(body.image).toMatch(/^data:image\/jpeg;base64,/)
-    const sample = await route.fetch({ postData: JSON.stringify({ sampleId: 'med-1' }) })
+    expect(['medication', 'bill']).toContain(body.type)
+    expect(body.images.length).toBeGreaterThan(0)
+    for (const image of body.images) expect(image).toMatch(/^data:image\/jpeg;base64,/)
+    const sample = await route.fetch({ postData: JSON.stringify({ sampleId: body.type === 'bill' ? 'bill-1' : 'med-1' }) })
     const json = await sample.json()
     await route.fulfill({ json: { ok: true, data: { ...json.data, source: 'mock' } } })
   })

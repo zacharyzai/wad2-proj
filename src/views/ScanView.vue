@@ -10,7 +10,7 @@ import { useI18n } from 'vue-i18n'
 import { scanImage, scanSample } from '../api/client'
 import { redactImage, warmUp } from '../utils/redact'
 import { checkPhoto } from '../utils/photoCheck'
-import { isPdf, pdfToJpeg } from '../utils/pdfToImage'
+import { isPdf, pdfToJpegs, MAX_PAGES } from '../utils/pdfToImage'
 import { scanStore } from '../stores/scan'
 import AppIcon from '../components/layout/AppIcon.vue'
 import LoadingState from '../components/layout/LoadingState.vue'
@@ -74,7 +74,7 @@ function dropPending() {
 function scanPending() {
   const { file } = pending.value
   dropPending()
-  useFile(file, type.value)
+  useFiles([file], type.value)
 }
 onBeforeUnmount(dropPending)
 
@@ -83,14 +83,22 @@ const covering = ref(false) // loading, step 1: blacking out personal details on
 // The photo shown while it is covered, so people watch their details being blacked out: { original, covered }.
 const coverView = ref(null)
 const REVEAL_MS = 1100 // matches the cover-wipe animation in ScanView.css
-// One limit for a whole scan, tap to answer: covering gets up to 12 s of it, the request the rest (the server's AI stops
-// at 16 s, server/services/gemini.js). Past it, a TIMEOUT error with Try again instead of waiting on.
+// One limit for a whole scan, tap to answer: covering gets up to 12 s of it per page, the request the rest (the server's AI
+// stops at 16 s, plus 4 s a page, server/services/gemini.js). Past it, a TIMEOUT error with Try again instead of waiting on.
 const SCAN_LIMIT_MS = 30_000
+const PAGE_LIMIT_MS = 10_000 // each page after the first: covered on this phone, then read
+const scanLimit = (pages) => SCAN_LIMIT_MS + PAGE_LIMIT_MS * (Math.max(1, pages) - 1)
 const COVER_LIMIT_MS = 12_000
+// The server takes 4 MB in all (server/app.js); base64 characters, with room for the rest of the request.
+const MAX_UPLOAD = 3_600_000
 const SLOW_MS = 15_000 // then the wait text says it is slower than usual, and when we will stop
 const readingType = ref(type.value)
 const errorCode = ref(null)
-const photo = ref(null)
+// The pages of this scan, in order: compressed, then covered, data URLs. Usually one photo; a long bill can be several
+// photos or a PDF's pages, each its own image so the AI reads every page at full detail.
+const photos = ref([])
+// Which coverView page is being covered, for "Covering page 2 of 3".
+const coverPage = ref(null)
 const camera = ref(null)
 const upload = ref(null)
 let lastRequest = null
@@ -105,13 +113,13 @@ onBeforeUnmount(() => clearTimeout(slowTimer))
 let run = 0 // bumped by Cancel so a late reply is ignored
 
 // Keeps the upload well under the 4 MB API limit (contract asks for about 1 MB).
-function toJpeg(source, width, height) {
+function toJpeg(source, width, height, quality = 0.8) {
   const scale = Math.min(1, MAX_SIDE / Math.max(width, height))
   const canvas = document.createElement('canvas')
   canvas.width = Math.round(width * scale)
   canvas.height = Math.round(height * scale)
   canvas.getContext('2d').drawImage(source, 0, 0, canvas.width, canvas.height)
-  return canvas.toDataURL('image/jpeg', 0.8)
+  return canvas.toDataURL('image/jpeg', quality)
 }
 
 // An <img> decodes everything the browser can show (JPEG, PNG, WebP, SVG, …) and applies photo rotation;
@@ -127,12 +135,47 @@ function loadImage(file) {
 }
 
 let pdfPages = null // { total, read } of the PDF being read, for the note on Confirm
-async function compress(file) {
+// A PDF is already clean and sharp (never dark, blurry or glary), so the photo check skips its pages, including on Try again.
+const fromPdf = new Set()
+// Each file becomes its pages: a photo is one, a PDF (a bill saved from email) one per page. Never more than the server takes:
+// the upload box allows MAX_PAGES; the other upload buttons keep the first ones.
+async function compress(files) {
   pdfPages = null
-  if (isPdf(file)) return pdfToJpeg(file, { onInfo: (info) => (pdfPages = info) }) // a bill saved as a PDF: drawn to one picture, then handled like a photo
-  const img = await loadImage(file)
-  if (!img.naturalWidth || !img.naturalHeight) throw new Error('Image has no size')
-  return toJpeg(img, img.naturalWidth, img.naturalHeight)
+  fromPdf.clear()
+  const pages = []
+  for (const file of files) {
+    if (isPdf(file)) {
+      const drawn = await pdfToJpegs(file, { pages: MAX_PAGES - pages.length, onInfo: (info) => (pdfPages = info) })
+      drawn.forEach((page) => fromPdf.add(page))
+      pages.push(...drawn)
+    } else {
+      const img = await loadImage(file)
+      if (!img.naturalWidth || !img.naturalHeight) throw new Error('Image has no size')
+      pages.push(toJpeg(img, img.naturalWidth, img.naturalHeight))
+    }
+    if (pages.length >= MAX_PAGES) break
+  }
+  return pages.slice(0, MAX_PAGES)
+}
+
+// Covered pages are mostly black, so this rarely runs: several busy pages over the limit are saved again at lower quality
+// (still sharp enough to read) instead of failing with IMAGE_TOO_LARGE.
+async function fitUpload(pages) {
+  for (const quality of [0.65, 0.5]) {
+    if (pages.reduce((sum, page) => sum + page.length, 0) <= MAX_UPLOAD) break
+    pages = await Promise.all(
+      pages.map(
+        (src) =>
+          new Promise((resolve, reject) => {
+            const img = new Image()
+            img.onload = () => resolve(toJpeg(img, img.naturalWidth, img.naturalHeight, quality))
+            img.onerror = reject
+            img.src = src
+          }),
+      ),
+    )
+  }
+  return pages
 }
 
 // Live camera in the frame box (wireframe 1b). Laptops ignore `capture` on file inputs, so this is the only way to reach their webcam.
@@ -163,8 +206,9 @@ function stopCamera() {
 }
 
 function capture() {
-  fromPdf = false
-  photo.value = toJpeg(video.value, video.value.videoWidth, video.value.videoHeight)
+  pdfPages = null
+  fromPdf.clear()
+  photos.value = [toJpeg(video.value, video.value.videoWidth, video.value.videoHeight)]
   stopCamera()
   coverAndSend(type.value)
 }
@@ -178,7 +222,7 @@ async function retake() {
 onBeforeUnmount(stopCamera)
 
 // request(ms) makes the call with that time limit. Try again gives it a fresh full limit.
-async function send(docType, request, limit = SCAN_LIMIT_MS) {
+async function send(docType, request, limit = scanLimit(photos.value.length)) {
   const id = ++run
   lastRequest = { docType, request }
   readingType.value = docType
@@ -191,32 +235,31 @@ async function send(docType, request, limit = SCAN_LIMIT_MS) {
     return
   }
   scanStore.current = res.data
-  scanStore.photo = photo.value
-  scanStore.pdfPages = fromPdf ? pdfPages : null
+  scanStore.photos = photos.value
+  scanStore.pdfPages = pdfPages
   scanStore.confirmed = false
   router.push({ name: 'confirm' })
 }
 
 function onFile(event) {
-  const file = event.target.files[0]
+  const files = [...event.target.files]
   event.target.value = '' // lets the same file be picked again
-  if (file) useFile(file)
+  if (files.length) useFiles(files)
 }
 
-async function useFile(file, k = type.value) {
+async function useFiles(files, k = type.value) {
   type.value = k
-  fromPdf = isPdf(file)
   // H1: shrinking a big photo takes about a second on old phones; show that we're working, so nobody taps again.
   coverView.value = null
   readingType.value = type.value
   covering.value = true
   state.value = 'loading'
   try {
-    photo.value = await compress(file)
+    photos.value = await compress(files)
   } catch {
-    // The browser couldn't open the file (e.g. HEIC on a laptop, or not an image), so the server was never asked.
+    // The browser couldn't open a file (e.g. HEIC on a laptop, or not an image), so the server was never asked.
     covering.value = false
-    photo.value = null
+    photos.value = []
     errorCode.value = 'UNSUPPORTED_FILE'
     state.value = 'error'
     return
@@ -224,60 +267,71 @@ async function useFile(file, k = type.value) {
   coverAndSend(type.value)
 }
 
-// Zachary: personal details are blacked out on this phone first (src/utils/redact.js), and only the covered photo is sent.
-// If covering fails, nothing is sent. The covered photo is also what Confirm shows, so the user sees exactly what was sent.
+// Zachary: personal details are blacked out on this phone first (src/utils/redact.js), and only the covered photos are sent.
+// If covering fails, nothing is sent. The covered photos are also what Confirm shows, so the user sees exactly what was sent.
 // e2e tests swap in a fake via window.__redactForTests (e2e/helpers/mockImageScan.js); real covering needs the reader download.
+// Each page is checked and covered on its own, one after another (the reader reads one picture at a time).
 let coverDocType = null
-// A PDF is already clean and sharp (never dark, blurry or glary), so the photo check is skipped for it, including on Try again.
-let fromPdf = false
 async function coverAndSend(docType, skipCheck = false) {
   const id = ++run
-  const deadline = Date.now() + SCAN_LIMIT_MS
+  const pages = photos.value
+  const deadline = Date.now() + scanLimit(pages.length)
   coverDocType = docType
-  lastRequest = null // Try again covers again until a covered photo has been sent
+  lastRequest = null // Try again covers again until the covered photos have been sent
   readingType.value = docType
   covering.value = true
   state.value = 'loading'
-  coverView.value = { original: photo.value, covered: null }
-  let covered = null
-  let tooSlow = false
+  const fail = (code) => {
+    covering.value = false
+    coverPage.value = null
+    errorCode.value = code
+    state.value = 'error'
+  }
   // Too dark, blurry or glary: say so now, before covering and uploading. (Tests that fake covering skip this check too.)
   const check = window.__photoCheckForTests ?? (window.__redactForTests ? async () => null : checkPhoto)
-  const problem = skipCheck || fromPdf ? null : await check(photo.value)
-  if (id !== run) return // cancelled
-  if (problem) {
-    covering.value = false
-    errorCode.value = CHECK_ERRORS[problem]
-    state.value = 'error'
-    return
+  for (const page of pages) {
+    coverView.value = { original: page, covered: null }
+    const problem = skipCheck || fromPdf.has(page) ? null : await check(page)
+    if (id !== run) return // cancelled
+    if (problem) return fail(CHECK_ERRORS[problem])
   }
-  const timeUp = new Promise((resolve) => setTimeout(() => resolve((tooSlow = true) && null), COVER_LIMIT_MS))
-  try {
-    covered = await Promise.race([(window.__redactForTests ?? redactImage)(photo.value), timeUp])
-  } catch {
-    // Reader could not load (offline, very old phone) or crashed: fail closed.
+  let tooSlow = false
+  const timeUp = new Promise((resolve) => setTimeout(() => resolve((tooSlow = true) && null), COVER_LIMIT_MS * pages.length))
+  let covered = []
+  for (const [i, page] of pages.entries()) {
+    coverPage.value = pages.length > 1 ? { n: i + 1, total: pages.length } : null
+    coverView.value = { original: page, covered: null }
+    let result = null
+    try {
+      result = await Promise.race([(window.__redactForTests ?? redactImage)(page), timeUp])
+    } catch {
+      // Reader could not load (offline, very old phone) or crashed: fail closed.
+    }
+    if (id !== run) return // cancelled
+    if (!result) return fail(tooSlow ? 'TIMEOUT' : 'COVER_FAILED')
+    // A page where nothing looks like a label or bill (a blank back page) would be all black: it is left out.
+    if (!result.keep.length) continue
+    covered.push(result.dataUrl)
+    coverView.value = { original: page, covered: result.dataUrl }
+    // Let the blacked-out version wipe in before the next step (shorter with reduced motion: there is no wipe).
+    await new Promise((done) => setTimeout(done, matchMedia('(prefers-reduced-motion: reduce)').matches ? 300 : REVEAL_MS))
+    if (id !== run) return
   }
-  if (id !== run) return // cancelled
-  if (!covered || !covered.keep.length) {
-    covering.value = false
-    // Nothing that looks like a label or bill was found: the covered photo would be all black, so don't send it.
-    errorCode.value = covered ? 'UNREADABLE_IMAGE' : tooSlow ? 'TIMEOUT' : 'COVER_FAILED'
-    state.value = 'error'
-    return
-  }
-  photo.value = covered.dataUrl
-  coverView.value = { ...coverView.value, covered: covered.dataUrl }
-  // Let the blacked-out version wipe in before reading starts (shorter with reduced motion: there is no wipe).
-  await new Promise((done) => setTimeout(done, matchMedia('(prefers-reduced-motion: reduce)').matches ? 300 : REVEAL_MS))
+  // No page had anything to read: don't send black pictures.
+  if (!covered.length) return fail('UNREADABLE_IMAGE')
+  covered = await fitUpload(covered).catch(() => covered)
   if (id !== run) return
+  photos.value = covered
   covering.value = false
-  send(docType, (ms) => scanImage(docType, photo.value, ms), deadline - Date.now())
+  coverPage.value = null
+  send(docType, (ms) => scanImage(docType, photos.value, ms), deadline - Date.now())
 }
 
 function trySample(sample) {
-  fromPdf = false
+  pdfPages = null
+  fromPdf.clear()
   // H6: the sample's picture goes to Confirm too, so there is something to check the fields against.
-  photo.value = `/samples/${sample.id}.svg`
+  photos.value = [`/samples/${sample.id}.svg`]
   coverView.value = null
   send(sample.type, (ms) => scanSample(sample.id, ms))
 }
@@ -312,7 +366,7 @@ const OTHER_KIND = { LOOKS_LIKE_BILL: 'bill', LOOKS_LIKE_LABEL: 'medication' }
 const otherKind = computed(() => OTHER_KIND[errorCode.value] ?? null)
 function readAsOther() {
   const kind = otherKind.value
-  send(kind, (ms) => scanImage(kind, photo.value, ms))
+  send(kind, (ms) => scanImage(kind, photos.value, ms))
 }
 function notOther() {
   errorCode.value = 'MISMATCH'
@@ -326,7 +380,7 @@ const errorText = computed(() => {
   if (otherKind.value) return t(`scan.other.${otherKind.value}.question`)
   if (wrongDoc.value) return t(`${wrongDocKey.value}.text`)
   if (photoError.value) return t('scan.photoHint')
-  return photo.value ? t('scan.photoKept') : ''
+  return photos.value.length ? t('scan.photoKept') : ''
 })
 const TIPS = [
   { key: 'light', icon: 'sun' },
@@ -363,7 +417,7 @@ onMounted(() => {
 <template>
   <!-- Kept outside the states so Retake/Upload work from the error screen too. -->
   <input ref="camera" type="file" accept="image/*" capture="environment" class="d-none" data-testid="camera-input" @change="onFile" />
-  <input ref="upload" type="file" accept="image/*,application/pdf" class="d-none" @change="onFile" />
+  <input ref="upload" type="file" multiple accept="image/*,application/pdf" class="d-none" @change="onFile" />
 
   <div v-if="state === 'loading'" class="busy rise">
     <div v-if="coverView" class="cover-view" :class="{ done: coverView.covered }" aria-hidden="true">
@@ -377,7 +431,7 @@ onMounted(() => {
       <span class="progress-ring__pulse" style="inset: 42px"></span>
       <span class="progress-ring__core"><PillLoader :size="66" /></span>
     </div>
-    <LoadingState :label="covering ? t('scan.covering') : t(`scan.reading.${readingType}`)" :pill="!!coverView" />
+    <LoadingState :label="covering ? (coverPage ? t('scan.coveringPage', coverPage) : t('scan.covering')) : t(`scan.reading.${readingType}`)" :pill="!!coverView" />
     <!-- A photo goes through two steps: covered on this phone, then read. Samples only have the second. -->
     <ol v-if="coverView" class="scan-steps" data-testid="scan-steps">
       <li :class="covering ? 'now' : 'done'" :aria-current="covering ? 'step' : null">
@@ -413,7 +467,7 @@ onMounted(() => {
           <span><strong>{{ t(`scan.tips.${tip.key}.title`) }}.</strong> {{ t(`scan.tips.${tip.key}.text`) }}</span>
         </li>
       </ul>
-      <img v-else-if="photo" :src="photo" :alt="t('scan.yourPhoto')" class="photo scan-preview" />
+      <img v-else-if="photos.length" :src="photos[0]" :alt="t('scan.yourPhoto')" class="photo scan-preview" />
       <template v-if="otherKind">
         <button type="button" class="btn btn-primary" data-testid="scan-other-yes" @click="readAsOther"><AppIcon name="check" />{{ t(`scan.other.${otherKind}.yes`) }}</button>
         <button type="button" class="btn btn-secondary" data-testid="scan-other-no" @click="notOther"><AppIcon name="x" />{{ t(`scan.other.${otherKind}.no`) }}</button>
@@ -506,7 +560,7 @@ onMounted(() => {
         <button type="button" class="btn btn-primary" data-guide="scan-take" data-testid="scan-take" @click="startCamera"><AppIcon name="camera" />{{ t(`scan.takeOf.${type}`) }}</button>
         <p v-if="cameraBlocked" class="alert alert-warning m-0" role="alert"><AppIcon name="alert" />{{ t('scan.cameraBlocked') }}</p>
         <p class="or">{{ t('scan.or') }}</p>
-        <UploadDropzone class="dz-full" @select="(f) => useFile(f, type)" />
+        <UploadDropzone class="dz-full" @select="(files) => useFiles(files, type)" />
         <p class="privacy"><AppIcon name="shield" :size="20" />{{ t('scan.privacy') }}</p>
       </section>
 

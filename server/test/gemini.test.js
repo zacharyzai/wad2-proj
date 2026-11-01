@@ -178,6 +178,31 @@ test('asks for low thinking and the main model first', async () => {
   assert.deepEqual(sent.body.generationConfig.thinkingConfig, { thinkingLevel: 'low' })
 })
 
+test('the pages of one bill go as separate, numbered images, read at high resolution, with one prompt saying they are one bill', async () => {
+  let body
+  globalThis.fetch = async (url, init) => {
+    body = JSON.parse(init.body)
+    return new Response(JSON.stringify(geminiText({ readable: true, items: [], subsidies: [], medisave: 0, totalPayable: 0 })))
+  }
+  const PNG2 = 'data:image/jpeg;base64,BBBB'
+  await extractScan('bill', [IMG, PNG2])
+  const parts = body.contents[0].parts
+  assert.deepEqual(parts.slice(0, 4), [
+    { text: 'Page 1 of 2:' },
+    { inline_data: { mime_type: 'image/png', data: 'AAAA' } },
+    { text: 'Page 2 of 2:' },
+    { inline_data: { mime_type: 'image/jpeg', data: 'BBBB' } },
+  ])
+  assert.equal(parts.length, 5)
+  assert.match(parts[4].text, /The 2 images above are pages \(or overlapping photos\) of ONE bill/)
+  assert.equal(body.generationConfig.mediaResolution, 'MEDIA_RESOLUTION_HIGH')
+
+  await extractScan('medication', IMG) // one photo: as before, no page names, normal resolution
+  assert.equal(body.contents[0].parts.length, 2)
+  assert.doesNotMatch(body.contents[0].parts[1].text, /images above/)
+  assert.equal(body.generationConfig.mediaResolution, undefined)
+})
+
 test('Groq is the last resort after every Gemini model, in the OpenAI format', async (t) => {
   process.env.GEMINI_FALLBACK_MODELS = 'backup-1'
   process.env.GROQ_API_KEY = 'groq-key'

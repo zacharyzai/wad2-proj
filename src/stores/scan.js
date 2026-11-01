@@ -16,8 +16,9 @@ const saved = restore()
 
 export const scanStore = reactive({
   current: saved?.current ?? null,
-  // Compressed data URL of the user's photo, shown beside the fields on Confirm. null for samples. Never sent anywhere but /api/scan.
-  photo: null,
+  // Covered data URLs of the user's photo, or of each page of a long bill, shown beside the fields on Confirm. [] when there
+  // is none. Never sent anywhere but /api/scan.
+  photos: [],
   // For a PDF: { total, read } pages, so Confirm can say which pages were read. null otherwise.
   pdfPages: null,
   // Set by Confirm. Explain and Schedule only use a scan the user has checked.
@@ -42,7 +43,7 @@ watch(
 // Whoever is logged out takes their last scan with them.
 export function forgetScan() {
   scanStore.current = null
-  scanStore.photo = null
+  scanStore.photos = []
   scanStore.pdfPages = null
   scanStore.confirmed = false
 }

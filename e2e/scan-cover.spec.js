@@ -17,9 +17,25 @@ test('only the covered photo is sent, and Confirm shows that same covered photo'
   const sent = page.waitForRequest('**/api/scan')
   await page.goto('/scan?type=medication')
   await upload(page)
-  expect((await sent).postDataJSON().image).toBe(COVERED)
+  expect((await sent).postDataJSON().images).toEqual([COVERED])
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Check what we read')
   await expect(page.locator(`img[src="${COVERED}"]`).first()).toBeAttached()
+})
+
+test('several pages are each covered; a blank page is left out, the rest are sent', async ({ page }) => {
+  await mockImageScan(page)
+  // The 2nd page has nothing that looks like a bill (e.g. a blank back page).
+  await page.addInitScript(() => {
+    let call = 0
+    window.__redactForTests = async (dataUrl) => ({ dataUrl: `data:image/jpeg;base64,/9j/page${++call}`, keep: call === 2 ? [] : [{ text: 'TOTAL' }], hits: [] })
+  })
+  const sent = page.waitForRequest('**/api/scan')
+  await page.goto('/scan?type=bill')
+  const photo = (name) => ({ name, mimeType: 'image/png', buffer: TINY_PNG })
+  await page.getByTestId('upload-input').setInputFiles([photo('1.png'), photo('2.png'), photo('3.png')])
+  await page.getByRole('button', { name: 'Scan', exact: true }).click()
+  await expect(page.getByText(/Covering your personal details on page \d of 3/)).toBeVisible()
+  expect((await sent).postDataJSON().images).toEqual(['data:image/jpeg;base64,/9j/page1', 'data:image/jpeg;base64,/9j/page3'])
 })
 
 test('if covering fails, nothing is sent and Try again covers again', async ({ page }) => {

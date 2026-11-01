@@ -404,14 +404,14 @@ const PDF = Buffer.from(
   ].join('\n'),
 )
 
-test('a bill saved as a PDF is drawn to one picture on this device, then scanned like a photo', async ({ page }) => {
+test('a bill saved as a PDF is drawn to pictures on this device, then scanned like a photo', async ({ page }) => {
   await mockImageScan(page)
   const sent = page.waitForRequest('**/api/scan')
   await page.goto('/scan?type=medication')
   await page.getByTestId('upload-input').setInputFiles({ name: 'label.pdf', mimeType: 'application/pdf', buffer: PDF })
   await expect(page.getByText('label.pdf')).toBeVisible()
   await page.getByRole('button', { name: 'Scan', exact: true }).click()
-  expect((await sent).postDataJSON().image).toMatch(/^data:image\/jpeg;base64,/) // never the PDF itself
+  expect((await sent).postDataJSON().images).toEqual([expect.stringMatching(/^data:image\/jpeg;base64,/)]) // never the PDF itself
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Check what we read')
 })
 
@@ -420,9 +420,9 @@ const PDF5 = Buffer.from(
   [
     '%PDF-1.4',
     '1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj',
-    '2 0 obj<</Type/Pages/Kids[3 0 R 3 0 R 3 0 R 3 0 R 3 0 R]/Count 5>>endobj',
-    '3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 300 400]>>endobj',
-    'trailer<</Root 1 0 R/Size 4>>',
+    '2 0 obj<</Type/Pages/Kids[3 0 R 4 0 R 5 0 R 6 0 R 7 0 R]/Count 5>>endobj',
+    ...[3, 4, 5, 6, 7].map((n) => `${n} 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 300 400]>>endobj`), // five real pages (pdf.js refuses one page used five times past the 3rd)
+    'trailer<</Root 1 0 R/Size 8>>',
     '%%EOF',
   ].join('\n'),
 )
@@ -432,7 +432,47 @@ test('a PDF with several pages tells the person which pages were read', async ({
   await page.goto('/scan?type=bill')
   await page.getByTestId('upload-input').setInputFiles({ name: 'long.pdf', mimeType: 'application/pdf', buffer: PDF5 })
   await page.getByRole('button', { name: 'Scan', exact: true }).click()
-  await expect(page.getByTestId('pdf-pages')).toContainText('This PDF has 5 pages. We read 3 of them')
+  await expect(page.getByTestId('pdf-pages')).toContainText('This PDF has 5 pages. We read 4 of them', { timeout: 15_000 }) // 4 pages, each covered in turn
+})
+
+test('each page of a long PDF goes as its own picture, at full width', async ({ page }) => {
+  await mockImageScan(page)
+  const sent = page.waitForRequest('**/api/scan')
+  await page.goto('/scan?type=bill')
+  await page.getByTestId('upload-input').setInputFiles({ name: 'long.pdf', mimeType: 'application/pdf', buffer: PDF5 })
+  await page.getByRole('button', { name: 'Scan', exact: true }).click()
+  const { images } = (await sent).postDataJSON()
+  expect(images).toHaveLength(4) // pages 1, 2, 3 and the last
+  const widths = await page.evaluate((urls) => Promise.all(urls.map((src) => new Promise((done) => { const img = new Image(); img.onload = () => done(img.naturalWidth); img.src = src }))), images)
+  expect(widths).toEqual([1600, 1600, 1600, 1600])
+  await expect(page.locator('[data-testid="confirm-pages"] img')).toHaveCount(4) // beside the fields (behind "Show photo" on phones)
+})
+
+test('several photos of one bill are scanned together, in the order picked; Add another page adds to them', async ({ page }) => {
+  await mockImageScan(page)
+  const sent = page.waitForRequest('**/api/scan')
+  await page.goto('/scan?type=bill')
+  const photo = (name) => ({ name, mimeType: 'image/png', buffer: TINY_PNG })
+  await page.getByTestId('upload-input').setInputFiles([photo('page1.png'), photo('page2.png')])
+  await expect(page.getByTestId('upload-pages').getByRole('img')).toHaveCount(2)
+  await expect(page.getByText('2 pages, read in this order')).toBeVisible()
+
+  await page.getByTestId('upload-add').click()
+  await page.getByTestId('upload-input').setInputFiles(photo('page3.png'))
+  await expect(page.getByRole('img', { name: 'Page 3 of 3' })).toBeVisible()
+
+  await page.getByRole('button', { name: 'Scan', exact: true }).click()
+  expect((await sent).postDataJSON().images).toHaveLength(3)
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Check your bill items')
+})
+
+test('more than 4 photos, or a PDF with photos, are refused before anything is sent', async ({ page }) => {
+  await page.goto('/scan?type=bill')
+  const photo = (name) => ({ name, mimeType: 'image/png', buffer: TINY_PNG })
+  await page.getByTestId('upload-input').setInputFiles(['1', '2', '3', '4', '5'].map((n) => photo(`${n}.png`)))
+  await expect(page.getByRole('alert')).toHaveText('You can scan up to 4 pages at a time.')
+  await page.getByTestId('upload-input').setInputFiles([photo('1.png'), { name: 'bill.pdf', mimeType: 'application/pdf', buffer: PDF }])
+  await expect(page.getByRole('alert')).toHaveText('A PDF already has its pages. Scan it on its own, or choose up to 4 photos.')
 })
 
 test('a damaged PDF says the file cannot be used and sends nothing', async ({ page }) => {

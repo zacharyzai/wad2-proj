@@ -1,5 +1,6 @@
-// Owner: Zachary. Calls Gemini (Groq as last fallback) with model fallback; extractScan turns one photo into a contract-shaped Scan.
-// The image only lives in memory for this request; it is never written anywhere.
+// Owner: Zachary. Calls Gemini (Groq as last fallback) with model fallback; extractScan turns the photo (or the pages of one
+// bill or label, each its own image) into a contract-shaped Scan. The images only live in memory for this request; they are
+// never written anywhere.
 import {
   normalizeMedication,
   normalizeBill,
@@ -29,6 +30,8 @@ const GROQ_API = 'https://api.groq.com/openai/v1/chat/completions'
 // One deadline for the whole scan, shared by the main model and its fallbacks. With covering on the phone and the upload,
 // a scan then stays inside the app's 30 s limit (SCAN_LIMIT_MS in ScanView.vue).
 const TIMEOUT_MS = 16_000
+// Every page after the first gets this much longer: the model reads each one (ScanView gives the whole scan as much more).
+const PAGE_MS = 4_000
 // A slow model gives up early enough for a fallback to still answer in time.
 const FIRST_TRY_MS = 9_000
 // Always kept for the last model (Groq, a different company): when every Gemini model is overloaded and slow to say so,
@@ -248,14 +251,17 @@ const RECHECK_MIN_MS = 6_000
 
 // GEMINI_MODEL, then GEMINI_FALLBACK_MODELS, then GROQ_MODELS.
 // canRecheck: asked before the extra reading of a bill that doesn't add up (the route counts it against the daily cap).
-export async function extractScan(type, imageDataUrl, { canRecheck = () => true } = {}) {
+// images: one data URL, or the pages of one document in order (a long bill, a label photographed from two sides).
+export async function extractScan(type, images, { canRecheck = () => true } = {}) {
+  const pages = [images].flat()
   const started = Date.now()
-  const first = await readOnce(type, imageDataUrl, PROMPTS[type], TIMEOUT_MS)
+  const timeout = TIMEOUT_MS + PAGE_MS * (pages.length - 1)
+  const first = await readOnce(type, pages, PROMPTS[type], timeout)
   if (type !== 'bill' || first.unclear.length || addsUp(first)) return first
-  const left = TIMEOUT_MS - (Date.now() - started)
+  const left = timeout - (Date.now() - started)
   if (left < RECHECK_MIN_MS || !canRecheck()) return first
   // The second reading is used only if it adds up and agrees on the total: never a total changed to make the sums work.
-  const second = await readOnce(type, imageDataUrl, `${PROMPTS.bill}\n${recheckNote(first.bill)}`, left).catch(() => null)
+  const second = await readOnce(type, pages, `${PROMPTS.bill}\n${recheckNote(first.bill)}`, left).catch(() => null)
   return second && addsUp(second) && second.bill.totalPayableCents === first.bill.totalPayableCents ? second : first
 }
 
@@ -268,15 +274,31 @@ function recheckNote(bill) {
 Copy only what is printed: never change an amount just to make the numbers add up.`
 }
 
+// Several pages: each is named before its image, and the prompt says they are one document, so a charge seen twice where
+// photos overlap, or a header repeated on every page, is not listed twice.
+const pagesNote = (type, n) => {
+  if (n < 2) return ''
+  const doc = type === 'bill' ? 'bill' : 'medicine label'
+  return `
+The ${n} images above are pages (or overlapping photos) of ONE ${doc}, in order. Read every page and return one ${doc} for
+all of them. A line that appears on two images (where photos overlap, or a header or summary repeated on each page) is
+listed once. Totals are usually on the last page.`
+}
+
 // One reading: the models in turn, the reply checked and normalized. Throws ScanError for an unreadable or wrong document.
-async function readOnce(type, imageDataUrl, prompt, timeoutMs) {
-  const [, mimeType, data] = imageDataUrl.match(/^data:(image\/[a-z]+);base64,(.+)$/)
+async function readOnce(type, pages, basePrompt, timeoutMs) {
+  const prompt = basePrompt + pagesNote(type, pages.length)
+  const images = pages.map((url) => {
+    const [, mimeType, data] = url.match(/^data:(image\/[a-z]+);base64,(.+)$/)
+    return { inline_data: { mime_type: mimeType, data } }
+  })
+  const label = (i) => (pages.length > 1 ? [{ text: `Page ${i + 1} of ${pages.length}:` }] : [])
   const text = await firstReply(
     attempts({
       gemini: [process.env.GEMINI_MODEL || 'gemini-3.8-flash', ...list(process.env.GEMINI_FALLBACK_MODELS)],
       groq: list(process.env.GROQ_MODELS ?? 'qwen/qwen3.8-27b'),
       geminiBody: {
-        contents: [{ parts: [{ inline_data: { mime_type: mimeType, data } }, { text: prompt }] }],
+        contents: [{ parts: [...images.flatMap((image, i) => [...label(i), image]), { text: prompt }] }],
         generationConfig: {
           responseMimeType: 'application/json',
           responseSchema: SCHEMAS[type],
@@ -285,6 +307,8 @@ async function readOnce(type, imageDataUrl, prompt, timeoutMs) {
           // resolution for bills were tried on 28 Oct 2026 but couldn't be timed: Gemini was overloaded. A bill that
           // doesn't add up is read once more instead, see extractScan.)
           thinkingConfig: { thinkingLevel: 'low' },
+          // Bills have small print in two money columns: more image detail per page means fewer misread digits.
+          ...(type === 'bill' && { mediaResolution: 'MEDIA_RESOLUTION_HIGH' }),
         },
       },
       groqBody: {
@@ -296,7 +320,7 @@ async function readOnce(type, imageDataUrl, prompt, timeoutMs) {
             role: 'user',
             content: [
               { type: 'text', text: `${prompt}\nReply with JSON only, matching this schema:\n${JSON.stringify(SCHEMAS[type])}` },
-              { type: 'image_url', image_url: { url: imageDataUrl } },
+              ...pages.map((url) => ({ type: 'image_url', image_url: { url } })),
             ],
           },
         ],

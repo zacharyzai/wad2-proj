@@ -20,7 +20,10 @@ const scan = scanStore.current
 if (!scan) router.replace({ name: 'scan' })
 // Edit a copy so "Retake" leaves the store untouched.
 const draft = reactive(scan ? structuredClone(toRaw(scan)) : {})
-const photo = scanStore.photo
+// The covered photo, or each page of a long bill; the first stands for them all where there is room for one.
+const photos = scanStore.photos
+const photo = photos[0] ?? null
+const pageAlt = (i) => (photos.length > 1 ? t('confirm.pageAlt', { n: i + 1, total: photos.length }) : t('confirm.yourPhoto'))
 const showPhoto = ref(false)
 // Lokesh: "Fix what we read" on Schedule opens a saved medicine here (no photo). Looks correct replaces that medicine and
 // goes back to Schedule, keeping its days, ticks and calendar reminders. `savedId` lives on the scan, so a new scan clears it.
@@ -188,14 +191,18 @@ const scanAgain = () => router.push(fixing ? { name: 'schedule', query: { view: 
         <div class="d-lg-none card d-flex flex-column gap-3">
           <div class="d-flex align-items-center gap-3">
             <img :src="photo" alt="" class="thumb" />
-            <span class="fw-bold flex-grow-1">{{ t('confirm.yourPhoto') }}</span>
+            <span class="fw-bold flex-grow-1">{{ photos.length > 1 ? t('confirm.yourPages', { n: photos.length }) : t('confirm.yourPhoto') }}</span>
             <button type="button" class="btn btn-outline btn-sm" :aria-expanded="showPhoto" @click="showPhoto = !showPhoto">
               {{ showPhoto ? t('confirm.hidePhoto') : t('confirm.showPhoto') }}
             </button>
           </div>
-          <img v-if="showPhoto" :src="photo" :alt="t('confirm.yourPhoto')" class="photo" />
+          <template v-if="showPhoto"><img v-for="(src, i) in photos" :key="i" :src="src" :alt="pageAlt(i)" class="photo" /></template>
         </div>
-        <img :src="photo" :alt="t('confirm.yourPhoto')" class="photo stick d-none d-lg-block" />
+        <img v-if="photos.length === 1" :src="photo" :alt="t('confirm.yourPhoto')" class="photo stick d-none d-lg-block" />
+        <!-- Several pages scroll on their own beside the fields, so every page can be checked against them. -->
+        <div v-else class="pages stick d-none d-lg-flex" data-testid="confirm-pages">
+          <img v-for="(src, i) in photos" :key="i" :src="src" :alt="pageAlt(i)" class="photo" />
+        </div>
       </div>
 
       <div :class="photo ? 'col-lg-7' : 'col-lg-9'" class="d-flex flex-column gap-4">

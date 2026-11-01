@@ -7,16 +7,17 @@ Owner: **Zachary**. Every feature reads scans in this shape. Changing it (or the
 `POST /api/scan` with a JSON body, in one of two forms:
 
 ```jsonc
-{ "type": "medication" | "bill", "image": "data:image/jpeg;base64,..." } // real photo
-{ "sampleId": "med-1" }                                                  // built-in sample
+{ "type": "medication" | "bill", "images": ["data:image/jpeg;base64,...", ...] } // real photo(s): the pages of ONE label or bill, in order
+{ "sampleId": "med-1" }                                                            // built-in sample
 ```
 
-- `image` must be a base64 **JPEG, PNG or WebP** data URL. Compress it on the client to about **1 MB or less**. The server rejects bodies over 4 MB.
-- The image is only sent to the AI for extraction and is **never stored**.
+- `images` holds **1 to 4** base64 **JPEG, PNG or WebP** data URLs. A long bill is several photos or the pages of a PDF, each its own image (not one tall strip: the AI gives every image the same detail, so a strip makes each page's print smaller). The AI is told they are pages of one document and returns one Scan for all of them. `"image": "..."` (one photo) is still accepted.
+- Compress on the client to about **1 MB per page or less**. The server rejects bodies over 4 MB in all.
+- The images are only sent to the AI for extraction and are **never stored**.
 - Samples available now: `med-1` (Metformin), `med-2` (Amlodipine), `med-3` (cough syrup, when needed), `bill-1`, `bill-2` (blood tests + MediSave), `bill-3` (Merdeka Generation, procedure + other). Lokesh adds more in `server/fixtures/` and registers them in `server/routes/scan.js`.
 - Sample scans are never rate limited. **E2E tests must use samples.**
 
-From the client, call `scanImage(type, image)` / `scanSample(id)` from `src/api/client.js`.
+From the client, call `scanImage(type, images)` / `scanSample(id)` from `src/api/client.js`.
 
 ## Response
 
@@ -27,7 +28,7 @@ From the client, call `scanImage(type, image)` / `scanSample(id)` from `src/api/
 
 | code | HTTP | when |
 |---|---|---|
-| `BAD_REQUEST` | 400 | missing or invalid `type`/`image`, malformed JSON |
+| `BAD_REQUEST` | 400 | missing or invalid `type`/`images` (none, more than 4, or one that isn't an image data URL), malformed JSON |
 | `NOT_FOUND` | 404 | unknown `sampleId` or API route |
 | `IMAGE_TOO_LARGE` | 413 | body over 4 MB |
 | `UNREADABLE_IMAGE` | 422 | the AI could not read the photo |

@@ -23,11 +23,12 @@ const SAMPLES = new Map([
 ])
 const MOCK_BY_TYPE = { medication: med1, bill: bill1 }
 const IMAGE_DATA_URL = /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/]+=*$/
+const MAX_PAGES = 4 // same as src/utils/pdfToImage.js and UploadDropzone.vue
 
 const router = Router()
 
 router.post('/', scanRateLimit, async (req, res) => {
-  const { type, image, sampleId } = req.body ?? {}
+  const { type, image, images, sampleId } = req.body ?? {}
 
   if (sampleId !== undefined) {
     const sample = typeof sampleId === 'string' && SAMPLES.get(sampleId)
@@ -36,8 +37,10 @@ router.post('/', scanRateLimit, async (req, res) => {
   }
 
   if (!Object.hasOwn(MOCK_BY_TYPE, type)) return sendError(res, 400, 'BAD_REQUEST', 'type must be "medication" or "bill"')
-  if (typeof image !== 'string' || !IMAGE_DATA_URL.test(image)) {
-    return sendError(res, 400, 'BAD_REQUEST', 'image must be a base64 JPEG, PNG or WebP data URL')
+  // `images`: the pages of one bill or label, in order. `image` (one photo) still works.
+  const pages = images ?? [image]
+  if (!Array.isArray(pages) || !pages.length || pages.length > MAX_PAGES || !pages.every((p) => typeof p === 'string' && IMAGE_DATA_URL.test(p))) {
+    return sendError(res, 400, 'BAD_REQUEST', `images must be 1 to ${MAX_PAGES} base64 JPEG, PNG or WebP data URLs`)
   }
 
   if (!takeDailyQuota()) return sendError(res, 429, 'RATE_LIMITED', 'Daily scan limit reached, please try again tomorrow')
@@ -48,7 +51,7 @@ router.post('/', scanRateLimit, async (req, res) => {
 
   try {
     // A bill that doesn't add up may be read once more: that reading counts against the daily cap too.
-    res.json({ ok: true, data: await extractScan(type, image, { canRecheck: () => takeDailyQuota() }) })
+    res.json({ ok: true, data: await extractScan(type, pages, { canRecheck: () => takeDailyQuota() }) })
   } catch (err) {
     if (err instanceof ScanError) return sendError(res, err.status, err.code, err.message)
     throw err // Express 5 forwards it to the error handler in app.js
