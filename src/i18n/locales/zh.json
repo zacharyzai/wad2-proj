@@ -398,6 +398,9 @@
     "skin": "皮肤",
     "vitamins": "维他命和补充剂"
   },
+  "tip": {
+    "more": "了解更多：{name}"
+  },
   "unit": {
     "tablet": "粒",
     "capsule": "粒",

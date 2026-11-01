@@ -449,3 +449,37 @@ test('purpose: when the AI was not sure, nothing is shown, and the field waits u
   await page.getByRole('button', { name: 'Looks correct' }).click()
   await expect(page.getByTestId('explain-purpose')).toHaveCount(0)
 })
+
+test('the help under "Amount in the pack" hides behind an "i" button: tap or key opens it, Esc and tapping elsewhere close it', async ({ page }) => {
+  await answerWith(page, {})
+  await openSample(page, 'Metformin label')
+  const tip = page.getByTestId('info-tip')
+  const text = page.getByTestId('info-tip-text')
+  await expect(page.getByText('As on the label, for example Qty: 60.')).toBeHidden() // nothing under the field by default
+  await expect(tip).toHaveAccessibleName('More about: Amount in the pack')
+  await expect(tip).toHaveAttribute('aria-expanded', 'false')
+  expect((await tip.boundingBox()).width).toBeGreaterThanOrEqual(44) // a big enough thing to press
+
+  await tip.click()
+  await expect(text).toBeVisible()
+  await expect(text).toContainText('We use it to work out how many days it lasts.')
+  await expect(tip).toHaveAttribute('aria-expanded', 'true')
+  await page.keyboard.press('Escape')
+  await expect(text).toBeHidden()
+
+  await tip.focus() // keyboard: Enter opens, tapping elsewhere closes
+  await page.keyboard.press('Enter')
+  await expect(text).toBeVisible()
+  await page.getByRole('heading', { level: 1 }).click()
+  await expect(text).toBeHidden()
+})
+
+test('the "i" help opens on mouse hover too, and closes when the mouse leaves', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'hover is a mouse thing')
+  await answerWith(page, {})
+  await openSample(page, 'Metformin label')
+  await page.getByTestId('info-tip').hover()
+  await expect(page.getByTestId('info-tip-text')).toBeVisible()
+  await page.mouse.move(5, 5)
+  await expect(page.getByTestId('info-tip-text')).toBeHidden()
+})

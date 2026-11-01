@@ -398,6 +398,9 @@
     "skin": "the skin",
     "vitamins": "vitamins and supplements"
   },
+  "tip": {
+    "more": "More about: {name}"
+  },
   "unit": {
     "tablet": "tablet | tablets",
     "capsule": "capsule | capsules",

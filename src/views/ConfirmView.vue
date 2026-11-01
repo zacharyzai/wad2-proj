@@ -229,12 +229,11 @@ const scanAgain = () => router.push(fixing ? { name: 'schedule', query: { view: 
             </div>
           </ConfirmField>
           <!-- Optional: how much was given. With the dose and times a day, Schedule works out how many days it lasts. -->
-          <ConfirmField v-if="showOptional('medication.quantity')" :label="t('confirm.med.quantity')" for="f-qty">
+          <ConfirmField v-if="showOptional('medication.quantity')" :label="t('confirm.med.quantity')" for="f-qty" :help="t('confirm.med.quantityHelp')">
             <div class="d-flex align-items-center gap-2">
               <input id="f-qty" type="number" inputmode="decimal" min="0" step="1" class="field-input amount" :value="draft.medication.quantity ?? ''" aria-describedby="f-qty-help" @change="draft.medication.quantity = Number($event.target.value) > 0 ? Number($event.target.value) : null" />
               <span class="fw-semibold">{{ t(`unit.${draft.medication.doseUnit ?? 'other'}`, 2) }}</span>
             </div>
-            <span id="f-qty-help" class="field-help">{{ t('confirm.med.quantityHelp') }}</span>
           </ConfirmField>
           <ConfirmField :label="t('confirm.med.howOften')" for="f-freq" :flagged="needs('medication.frequencyType')">
             <select id="f-freq" v-model="draft.medication.frequencyType" class="field-input" :class="{ 'is-flagged': needs('medication.frequencyType') }">

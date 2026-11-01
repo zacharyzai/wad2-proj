@@ -398,6 +398,9 @@
     "skin": "kulit",
     "vitamins": "vitamin dan suplemen"
   },
+  "tip": {
+    "more": "Maklumat lanjut: {name}"
+  },
   "unit": {
     "tablet": "biji",
     "capsule": "kapsul",
