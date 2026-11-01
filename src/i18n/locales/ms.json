@@ -380,6 +380,12 @@
       "times": "Kali sehari mesti nombor bulat dari 1 hingga 6.",
       "timing": "Anda menanda {ticked} waktu, tetapi ia menyatakan {times} kali sehari. Tanda waktu yang betul, atau ubah nombornya."
     },
+    "duplicate": {
+      "title": "{name} sudah ada dalam senarai anda",
+      "text": "Menyimpan label ini akan mengemas kini ubat itu dengan butiran yang anda semak di sini. Jika anda masih mengambilnya, jadual dan tandanya kekal sama.",
+      "yes": "Kemas kini ubat saya",
+      "no": "Kembali"
+    },
     "discard": {
       "title": "Buang perubahan anda?",
       "text": "Anda telah mengubah beberapa butiran. Jika anda keluar sekarang, perubahan itu akan hilang.",

@@ -26,6 +26,25 @@ test('medication sample: confirm, explain and quick check', async ({ page }) => 
   await expect(page.getByRole('link', { name: 'Add to schedule' })).toBeVisible()
 })
 
+test('confirming a medicine already on the list asks before updating it', async ({ page }) => {
+  await openSample(page, 'Metformin label')
+  await page.getByRole('button', { name: 'Looks correct' }).click()
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Take 1 tablet, 2 times a day.')
+
+  await openSample(page, 'Metformin label')
+  await page.getByRole('button', { name: 'Looks correct' }).click()
+  const ask = page.getByTestId('confirm-duplicate')
+  await expect(ask).toContainText('You already have Metformin on your list')
+  await page.getByTestId('confirm-duplicate-no').click()
+  await expect(ask).toBeHidden()
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Check what we read')
+
+  await page.getByRole('button', { name: 'Looks correct' }).click()
+  await page.getByTestId('confirm-duplicate-yes').click()
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Take 1 tablet, 2 times a day.')
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem('medicines')).length)).toBe(1)
+})
+
 test('edits on Confirm change the explanation', async ({ page }) => {
   await openSample(page, 'Metformin label')
   await page.getByLabel('Amount each time').fill('2')

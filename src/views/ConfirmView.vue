@@ -6,7 +6,7 @@ import { useI18n } from 'vue-i18n'
 import { scanStore } from '../stores/scan'
 import { authStore } from '../stores/auth'
 import { saveScan } from '../api/client'
-import { rememberMedicine, replaceMedicine } from '../stores/medicines'
+import { rememberMedicine, replaceMedicine, savedMedicine } from '../stores/medicines'
 import ConfirmField from '../components/scan/ConfirmField.vue'
 import AppIcon from '../components/layout/AppIcon.vue'
 import { DOSE_UNITS, TIMINGS, WITH_FOOD, FREQUENCY_TYPES, PURPOSES } from '../../server/services/normalizeScan.js'
@@ -105,12 +105,16 @@ onBeforeRouteLeave((to) => {
 // The guard lets `leaveTo` through now that it's set.
 const discard = () => router.push(leaveTo)
 const discardBox = ref(null)
-watch(askDiscard, async (open) => {
-  if (!open) return
+async function showBox(box) {
   await nextTick()
-  discardBox.value?.scrollIntoView({ block: 'center', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })
-  discardBox.value?.querySelector('button')?.focus({ preventScroll: true })
-})
+  box.value?.scrollIntoView({ block: 'center', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })
+  box.value?.querySelector('button')?.focus({ preventScroll: true })
+}
+watch(askDiscard, (open) => open && showBox(discardBox))
+// The same medicine is already on the list: ask before this label replaces it.
+const duplicate = ref(null)
+const duplicateBox = ref(null)
+watch(duplicate, (entry) => entry && showBox(duplicateBox))
 function keepChecking() {
   leaveTo = null
   askDiscard.value = false
@@ -126,7 +130,7 @@ const warnings = computed({
   set: (text) => (draft.medication.warnings = text.split('\n').map((s) => s.trim()).filter(Boolean)),
 })
 
-function confirm() {
+function confirm(sure = false) {
   if (draft.type === 'medication') {
     // Number inputs give '' when cleared; the contract uses null.
     for (const key of Object.keys(draft.medication)) if (draft.medication[key] === '') draft.medication[key] = null
@@ -135,6 +139,7 @@ function confirm() {
       done = true
       return router.push({ name: 'schedule', query: { view: 'meds' }, state: { fixedId: draft.savedId } }) // back to its Change button
     }
+    if (!sure && (duplicate.value = savedMedicine(draft.medication) ?? null)) return
     // Ask (the chatbot) answers about the medicines the user has checked.
     rememberMedicine(draft.medication, 'label', draft.source === 'sample')
   }
@@ -303,8 +308,16 @@ const scanAgain = () => router.push(fixing ? { name: 'schedule', query: { view: 
         </div>
 
         <div class="d-flex flex-column gap-2">
+          <div v-if="duplicate" ref="duplicateBox" class="alert alert-warning flex-column" role="alertdialog" aria-labelledby="duplicate-q" aria-describedby="duplicate-text" data-testid="confirm-duplicate">
+            <strong id="duplicate-q">{{ t('confirm.duplicate.title', { name: duplicate.medication.name }) }}</strong>
+            <span id="duplicate-text">{{ t('confirm.duplicate.text') }}</span>
+            <div class="d-flex flex-column flex-sm-row gap-3">
+              <button type="button" class="btn btn-primary" data-testid="confirm-duplicate-yes" @click="confirm(true)">{{ t('confirm.duplicate.yes') }}</button>
+              <button type="button" class="btn btn-secondary" data-testid="confirm-duplicate-no" @click="duplicate = null">{{ t('confirm.duplicate.no') }}</button>
+            </div>
+          </div>
           <div class="acts">
-            <button type="button" class="btn btn-primary ok" :disabled="flagged.length > 0" :aria-describedby="flagged.length ? 'ok-reason' : null" @click="confirm">{{ t('confirm.ok') }}<AppIcon name="right" /></button>
+            <button type="button" class="btn btn-primary ok" :disabled="flagged.length > 0" :aria-describedby="flagged.length ? 'ok-reason' : null" @click="confirm()">{{ t('confirm.ok') }}<AppIcon name="right" /></button>
             <button v-if="fixing" type="button" class="btn btn-ghost" @click="scanAgain">{{ t('schedule.fix.cancel') }}</button>
             <button v-else type="button" class="btn btn-ghost" @click="scanAgain"><AppIcon name="camera" :size="22" />{{ photo ? t('confirm.retake') : t('confirm.scanOther') }}</button>
           </div>

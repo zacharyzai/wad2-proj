@@ -55,6 +55,9 @@ export const isFinished = (entry) => ended(entry.schedule)
 
 const same = (a, b) => a.name.trim().toLowerCase() === b.name.trim().toLowerCase() && (a.strength ?? '') === (b.strength ?? '')
 
+// The saved medicine that rememberMedicine would replace with this one, so Confirm can ask first.
+export const savedMedicine = (medication) => medicines.find((m) => same(m.medication, medication))
+
 // Over the limit of 10: a finished or stopped course goes first (the oldest of those: it is only history now), and only when there
 // is none does the oldest of the rest go. So stopping medicines never pushes out one you are still taking.
 function trim() {

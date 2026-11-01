@@ -380,6 +380,12 @@
       "times": "Times a day must be a whole number from 1 to 6.",
       "timing": "You ticked {ticked} time of day, but it says {times} times a day. Tick the right times, or change the number. | You ticked {ticked} times of day, but it says {times} times a day. Tick the right times, or change the number."
     },
+    "duplicate": {
+      "title": "You already have {name} on your list",
+      "text": "Saving this label updates it with the details you checked here. If you are still taking it, its schedule and ticks stay the same.",
+      "yes": "Update my medicine",
+      "no": "Go back"
+    },
     "discard": {
       "title": "Throw away your changes?",
       "text": "You changed some details. If you leave now, those changes are lost.",
