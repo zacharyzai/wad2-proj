@@ -385,7 +385,9 @@
       "text": "Anda telah mengubah beberapa butiran. Jika anda keluar sekarang, perubahan itu akan hilang.",
       "keep": "Teruskan menyemak",
       "yes": "Buang dan keluar"
-    }
+    },
+    "pagesAll": "PDF ini ada {total} halaman. Kami telah membaca semuanya.",
+    "pagesSome": "PDF ini ada {total} halaman. Kami membaca {read} halaman: halaman pertama dan halaman terakhir, tempat jumlah keseluruhan. Semak jumlahnya, dan imbas halaman di antara secara berasingan jika ada caj yang tiada."
   },
   "purpose": {
     "lead": "Biasanya digunakan untuk",

@@ -9,14 +9,21 @@ export const isPdf = (file) => file.type === 'application/pdf' || /\.pdf$/i.test
 // Pages are drawn one under the other into a single picture. Throws for a file that isn't a readable PDF
 // (damaged, or password-protected); ScanView shows that as "This file can't be used".
 // { pages, width } let the upload box ask for just the first page, small, as its preview.
-export async function pdfToJpeg(file, { pages: maxPages = MAX_PAGES, width = PAGE_WIDTH } = {}) {
+// onInfo({ total, read }) tells the caller how many pages the file has and how many went into the picture.
+export async function pdfToJpeg(file, { pages: maxPages = MAX_PAGES, width: wanted, onInfo } = {}) {
   const [pdfjs, worker] = await Promise.all([import('pdfjs-dist'), import('pdfjs-dist/build/pdf.worker.min.mjs?url')])
   pdfjs.GlobalWorkerOptions.workerSrc = worker.default
   const task = pdfjs.getDocument({ data: new Uint8Array(await file.arrayBuffer()) })
   const pdf = await task.promise
   try {
+    // one or two pages can be drawn larger, so small print (two money columns) stays readable
+    const width = wanted ?? (pdf.numPages <= 2 ? 1600 : PAGE_WIDTH)
     const pages = []
-    for (let n = 1; n <= Math.min(pdf.numPages, maxPages); n++) {
+    // Past the limit: the first pages and the last one (where the total is), not just the first few.
+    const numbers = Array.from({ length: pdf.numPages }, (_, i) => i + 1)
+    const read = numbers.length <= maxPages ? numbers : [...numbers.slice(0, maxPages - 1), pdf.numPages]
+    onInfo?.({ total: pdf.numPages, read: read.length })
+    for (const n of read) {
       const page = await pdf.getPage(n)
       const viewport = page.getViewport({ scale: width / page.getViewport({ scale: 1 }).width })
       const canvas = document.createElement('canvas')

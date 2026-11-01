@@ -77,6 +77,8 @@ const schemeFor = (d) =>
           : /subsid/i.test(d) ? 'government'
             : 'other'
 
+// A row that only continues the description above it: starts with a dosage form or a strength.
+const CONTINUATION = /^\(?\s*(tablets?|tabs?|capsules?|caps?|syrup|cream|ointment|drops?|\d+(\.\d+)?\s?(mg|mcg|ml|g|iu)\b)/i
 export function normalizeBill(raw = {}) {
   const unclear = []
   const list = (v) => (Array.isArray(v) ? v : [])
@@ -104,11 +106,19 @@ export function normalizeBill(raw = {}) {
     const off = dollars !== null && dollars < 0
     if (description && MEDISAVE.test(description) && dollars !== null) medisaveLines.push(Math.abs(dollars))
     else if (off || (description && DEDUCTION.test(description) && dollars !== null)) subsidies.push({ scheme: schemeFor(description ?? ''), amountCents: dollarsToCents(Math.abs(dollars)), includedInItems: false, moved: true })
+    else if (description && CONTINUATION.test(description) && description.length <= 20 && charges.length && charges.at(-1).section === str(line?.section)) {
+      // A wrapped description ("Paracetamol" / "Tablet (42mg)") read as its own line: join it back to the item above.
+      // If it carried an amount too, we can't tell which of the two is the real price, so the person is asked to check.
+      const prev = charges.at(-1)
+      prev.description = `${prev.description} ${description}`
+      if (dollars !== null) prev.check = true
+    }
     else charges.push({ description, category: oneOf(line?.category, BILL_CATEGORIES) ?? 'other', amountCents: dollars === null ? null : dollarsToCents(dollars), section: str(line?.section) })
   }
   const items = charges.map((item, i) => {
     if (item.description === null) unclear.push(`bill.items.${i}.description`)
-    if (item.amountCents === null) unclear.push(`bill.items.${i}.amountCents`)
+    if (item.amountCents === null || item.check) unclear.push(`bill.items.${i}.amountCents`)
+    delete item.check
     return item
   })
 

@@ -116,11 +116,17 @@ Extract the bill.
   category: consultation (doctor or dentist fees), medication, investigation (lab tests, X-rays, scans), procedure
   (treatment, surgery, therapy, nursing, consumables), ward (ward, bed or room charges), tax (GST), otherwise other.
   Copy every amount digit by digit, exactly as printed (14.50 is not 14.00).
+  Thousands are printed with a comma: "2,038.20" is 2038.20, never 20.38 or 20.88. Never drop digits from a large amount.
+  One printed item is one line in items, even when its description wraps onto a second row (e.g. "PARACETAMOL" then
+  "TABLET (42MG)" underneath): join the rows into one description. An amount is only a value in the amount/fee/price
+  column, never a strength (42mg, 5ml), a quantity or a pack size.
   section: the heading the line is printed under (e.g. "Consultation Fees", "Medications List"), or null if none.
   Do not list subtotals or totals as items. Never list a deduction as an item: a line with a minus sign or in brackets
   (e.g. "MediShield Life -6,120.00", "Integrated Plan Payout (24,074.86)", "MediSave -1,500.00") lowers what is paid and
   goes in subsidies or medisave instead. If the bill gives each line a gross and a net (after subsidy) amount, use the
   NET amount for every item, and mark the subsidy already taken off those lines with "includedInItems": true.
+  GST that the government absorbs ("GST absorbed by Govt", shown as a minus that cancels the GST) is not an item and
+  not a subsidy: leave both out, the net lines already exclude it.
   GST is its own "tax" item, unless the bill says GST is already included in the charges (e.g. "GST at 7% is included
   in this bill"): then do not list it at all.
 - subtotals: each subtotal printed under one group of charge lines, with that group's heading as section, exactly as
@@ -135,6 +141,9 @@ Extract the bill.
 - totalPayable: the final amount the patient pays in cash, card or NETS for this bill, in dollars (after deposits and
   payments made before this bill; on an interim bill, the amount due shown). On a receipt that shows the payment for
   this bill ("Amount Paid $35.53" next to "Total Payable $35.53"), totalPayable is that amount, never 0.
+  A payment made for this same bill ("Net Payment made -217.18", an e-payment) stays totalPayable 0 when the final amount
+  payable is 0.00, but list that payment as a subsidy with scheme "paid" and includedInItems false, so the charges
+  minus what was paid adds up to the total.
 - visitDate as YYYY-MM-DD (the visit date, or the discharge date for a hospital stay). Singapore dates are written
   day first: 07/10/2026 is 7 October 2026, so "2026-10-07". clinic: the clinic or hospital name.
 ${RULES}`,
@@ -255,7 +264,7 @@ function recheckNote(bill) {
   const $ = (cents) => `$${(cents / 100).toFixed(2)}`
   const off = sectionsOff(bill).map((s) => `the lines under "${s.section}" add up to ${$(s.linesCents)}, but its subtotal is printed as ${$(s.printedCents)}`)
   const why = off.length ? off.join('; ') : `the charges minus deductions come to ${$(billGap(bill) + bill.totalPayableCents)}, but the total payable is printed as ${$(bill.totalPayableCents)}`
-  return `A first reading of this bill did not add up: ${why}. Read every amount again, digit by digit, and return the whole bill.
+  return `A first reading of this bill did not add up: ${why}. Read every amount again, digit by digit (a digit or a thousands comma may have been dropped from a large amount: the lines are $${(Math.abs(billGap(bill)) / 100).toFixed(2)} ${billGap(bill) < 0 ? 'too low' : 'too high'}), and return the whole bill.
 Copy only what is printed: never change an amount just to make the numbers add up.`
 }
 

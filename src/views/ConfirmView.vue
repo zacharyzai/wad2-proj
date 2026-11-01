@@ -177,6 +177,9 @@ const scanAgain = () => router.push(fixing ? { name: 'schedule', query: { view: 
 
     <div class="row g-4">
       <div v-if="photo" class="col-lg-5">
+        <p v-if="scanStore.pdfPages?.total > 1" class="small mb-2" data-testid="pdf-pages">
+          {{ t(scanStore.pdfPages.read < scanStore.pdfPages.total ? 'confirm.pagesSome' : 'confirm.pagesAll', scanStore.pdfPages) }}
+        </p>
         <div class="d-lg-none card d-flex flex-column gap-3">
           <div class="d-flex align-items-center gap-3">
             <img :src="photo" alt="" class="thumb" />

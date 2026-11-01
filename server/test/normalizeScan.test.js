@@ -214,3 +214,16 @@ test('purpose is accepted on a checked scan and on the account medicine list, an
   assert.equal(checkMedicines(entry('pain')).medicines[0].medication.purpose, 'pain')
   assert.ok(checkMedicines(entry('cures cancer')).error)
 })
+
+test('a wrapped description read as its own line is joined back, and a doubled amount is flagged', () => {
+  const row = (description, amount) => ({ description, category: 'medication', amount, section: 'Medications' })
+  const bill = (items) => normalizeBill({ items, totalPayable: 10, medisave: 0 })
+  const joined = bill([row('PARACETAMOL 500MG', 5), row('Tablet (42mg)', null)])
+  assert.equal(joined.bill.items.length, 1)
+  assert.equal(joined.bill.items[0].description, 'PARACETAMOL 500MG Tablet (42mg)')
+  assert.equal(joined.bill.items[0].amountCents, 500)
+  assert.deepEqual(joined.unclear, [])
+  const doubled = bill([row('PARACETAMOL 500MG', 5), row('Tablet (42mg)', 42)])
+  assert.equal(doubled.bill.items.length, 1)
+  assert.ok(doubled.unclear.includes('bill.items.0.amountCents'))
+})

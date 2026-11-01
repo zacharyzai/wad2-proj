@@ -396,6 +396,26 @@ test('a bill saved as a PDF is drawn to one picture on this device, then scanned
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Check what we read')
 })
 
+// Five pages: Confirm says only some were read (the first pages and the last one).
+const PDF5 = Buffer.from(
+  [
+    '%PDF-1.4',
+    '1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj',
+    '2 0 obj<</Type/Pages/Kids[3 0 R 3 0 R 3 0 R 3 0 R 3 0 R]/Count 5>>endobj',
+    '3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 300 400]>>endobj',
+    'trailer<</Root 1 0 R/Size 4>>',
+    '%%EOF',
+  ].join('\n'),
+)
+
+test('a PDF with several pages tells the person which pages were read', async ({ page }) => {
+  await mockImageScan(page)
+  await page.goto('/scan?type=bill')
+  await page.getByTestId('upload-input').setInputFiles({ name: 'long.pdf', mimeType: 'application/pdf', buffer: PDF5 })
+  await page.getByRole('button', { name: 'Scan', exact: true }).click()
+  await expect(page.getByTestId('pdf-pages')).toContainText('This PDF has 5 pages. We read 3 of them')
+})
+
 test('a damaged PDF says the file cannot be used and sends nothing', async ({ page }) => {
   let apiCalls = 0
   await page.route('**/api/scan', (route) => (apiCalls++, route.continue()))

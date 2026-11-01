@@ -385,7 +385,9 @@
       "text": "You changed some details. If you leave now, those changes are lost.",
       "keep": "Keep checking",
       "yes": "Throw away and leave"
-    }
+    },
+    "pagesAll": "This PDF has {total} pages. We read all of them.",
+    "pagesSome": "This PDF has {total} pages. We read {read} of them: the first pages and the last page, where the total is. Check the amounts, and scan the pages in between separately if a charge is missing."
   },
   "purpose": {
     "lead": "Usually used for",

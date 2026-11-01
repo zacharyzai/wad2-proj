@@ -126,8 +126,10 @@ function loadImage(file) {
   }).finally(() => URL.revokeObjectURL(url))
 }
 
+let pdfPages = null // { total, read } of the PDF being read, for the note on Confirm
 async function compress(file) {
-  if (isPdf(file)) return pdfToJpeg(file) // a bill saved as a PDF: drawn to one picture, then handled like a photo
+  pdfPages = null
+  if (isPdf(file)) return pdfToJpeg(file, { onInfo: (info) => (pdfPages = info) }) // a bill saved as a PDF: drawn to one picture, then handled like a photo
   const img = await loadImage(file)
   if (!img.naturalWidth || !img.naturalHeight) throw new Error('Image has no size')
   return toJpeg(img, img.naturalWidth, img.naturalHeight)
@@ -190,6 +192,7 @@ async function send(docType, request, limit = SCAN_LIMIT_MS) {
   }
   scanStore.current = res.data
   scanStore.photo = photo.value
+  scanStore.pdfPages = fromPdf ? pdfPages : null
   scanStore.confirmed = false
   router.push({ name: 'confirm' })
 }
