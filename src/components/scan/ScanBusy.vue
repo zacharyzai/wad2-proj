@@ -1,6 +1,7 @@
 <!-- Owner: Asher (built by Claude, declared in README.txt). Scan, while working: the photo with personal details being
      blacked out (or, for a sample, the turning pill), the two steps (covered on this phone, then read), and Cancel. -->
 <script setup>
+import { onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AppIcon from '../layout/AppIcon.vue'
 import LoadingState from '../layout/LoadingState.vue'
@@ -15,6 +16,10 @@ defineProps({
 })
 const emit = defineEmits(['cancel'])
 const { t } = useI18n()
+
+// The button that started the scan is gone, so keyboard focus fell to the page: put it on Cancel, the one thing to press here.
+const cancelButton = ref(null)
+onMounted(() => (document.activeElement === document.body || !document.activeElement) && cancelButton.value?.focus())
 </script>
 
 <template>
@@ -42,7 +47,7 @@ const { t } = useI18n()
     </ol>
     <p class="lead-text" data-testid="scan-wait">{{ slow ? t('scan.slow') : t('scan.wait') }}</p>
     <span class="reassure-pill"><AppIcon name="shield" :size="20" class="text-teal" />{{ t('scan.neverStored') }}</span>
-    <button type="button" class="btn btn-ghost" @click="emit('cancel')">{{ t('scan.cancel') }}</button>
+    <button ref="cancelButton" type="button" class="btn btn-ghost" @click="emit('cancel')">{{ t('scan.cancel') }}</button>
   </div>
 </template>
 

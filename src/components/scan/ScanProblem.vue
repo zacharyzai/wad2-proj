@@ -2,7 +2,7 @@
      tips or the photo, and what to do next. A bill scanned as a label (or the other way round) is a question instead:
      "Was this meant to be a bill?". Every button is an emit; ScanView does the work. -->
 <script setup>
-import { computed } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { CHECK_ERRORS } from '../../utils/photoCheck'
 import AppIcon from '../layout/AppIcon.vue'
@@ -43,6 +43,10 @@ const text = computed(() => {
   if (photoError.value) return t('scan.photoHint')
   return props.photo ? t('scan.photoKept') : ''
 })
+
+// The button that was pressed is gone, so keyboard focus fell to the page: start it again here, at what went wrong.
+const heading = ref(null)
+onMounted(() => (document.activeElement === document.body || !document.activeElement) && heading.value?.focus())
 </script>
 
 <template>
@@ -55,7 +59,7 @@ const text = computed(() => {
         <span class="badge badge-warning align-self-start"><AppIcon name="alert" :size="18" />{{ t('scan.errorTag') }}</span>
       </template>
       <div role="alert" class="d-flex flex-column gap-3">
-        <h1>{{ title }}</h1>
+        <h1 ref="heading" tabindex="-1">{{ title }}</h1>
         <p v-if="text" class="lead-text" :data-testid="otherKind ? 'scan-other-question' : null">{{ text }}</p>
       </div>
       <ReadAloud :text="`${title}. ${text}`" />

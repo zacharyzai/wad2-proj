@@ -165,7 +165,7 @@ onBeforeUnmount(() => forget(chosen.value))
 /* The page number on each thumbnail, so the order the AI reads them in is visible. */
 .dz-pages li::after { content: counter(page); position: absolute; top: 6px; left: 6px; min-width: 28px; padding: 2px 8px; border-radius: var(--r-pill); background: var(--color-text); color: var(--color-card); font-size: 16px; font-weight: 700; text-align: center; }
 .dz-page { display: block; width: 100%; aspect-ratio: 3 / 4; object-fit: cover; border: 1px solid var(--color-border); border-radius: 12px; background: var(--color-surface-2); }
-.dz-page-name { display: grid; place-items: center; padding: 8px; font-size: 14px; color: var(--color-text-muted); overflow-wrap: anywhere; }
+.dz-page-name { display: grid; place-items: center; padding: 8px; font-size: 16px; color: var(--color-text-muted); overflow-wrap: anywhere; }
 .dz-name { margin: 0; font-size: 16px; color: var(--color-text-muted); overflow-wrap: anywhere; }
 .dz-error { display: flex; align-items: center; gap: 8px; margin: 16px 0 0; font-size: 17px; font-weight: 600; color: var(--color-danger-text); }
 

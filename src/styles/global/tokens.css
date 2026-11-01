@@ -24,7 +24,7 @@
   --color-sos: #c62b36; /* white text 5.6:1 */
   /* Bill categories only (BillLine): tests and scans, MediSave */
   --color-purple-text: #5b3f94; --color-purple-bg: #f1ecfa; --color-purple-border: #d3c6ec;
-  --color-rose-text: #9d2463; --color-rose-bg: #fbeaf2; --color-rose-border: #efbcd5;
+  --color-rose: #c2417f; --color-rose-text: #9d2463; --color-rose-bg: #fbeaf2; --color-rose-border: #efbcd5; /* rose: the MediSave bar */
   --color-sos-pressed: #a31f2a; /* pressed SOS, red words on white, and failure toasts: stays this dark in night mode so white text reads */
   --color-on-primary: #ffffff;
 
@@ -99,7 +99,7 @@
   --color-success: #2bc495; --color-success-text: #6bd9b4; --color-success-bg: #122a22; --color-success-border: #255544;
   --color-danger: #f05a65; --color-danger-text: #ff9097; --color-danger-bg: #2f1618; --color-danger-border: #6b2b30;
   --color-purple-text: #c8b6f0; --color-purple-bg: #241d33; --color-purple-border: #4a3d6b;
-  --color-rose-text: #f3a3c8; --color-rose-bg: #2e1622; --color-rose-border: #6b2e4b;
+  --color-rose: #e07aab; --color-rose-text: #f3a3c8; --color-rose-bg: #2e1622; --color-rose-border: #6b2e4b;
   --gradient-hero: linear-gradient(160deg, #0b3634 0%, #135555 55%, #0a6b61 100%);
   --gradient-result: linear-gradient(160deg, #173431 0%, #1b2322 75%);
   --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.45), 0 4px 12px rgba(0, 0, 0, 0.35);
