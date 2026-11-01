@@ -50,6 +50,9 @@ function scheduleFor(previous, medication) {
   return fresh ? { schedule: { ...fresh, times } } : previous?.schedule ? { schedule: { times } } : {}
 }
 
+// A course that has finished or been stopped: history, not something the person takes now.
+export const isFinished = (entry) => ended(entry.schedule)
+
 const same = (a, b) => a.name.trim().toLowerCase() === b.name.trim().toLowerCase() && (a.strength ?? '') === (b.strength ?? '')
 
 // Over the limit of 10: a finished or stopped course goes first (the oldest of those: it is only history now), and only when there

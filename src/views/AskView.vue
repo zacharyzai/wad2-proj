@@ -16,7 +16,8 @@ const messages = reactive([])
 import { computed, markRaw, nextTick, onBeforeUnmount, onMounted, ref, toRaw, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { askMedicine } from '../api/client'
-import { medicines, rememberMedicine, forgetMedicine, restoreMedicine } from '../stores/medicines'
+import { medicines, rememberMedicine, forgetMedicine, restoreMedicine, isFinished } from '../stores/medicines'
+import { factsFor, namedIn } from '../rules/askFacts'
 import { speak, stopSpeaking } from '../stores/speech'
 import { authStore } from '../stores/auth'
 import AppIcon from '../components/layout/AppIcon.vue'
@@ -72,13 +73,14 @@ async function ask(text, chip = 'typed', msg = null, lang = locale.value) {
   // While waiting, say what is happening, in words (H1): thinking → checking the medicine → writing the answer.
   const stages = [setTimeout(() => (msg.stage = 1), 1200), setTimeout(() => (msg.stage = 2), 3200)]
   scrollTo(msg, 'nearest')
-  const list = medicines.map(({ source, medication }) => ({ source, medication: toRaw(medication) }))
   // The last few answered turns before this one, so a follow-up like "and at night?" makes sense.
   const history = messages
     .slice(0, messages.indexOf(msg))
     .filter((m) => isAnswer(m) && m.reply.answer)
     .slice(-HISTORY)
     .map((m) => ({ q: m.q, a: m.reply.answer }))
+  // Only what the question needs goes to the AI (src/rules/askFacts.js): the medicine it is about, or a compact list of what is taken now.
+  const list = factsFor(medicines, q, { previousQuestion: history.at(-1)?.q, finished: isFinished }).map(({ source, medication }) => ({ source, medication: toRaw(medication) }))
   const res = await askMedicine(list, q, msg.lang, history)
   stages.forEach(clearTimeout)
   // On error the question stays in the bubble, so "Try again" resends it.
@@ -87,14 +89,8 @@ async function ask(text, chip = 'typed', msg = null, lang = locale.value) {
   scrollTo(msg, 'start')
 }
 
-// The user's medicines a piece of text mentions (by the first word of the name: "Metformin" in "Metformin 500 mg").
-function medsIn(text) {
-  const low = text.toLowerCase()
-  return medicines.filter((e) => {
-    const word = e.medication.name?.toLowerCase().split(/\s+/)[0]
-    return word && word.length > 2 && low.includes(word)
-  })
-}
+// The user's medicines a piece of text mentions.
+const medsIn = (text) => namedIn(medicines, text)
 const nameOf = (e) => e.medication.name
 function waitText(m) {
   if (m.stage === 0) return t('ask.thinking')

@@ -7,7 +7,7 @@ import { askAboutMedicine, isRedFlag, mockReply, LANGS, MAX_ANSWER, MAX_HISTORY,
 import { ScanError } from '../services/gemini.js'
 
 // A real label is a few hundred characters; more means someone is stuffing the prompt.
-const MAX_FACTS = 6000
+const MAX_FACTS = 9000 // ten busy labels in full; the page sends far less (src/rules/askFacts.js)
 const MAX_MEDICINES = 10
 const SOURCES = ['label', 'typed']
 
@@ -24,8 +24,11 @@ router.post('/', chatRateLimit, async (req, res) => {
     return sendError(res, 400, 'BAD_REQUEST', `medicines must be a list of at most ${MAX_MEDICINES}`)
   }
   const facts = medicines.map((m) => ({ source: SOURCES.includes(m?.source) ? m.source : null, ...normalizeMedication(m?.medication ?? {}).medication }))
-  if (facts.some((f) => !f.source || !f.name) || JSON.stringify(facts).length > MAX_FACTS) {
+  if (facts.some((f) => !f.source || !f.name)) {
     return sendError(res, 400, 'BAD_REQUEST', 'each medicine needs a source (label or typed) and a name')
+  }
+  if (JSON.stringify(facts).length > MAX_FACTS) {
+    return sendError(res, 400, 'BAD_REQUEST', `too much medicine text at once (over ${MAX_FACTS} characters): send only the medicines the question is about`)
   }
 
   // Earlier turns, oldest first: plain strings within the same limits the server itself uses.

@@ -209,3 +209,64 @@ test('near the 300-letter limit, the box says how many are left instead of silen
   await box.fill('x'.repeat(270))
   await expect(page.getByTestId('ask-left')).toHaveText('30 letters left')
 })
+
+// What goes to the AI with a question: only what the question needs (src/rules/askFacts.js).
+const TODAY = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Singapore' }).format(new Date())
+const ago = (n) => new Date(new Date(`${TODAY}T00:00:00Z`).getTime() - n * 864e5).toISOString().slice(0, 10)
+const med = (id, name, extra = {}, schedule = null, source = 'label') => ({
+  id, source, sample: false,
+  medication: { name, strength: '5 mg', doseAmount: 1, doseUnit: 'tablet', quantity: 30, timesPerDay: 1, timing: ['morning'], withFood: 'after', frequencyType: 'daily', rawInstruction: 'Take 1 tablet once a day after food', warnings: ['May cause dizziness'], ...extra },
+  ...(schedule ? { schedule } : {}),
+})
+async function seedMedicines(page) {
+  const list = [
+    med('m1', 'Metformin', {}, { startDate: ago(2), days: 30, times: {} }),
+    med('m2', 'Amlodipine', {}, { startDate: ago(20), days: 5, times: {} }), // finished 15 days ago
+    med('m3', 'Panadol', { frequencyType: 'as_needed', timesPerDay: null, timing: null }, null, 'typed'),
+  ]
+  await page.addInitScript((list) => localStorage.setItem('medicines', JSON.stringify(list)), list)
+}
+const sentNames = (body) => body.medicines.map((m) => m.medication.name)
+const askBox = (page) => page.getByRole('textbox')
+
+test('a question about one medicine sends only that medicine, in full', async ({ page }) => {
+  const sent = mockChat(page, [answer('Take it after food.')])
+  await seedMedicines(page)
+  await page.goto('/ask')
+  await askBox(page).fill('Should I take Metformin before or after food?')
+  await askBox(page).press('Enter')
+  await expect(page.getByTestId('ask-answer')).toContainText('Take it after food.')
+  expect(sentNames(sent[0])).toEqual(['Metformin'])
+  expect(sent[0].medicines[0].medication.warnings).toEqual(['May cause dizziness']) // nothing trimmed from the one asked about
+  expect(sent[0].medicines[0].medication.quantity).toBe(30)
+})
+
+test('a general question sends a compact list of what is taken now, leaving out finished courses', async ({ page }) => {
+  const sent = mockChat(page, [answer('Metformin in the morning.')])
+  await seedMedicines(page)
+  await page.goto('/ask')
+  await askBox(page).fill('What do I take in the morning?')
+  await askBox(page).press('Enter')
+  await expect(page.getByTestId('ask-answer')).toBeVisible()
+  expect(sentNames(sent[0]).sort()).toEqual(['Metformin', 'Panadol']) // Amlodipine finished 15 days ago
+  for (const m of sent[0].medicines) {
+    expect('quantity' in m.medication).toBe(false)
+    expect('strength' in m.medication).toBe(false)
+  }
+  expect(sent[0].medicines.find((m) => m.source === 'typed').medication.name).toBe('Panadol') // typed ones keep their source
+})
+
+test('a finished medicine is sent when the question names it; a follow-up stays on the same medicine', async ({ page }) => {
+  const sent = mockChat(page, [answer('Ask your pharmacist.', true), answer('The same at night.')])
+  await seedMedicines(page)
+  await page.goto('/ask')
+  await askBox(page).fill('I stopped Amlodipine, is that ok?')
+  await askBox(page).press('Enter')
+  await expect(page.getByTestId('ask-answer')).toContainText('Ask your pharmacist.')
+  expect(sentNames(sent[0])).toEqual(['Amlodipine'])
+
+  await askBox(page).fill('and at night?') // no name: it is about what we were just talking about
+  await askBox(page).press('Enter')
+  await expect(page.getByTestId('ask-answer').last()).toContainText('The same at night.')
+  expect(sentNames(sent[1])).toEqual(['Amlodipine'])
+})
