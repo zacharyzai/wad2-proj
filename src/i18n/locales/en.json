@@ -119,7 +119,7 @@
     "NOT_IMPLEMENTED": "This feature is coming soon.",
     "SERVER_ERROR": "Something went wrong. Please try again.",
     "NETWORK_ERROR": "Cannot connect. Please check your internet connection.",
-    "UNSUPPORTED_FILE": "This file can’t be used. Please choose a photo (JPG or PNG).",
+    "UNSUPPORTED_FILE": "This file can’t be used. Please choose a photo or a PDF.",
     "COVER_FAILED": "We couldn't cover your personal details on this device, so nothing was sent. Please try again.",
     "WRONG_LOGIN": "That email or password is not right. Please try again.",
     "NOT_LOGGED_IN": "Please log in again.",
@@ -215,13 +215,13 @@
     "covering": "Covering your personal details…",
     "dz": {
       "title": "Tap to upload or drop a photo",
-      "hint": "PNG, JPG or HEIC · max 10MB",
+      "hint": "PNG, JPG, HEIC or PDF · max 10MB",
       "browse": "Browse photos",
       "change": "Change photo",
       "scan": "Scan",
       "previewAlt": "The photo you chose",
       "tooBig": "Please choose a photo under 10MB.",
-      "wrongType": "Please choose a PNG, JPG or HEIC photo."
+      "wrongType": "Please choose a PNG, JPG, HEIC or PDF file."
     },
     "addPhoto": "Add your photo",
     "or": "or",

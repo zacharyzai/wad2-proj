@@ -27,8 +27,14 @@ test('too dark: a dim photo is called dark, even with text in it', () => {
   assert.equal(photoProblem(image(() => 10), W, H), 'dark')
 })
 
-test('glare: a large part of the picture is pure white', () => {
-  assert.equal(photoProblem(image((x, y) => (x < 80 ? 255 : text(200)(x, y))), W, H), 'glare')
+test('glare: mostly blown out, the text faded to almost white', () => {
+  assert.equal(photoProblem(image((x, y) => (y % 8 < 2 && x % 6 < 4 ? 235 : 255)), W, H), 'glare')
+  assert.equal(photoProblem(image(() => 255), W, H), 'glare') // a completely white photo
+})
+
+test('a PDF or screenshot of a bill is mostly pure white but not glare: its text is crisp and dark', () => {
+  assert.equal(photoProblem(image(text(255)), W, H), null) // white page, lots of text
+  assert.equal(photoProblem(image((x, y) => (y % 24 < 2 && x % 6 < 4 ? 20 : 255)), W, H), null) // a sparse receipt: about 5% ink
 })
 
 test('blurry: smooth gradients and flat colour have no edges for the text to be read from', () => {

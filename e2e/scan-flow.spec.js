@@ -315,7 +315,7 @@ test('wrong file types and photos over 10MB are refused before anything is sent'
   await page.route('**/api/scan', (route) => (apiCalls++, route.continue()))
   await page.goto('/scan?type=medication')
   await page.getByTestId('upload-input').setInputFiles('public/samples/med-1.svg')
-  await expect(page.getByRole('alert')).toHaveText('Please choose a PNG, JPG or HEIC photo.')
+  await expect(page.getByRole('alert')).toHaveText('Please choose a PNG, JPG, HEIC or PDF file.')
   await page.getByTestId('upload-input').setInputFiles({ name: 'big.jpg', mimeType: 'image/jpeg', buffer: Buffer.alloc(10 * 1024 * 1024 + 1) })
   await expect(page.getByRole('alert')).toHaveText('Please choose a photo under 10MB.')
   await expect(page.getByRole('button', { name: 'Scan', exact: true })).toHaveCount(0)
@@ -366,4 +366,50 @@ test('Confirm: "Add more details" shows the empty optional fields and "Show fewe
   await expect(more).toHaveAttribute('aria-expanded', 'true')
   await more.click()
   await expect(page.getByLabel('Strength')).toHaveCount(0)
+})
+
+// A one-page PDF with a line of text, written by hand (no xref table: PDF.js rebuilds it).
+const PDF = Buffer.from(
+  [
+    '%PDF-1.4',
+    '1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj',
+    '2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj',
+    '3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 300 400]/Contents 4 0 R/Resources<</Font<</F1 5 0 R>>>>>>endobj',
+    '4 0 obj<</Length 44>>stream',
+    'BT /F1 24 Tf 20 200 Td (TOTAL 14.00) Tj ET',
+    'endstream endobj',
+    '5 0 obj<</Type/Font/Subtype/Type1/BaseFont/Helvetica>>endobj',
+    'trailer<</Root 1 0 R/Size 6>>',
+    '%%EOF',
+  ].join('\n'),
+)
+
+test('a bill saved as a PDF is drawn to one picture on this device, then scanned like a photo', async ({ page }) => {
+  await mockImageScan(page)
+  const sent = page.waitForRequest('**/api/scan')
+  await page.goto('/scan?type=medication')
+  await page.getByTestId('upload-input').setInputFiles({ name: 'label.pdf', mimeType: 'application/pdf', buffer: PDF })
+  await expect(page.getByText('label.pdf')).toBeVisible()
+  await page.getByRole('button', { name: 'Scan', exact: true }).click()
+  expect((await sent).postDataJSON().image).toMatch(/^data:image\/jpeg;base64,/) // never the PDF itself
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Check what we read')
+})
+
+test('a damaged PDF says the file cannot be used and sends nothing', async ({ page }) => {
+  let apiCalls = 0
+  await page.route('**/api/scan', (route) => (apiCalls++, route.continue()))
+  await page.goto('/scan?type=medication')
+  await page.getByTestId('upload-input').setInputFiles({ name: 'broken.pdf', mimeType: 'application/pdf', buffer: Buffer.from('%PDF-1.4 this is not a real pdf') })
+  await page.getByRole('button', { name: 'Scan', exact: true }).click()
+  await expect(page.getByRole('alert')).toContainText('This file can’t be used.')
+  expect(apiCalls).toBe(0)
+})
+
+test('a PDF shows a preview of its first page, like a photo', async ({ page }) => {
+  await page.goto('/scan?type=medication')
+  await page.getByTestId('upload-input').setInputFiles({ name: 'label.pdf', mimeType: 'application/pdf', buffer: PDF })
+  const preview = page.getByRole('img', { name: 'The photo you chose' })
+  await expect(preview).toBeVisible()
+  await expect(preview).toHaveAttribute('src', /^data:image\/jpeg;base64,/)
+  await expect(page.getByText('label.pdf')).toBeVisible()
 })

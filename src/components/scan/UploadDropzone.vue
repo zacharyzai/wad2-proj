@@ -4,8 +4,9 @@
 import { onBeforeUnmount, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AppIcon from '../layout/AppIcon.vue'
+import { isPdf, pdfToJpeg } from '../../utils/pdfToImage'
 
-const TYPES = ['image/png', 'image/jpeg', 'image/heic', 'image/heif', 'image/webp']
+const TYPES = ['image/png', 'image/jpeg', 'image/heic', 'image/heif', 'image/webp', 'application/pdf']
 const MAX_BYTES = 10 * 1024 * 1024
 
 const emit = defineEmits(['select'])
@@ -20,14 +21,29 @@ const dragging = ref(false)
 
 function choose(f) {
   if (!f) return
-  // Some browsers give HEIC files no type, so the name decides.
-  if (!TYPES.includes(f.type) && !/\.(heic|heif)$/i.test(f.name)) return (error.value = t('scan.dz.wrongType'))
+  // Some browsers give HEIC (and some PDF) files no type, so the name decides.
+  if (!TYPES.includes(f.type) && !/\.(heic|heif|pdf)$/i.test(f.name)) return (error.value = t('scan.dz.wrongType'))
   if (f.size > MAX_BYTES) return (error.value = t('scan.dz.tooBig'))
   error.value = null
   if (url.value) URL.revokeObjectURL(url.value)
   file.value = f
+  if (isPdf(f)) return previewPdf(f)
   url.value = URL.createObjectURL(f)
   noThumb.value = false
+}
+
+// An <img> can't draw a PDF, so its first page is drawn small instead (the same as a photo's preview). If that fails
+// (a damaged file), the name alone shows, and Scan then says the file can't be used.
+function previewPdf(f) {
+  url.value = null
+  noThumb.value = true
+  pdfToJpeg(f, { pages: 1, width: 360 })
+    .then((preview) => {
+      if (file.value !== f) return // another file was picked meanwhile
+      url.value = preview
+      noThumb.value = false
+    })
+    .catch(() => {})
 }
 
 function onInput(event) {
@@ -50,7 +66,7 @@ onBeforeUnmount(() => url.value && URL.revokeObjectURL(url.value))
 
 <template>
   <div class="dz-card">
-    <input ref="input" type="file" accept="image/png,image/jpeg,image/heic,image/heif,image/webp" class="d-none" data-testid="upload-input" @change="onInput" />
+    <input ref="input" type="file" accept="image/png,image/jpeg,image/heic,image/heif,image/webp,application/pdf" class="d-none" data-testid="upload-input" @change="onInput" />
 
     <div v-if="file" class="dz-chosen">
       <img v-if="!noThumb" :src="url" :alt="t('scan.dz.previewAlt')" class="dz-thumb" @error="noThumb = true" />
