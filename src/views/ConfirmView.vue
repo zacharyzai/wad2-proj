@@ -9,6 +9,7 @@ import { saveScan } from '../api/client'
 import { rememberMedicine, replaceMedicine, savedMedicine } from '../stores/medicines'
 import ConfirmField from '../components/scan/ConfirmField.vue'
 import AppIcon from '../components/layout/AppIcon.vue'
+import KindIcon from '../components/layout/KindIcon.vue'
 import { DOSE_UNITS, TIMINGS, WITH_FOOD, FREQUENCY_TYPES, PURPOSES } from '../../server/services/normalizeScan.js'
 import { billGap, linesTotal, sectionsOff } from '../rules/billCheck'
 import { money } from '../components/bill/lines'
@@ -76,6 +77,21 @@ const flagged = computed(() => {
   return empty
 })
 const needs = (path) => flagged.value.includes(path)
+
+// A long bill (more than FOLD_AT items, often 30+ over several pages): only the lines that need checking are open, i.e.
+// hard to read, or under a printed subtotal they don't add up to. The rest sit behind one button and are still saved.
+// Decided when the page opens, so a line never folds away under the person's finger. Lines that don't add up with no
+// subtotal to point at: every line opens, since the misread amount could be any of them.
+const FOLD_AT = 6
+const billItems = draft.type === 'bill' ? draft.bill.items : []
+const lineNeeds = (i) => needs(`bill.items.${i}.description`) || needs(`bill.items.${i}.amountCents`) || offLine(billItems[i])
+const checkAtStart = new Set(billItems.flatMap((_, i) => (lineNeeds(i) ? [i] : [])))
+// A line with no amount yet also makes it not add up (it counts as 0), but that line is open already: not a blind gap.
+const blindGap = computed(() => Boolean(gap.value) && !offSections.value.length && !billItems.some((item) => item.amountCents == null))
+const allLines = ref(billItems.length <= FOLD_AT || blindGap.value)
+watch(blindGap, (blind) => blind && (allLines.value = true)) // a gap that appears while typing: open them all, never fold
+const lineShown = (i) => allLines.value || checkAtStart.has(i) || lineNeeds(i)
+const fineLines = computed(() => billItems.filter((_, i) => !checkAtStart.has(i) && !lineNeeds(i)).length)
 
 // Keep the form short: purpose, quantity, when, food and notes only show when the label gave something for them (or one
 // needs checking). "Add more details" shows the rest, so nothing can't be added by hand. Decided once, when the page opens,
@@ -283,15 +299,20 @@ const scanAgain = () => router.push(fixing ? { name: 'schedule', query: { view: 
 
         <!-- Bill -->
         <div v-else class="card d-flex flex-column gap-3">
-          <div v-if="draft.bill.clinic" class="d-flex align-items-center gap-3"><span class="tile tile-soft"><AppIcon name="receipt" :size="22" /></span><strong>{{ draft.bill.clinic }}</strong></div>
-          <div class="bill-grid">
+          <div v-if="draft.bill.clinic" class="d-flex align-items-center gap-3"><KindIcon kind="bill" size="var(--tile)" /><strong>{{ draft.bill.clinic }}</strong></div>
+          <div id="bill-lines" class="bill-grid">
             <span class="fw-bold">{{ t('confirm.bill.item') }}</span>
             <span class="fw-bold">{{ t('confirm.bill.amount') }}</span>
             <template v-for="(item, i) in draft.bill.items" :key="`i${i}`">
-              <input v-model.trim="item.description" class="field-input" :class="{ 'is-flagged': needs(`bill.items.${i}.description`) }" :aria-label="t('confirm.bill.itemN', { n: i + 1 })" />
-              <input type="number" inputmode="decimal" min="0" step="0.01" class="field-input" :class="{ 'is-flagged': needs(`bill.items.${i}.amountCents`), 'is-check': offLine(item) }" :value="dollars(item.amountCents)" :aria-label="t('confirm.bill.amountOf', { item: item.description ?? i + 1 })" @change="item.amountCents = toCents($event.target.value)" />
-              <span v-if="needs(`bill.items.${i}.description`) || needs(`bill.items.${i}.amountCents`)" class="span2 note">{{ t('confirm.bill.smudged') }}</span>
+              <template v-if="lineShown(i)">
+                <input v-model.trim="item.description" class="field-input" :class="{ 'is-flagged': needs(`bill.items.${i}.description`) }" :aria-label="t('confirm.bill.itemN', { n: i + 1 })" />
+                <input type="number" inputmode="decimal" min="0" step="0.01" class="field-input" :class="{ 'is-flagged': needs(`bill.items.${i}.amountCents`), 'is-check': offLine(item) }" :value="dollars(item.amountCents)" :aria-label="t('confirm.bill.amountOf', { item: item.description ?? i + 1 })" @change="item.amountCents = toCents($event.target.value)" />
+                <span v-if="needs(`bill.items.${i}.description`) || needs(`bill.items.${i}.amountCents`)" class="span2 note">{{ t('confirm.bill.smudged') }}</span>
+              </template>
             </template>
+            <button v-if="draft.bill.items.length > FOLD_AT && fineLines" type="button" class="btn btn-outline btn-sm span2 fine-toggle" :aria-expanded="allLines" aria-controls="bill-lines" data-testid="confirm-fine-toggle" @click="allLines = !allLines">
+              <AppIcon :name="allLines ? 'up' : 'checkCircle'" :size="22" />{{ allLines ? t('confirm.bill.hideFine') : t('confirm.bill.fine', { n: fineLines }, fineLines) }}
+            </button>
 
             <template v-for="(subsidy, i) in draft.bill.subsidies" :key="`s${i}`">
               <span class="row-label">{{ t(`scheme.${subsidy.scheme}`) }}<small v-if="subsidy.includedInItems" class="d-block text-muted-a11y">{{ t('bill.inLines') }}</small></span>

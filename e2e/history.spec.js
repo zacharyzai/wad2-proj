@@ -10,17 +10,20 @@ const SCAN = {
 }
 
 async function mockHistory(page, items = [MED, BILL]) {
-  await page.route(/\/api\/history\?page=\d+$/, (route) => route.fulfill({ json: { ok: true, data: { items, page: 1, pages: 1, total: items.length } } }))
+  await page.route(/\/api\/history\/all$/, (route) => route.fulfill({ json: { ok: true, data: { items, total: items.length, capped: false } } }))
 }
+// Listen again, Share and Delete live on the medicine or bill's own view: open its row first.
+const openFirst = (page) => page.getByTestId('history-row').first().click()
 
 test.describe('history list', () => {
-  test('lists saved scans and filters by type', async ({ page }) => {
+  test('medicines and bills are two lists of short rows', async ({ page }) => {
     await mockHistory(page)
     await page.goto('/history')
-    await expect(page.getByTestId('history-item')).toHaveCount(2)
-    await page.getByTestId('history-filter-bill').click()
-    await expect(page.getByTestId('history-item')).toHaveCount(1)
-    await expect(page.getByText('Bedok Polyclinic')).toBeVisible()
+    await expect(page.getByTestId('history-row')).toHaveCount(1)
+    await expect(page.getByTestId('history-row')).toContainText('Metformin')
+    await page.getByTestId('history-tab-bill').click()
+    await expect(page.getByTestId('history-row')).toHaveCount(1)
+    await expect(page.getByTestId('history-row')).toContainText('Bedok Polyclinic')
   })
 
   test('empty history says nothing is saved yet and offers a scan button', async ({ page }) => {
@@ -31,7 +34,7 @@ test.describe('history list', () => {
   })
 
   test('a failed load shows an error with Try again', async ({ page }) => {
-    await page.route(/\/api\/history\?page=\d+$/, (route) => route.fulfill({ status: 500, json: { ok: false, error: { code: 'SERVER_ERROR', message: 'x' } } }))
+    await page.route(/\/api\/history\/all$/, (route) => route.fulfill({ status: 500, json: { ok: false, error: { code: 'SERVER_ERROR', message: 'x' } } }))
     await page.goto('/history')
     await expect(page.getByRole('alert')).toBeVisible()
     await expect(page.getByRole('button', { name: 'Try again' })).toBeVisible()
@@ -41,6 +44,7 @@ test.describe('history list', () => {
     await mockHistory(page)
     await page.route(/\/api\/history\/h1$/, (route) => route.fulfill({ json: { ok: true, data: { scan: SCAN } } }))
     await page.goto('/history')
+    await openFirst(page)
     await page.getByTestId('history-replay').first().click()
     await expect(page).toHaveURL(/\/scan\/explain$/)
     await expect(page.getByText('Metformin').first()).toBeVisible()
@@ -52,6 +56,7 @@ test.describe('sharing and deleting', () => {
     await mockHistory(page)
     await page.route('**/api/share', (route) => route.fulfill({ json: { ok: true, data: { token: 'a'.repeat(32), expiresAt: '2026-11-19T00:00:00Z' } } }))
     await page.goto('/history')
+    await openFirst(page)
     await page.getByTestId('history-share').first().click()
     await expect(page.getByText('They will not see your name, email, date of birth or your photo.')).toBeVisible()
     await expect(page.getByTestId('history-link')).toHaveCount(0) // no link before the person agrees
@@ -65,20 +70,23 @@ test.describe('sharing and deleting', () => {
     let revoked = false
     await page.route(/\/api\/share\/b+$/, (route) => { revoked = true; return route.fulfill({ json: { ok: true, data: {} } }) })
     await page.goto('/history')
+    await openFirst(page)
     await page.getByTestId('history-share').click()
     await page.getByTestId('history-unshare').click()
     await expect(page.getByTestId('history-share-create')).toBeFocused() // the panel stays open, focus isn't lost
     expect(revoked).toBe(true)
   })
 
-  test('delete asks first, then removes the scan', async ({ page }) => {
+  test('delete asks first, then removes the scan; with nothing left of that medicine, back to the list', async ({ page }) => {
     await mockHistory(page)
     await page.route(/\/api\/history\/h1$/, (route) => route.fulfill({ json: { ok: true, data: {} } }))
     await page.goto('/history')
+    await openFirst(page)
     await page.getByTestId('history-delete').first().click()
     await expect(page.getByText('Delete this scan?')).toBeVisible()
     await page.getByTestId('history-delete-confirm').click()
-    await expect(page.getByTestId('history-item')).toHaveCount(1)
+    await expect(page.getByTestId('history-item')).toHaveCount(0)
+    await expect(page.getByText('No medicine labels saved yet.')).toBeVisible()
     await expect(page.getByRole('status').filter({ hasText: 'Scan deleted.' })).toBeAttached()
   })
 })

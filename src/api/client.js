@@ -54,7 +54,8 @@ export const readAloudAudio = (text, lang) => api('/tts', { method: 'POST', body
 
 
 // History and share links (Isaac's pages). Assumed contract until Sheen Hern's API lands: docs/history-contract.md
-export const listScans = (page = 1) => api(`/history?page=${page}`)
+// Every saved scan's summary at once (the newest 500), for the History page to group and search: docs/history-contract.md
+export const listAllScans = () => api('/history/all')
 export const getScan = (id) => api(`/history/${encodeURIComponent(id)}`)
 export const saveScan = (scan) => api('/history', { method: 'POST', body: { scan } })
 export const deleteScan = (id) => api(`/history/${encodeURIComponent(id)}`, { method: 'DELETE' })

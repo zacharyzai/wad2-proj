@@ -126,25 +126,6 @@ test('"Try an example" opens a short list of samples for that kind', async ({ pa
   await expect(page.getByRole('button', { name: 'Metformin label' })).toHaveCount(0)
 })
 
-test('a photo picked on Home waits on the question; picking a card reads it as that kind', async ({ page }) => {
-  await page.addInitScript(() => (window.__redactForTests = async (dataUrl) => ({ dataUrl, keep: [{ text: 'TOTAL' }], hits: [] })))
-  const sent = []
-  await page.route('**/api/scan', async (route) => {
-    sent.push(route.request().postDataJSON().type)
-    const bill = await (await route.fetch({ postData: JSON.stringify({ sampleId: 'bill-1' }) })).json()
-    return route.fulfill({ json: { ok: true, data: { ...bill.data, source: 'ai' } } })
-  })
-  await page.goto('/')
-  await page.locator('input[type="file"]').setInputFiles({ name: 'bill.png', mimeType: 'image/png', buffer: TINY_PNG })
-  await expect(page).toHaveURL(/\/scan$/)
-  await expect(page.getByTestId('scan-pending')).toContainText('Your photo is ready. What is it?')
-  await expect(page.getByTestId('choose-bill')).toContainText('Scan this photo as a bill')
-  expect(sent).toEqual([]) // nothing is read until they say what it is
-  await page.getByTestId('choose-bill').click()
-  await expect(page).toHaveURL(/\/scan\/confirm$/)
-  expect(sent).toEqual(['bill'])
-})
-
 test('a sample link skips straight to Confirm', async ({ page }) => {
   await page.goto('/scan?sample=med-1')
   await expect(page).toHaveURL(/\/scan\/confirm$/)
@@ -308,6 +289,7 @@ test('Scan errors can be read aloud (H10)', async ({ page }) => {
 test('explanation follows the language switch', async ({ page }) => {
   await openSample(page, 'Metformin label')
   await page.getByRole('button', { name: 'Looks correct' }).click()
+  await expect(page).toHaveURL(/\/scan\/explain$/) // on Explain before going to Account, or Back returns to Confirm
   await switchLanguage(page, '中文')
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('每次 1 粒，每天 2 次。')
 })

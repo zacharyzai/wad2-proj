@@ -249,7 +249,7 @@ test('no accessibility problems: ticks, the edit form and the pharmacist list', 
   await noAxeViolations(page)
 
   await toTab(page, 'week')
-  await expect(page.getByTestId('week-summary')).toContainText('doses taken so far this week')
+  await expect(page.getByTestId('week-sentence')).toContainText('this week')
   await noAxeViolations(page)
   await page.goto('/schedule?view=reminders')
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Reminders')

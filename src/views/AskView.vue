@@ -21,6 +21,7 @@ import { factsFor, namedIn } from '../rules/askFacts'
 import { speak, stopSpeaking } from '../stores/speech'
 import { authStore } from '../stores/auth'
 import AppIcon from '../components/layout/AppIcon.vue'
+import KindIcon from '../components/layout/KindIcon.vue'
 import CapsuleBuddy from '../components/layout/CapsuleBuddy.vue'
 import Spinner from '../components/layout/Spinner.vue'
 
@@ -400,7 +401,7 @@ onBeforeUnmount(() => {
 
     <section class="card meds-panel" data-testid="my-medicines">
       <button type="button" class="meds-toggle" :aria-expanded="medsOpen" aria-controls="meds-body" @click="medsOpen = !medsOpen">
-        <span class="tile tile-soft"><AppIcon name="pill" :size="22" /></span>
+        <KindIcon kind="medication" size="var(--tile)" />
         <span class="meds-head">
           <span class="meds-title">{{ t('ask.meds.title') }}</span>
           <span class="badge badge-teal meds-count">{{ t('ask.meds.count', medicines.length) }}</span>
@@ -413,7 +414,7 @@ onBeforeUnmount(() => {
         <p class="text-muted-a11y">{{ t(medicines.length ? 'ask.meds.note' : 'ask.meds.empty') }}</p>
         <ul v-if="medicines.length" class="meds">
           <li v-for="m in medicines" :key="m.id" class="med">
-            <span class="tile"><AppIcon name="pill" :size="20" /></span>
+            <KindIcon kind="medication" size="var(--tile)" />
             <div class="med-info">
               <span class="med-name">{{ medName(m.medication) }}</span>
               <span v-if="m.medication.rawInstruction" class="text-muted-a11y" :lang="m.source === 'label' ? 'en' : null">“{{ m.medication.rawInstruction }}”</span>

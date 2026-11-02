@@ -49,12 +49,12 @@
     "emptyTitle": "No one linked yet",
     "emptyText": "Ask your parent or relative to open Account in the app and tap \"Invite a caregiver\". They can send you the link on WhatsApp.",
     "nTaken": "{n} taken",
-    "nMissed": "{n} missed",
+    "nMissed": "{n} not ticked",
     "nUpcoming": "{n} to come",
     "todayFor": "{name}: today",
     "goneTitle": "You can no longer see this person",
     "goneText": "They may have removed the link. If this is a mistake, ask them for a new invite.",
-    "missedBanner": "{name} has not taken {n} dose today. You may want to give them a call. | {name} has not taken {n} doses today. You may want to give them a call.",
+    "missedBanner": "{name} has not ticked {n} dose today. You may want to give them a call. | {name} has not ticked {n} doses today. You may want to give them a call.",
     "allTaken": "{name} has taken every dose so far today.",
     "noDoses": "No medicines on the schedule",
     "noDosesText": "{name} has not added any medicine to their schedule yet.",
@@ -62,7 +62,7 @@
     "refresh": "Refresh",
     "status": {
       "taken": "Taken",
-      "missed": "Missed",
+      "missed": "Not ticked",
       "upcoming": "To come"
     },
     "notShared": "Not shared yet",
@@ -137,29 +137,32 @@
     "RESET_LINK_INVALID": "This link has expired or was already used. Please ask for a new one."
   },
   "home": {
-    "title": "What would you like to understand?",
+    "title": "What would you like to do?",
     "lead": "Take a photo. We explain it in simple words and read it aloud.",
     "med": {
-      "title": "Scan a medication label",
+      "title": "Scan a medicine label",
       "text": "Tablets, syrups, creams. See the dose and when to take it."
     },
     "bill": {
       "title": "Scan a medical bill",
       "text": "See what you pay and which subsidies may apply."
     },
-    "sample": "Not sure? Try a sample first",
     "greet": {
       "morning": "Good morning",
       "afternoon": "Good afternoon",
       "evening": "Good evening"
     },
-    "what": "What can I scan?",
     "ask": {
       "text": "Ask a question about your medicine, in your own language."
     },
-    "breakdown": {
-      "title": "Your bill breakdown",
-      "text": "Look at your last bill again, and the subsidies you may get."
+    "lastBill": "Your last bill",
+    "today": {
+      "title": "Today’s medicines",
+      "open": "Open my schedule",
+      "noMeds": "Scan a medicine label and we will remind you when to take it.",
+      "missed": "{n} earlier dose not ticked yet | {n} earlier doses not ticked yet",
+      "saved": "Marked as taken.",
+      "loadFailed": "We could not check today’s doses just now. Open your schedule to see them."
     }
   },
   "scan": {
@@ -214,6 +217,57 @@
     },
     "covering": "Covering your personal details…",
     "coveringPage": "Covering your personal details on page {n} of {total}…",
+    "pages": {
+      "title": "Your bill pages",
+      "count": "{n} of up to {max} pages",
+      "page": "Page {n}",
+      "checking": "Checking the photo…",
+      "ok": "Looks clear",
+      "problem": {
+        "dark": "Too dark to read",
+        "blurry": "Too blurry to read",
+        "glare": "Too much glare to read"
+      },
+      "more": "Does this bill have another page?",
+      "add": "Add next page",
+      "full": "That’s {max} pages, the most we can read at once. If the bill has more, scan the rest as a second bill.",
+      "done": "No, that’s all. Read it",
+      "fixFirst": "Retake page {pages} first, or choose “Use it anyway”.",
+      "tip": "Make sure the page with the total is included.",
+      "retake": "Retake",
+      "retakeN": "Retake page {n}",
+      "remove": "Remove",
+      "removeN": "Remove page {n}",
+      "anyway": "Use it anyway",
+      "anywayN": "Use page {n} anyway",
+      "taking": "Taking page {n}",
+      "retaking": "Retaking page {n}",
+      "back": "Back to my pages",
+      "throw": {
+        "title": "Throw away these {n} pages?",
+        "text": "You would need to take the photos again.",
+        "keep": "Keep my pages",
+        "yes": "Throw them away"
+      }
+    },
+    "away": {
+      "working": {
+        "medication": "Still reading your medicine label…",
+        "bill": "Still reading your bill…"
+      },
+      "ready": {
+        "medication": "Your medicine label is ready to check.",
+        "bill": "Your bill is ready to check."
+      },
+      "failed": {
+        "medication": "We could not finish reading your medicine label.",
+        "bill": "We could not finish reading your bill."
+      },
+      "see": "See it",
+      "check": "Check it now",
+      "why": "See what happened",
+      "close": "Close"
+    },
     "dz": {
       "title": "Tap to upload or drop a photo",
       "hint": "PNG, JPG, HEIC or PDF · up to {max} pages · max 10MB each",
@@ -375,7 +429,9 @@
       "medisave": "Paid by MediSave",
       "total": "Total you pay",
       "gap": "These lines add up to {lines}, not {total}. One amount may have been misread, but the total is copied from your bill, so you can carry on.",
-      "gapWhere": "If you want to check, look at the lines under “{section}”: the bill says they come to {printed}."
+      "gapWhere": "If you want to check, look at the lines under “{section}”: the bill says they come to {printed}.",
+      "fine": "{n} other line looks fine. Show it | {n} other lines look fine. Show them",
+      "hideFine": "Hide the lines that look fine"
     },
     "steps": {
       "label": "Steps",
@@ -634,11 +690,27 @@
     "scanMed": "Scan a medicine label"
   },
   "history": {
-    "lead": "Your saved medicine labels and bills, newest first.",
+    "lead": "Find a medicine or bill you scanned before.",
     "filter": "Show",
-    "filterAll": "All",
     "filterMed": "Medicines",
     "filterBill": "Bills",
+    "searchMed": "Find a medicine",
+    "searchBill": "Find a clinic or hospital",
+    "clear": "Clear",
+    "quick": "Your medicines",
+    "takingNow": "Taking now",
+    "notTaking": "No longer taking ({n})",
+    "scanned": "Scanned {n} time | Scanned {n} times",
+    "noMatch": "Nothing matches “{q}”.",
+    "thisMonth": "This month",
+    "jump": "Go to a month",
+    "yearTitle": "What you paid in {year}",
+    "clinicLine": "{n} bill | {n} bills",
+    "back": "Back to History",
+    "allScans": "Every scan, newest first",
+    "capped": "Showing your newest {n} scans.",
+    "noMeds": "No medicine labels saved yet.",
+    "noBills": "No bills saved yet.",
     "saved": "Saved {date}",
     "youPaid": "You paid {amount}",
     "sharing": "Link is on",
@@ -664,8 +736,6 @@
     "deleteYes": "Yes, delete",
     "keep": "Keep it",
     "deleted": "Scan deleted.",
-    "loadMore": "Show older scans",
-    "noneOfType": "Nothing of this kind yet.",
     "emptyTitle": "Nothing saved yet",
     "emptyText": "When you check a scan and tap \"Looks correct\", it is saved here, newest first. You need to be logged in."
   },
@@ -866,6 +936,9 @@
     "charged": "What you were charged",
     "showItems": "Show what each charge was ({n})",
     "hideItems": "Hide each charge",
+    "groupCount": "{n} item | {n} items",
+    "biggest": "Biggest charges",
+    "toSummary": "Back to summary",
     "takenOff": "Taken off your bill",
     "total": "You pay",
     "takenOffAmount": "{amount} taken off",
@@ -1188,21 +1261,31 @@
       "one": "Time for {name}",
       "many": "Time for {n} medicines",
       "text": "Due at {time}. Take it, then tap the button.",
-      "take": "I’ve taken it"
+      "textMany": "Due at {time}. Tap each one after you take it.",
+      "take": "I’ve taken it",
+      "takeLabel": "I’ve taken it: {name}"
     },
     "week": {
-      "sum": "{done} of {due} doses taken so far this week",
       "loading": "Checking this week’s ticks",
       "range": "{start} to {end}",
-      "caption": "Your doses this week, by time of day",
-      "cell": "{day}, {slot}: {state}",
+      "caption": "Your medicines this week, day by day",
+      "cell": "{name}, {day} {slot}: {state}",
       "state": {
         "ok": "Taken",
-        "miss": "Missed",
-        "up": "Coming up"
+        "not": "Not ticked",
+        "now": "Take now",
+        "later": "Later"
       },
-      "missedTitle": "Missed this week",
-      "noneMissed": "Nothing missed this week.",
+      "explain": "Not ticked means the time has passed, but there is no tick.",
+      "allTicked": "Every dose so far this week is ticked.",
+      "nothingYet": "Nothing to tick yet this week.",
+      "notTicked": "{n} dose not ticked this week | {n} doses not ticked this week",
+      "listTitle": "Not ticked this week",
+      "forgot": "Took it but forgot to tick? Tap “I took it”.",
+      "took": "I took it",
+      "tookLabel": "I took it: {name}, {day} {slot}",
+      "ticked": "Ticked: {name}, {day} {slot}.",
+      "undo": "Undo",
       "notDaily": "Not every day"
     },
     "rem": {

@@ -10,6 +10,7 @@ Canonical route: **`/api/history`**, using the already mounted route. The build 
 | --- | --- | --- |
 | POST | `/api/history` | 201, `{ id, createdAt, scan }` |
 | GET | `/api/history?page=1` | 200, `{ items, page, pageSize: 10, pages, total, hasMore }`; each item `{ id, type, source, title, createdAt, totalPayableCents (bills, else null), shareToken, shareExpiresAt (null unless a link is live) }` |
+| GET | `/api/history/all` | 200, `{ items, total, capped }`; every summary at once (the newest 500), each list item plus `visitDate` (bills, else null) |
 | GET | `/api/history/:id` | 200, `{ id, createdAt, scan }` |
 | DELETE | `/api/history/:id` | 200, `{ id }` |
 
@@ -56,6 +57,8 @@ Example medication detail:
 Each list item is `{ id, type, source, title, createdAt }`. Medication titles join name and strength; bill titles use clinic or null. Render a translated bill fallback when title is null. Lists never include full extracted text, account fields or internal ownership IDs. Full details are fetched separately.
 
 Newest first by server `createdAt`, then `_id` descending to break timestamp ties, backed by index `{ userId: 1, createdAt: -1, _id: -1 }`. Page size is fixed at 10. Page must be a decimal integer 1–100000; no other query parameters are supported. An empty/out-of-range page succeeds with an empty `items` array. `total` counts only this user's records. As with normal offset pagination, concurrent inserts/deletes can shift later pages; reload page 1 after a change.
+
+`/api/history/all` returns the same summaries, newest first with the same tie-break, all at once instead of a page: up to 500, with `capped: true` when the user has more (`total` counts them all). Each item also carries the bill's `visitDate` (YYYY-MM-DD or null; null for medicines), so the History page can group bills by month. No query parameters are supported. The page groups, searches and sorts these on the device.
 
 Deleting a scan permanently removes that history record. It does not remove the medicine from the current browser's medicine store, delete schedules/dose logs, or change Google events. Repeated deletion returns 404.
 

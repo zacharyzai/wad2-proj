@@ -25,6 +25,9 @@ export const scanStore = reactive({
   confirmed: saved?.confirmed ?? false,
   // A photo picked on Home; Scan reads it on arrival.
   pendingFile: null,
+  // A scan still going, or finished, after the person left the Scan page mid-way (views/ScanView.vue keeps it running):
+  // { type: 'medication' | 'bill', status: 'working' | 'ready' | 'failed' }, shown by components/scan/ScanAwayNotice.vue.
+  away: null,
 })
 
 watch(
@@ -46,4 +49,5 @@ export function forgetScan() {
   scanStore.photos = []
   scanStore.pdfPages = null
   scanStore.confirmed = false
+  scanStore.away = null
 }

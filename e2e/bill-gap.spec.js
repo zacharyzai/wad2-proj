@@ -42,6 +42,9 @@ test('lines that do not add up: Confirm says by how much and where, and still le
   await expect(gap).toContainText('look at the lines under “Medications List”: the bill says they come to $83.76.')
   await expect(page.locator('#f-total')).not.toHaveClass(/is-flagged/) // the total isn't "unclear"
   await expect(page.getByRole('spinbutton', { name: 'Amount for FEXOFEN 180MG' })).toHaveClass(/is-check/) // a line in the group that is off
+  // 10 lines: the ones outside the group that is off look fine, so they are folded away until asked for.
+  await expect(page.getByRole('spinbutton', { name: 'Amount for Surcharge' })).toHaveCount(0)
+  await page.getByTestId('confirm-fine-toggle').click()
   await expect(page.getByRole('spinbutton', { name: 'Amount for Surcharge' })).not.toHaveClass(/is-check/)
 
   // Fixing the misread line makes the note go away.

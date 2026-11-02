@@ -43,7 +43,7 @@ onMounted(load)
             <span v-if="!s.today" class="d-flex mt-2"><span class="badge badge-teal"><AppIcon name="clock" :size="18" />{{ t('care.notShared') }}</span></span>
             <span v-else class="d-flex flex-wrap gap-2 mt-2">
               <span class="badge badge-success"><AppIcon name="checkCircle" :size="18" />{{ t('care.nTaken', { n: s.today.taken }) }}</span>
-              <span v-if="s.today.missed" class="badge badge-danger"><AppIcon name="xCircle" :size="18" />{{ t('care.nMissed', { n: s.today.missed }) }}</span>
+              <span v-if="s.today.missed" class="badge badge-warning"><AppIcon name="alert" :size="18" />{{ t('care.nMissed', { n: s.today.missed }) }}</span>
               <span class="badge badge-teal"><AppIcon name="clock" :size="18" />{{ t('care.nUpcoming', { n: s.today.upcoming }) }}</span>
             </span>
           </span>

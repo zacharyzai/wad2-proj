@@ -4,6 +4,7 @@
 import { computed, nextTick, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AppIcon from '../layout/AppIcon.vue'
+import KindIcon from '../layout/KindIcon.vue'
 import ErrorBanner from '../layout/ErrorBanner.vue'
 import { createShare, revokeShare, deleteScan } from '../../api/client'
 
@@ -66,7 +67,7 @@ async function copy() {
 <template>
   <li class="card hist" data-testid="history-item">
     <div class="d-flex gap-3 align-items-start">
-      <span class="hist-icon" aria-hidden="true"><AppIcon :name="isMed ? 'pill' : 'receipt'" :size="28" /></span>
+      <KindIcon :kind="isMed ? 'medication' : 'bill'" />
       <div class="flex-grow-1 min-w-0">
         <span class="badge" :class="isMed ? 'badge-teal' : 'badge-navy'">{{ t(isMed ? 'explain.tag.medication' : 'explain.tag.bill') }}</span>
         <h2 class="hist-title">{{ item.title || t(isMed ? 'explain.tag.medication' : 'explain.tag.bill') }}</h2>
@@ -118,7 +119,6 @@ async function copy() {
 </template>
 
 <style scoped>
-.hist-icon { flex: none; width: var(--tile-lg); height: var(--tile-lg); display: grid; place-items: center; border-radius: var(--r-field); background: var(--color-tint); color: var(--color-primary-text); }
 .hist-title { font-size: var(--fs-h3); margin: var(--s-2) 0 var(--s-1); overflow-wrap: anywhere; }
 .hist-panel { display: flex; flex-direction: column; gap: var(--s-3); margin-top: var(--s-4); padding: var(--s-4); border: 1px solid var(--color-border); border-radius: var(--r-field); background: var(--color-surface-2); }
 .hist-panel h3 { font-size: var(--fs-body); font-weight: 700; margin: 0; }

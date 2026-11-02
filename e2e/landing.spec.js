@@ -77,7 +77,7 @@ test('both "Try me out" buttons go to Log in (which then opens Home)', async ({ 
   await mockAuth(page)
   await fillLogin(page)
   await expect(page).toHaveURL(/\/$/)
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('What would you like to understand?')
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('What would you like to do?')
 })
 
 test('the headline changes language on its own; tapping a language stops it and switches the page', async ({ page }) => {

@@ -26,12 +26,12 @@
     "emptyTitle": "Belum ada sesiapa dipautkan",
     "emptyText": "Minta ibu bapa atau saudara anda buka Akaun dalam aplikasi dan ketik \"Jemput penjaga\". Mereka boleh hantar pautan melalui WhatsApp.",
     "nTaken": "{n} sudah diambil",
-    "nMissed": "{n} terlepas",
+    "nMissed": "{n} belum ditanda",
     "nUpcoming": "{n} akan datang",
     "todayFor": "{name}: hari ini",
     "goneTitle": "Anda tidak lagi dapat melihat orang ini",
     "goneText": "Mereka mungkin telah membuang pautan. Jika ini silap, minta jemputan baharu.",
-    "missedBanner": "{name} belum mengambil {n} dos hari ini. Anda mungkin mahu menelefon mereka.",
+    "missedBanner": "{name} belum menanda {n} dos hari ini. Anda mungkin mahu menelefon mereka.",
     "allTaken": "{name} sudah mengambil semua dos setakat ini hari ini.",
     "noDoses": "Tiada ubat dalam jadual",
     "noDosesText": "{name} belum menambah sebarang ubat ke jadual.",
@@ -39,7 +39,7 @@
     "refresh": "Muat semula",
     "status": {
       "taken": "Sudah diambil",
-      "missed": "Terlepas",
+      "missed": "Belum ditanda",
       "upcoming": "Akan datang"
     },
     "notShared": "Belum dikongsi",
@@ -137,7 +137,7 @@
     "RESET_LINK_INVALID": "Pautan ini sudah tamat tempoh atau sudah digunakan. Sila minta pautan baharu."
   },
   "home": {
-    "title": "Apa yang anda ingin fahami?",
+    "title": "Apa yang anda ingin lakukan?",
     "lead": "Ambil gambar. Kami terangkan dengan perkataan mudah dan bacakannya.",
     "med": {
       "title": "Imbas label ubat",
@@ -147,19 +147,22 @@
       "title": "Imbas bil perubatan",
       "text": "Lihat jumlah yang anda bayar dan subsidi yang mungkin layak."
     },
-    "sample": "Tidak pasti? Cuba contoh dahulu",
     "greet": {
       "morning": "Selamat pagi",
       "afternoon": "Selamat petang",
       "evening": "Selamat malam"
     },
-    "what": "Apa yang boleh diimbas?",
     "ask": {
       "text": "Tanya soalan tentang ubat anda dalam bahasa anda sendiri."
     },
-    "breakdown": {
-      "title": "Pecahan bil anda",
-      "text": "Lihat semula bil terakhir anda, dan subsidi yang mungkin anda dapat."
+    "lastBill": "Bil terakhir anda",
+    "today": {
+      "title": "Ubat hari ini",
+      "open": "Buka jadual saya",
+      "noMeds": "Imbas label ubat dan kami akan ingatkan anda bila perlu mengambilnya.",
+      "missed": "{n} dos tadi belum ditanda | {n} dos tadi belum ditanda",
+      "saved": "Ditanda sebagai sudah diambil.",
+      "loadFailed": "Kami tidak dapat menyemak dos hari ini sekarang. Buka jadual anda untuk melihatnya."
     }
   },
   "scan": {
@@ -214,6 +217,57 @@
     },
     "covering": "Menutup butiran peribadi anda…",
     "coveringPage": "Menutup butiran peribadi anda pada halaman {n} daripada {total}…",
+    "pages": {
+      "title": "Halaman bil anda",
+      "count": "{n} daripada maksimum {max} halaman",
+      "page": "Halaman {n}",
+      "checking": "Memeriksa gambar…",
+      "ok": "Gambar jelas",
+      "problem": {
+        "dark": "Terlalu gelap untuk dibaca",
+        "blurry": "Terlalu kabur untuk dibaca",
+        "glare": "Terlalu banyak silau untuk dibaca"
+      },
+      "more": "Adakah bil ini ada halaman lain?",
+      "add": "Tambah halaman seterusnya",
+      "full": "Sudah {max} halaman, paling banyak yang boleh dibaca sekali gus. Jika bil ada lebih, imbas yang selebihnya sebagai bil kedua.",
+      "done": "Tidak, itu sahaja. Baca sekarang",
+      "fixFirst": "Ambil semula halaman {pages} dahulu, atau pilih “Guna juga”.",
+      "tip": "Pastikan halaman yang ada jumlah keseluruhan disertakan.",
+      "retake": "Ambil semula",
+      "retakeN": "Ambil semula halaman {n}",
+      "remove": "Buang",
+      "removeN": "Buang halaman {n}",
+      "anyway": "Guna juga",
+      "anywayN": "Guna juga halaman {n}",
+      "taking": "Mengambil halaman {n}",
+      "retaking": "Mengambil semula halaman {n}",
+      "back": "Kembali ke halaman saya",
+      "throw": {
+        "title": "Buang {n} halaman ini?",
+        "text": "Anda perlu mengambil gambar semula.",
+        "keep": "Simpan halaman saya",
+        "yes": "Buang semuanya"
+      }
+    },
+    "away": {
+      "working": {
+        "medication": "Masih membaca label ubat anda…",
+        "bill": "Masih membaca bil anda…"
+      },
+      "ready": {
+        "medication": "Label ubat anda sedia untuk disemak.",
+        "bill": "Bil anda sedia untuk disemak."
+      },
+      "failed": {
+        "medication": "Kami tidak dapat habis membaca label ubat anda.",
+        "bill": "Kami tidak dapat habis membaca bil anda."
+      },
+      "see": "Lihat",
+      "check": "Semak sekarang",
+      "why": "Lihat sebabnya",
+      "close": "Tutup"
+    },
     "dz": {
       "title": "Ketik untuk muat naik atau lepaskan gambar di sini",
       "hint": "PNG, JPG, HEIC atau PDF · hingga {max} halaman · maksimum 10MB setiap satu",
@@ -375,7 +429,9 @@
       "medisave": "Dibayar oleh MediSave",
       "total": "Jumlah yang anda bayar",
       "gap": "Baris-baris ini berjumlah {lines}, bukan {total}. Satu amaun mungkin tersilap baca, tetapi jumlah keseluruhan disalin terus daripada bil anda, jadi anda boleh teruskan.",
-      "gapWhere": "Jika anda mahu menyemak, lihat baris di bawah “{section}”: bil menyatakan jumlahnya {printed}."
+      "gapWhere": "Jika anda mahu menyemak, lihat baris di bawah “{section}”: bil menyatakan jumlahnya {printed}.",
+      "fine": "{n} baris lain nampak betul. Tunjukkan",
+      "hideFine": "Sembunyikan baris yang nampak betul"
     },
     "steps": {
       "label": "Langkah",
@@ -634,11 +690,27 @@
     "scanMed": "Imbas label ubat"
   },
   "history": {
-    "lead": "Label ubat dan bil yang anda simpan, yang terbaru di atas.",
+    "lead": "Cari ubat atau bil yang pernah anda imbas.",
     "filter": "Papar",
-    "filterAll": "Semua",
     "filterMed": "Ubat",
     "filterBill": "Bil",
+    "searchMed": "Cari ubat",
+    "searchBill": "Cari klinik atau hospital",
+    "clear": "Padam",
+    "quick": "Ubat anda",
+    "takingNow": "Sedang diambil",
+    "notTaking": "Tidak diambil lagi ({n})",
+    "scanned": "Diimbas {n} kali | Diimbas {n} kali",
+    "noMatch": "Tiada yang sepadan dengan “{q}”.",
+    "thisMonth": "Bulan ini",
+    "jump": "Pergi ke bulan",
+    "yearTitle": "Bayaran anda pada {year}",
+    "clinicLine": "{n} bil | {n} bil",
+    "back": "Kembali ke Sejarah",
+    "allScans": "Setiap imbasan, yang terbaru dahulu",
+    "capped": "Menunjukkan {n} imbasan terbaru anda.",
+    "noMeds": "Belum ada label ubat disimpan.",
+    "noBills": "Belum ada bil disimpan.",
     "saved": "Disimpan {date}",
     "youPaid": "Anda membayar {amount}",
     "sharing": "Pautan dihidupkan",
@@ -664,8 +736,6 @@
     "deleteYes": "Ya, padam",
     "keep": "Simpan",
     "deleted": "Imbasan dipadam.",
-    "loadMore": "Papar imbasan lebih lama",
-    "noneOfType": "Belum ada yang seperti ini.",
     "emptyTitle": "Belum ada yang disimpan",
     "emptyText": "Selepas anda menyemak imbasan dan menekan \"Semuanya betul\", ia disimpan di sini, yang terbaru di atas. Anda perlu log masuk."
   },
@@ -866,6 +936,9 @@
     "charged": "Caj anda",
     "showItems": "Tunjukkan setiap caj ({n})",
     "hideItems": "Sembunyikan setiap caj",
+    "groupCount": "{n} item",
+    "biggest": "Caj terbesar",
+    "toSummary": "Kembali ke ringkasan",
     "takenOff": "Ditolak daripada bil anda",
     "total": "Anda bayar",
     "takenOffAmount": "{amount} ditolak",
@@ -1188,21 +1261,31 @@
       "one": "Masa untuk {name}",
       "many": "Masa untuk {n} ubat",
       "text": "Ambil ubat pada {time}, kemudian tekan butang.",
-      "take": "Saya sudah ambil"
+      "textMany": "Ambil ubat pada {time}. Tekan setiap satu selepas anda ambil.",
+      "take": "Saya sudah ambil",
+      "takeLabel": "Saya sudah ambil: {name}"
     },
     "week": {
-      "sum": "{done} daripada {due} dos sudah diambil setakat ini minggu ini",
       "loading": "Menyemak tanda minggu ini",
       "range": "{start} hingga {end}",
-      "caption": "Dos anda minggu ini, mengikut waktu",
-      "cell": "{day}, {slot}: {state}",
+      "caption": "Ubat anda minggu ini, hari demi hari",
+      "cell": "{name}, {day} {slot}: {state}",
       "state": {
         "ok": "Sudah ambil",
-        "miss": "Terlepas",
-        "up": "Akan datang"
+        "not": "Belum ditanda",
+        "now": "Ambil sekarang",
+        "later": "Nanti"
       },
-      "missedTitle": "Terlepas minggu ini",
-      "noneMissed": "Tiada yang terlepas minggu ini.",
+      "explain": "“Belum ditanda” bermaksud masanya sudah lepas, tetapi tiada tanda.",
+      "allTicked": "Semua dos setakat ini minggu ini sudah ditanda.",
+      "nothingYet": "Belum ada apa-apa untuk ditanda minggu ini.",
+      "notTicked": "{n} dos belum ditanda minggu ini | {n} dos belum ditanda minggu ini",
+      "listTitle": "Belum ditanda minggu ini",
+      "forgot": "Sudah ambil tetapi terlupa menanda? Tekan “Saya sudah ambil”.",
+      "took": "Saya sudah ambil",
+      "tookLabel": "Saya sudah ambil: {name}, {day} {slot}",
+      "ticked": "Sudah ditanda: {name}, {day} {slot}.",
+      "undo": "Batal",
       "notDaily": "Bukan setiap hari"
     },
     "rem": {

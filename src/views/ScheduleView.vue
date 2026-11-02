@@ -16,6 +16,7 @@ import { dosesTaken, setDoseTaken } from '../api/client'
 import EmptyState from '../components/layout/EmptyState.vue'
 import ErrorBanner from '../components/layout/ErrorBanner.vue'
 import AppIcon from '../components/layout/AppIcon.vue'
+import KindIcon from '../components/layout/KindIcon.vue'
 import CalendarSync from '../components/schedule/CalendarSync.vue'
 import WeekView from '../components/schedule/WeekView.vue'
 
@@ -90,9 +91,8 @@ const groups = computed(() => {
   return list.map((g, i) => ({ ...g, state: states[i] }))
 })
 const allTaken = (g) => g.doses.every((d) => taken.has(d.id))
-// The time that's due and not yet ticked: shown at the top of Today with one "I've taken it" for all its doses.
+// The time that's due and not yet ticked: shown at the top of Today with "I've taken it" for each of its doses.
 const dueGroup = computed(() => (ticksReady.value ? groups.value.find((g) => g.state === 'now' && !allTaken(g)) : null))
-const takeAll = (g) => g.doses.filter((d) => !taken.has(d.id)).forEach((d) => toggle(d, true))
 // "Next: Metformin at 6:00 PM": the first untaken dose that isn't due yet.
 const nextDose = computed(() => groups.value.filter((g) => g.state === 'later').flatMap((g) => g.doses).find((d) => !taken.has(d.id)))
 const RING = 2 * Math.PI * 30 // the progress ring's circumference (r = 30)
@@ -397,13 +397,18 @@ onBeforeUnmount(() => {
             <span class="slot-tile lg" aria-hidden="true"><AppIcon :name="SLOT_ICONS[dueGroup.slot] ?? 'clock'" :size="26" /></span>
             <div class="d-flex flex-column gap-1 min-w-0">
               <h2 id="due-title" class="due-title">{{ dueGroup.doses.length === 1 ? t('schedule.due.one', { name: dueGroup.doses[0].label }) : t('schedule.due.many', { n: dueGroup.doses.length }) }}</h2>
-              <p class="m-0">{{ t('schedule.due.text', { time: timeText(dueGroup.time) }) }}</p>
+              <p class="m-0">{{ t(dueGroup.doses.length > 1 ? 'schedule.due.textMany' : 'schedule.due.text', { time: timeText(dueGroup.time) }) }}</p>
             </div>
           </div>
+          <!-- Several due together: a button for each, so a tablet that wasn't taken is never ticked with the others. -->
           <ul v-if="dueGroup.doses.length > 1" class="due-list">
-            <li v-for="d in dueGroup.doses" :key="d.id"><strong>{{ d.label }}</strong> <span class="text-muted-a11y">{{ doseText(d.instruction) }}</span></li>
+            <li v-for="d in dueGroup.doses" :key="d.id" :data-testid="`schedule-due-${d.id}`">
+              <span class="due-med"><strong>{{ d.label }}</strong><span class="text-muted-a11y">{{ doseText(d.instruction) }}</span></span>
+              <span v-if="taken.has(d.id)" class="badge badge-success"><AppIcon name="check" :size="18" :stroke="3" />{{ t('schedule.taken') }}</span>
+              <button v-else type="button" class="btn btn-primary" :aria-label="t('schedule.due.takeLabel', { name: d.label })" data-testid="schedule-due-take" @click="toggle(d, true)"><AppIcon name="check" />{{ t('schedule.due.take') }}</button>
+            </li>
           </ul>
-          <button type="button" class="btn btn-primary" data-testid="schedule-due-take" @click="takeAll(dueGroup)"><AppIcon name="check" />{{ t('schedule.due.take') }}</button>
+          <button v-else type="button" class="btn btn-primary" data-testid="schedule-due-take" @click="toggle(dueGroup.doses[0], true)"><AppIcon name="check" />{{ t('schedule.due.take') }}</button>
         </section>
 
         <!-- The day's progress: the words say it, the ring only shows it. -->
@@ -486,7 +491,7 @@ onBeforeUnmount(() => {
     </section>
 
     <!-- ===== This week ===== -->
-    <WeekView v-else-if="view === 'week'" :entries="entries" :today="today" :now="nowTime" :taken-today="taken" :flagged="flagged" />
+    <WeekView v-else-if="view === 'week'" :entries="entries" :today="today" :now="nowTime" :taken-today="taken" :flagged="flagged" @toggle="(dose) => toggle(dose, true)" />
 
     <!-- ===== My medicines ===== -->
     <div v-else-if="view === 'meds'" class="d-flex flex-column gap-4">
@@ -495,7 +500,7 @@ onBeforeUnmount(() => {
         <ul class="med-grid">
           <li v-for="r in timetable" :key="r.medicine.id" class="card med-card" :data-testid="`med-${r.medicine.id}`">
             <div class="med-line">
-              <span class="tile tile-soft" aria-hidden="true"><AppIcon name="pill" :size="24" /></span>
+              <KindIcon kind="medication" size="var(--tile)" />
               <span class="med-info">
                 <span class="med-name">{{ r.entry.label }}</span>
                 <span v-if="purposeOf(r.medicine.id)" class="text-muted-a11y fw-semibold" data-testid="med-purpose">{{ purposeOf(r.medicine.id) }}</span>
