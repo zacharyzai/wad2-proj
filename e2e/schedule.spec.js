@@ -133,7 +133,7 @@ test('a daily medicine asks for the number of days, then shows at its times', as
   await expect(page.getByTestId('med-m1')).toContainText('7:30')
 })
 
-test('ticks are saved to the server and are still there after a reload; keyboard works too', async ({ page }) => {
+test('ticks are saved to the server and are still there after a reload; keyboard works too @smoke', async ({ page }) => {
   const sent = await mockDoses(page)
   await seed(page, [SCHEDULED])
   await page.goto('/schedule')
@@ -234,7 +234,7 @@ test('Delete from my list takes a medicine off, and Undo puts it back', async ({
   await expect(page.getByRole('heading', { name: 'No medicines yet' })).toBeVisible()
 })
 
-test('no accessibility problems: ticks, the edit form and the pharmacist list', async ({ page }) => {
+test('no accessibility problems: ticks, the edit form and the pharmacist list @a11y', async ({ page }) => {
   await mockDoses(page)
   await seed(page, [PANADOL, SCHEDULED, medicine('m3', { name: 'Amlodipine', strength: '5 mg', timing: ['morning'], timesPerDay: 1 })])
   await page.goto('/schedule')

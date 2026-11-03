@@ -22,7 +22,7 @@ function mockChat(page, replies) {
 const answer = (text, askPharmacist = false) => ({ ok: true, data: { type: 'ANSWER', answer: text, askPharmacist } })
 const myMedicines = (page) => page.getByTestId('my-medicines')
 
-test('Ask works without any medicines, with general answers', async ({ page }) => {
+test('Ask works without any medicines, with general answers @smoke', async ({ page }) => {
   const sent = mockChat(page, [answer('Keep them in a cool, dry place.', true)])
   await page.goto('/ask')
   await expect(myMedicines(page)).toContainText('None yet')
@@ -156,7 +156,7 @@ test('a failed question can be retried', async ({ page }) => {
   await expect(page.getByTestId('ask-answer')).toContainText('Store them below 25 degrees.')
 })
 
-test('questions are asked in the chosen language', async ({ page }) => {
+test('questions are asked in the chosen language @i18n', async ({ page }) => {
   const sent = mockChat(page, [answer('放在阴凉干燥的地方。')])
   await page.goto('/ask')
   await switchLanguage(page, '中文')

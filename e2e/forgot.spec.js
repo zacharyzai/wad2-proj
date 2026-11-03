@@ -88,7 +88,7 @@ test('Reset: an expired or used link, or none, offers a new link instead of a de
   await expect(page).toHaveURL(/\/forgot$/)
 })
 
-test('Forgot and Reset have no missing translations in any language', async ({ page }) => {
+test('Forgot and Reset have no missing translations in any language @i18n', async ({ page }) => {
   mockForgot(page)
   for (const path of ['/forgot', '/reset#token=a.b.c', '/reset']) {
     await page.goto(path)
@@ -100,7 +100,7 @@ test('Forgot and Reset have no missing translations in any language', async ({ p
 })
 
 for (const colorScheme of ['light', 'dark']) {
-  test(`Forgot and Reset have no WCAG A/AA violations (${colorScheme})`, async ({ page }) => {
+  test(`Forgot and Reset have no WCAG A/AA violations (${colorScheme}) @a11y`, async ({ page }) => {
     await page.emulateMedia({ colorScheme, reducedMotion: 'reduce' })
     await page.addInitScript((theme) => localStorage.setItem('theme', theme), colorScheme)
     mockForgot(page)

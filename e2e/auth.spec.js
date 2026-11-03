@@ -26,7 +26,7 @@ test.describe('logged out', () => {
     await expect(page).toHaveURL(/\/shared\/abc123$/)
   })
 
-  test('wrong password shows an error and stays on the login page', async ({ page }) => {
+  test('wrong password shows an error and stays on the login page @smoke', async ({ page }) => {
     await mockWrongLogin(page)
     await login(page, 'demo@example.com', 'not-the-password')
     await expect(page.getByTestId('login-error')).toContainText('That email or password is not right.')
@@ -93,7 +93,7 @@ test.describe('logged out', () => {
   })
 
   for (const colorScheme of ['light', 'dark']) {
-    test(`Start, Log in and Create account have no WCAG A/AA violations (${colorScheme})`, async ({ page }) => {
+    test(`Start, Log in and Create account have no WCAG A/AA violations (${colorScheme}) @a11y`, async ({ page }) => {
       await page.emulateMedia({ colorScheme, reducedMotion: 'reduce' })
       const bad = []
       for (const path of ['/start', '/login', '/signup']) {
@@ -115,7 +115,7 @@ test.describe('logged out', () => {
     await expect(page.getByTestId('forgot-family')).toContainText('Ask the family member who helped set up your account')
   })
 
-  test('Start, Log in and Create account have no missing translations in any language', async ({ page }) => {
+  test('Start, Log in and Create account have no missing translations in any language @i18n', async ({ page }) => {
     for (const path of ['/start', '/login', '/signup']) {
       await page.goto(path)
       for (const language of ['中文', 'BM', 'தமிழ்', 'EN']) {

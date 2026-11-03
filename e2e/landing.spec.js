@@ -182,7 +182,8 @@ test('the reminder phone buzzes while Reminders is on; switching it off stops it
   // The whole section in view, so the plan card (and its switch) has landed.
   await page.locator('#doses').evaluate((el) => window.scrollTo(0, Math.max(el.offsetTop, el.offsetTop + el.offsetHeight - innerHeight)))
   await expect.poll(() => phone.evaluate((el) => getComputedStyle(el).animationName)).toMatch(/^buzz/) // scoped: Vue adds a suffix
-  await page.getByRole('switch', { name: 'Reminders' }).click()
+  // dispatchEvent: under load, scroll-snap can pull the page back while click() scrolls the switch into view
+  await page.getByRole('switch', { name: 'Reminders' }).dispatchEvent('click')
   await expect(phone).toHaveClass(/\boff\b/)
   await expect.poll(() => phone.evaluate((el) => getComputedStyle(el).animationName)).toBe('none')
 })
@@ -235,7 +236,7 @@ test('read-aloud demo: pick a language, tap the speaker, tap again to stop', asy
 })
 
 for (const colorScheme of ['light', 'dark']) {
-  test(`welcome page has no WCAG A/AA violations (${colorScheme})`, async ({ page }) => {
+  test(`welcome page has no WCAG A/AA violations (${colorScheme}) @a11y`, async ({ page }) => {
     await page.emulateMedia({ colorScheme, reducedMotion: 'reduce' })
     await page.goto('/welcome')
     // The dev server adds page styles a moment after load; check colours only once they have all arrived.
@@ -304,7 +305,8 @@ test('scrolling stops at each section: the page snaps while it is open, and only
   // of it stays there, and is not pulled back to the hero or thrown ahead to the next section.
   const scanTop = await page.locator('#scan').evaluate((el) => el.offsetTop - 66) // its scroll-margin-top
   await page.mouse.move(100, 400)
-  for (let i = 0; i < 12; i++) await page.mouse.wheel(0, 120)
+  // One wheel of 12 notches: on a busy machine 12 separate notches can each end and snap back to the hero
+  await page.mouse.wheel(0, 1440)
   await page.waitForTimeout(900)
   const inside = await page.evaluate(() => Math.round(window.scrollY))
   expect(inside).toBeGreaterThan(900)

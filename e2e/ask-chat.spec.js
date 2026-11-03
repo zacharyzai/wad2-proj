@@ -68,7 +68,7 @@ test('reading aloud lights up the word being said', async ({ page }) => {
   await expect(card.locator('.w.said')).toHaveCount(0)
 })
 
-test('"Say it in 中文" asks the same question again, answered in Chinese', async ({ page }) => {
+test('"Say it in 中文" asks the same question again, answered in Chinese @i18n', async ({ page }) => {
   const sent = mockChat(page, [answer('Keep them dry.'), answer('放在干燥的地方。')])
   await page.goto('/ask')
   await page.getByRole('button', { name: 'How do I store medicines?' }).click()

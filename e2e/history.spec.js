@@ -14,7 +14,7 @@ async function mockHistory(page, items = [MED, BILL]) {
 }
 
 test.describe('history list', () => {
-  test('lists saved scans and filters by type', async ({ page }) => {
+  test('lists saved scans and filters by type @smoke', async ({ page }) => {
     await mockHistory(page)
     await page.goto('/history')
     await expect(page.getByTestId('history-item')).toHaveCount(2)
