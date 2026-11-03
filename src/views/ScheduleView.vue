@@ -43,9 +43,10 @@ const VIEWS = ['today', 'week', 'meds', 'reminders']
 const view = computed(() => (route.query.google !== undefined ? 'reminders' : VIEWS.includes(route.query.view) ? route.query.view : 'today'))
 const viewLink = (v) => ({ query: v === 'today' ? {} : { view: v } })
 // Keyboard users never lose their place: after the page updates, focus moves to the element that now matters.
+const pageEl = ref(null) // template ref (Week 4): look only inside this page, never the whole document
 const focusAfterUpdate = async (selector) => {
   await nextTick()
-  document.querySelector(selector)?.focus()
+  pageEl.value?.querySelector(selector)?.focus()
 }
 
 // Every medicine with its ScheduleEntry. Flagged ones (no daily timetable) go to the pharmacist section.
@@ -100,7 +101,7 @@ async function welcomeBackFromFix() {
   notify(t('schedule.fix.done', { name: nameOf(entry.medication) }))
   // One task later: App.vue focuses the page heading after every page change, and this must come after it.
   await new Promise((resolve) => setTimeout(resolve))
-  document.querySelector(`[data-change="${id}"]`)?.focus()
+  pageEl.value?.querySelector(`[data-change="${id}"]`)?.focus()
 }
 
 // --- Remove with Undo (same as Ask): 8 seconds to bring it back where it was ------------------------------------------------
@@ -186,7 +187,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="page schedule">
+  <div ref="pageEl" class="page schedule">
     <header class="head head-row">
       <div class="d-flex flex-column gap-1">
         <span class="date" data-testid="schedule-date">{{ dateText(today, { weekday: 'long', day: 'numeric', month: 'long' }) }}</span>

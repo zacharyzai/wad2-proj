@@ -187,14 +187,14 @@ const navSolid = ref(false)
 function updateNav() {
   navSolid.value = scrollY > 8
   const line = innerHeight * 0.4 // a section counts as "being read" once its top passes 40% down the screen
-  navActive.value = SECTIONS.findLast((id) => document.getElementById(id)?.getBoundingClientRect().top <= line) ?? null
+  navActive.value = SECTIONS.findLast((id) => root.value?.querySelector(`#${id}`)?.getBoundingClientRect().top <= line) ?? null
 }
 function goTo(id) {
-  document.getElementById(id)?.scrollIntoView({ behavior: reduceMq.matches ? 'auto' : 'smooth' })
+  root.value.querySelector(`#${id}`)?.scrollIntoView({ behavior: reduceMq.matches ? 'auto' : 'smooth' })
 }
 
 function scrollToScan() {
-  document.getElementById('scan')?.scrollIntoView({ behavior: reduceMq.matches ? 'auto' : 'smooth' })
+  root.value.querySelector('#scan')?.scrollIntoView({ behavior: reduceMq.matches ? 'auto' : 'smooth' })
 }
 
 // ---- Scroll engine (ported from the design). Every position comes from scroll; scrolling back plays it in reverse.

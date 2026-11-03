@@ -1,6 +1,4 @@
 /* Scoped styles for components/scan/ScanPages.vue. */
-.capture { display: grid; gap: 24px; align-items: start; }
-@media (min-width: 992px) { .capture { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .privacy { display: flex; align-items: center; gap: 10px; margin: 0; padding: 0 4px; color: var(--color-text-muted); font-size: 16px; line-height: 1.45; }
 
 /* Numbered pages, each with its own check, then "Does this bill have another page?". */

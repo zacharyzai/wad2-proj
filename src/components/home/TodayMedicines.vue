@@ -4,18 +4,20 @@
      (schedule.*), so Home and Schedule always agree; the full list, changes and missed-dose advice stay on Schedule.
      A tick turns the card over (CSS 3D) to what is next; still with reduced motion. -->
 <script setup>
-import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { storeToRefs } from 'pinia'
 import { useI18n } from 'vue-i18n'
 import { useMedicinesStore } from '../../stores/medicines'
-import { buildSchedule, dosesOn, timeInSingapore, timeStates, todayInSingapore } from '../../rules/schedule'
-import { dosesTaken, setDoseTaken } from '../../api/client'
+import { useDosesStore } from '../../stores/doses'
+import { buildSchedule, dosesOn, timeStates } from '../../rules/schedule'
 import AppIcon from '../layout/AppIcon.vue'
 const { medicines } = useMedicinesStore()
+// Today's ticks come from the same store as Schedule's Today (Week 11), so a tick on one shows on the other.
+const dosesStore = useDosesStore()
+const { today, nowTime, taken, ready, busy: saving, loadError: failed } = storeToRefs(dosesStore)
 
 const { t, locale } = useI18n()
 
-const today = ref(todayInSingapore())
-const nowTime = ref(timeInSingapore())
 const doses = computed(() => dosesOn(medicines.map((m) => buildSchedule(m, m.schedule ?? {})), today.value))
 
 // The day's times, each 'earlier', 'now' or 'later', as on Schedule's Today.
@@ -27,18 +29,14 @@ const groups = computed(() => {
   return list.map((g, i) => ({ ...g, state: states[i] }))
 })
 
-const taken = reactive(new Set()) // dose ids ticked today
-const ready = ref(false)
-const failed = ref(false)
-const saving = reactive(new Set()) // dose ids whose tick is on its way
 const saved = ref(false) // "Marked as taken." for a few seconds after a tick
 const notSaved = ref(false) // the last tick didn't reach the account
 
-const allTaken = (g) => g.doses.every((d) => taken.has(d.id))
+const allTaken = (g) => g.doses.every((d) => taken.value.has(d.id))
 const due = computed(() => (ready.value ? groups.value.find((g) => g.state === 'now' && !allTaken(g)) : null))
-const next = computed(() => groups.value.filter((g) => g.state === 'later').flatMap((g) => g.doses).find((d) => !taken.has(d.id)))
-const missed = computed(() => groups.value.filter((g) => g.state === 'earlier').flatMap((g) => g.doses).filter((d) => !taken.has(d.id)).length)
-const doneCount = computed(() => doses.value.filter((d) => taken.has(d.id)).length)
+const next = computed(() => groups.value.filter((g) => g.state === 'later').flatMap((g) => g.doses).find((d) => !taken.value.has(d.id)))
+const missed = computed(() => groups.value.filter((g) => g.state === 'earlier').flatMap((g) => g.doses).filter((d) => !taken.value.has(d.id)).length)
+const doneCount = computed(() => doses.value.filter((d) => taken.value.has(d.id)).length)
 // Which face the card shows; a change of face turns the card over.
 const face = computed(() => (!ready.value ? 'wait' : due.value ? `due-${due.value.time}` : doneCount.value === doses.value.length ? 'done' : 'next'))
 
@@ -50,57 +48,27 @@ const timeText = (hhmm) => {
 const doseText = ({ count, unit, food }) =>
   [count != null && `${count} ${t(`unit.${unit ?? 'other'}`, count)}`, food && t(`food.${food}`)].filter(Boolean).join(' · ')
 
-async function loadTicks() {
-  const date = today.value
-  ready.value = false
-  failed.value = false
-  const res = await dosesTaken(date)
-  if (date !== today.value) return // the day changed while this was on its way
-  if (!res.ok) return (failed.value = true)
-  taken.clear()
-  for (const id of res.data.taken) taken.add(id)
-  ready.value = true
-}
-
-// A new day in Singapore starts with nothing ticked; the clock also moves "Take now" along during the day.
-function newDay() {
-  nowTime.value = timeInSingapore()
-  if (todayInSingapore() === today.value) return false
-  today.value = todayInSingapore()
-  loadTicks()
-  return true
-}
-
 // "I've taken it" ticks one medicine of the time that is due: when several are due, each has its own button, so one that
 // wasn't taken is never ticked with the others. (Due means within the hour, so it is never "too early".) Shown at once;
 // if the account doesn't save it, the tick goes back and a short message says so.
 let savedTimer = 0
 async function take(dose) {
-  if (saving.has(dose.id) || taken.has(dose.id) || newDay()) return
-  const date = today.value
-  saving.add(dose.id)
-  taken.add(dose.id)
-  const res = await setDoseTaken(dose.id, date, true)
-  saving.delete(dose.id)
-  if (date !== today.value) return
-  if (!res.ok) taken.delete(dose.id)
-  notSaved.value = !res.ok
-  saved.value = res.ok
+  if (taken.value.has(dose.id)) return
+  const result = await dosesStore.toggle(dose, true) // `true`: due is within the hour, so never "too early"
+  if (result === 'skipped') return
+  notSaved.value = result === 'failed'
+  saved.value = result === 'saved'
   clearTimeout(savedTimer)
   if (saved.value) savedTimer = setTimeout(() => (saved.value = false), 5000)
 }
 
-const onVisible = () => document.visibilityState === 'visible' && newDay()
-let clock = 0
 onMounted(() => {
-  loadTicks()
-  document.addEventListener('visibilitychange', onVisible)
-  clock = setInterval(newDay, 60_000)
+  if (!dosesStore.newDay()) dosesStore.loadTicks() // a new day loads its own ticks
+  dosesStore.startClock()
 })
 onBeforeUnmount(() => {
-  clearInterval(clock)
+  dosesStore.stopClock()
   clearTimeout(savedTimer)
-  document.removeEventListener('visibilitychange', onVisible)
 })
 </script>
 

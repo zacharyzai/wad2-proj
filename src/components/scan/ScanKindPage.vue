@@ -40,7 +40,8 @@ const { t } = useI18n()
       </div>
     </div>
 
-    <div class="capture">
+    <!-- One place to add the photo, with the tips beside it on wide screens (under it on a phone). -->
+    <div class="cols">
       <section class="d-flex flex-column gap-3" aria-labelledby="add-title">
         <h2 id="add-title" class="visually-hidden">{{ t('scan.addPhoto') }}</h2>
         <!-- Camera first (most people scan with a phone), then upload. Both named for what is being scanned. -->

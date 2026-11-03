@@ -49,9 +49,10 @@ function bandStatus(g) {
   return { kind: g.state, text: t(`schedule.slot.${g.state}`) }
 }
 
+const listEl = ref(null) // template ref (Week 4): look only inside this page, never the whole document
 const focusAfterUpdate = async (selector) => {
   await nextTick()
-  document.querySelector(selector)?.focus()
+  listEl.value?.querySelector(selector)?.focus()
 }
 
 // The tick changes at once; if the server says no, it goes back and a short message says so.
@@ -75,7 +76,7 @@ function answerEarly(dose, tookIt) {
 </script>
 
 <template>
-  <section class="d-flex flex-column gap-4" aria-labelledby="today-title" data-testid="schedule-today">
+  <section ref="listEl" class="d-flex flex-column gap-4" aria-labelledby="today-title" data-testid="schedule-today">
     <h2 id="today-title" class="visually-hidden">{{ t('schedule.today') }}</h2>
     <ErrorBanner v-if="loadError" :code="loadError" retryable @retry="doses.loadTicks" />
 

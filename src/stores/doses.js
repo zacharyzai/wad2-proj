@@ -54,10 +54,11 @@ export const useDosesStore = defineStore('doses', () => {
     return 'failed'
   }
 
-  // The Schedule page keeps the day current while it is open.
+  // Home's Today card and the Schedule page keep the day current while they are open.
   let clock = 0
   const onVisible = () => document.visibilityState === 'visible' && newDay()
   function startClock() {
+    stopClock() // never two clocks, if one page opens before the other has closed
     document.addEventListener('visibilitychange', onVisible)
     clock = setInterval(newDay, 60_000)
   }

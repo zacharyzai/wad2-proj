@@ -25,6 +25,8 @@ const form = reactive({
   startDate: props.medicine.schedule?.startDate ?? useDosesStore().today,
   times: Object.fromEntries(props.entry.doses.map((d) => [d.id.slice(id.length + 1), d.time])),
 })
+const formEl = ref(null) // template refs (Week 4): no document.getElement… lookups
+const daysInput = ref(null)
 const tried = ref(false) // errors show after the first Save, not while the person is still typing
 const slots = doseSlots(props.medicine.medication) ?? []
 const problems = computed(() => {
@@ -40,21 +42,22 @@ async function save() {
   tried.value = true
   if (Object.keys(problems.value).length) {
     await nextTick()
-    return document.querySelector(`#edit-${id} [aria-invalid="true"]`)?.focus()
+    return formEl.value.querySelector('[aria-invalid="true"]')?.focus()
   }
   emit('save', { startDate: form.startDate, days: Number(form.days), times: { ...form.times } })
 }
 
-onMounted(() => document.getElementById(`days-${id}`)?.focus())
+onMounted(() => daysInput.value.focus())
 </script>
 
 <template>
-  <form :id="`edit-${id}`" class="edit-form" novalidate :aria-label="t('schedule.form.title', { name: label })" @submit.prevent="save">
+  <form ref="formEl" class="edit-form" novalidate :aria-label="t('schedule.form.title', { name: label })" @submit.prevent="save">
     <div class="field">
       <label :for="`days-${id}`" class="field-label">{{ t('schedule.form.days') }}</label>
       <span :id="`days-help-${id}`" class="field-help">{{ t('schedule.form.daysHelp') }}<template v-if="supplyText(medicine.medication)"> {{ supplyText(medicine.medication) }}</template></span>
       <input
         :id="`days-${id}`"
+        ref="daysInput"
         v-model="form.days"
         class="field-input days-input"
         :class="{ 'is-error': shown('days') }"

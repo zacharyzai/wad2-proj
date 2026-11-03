@@ -47,7 +47,7 @@ watch(
       <h1 ref="title" tabindex="-1">{{ t('scan.pages.title') }}</h1>
       <p class="lead-text">{{ t('scan.pages.count', { n: shots.length, max }) }}</p>
     </div>
-    <div class="capture">
+    <div class="cols">
       <ol class="shots" :aria-label="t('scan.pages.title')">
         <li v-for="(s, i) in shots" :key="s.id" class="card shot" :class="{ bad: shotBad(s) }" data-testid="scan-page">
           <span class="shot-head">
