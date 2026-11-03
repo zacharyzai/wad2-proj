@@ -1,5 +1,5 @@
 // src/rules/history.js: how the History page tidies saved scans (medicines grouped, bills by month, totals, search).
-import { test } from 'node:test'
+import { test } from 'vitest'
 import assert from 'node:assert/strict'
 import { billDate, billMonths, clinicTotals, matches, medicineGroups, medicineKey } from '../../src/rules/history.js'
 

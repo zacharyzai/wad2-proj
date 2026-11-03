@@ -9,7 +9,7 @@ import { useAnswer } from '../../composables/useAnswer'
 import { namedIn } from '../../rules/askFacts'
 import AppIcon from '../layout/AppIcon.vue'
 import CapsuleBuddy from '../layout/CapsuleBuddy.vue'
-import PillLoader from '../layout/PillLoader.vue'
+import Spinner from '../layout/Spinner.vue'
 
 const props = defineProps({
   m: { type: Object, required: true }, // the message
@@ -112,7 +112,7 @@ function mood() {
           </div>
           <div class="actions">
             <button type="button" class="btn btn-outline btn-sm listen" :aria-pressed="speaking === m.id" :aria-busy="speaking === m.id && preparing" @click="speaking === m.id ? stopReading() : play(m)">
-              <PillLoader v-if="speaking === m.id && preparing" :size="22" />
+              <Spinner v-if="speaking === m.id && preparing" :size="22" />
               <AppIcon v-else :name="speaking === m.id ? 'pause' : 'volume'" :size="20" />
               {{ speaking === m.id ? (preparing ? t('player.preparing') : t('ask.read.stop')) : t('ask.read.play') }}
             </button>

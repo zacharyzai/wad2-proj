@@ -10,6 +10,8 @@ import AppIcon from '../layout/AppIcon.vue'
 const props = defineProps({
   stream: { type: Object, required: true }, // the camera's MediaStream
   type: { type: String, required: true }, // 'medication' | 'bill'
+  note: { type: String, default: null }, // a bill photographed page by page: "Page 2"
+  back: { type: Boolean, default: false }, // pages already taken: Cancel goes back to them
 })
 const emit = defineEmits(['capture', 'cancel'])
 const { t } = useI18n()
@@ -23,14 +25,17 @@ const capture = () => emit('capture', toJpeg(video.value, video.value.videoWidth
 
 <template>
   <div class="page">
-    <h1>{{ t(type === 'bill' ? 'home.bill.title' : 'home.med.title') }}</h1>
+    <div class="page-head">
+      <h1>{{ t(type === 'bill' ? 'home.bill.title' : 'home.med.title') }}</h1>
+      <p v-if="note" class="lead-text" data-testid="scan-page-n">{{ note }}</p>
+    </div>
     <div class="frame-area">
       <video ref="video" class="live" autoplay playsinline muted @playing="ready = true" :aria-label="t('scan.preview')"></video>
       <span class="frame" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
       <span class="frame-hint"><AppIcon name="sun" :size="18" />{{ t(`scan.frame.${type}`) }}</span>
     </div>
     <button type="button" class="btn btn-primary" :disabled="!ready" data-testid="scan-capture" @click="capture"><AppIcon name="camera" />{{ t('scan.capture') }}</button>
-    <button type="button" class="btn btn-secondary" @click="emit('cancel')"><AppIcon name="x" />{{ t('scan.cancel') }}</button>
+    <button type="button" class="btn btn-secondary" @click="emit('cancel')"><AppIcon :name="back ? 'left' : 'x'" />{{ back ? t('scan.pages.back') : t('scan.cancel') }}</button>
   </div>
 </template>
 

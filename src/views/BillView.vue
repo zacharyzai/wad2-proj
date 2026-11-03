@@ -351,7 +351,7 @@ const summary = computed(() => [
       </div>
     </div>
 
-    <EmptyState v-else :title="t('bill.none.title')" :text="t('bill.none.text')" icon="receipt">
+    <EmptyState v-else :title="t('bill.none.title')" :text="t('bill.none.text')" kind="bill">
       <RouterLink :to="{ name: 'scan', hash: '#bill' }" class="btn btn-primary"><AppIcon name="scan" />{{ t('bill.scan') }}</RouterLink>
     </EmptyState>
 

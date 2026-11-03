@@ -6,6 +6,7 @@ import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { CHECK_ERRORS } from '../../utils/photoCheck'
 import AppIcon from '../layout/AppIcon.vue'
+import KindIcon from '../layout/KindIcon.vue'
 import ReadAloud from '../explain/ReadAloud.vue'
 
 const props = defineProps({
@@ -53,7 +54,7 @@ onMounted(() => (document.activeElement === document.body || !document.activeEle
   <div class="cols rise">
     <div>
       <!-- A question, not an error: calm tile, no "Error" badge. -->
-      <span v-if="otherKind" class="tile tile-soft err-tile"><AppIcon :name="otherKind === 'bill' ? 'receipt' : 'pill'" :size="42" /></span>
+      <KindIcon v-if="otherKind" :kind="otherKind" :size="88" />
       <template v-else>
         <span class="tile tile-warning err-tile"><AppIcon name="camera" :size="42" /></span>
         <span class="badge badge-warning align-self-start"><AppIcon name="alert" :size="18" />{{ t('scan.errorTag') }}</span>

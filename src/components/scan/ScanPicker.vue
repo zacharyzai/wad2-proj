@@ -6,6 +6,7 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useScanStore } from '../../stores/scan'
 import AppIcon from '../layout/AppIcon.vue'
+import KindIcon from '../layout/KindIcon.vue'
 
 const props = defineProps({
   pending: { type: Object, default: null }, // a photo picked on Home: { file, url }
@@ -21,10 +22,9 @@ const scanStore = useScanStore()
 const resume = computed(() => {
   const s = scanStore.current
   if (!s || props.pending) return null
-  const bill = s.type === 'bill'
-  const name = bill ? s.bill?.clinic || t('explain.tag.bill') : s.medication?.name
+  const name = s.type === 'bill' ? s.bill?.clinic || t('explain.tag.bill') : s.medication?.name
   if (!name) return null
-  return { icon: bill ? 'receipt' : 'pill', name, checked: scanStore.confirmed, to: { name: scanStore.confirmed ? 'explain' : 'confirm' } }
+  return { kind: s.type, name, checked: scanStore.confirmed, to: { name: scanStore.confirmed ? 'explain' : 'confirm' } }
 })
 </script>
 
@@ -35,7 +35,7 @@ const resume = computed(() => {
       <p v-if="!pending" class="lead-text pick-lead">{{ t('scan.choose.lead') }}</p>
     </div>
     <section v-if="resume" class="resume card" aria-labelledby="resume-title" data-testid="scan-resume">
-      <span class="tile tile-soft" aria-hidden="true"><AppIcon :name="resume.icon" :size="28" /></span>
+      <KindIcon :kind="resume.kind" />
       <div class="resume-text">
         <h2 id="resume-title" class="h3 m-0">{{ t('scan.resume.title') }}: {{ resume.name }}</h2>
         <p class="m-0 text-muted-a11y">{{ t(resume.checked ? 'scan.resume.checked' : 'scan.resume.unchecked') }}</p>

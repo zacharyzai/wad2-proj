@@ -7,6 +7,7 @@ import { useI18n } from 'vue-i18n'
 import { useDosesStore } from '../../stores/doses'
 import { useScheduleText } from '../../composables/useScheduleText'
 import AppIcon from '../layout/AppIcon.vue'
+import KindIcon from '../layout/KindIcon.vue'
 import EditDaysForm from './EditDaysForm.vue'
 
 const props = defineProps({
@@ -28,7 +29,7 @@ const status = computed(() => props.entry.endDate && dateStatus(props.entry, dos
 <template>
   <li class="card med-card" :data-testid="`med-${id}`">
     <div class="med-line">
-      <span class="tile tile-soft" aria-hidden="true"><AppIcon name="pill" :size="24" /></span>
+      <KindIcon kind="medication" size="var(--tile)" />
       <span class="med-info">
         <span class="med-name">{{ entry.label }}</span>
         <span v-if="purposeOf(id)" class="text-muted-a11y fw-semibold" data-testid="med-purpose">{{ purposeOf(id) }}</span>

@@ -5,7 +5,7 @@ import { onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AppIcon from '../layout/AppIcon.vue'
 import LoadingState from '../layout/LoadingState.vue'
-import PillLoader from '../layout/PillLoader.vue'
+import Spinner from '../layout/Spinner.vue'
 
 defineProps({
   coverView: { type: Object, default: null }, // { original, covered } of the page being covered; null for a sample
@@ -33,7 +33,7 @@ onMounted(() => (document.activeElement === document.body || !document.activeEle
     <div v-else class="progress-ring" aria-hidden="true">
       <span class="progress-ring__pulse" style="inset: 26px"></span>
       <span class="progress-ring__pulse" style="inset: 42px"></span>
-      <span class="progress-ring__core"><PillLoader :size="66" /></span>
+      <span class="progress-ring__core"><Spinner :size="66" /></span>
     </div>
     <LoadingState :label="covering ? (coverPage ? t('scan.coveringPage', coverPage) : t('scan.covering')) : t(`scan.reading.${readingType}`)" :pill="!!coverView" />
     <!-- A photo goes through two steps: covered on this phone, then read. Samples only have the second. -->

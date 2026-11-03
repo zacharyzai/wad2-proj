@@ -36,9 +36,8 @@ const groups = computed(() => {
   return list.map((g, i) => ({ ...g, state: states[i] }))
 })
 const allTaken = (g) => g.doses.every((d) => taken.value.has(d.id))
-// The time that's due and not yet ticked: shown at the top with one "I've taken it" for all its doses.
+// The time that's due and not yet ticked: shown at the top with "I've taken it" for each of its doses.
 const dueGroup = computed(() => (ready.value ? groups.value.find((g) => g.state === 'now' && !allTaken(g)) : null))
-const takeAll = (g) => g.doses.filter((d) => !taken.value.has(d.id)).forEach((d) => toggle(d, true))
 // "Next: Metformin at 6:00 PM": the first untaken dose that isn't due yet.
 const nextDose = computed(() => groups.value.filter((g) => g.state === 'later').flatMap((g) => g.doses).find((d) => !taken.value.has(d.id)))
 const doneCount = computed(() => todayDoses.value.filter((d) => taken.value.has(d.id)).length)
@@ -85,19 +84,24 @@ function answerEarly(dose, tookIt) {
       <RouterLink v-if="needDays" :to="medsLink" class="d-block mt-2 fw-bold">{{ t('schedule.tab.meds') }}</RouterLink>
     </p>
     <template v-else>
-      <!-- What's due now: the one thing to do, with a button that ticks every dose of that time. Never for a missed dose. -->
+      <!-- What's due now: the one thing to do, with "I've taken it" for each dose of that time. Never for a missed dose. -->
       <section v-if="dueGroup" class="due" :class="`slot-${dueGroup.slot ?? 'other'}`" aria-labelledby="due-title" data-testid="schedule-due">
         <div class="d-flex align-items-start gap-3">
           <span class="slot-tile lg" aria-hidden="true"><AppIcon :name="SLOT_ICONS[dueGroup.slot] ?? 'clock'" :size="26" /></span>
           <div class="d-flex flex-column gap-1 min-w-0">
             <h2 id="due-title" class="due-title">{{ dueGroup.doses.length === 1 ? t('schedule.due.one', { name: dueGroup.doses[0].label }) : t('schedule.due.many', { n: dueGroup.doses.length }) }}</h2>
-            <p class="m-0">{{ t('schedule.due.text', { time: timeText(dueGroup.time) }) }}</p>
+            <p class="m-0">{{ t(dueGroup.doses.length > 1 ? 'schedule.due.textMany' : 'schedule.due.text', { time: timeText(dueGroup.time) }) }}</p>
           </div>
         </div>
+        <!-- Several due together: a button for each, so a tablet that wasn't taken is never ticked with the others. -->
         <ul v-if="dueGroup.doses.length > 1" class="due-list">
-          <li v-for="d in dueGroup.doses" :key="d.id"><strong>{{ d.label }}</strong> <span class="text-muted-a11y">{{ doseText(d.instruction) }}</span></li>
+          <li v-for="d in dueGroup.doses" :key="d.id" :data-testid="`schedule-due-${d.id}`">
+            <span class="due-med"><strong>{{ d.label }}</strong><span class="text-muted-a11y">{{ doseText(d.instruction) }}</span></span>
+            <span v-if="taken.has(d.id)" class="badge badge-success"><AppIcon name="check" :size="18" :stroke="3" />{{ t('schedule.taken') }}</span>
+            <button v-else type="button" class="btn btn-primary" :aria-label="t('schedule.due.takeLabel', { name: d.label })" data-testid="schedule-due-take" @click="toggle(d, true)"><AppIcon name="check" />{{ t('schedule.due.take') }}</button>
+          </li>
         </ul>
-        <button type="button" class="btn btn-primary" data-testid="schedule-due-take" @click="takeAll(dueGroup)"><AppIcon name="check" />{{ t('schedule.due.take') }}</button>
+        <button v-else type="button" class="btn btn-primary" data-testid="schedule-due-take" @click="toggle(dueGroup.doses[0], true)"><AppIcon name="check" />{{ t('schedule.due.take') }}</button>
       </section>
 
       <!-- The day's progress: the words say it, the ring only shows it. -->
