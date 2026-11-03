@@ -105,7 +105,6 @@
   },
   "errors": {
     "WRONG_ROLE": "此操作需要使用另一种账户角色。",
-    "CAREGIVER_ALREADY_LINKED": "这位长者已有一位照护者。请先解除现有联系，再邀请其他人。",
     "AUTH_UNAVAILABLE": "暂时无法登录或注册，请稍后再试。",
     "BAD_REQUEST": "我们无法使用这个。请再试一次。",
     "NOT_FOUND": "找不到相关内容。",
@@ -1171,7 +1170,8 @@
     "title": {
       "today": "今天的药",
       "week": "本周",
-      "meds": "我的药物"
+      "meds": "我的药物",
+      "reminders": "提醒"
     },
     "tab": {
       "today": "今天",
@@ -1180,7 +1180,6 @@
       "reminders": "提醒"
     },
     "add": "添加药物",
-    "back": "返回服药时间表",
     "tapWhenTaken": "服药后点这里",
     "next": "下一次：{time} 吃 {name}",
     "needDaysCount": "{n} 种药还需要填写服用天数 | {n} 种药还需要填写服用天数",

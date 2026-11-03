@@ -22,17 +22,19 @@ const validToken = (token) => typeof token === 'string' && /^[a-f0-9]{64}$/.test
 const roleOf = (user) => user.role ?? 'senior'
 const gone = (res) => sendError(res, 404, 'NOT_FOUND', 'Invitation or link not found')
 const wrongRole = (res) => sendError(res, 403, 'WRONG_ROLE', 'This account cannot perform that caregiver action')
-const linked = (res) => sendError(res, 409, 'CAREGIVER_ALREADY_LINKED', 'Remove the current caregiver before creating another invitation')
 
 router.use((req, res, next) => { res.set('Cache-Control', 'no-store'); next() })
 // Public preview/accept abuse protection. The creation budget below is persistent across Vercel instances.
 const inviteRateLimit = rateLimit({ windowMs: 60_000, limit: 60, standardHeaders: 'draft-7', legacyHeaders: false,
   handler: (req, res) => sendError(res, 429, 'RATE_LIMITED', 'Too many invitation requests; try again later') })
 
+// syncIndexes (not init) so deployed databases drop the old one-caregiver-per-senior unique index.
+let indexes
 async function database(res, work) {
   try {
     await connectDb()
-    await Promise.all([CareLink.init(), CareInviteQuota.init()])
+    indexes ??= Promise.all([CareLink.syncIndexes(), CareInviteQuota.init()]).catch((error) => { indexes = null; throw error })
+    await indexes
     return await work()
   } catch (error) {
     if (error instanceof mongoose.Error || error instanceof mongoose.mongo.MongoError || mongoose.connection.readyState !== 1) {
@@ -82,13 +84,6 @@ router.post('/invites', ...senior, inviteRateLimit, (req, res) => {
     return sendError(res, 400, 'BAD_REQUEST', 'No invitation fields are accepted; the signed-in senior owns the invitation')
   }
   return database(res, async () => {
-    const active = await CareLink.findOne({ seniorId: req.userId, caregiverId: { $ne: null } }).select('caregiverId').lean()
-    if (active) {
-      if (await User.exists({ _id: active.caregiverId, role: 'caregiver' })) return linked(res)
-      // A deleted caregiver cannot keep the senior's only slot locked forever. Compare the old link ID so a
-      // concurrent replacement is never removed by this cleanup.
-      await CareLink.deleteOne({ _id: active._id, seniorId: req.userId, caregiverId: active.caregiverId })
-    }
     const now = new Date()
     if (!await takeInviteQuota(req.userId, now)) return sendError(res, 429, 'RATE_LIMITED', 'At most five caregiver invitations per hour')
     const token = randomBytes(32).toString('hex')
@@ -104,7 +99,7 @@ router.post('/invites', ...senior, inviteRateLimit, (req, res) => {
       const pending = await CareLink.findOneAndUpdate({ seniorId: req.userId, caregiverId: null }, {
         $set: { tokenHash: tokenHash(token), inviteExpiresAt: expiresAt },
       }, { returnDocument: 'after', runValidators: true })
-      if (!pending) return linked(res)
+      if (!pending) return sendError(res, 503, 'SERVER_ERROR', 'Invitation changed at the same time; try again')
     }
     res.status(201).json({ ok: true, data: { token, expiresAt } })
   })
@@ -139,20 +134,28 @@ router.post('/invites/:token/accept', ...caregiver, inviteRateLimit, (req, res) 
     if (!invite || String(invite.seniorId) === req.userId) return gone(res)
     const owner = await User.findById(invite.seniorId).select('role').lean()
     if (!owner || roleOf(owner) !== 'senior') return gone(res)
-    const result = await CareLink.findOneAndUpdate({ ...liveInvite(req.params.token), _id: invite._id }, {
-      $set: { caregiverId: req.userId, linkedAt: new Date() },
-      $unset: { tokenHash: 1, inviteExpiresAt: 1 },
-    }, { returnDocument: 'after', runValidators: true })
+    let result
+    try {
+      result = await CareLink.findOneAndUpdate({ ...liveInvite(req.params.token), _id: invite._id }, {
+        $set: { caregiverId: req.userId, linkedAt: new Date() },
+        $unset: { tokenHash: 1, inviteExpiresAt: 1 },
+      }, { returnDocument: 'after', runValidators: true })
+    } catch (error) {
+      if (error?.code !== 11000) throw error
+      // Already this senior's caregiver: use up the invite and keep the existing link.
+      result = await CareLink.findOneAndDelete({ ...liveInvite(req.params.token), _id: invite._id })
+    }
     if (!result) return gone(res) // already used, expired, replaced or revoked; one atomic update wins
     res.json({ ok: true, data: { seniorId: String(result.seniorId) } })
   })
 })
 
 router.get('/caregivers', ...senior, (req, res) => database(res, async () => {
-  const link = await CareLink.findOne({ seniorId: req.userId, caregiverId: { $ne: null } }).lean()
-  const user = link && await User.findById(link.caregiverId).select('name role').lean()
-  const caregivers = user && roleOf(user) === 'caregiver' ? [{ id: String(link._id), name: user.name ?? '', since: link.linkedAt }] : []
-  res.json({ ok: true, data: { caregivers } }) // zero or ONE; id is the link ID used for removal
+  const links = await CareLink.find({ seniorId: req.userId, caregiverId: { $ne: null } }).sort({ linkedAt: -1, _id: -1 }).lean()
+  const users = await User.find({ _id: { $in: links.map((l) => l.caregiverId) }, role: 'caregiver' }).select('name').lean()
+  const byId = new Map(users.map((u) => [String(u._id), u]))
+  const caregivers = links.flatMap((l) => { const u = byId.get(String(l.caregiverId)); return u ? [{ id: String(l._id), name: u.name ?? '', since: l.linkedAt }] : [] })
+  res.json({ ok: true, data: { caregivers } }) // id is the link ID used for removal
 }))
 
 // Link management endpoint, independent of the later senior dashboard's schedule/status contract.

@@ -1,5 +1,5 @@
 <!-- Owner: Lokesh (redesigned by Claude from the Claude Design "Schedule" screens, declared in README.txt). Medicine schedule in
-     three tabs and a Reminders page, each its own address (?view=week | meds | reminders), so Back works:
+     four tabs, each its own address (?view=week | meds | reminders), so Back works:
        Today        what's due now, the day's progress, and a tick for every dose (components/schedule/TodayList.vue)
        This week    Monday to Sunday at a glance (components/schedule/WeekView.vue)
        My medicines one card per medicine (MedicineCard.vue, EditDaysForm.vue) and the pharmacist list (PharmacistList.vue)
@@ -182,30 +182,20 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="page schedule">
-    <!-- Reminders is its own page with a way back; the three tabs share one header. -->
-    <template v-if="view === 'reminders'">
-      <RouterLink :to="viewLink('today')" class="btn btn-ghost back-link align-self-start"><AppIcon name="left" />{{ t('schedule.back') }}</RouterLink>
-      <header class="head">
-        <h1>{{ t('schedule.rem.title') }}</h1>
-        <p class="lead m-0">{{ t('schedule.rem.lead') }}</p>
-      </header>
-    </template>
-    <template v-else>
-      <header class="head head-row">
-        <div class="d-flex flex-column gap-1">
-          <span class="date" data-testid="schedule-date">{{ dateText(today, { weekday: 'long', day: 'numeric', month: 'long' }) }}</span>
-          <h1>{{ t(`schedule.title.${view}`) }}</h1>
-        </div>
-        <div class="head-acts">
-          <RouterLink :to="{ name: 'scan', query: { type: 'medication' } }" class="btn btn-primary btn-sm"><AppIcon name="plus" />{{ t('schedule.add') }}</RouterLink>
-          <RouterLink v-if="medicines.length" :to="viewLink('reminders')" class="btn btn-secondary btn-sm" data-testid="schedule-reminders-link"><AppIcon name="clock" />{{ t('schedule.rem.title') }}</RouterLink>
-        </div>
-      </header>
-      <!-- The three views are pages of their own (links, so Back and a shared link work), drawn as one segmented control. -->
-      <nav v-if="medicines.length" class="tabs" :aria-label="t('pages.schedule')">
-        <RouterLink v-for="v in VIEWS" :key="v" :to="viewLink(v)" class="tab" :aria-current="view === v ? 'page' : null" :data-testid="`tab-${v}`">{{ t(`schedule.tab.${v}`) }}</RouterLink>
-      </nav>
-    </template>
+    <header class="head head-row">
+      <div class="d-flex flex-column gap-1">
+        <span class="date" data-testid="schedule-date">{{ dateText(today, { weekday: 'long', day: 'numeric', month: 'long' }) }}</span>
+        <h1>{{ t(`schedule.title.${view}`) }}</h1>
+      </div>
+      <div class="head-acts">
+        <RouterLink :to="{ name: 'scan', query: { type: 'medication' } }" class="btn btn-primary btn-sm"><AppIcon name="plus" />{{ t('schedule.add') }}</RouterLink>
+      </div>
+    </header>
+    <!-- The four views are pages of their own (links, so Back and a shared link work), drawn as one segmented control. -->
+    <nav v-if="medicines.length" class="tabs" :aria-label="t('pages.schedule')">
+      <RouterLink v-for="v in VIEWS" :key="v" :to="viewLink(v)" class="tab" :aria-current="view === v ? 'page' : null" :data-testid="`tab-${v}`">{{ t(`schedule.tab.${v}`) }}</RouterLink>
+    </nav>
+    <p v-if="view === 'reminders'" class="lead m-0">{{ t('schedule.rem.lead') }}</p>
 
     <EmptyState v-if="!medicines.length && view !== 'reminders'" :title="t('schedule.empty.title')" :text="t('schedule.empty.text')" icon="calendar">
       <RouterLink :to="{ name: 'scan', query: { type: 'medication' } }" class="btn btn-primary"><AppIcon name="scan" />{{ t('soon.scanMed') }}</RouterLink>

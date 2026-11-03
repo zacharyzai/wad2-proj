@@ -8,17 +8,15 @@
 .date { font-size: var(--t18, 18px); font-weight: 600; color: var(--color-text-muted); }
 .head h1 { margin: 0; }
 .head-acts { display: flex; flex-wrap: wrap; gap: 10px; }
-.back-link { padding-left: 4px; }
-
-/* Today / This week / My medicines: links drawn as one segmented control (no animation: used many times a day). */
+/* Today / This week / My medicines / Reminders: links drawn as one segmented control (no animation: used many times a day). */
 .tabs { display: flex; gap: 4px; padding: 4px; border-radius: 18px; background: var(--color-surface-2); border: 1px solid var(--color-border); }
 .tab { flex: 1 1 0; min-width: 0; min-height: var(--z52, 52px); display: grid; place-items: center; padding: 6px 8px; border-radius: 14px; color: var(--color-text-muted); font-size: var(--t18, 18px); font-weight: 600; line-height: 1.2; text-align: center; text-decoration: none; }
 .tab[aria-current='page'] { background: var(--color-card); color: var(--color-text); font-weight: 800; box-shadow: var(--shadow-card); }
 @media (hover: hover) and (pointer: fine) { .tab:not([aria-current='page']):hover { color: var(--color-text); } }
 .tab:focus-visible { outline: none; box-shadow: var(--focus-ring); }
 
-.med-grid, .rem-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 400px), 1fr)); gap: 20px; align-items: start; }
-.med-grid { list-style: none; margin: 0; padding: 0; align-items: stretch; } /* cards in a row are the same height */
+.med-grid, .rem-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 400px), 1fr)); gap: 20px; } /* cards in a row are the same height */
+.med-grid { list-style: none; margin: 0; padding: 0; }
 
 /* Toasts: above the phone tab bar; bottom of the page area on desktop (same places as Account and Ask). */
 .toast-slot { position: fixed; left: 16px; right: 16px; bottom: calc(96px + env(safe-area-inset-bottom)); z-index: 30; display: flex; justify-content: center; pointer-events: none; }

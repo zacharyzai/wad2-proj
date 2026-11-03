@@ -42,7 +42,7 @@ const caregiver = await User.findOne({ email: CAREGIVER.email }).select('role').
 if (caregiver.role !== 'caregiver') throw new Error(`${CAREGIVER.email} exists as a ${caregiver.role}; delete it in Atlas and run again`)
 for (const email of LINKED_SENIORS) {
   const senior = await User.findOne({ email }).select('_id').lean()
-  await CareLink.updateOne({ seniorId: senior._id }, { $set: { caregiverId: caregiver._id, linkedAt: new Date() }, $unset: { tokenHash: 1, inviteExpiresAt: 1 } }, { upsert: true })
+  await CareLink.updateOne({ seniorId: senior._id, caregiverId: caregiver._id }, { $set: { linkedAt: new Date() } }, { upsert: true })
   console.log(`linked: ${CAREGIVER.email} → ${email}`)
 }
 await mongoose.disconnect()

@@ -105,7 +105,6 @@
   },
   "errors": {
     "WRONG_ROLE": "This action needs a different account role.",
-    "CAREGIVER_ALREADY_LINKED": "This senior already has a caregiver. Remove the current link before inviting someone else.",
     "AUTH_UNAVAILABLE": "Login and signup are temporarily unavailable. Please try again later.",
     "BAD_REQUEST": "We couldn’t use that. Please try again.",
     "NOT_FOUND": "We could not find that.",
@@ -1171,7 +1170,8 @@
     "title": {
       "today": "Your medicines today",
       "week": "This week",
-      "meds": "My medicines"
+      "meds": "My medicines",
+      "reminders": "Reminders"
     },
     "tab": {
       "today": "Today",
@@ -1180,7 +1180,6 @@
       "reminders": "Reminders"
     },
     "add": "Add medicine",
-    "back": "Back to schedule",
     "tapWhenTaken": "Tap when taken",
     "next": "Next: {name} at {time}",
     "needDaysCount": "{n} medicine needs its number of days | {n} medicines need their number of days",

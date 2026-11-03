@@ -59,7 +59,6 @@ const tick = (page, name, time) => page.getByRole('button', { name: new RegExp(`
 const OPTIONS = { days: (name) => `Days and times for ${name}`, fix: (name) => `Fix what we read for ${name}`, remove: (name) => `Delete ${name} from my list` }
 // The tabs are links to ?view=week | meds | reminders; Today has none.
 async function toTab(page, view) {
-  if (page.url().includes('view=reminders')) await page.getByRole('link', { name: 'Back to schedule' }).click() // no tabs on Reminders
   await page.getByTestId(`tab-${view}`).click()
   await expect(page).toHaveURL(view === 'today' ? /\/schedule$/ : new RegExp(`view=${view}`))
 }
@@ -377,13 +376,12 @@ test('connected: the whole schedule goes to Google Calendar after an edit, once,
   await expect(calendar.getByTestId('calendar-missing')).toHaveText('Not in your calendar yet: Metformin 500 mg. Add the number of days above to add it.')
   expect(google.syncs).toHaveLength(1)
 
-  await page.getByRole('link', { name: 'Back to schedule' }).click()
   await toTab(page, 'meds')
   await page.getByRole('button', { name: 'Add number of days for Metformin 500 mg' }).click()
   await page.getByLabel('Number of days', { exact: true }).fill('30')
   await page.getByTestId('schedule-save').click()
   await expect(page.getByTestId('schedule-toast')).toHaveText('Calendar updated') // the card heard it, out of sight
-  await page.getByTestId('schedule-reminders-link').click()
+  await toTab(page, 'reminders')
   await expect(calendar.getByTestId('calendar-missing')).toHaveCount(0)
   expect(google.syncs).toHaveLength(2)
   // Every medicine, the flagged one too, never just the changed one.
@@ -741,7 +739,6 @@ test('connected: stopping a medicine sends the shorter course to Google Calendar
   await expect(page.getByTestId('calendar-connected')).toHaveText('Connected')
   expect(google.syncs).toHaveLength(1)
   expect(google.syncs[0].entries[0].endDate).toBe(ago(3 - 9)) // 10 days from the 29th: the 7th
-  await page.getByRole('link', { name: 'Back to schedule' }).click()
   await toTab(page, 'meds')
   await page.getByTestId('stop-m1').click()
   await page.getByRole('button', { name: 'Stop reminders' }).click()
