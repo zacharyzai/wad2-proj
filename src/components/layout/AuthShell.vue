@@ -114,6 +114,18 @@ const back = computed(() => (['login', 'signup'].includes(props.active) ? { name
 .auth-panel .tile { width: 48px; height: 48px; border-radius: 14px; }
 .auth-panel-acts { display: flex; flex-direction: column; gap: 10px; }
 .auth-warn { display: flex; gap: 8px; align-items: flex-start; margin-top: var(--s-2); color: var(--color-danger-text); font-size: var(--fs-small); font-weight: 600; line-height: 1.45; }
+/* Create account: the password's rules, each ticked off as it is met (a tick, then the words turn green); after Create
+   account, the ones not met have a cross and the danger colour. */
+.auth-rules { margin-top: var(--s-2); font-size: var(--fs-small); line-height: 1.45; color: var(--color-text-muted); }
+.auth-rules-title { display: block; font-weight: 600; }
+.auth-rules ul { display: flex; flex-direction: column; gap: 4px; padding: 0; margin-top: 4px; list-style: none; }
+.auth-rules li { display: flex; gap: 8px; align-items: flex-start; }
+.auth-rule-mark { flex: none; display: grid; place-items: center; width: 22px; height: 22px; margin-top: 1px; border-radius: 50%; border: 2px solid var(--color-border-strong); transition: background-color 200ms var(--ease-out), border-color 200ms var(--ease-out); }
+.auth-rules li.ok { color: var(--color-success-text); font-weight: 600; }
+.auth-rules li.ok .auth-rule-mark { border-color: var(--color-success); background: var(--color-success); color: #fff; }
+.auth-rules.tried li:not(.ok) { color: var(--color-danger-text); font-weight: 600; }
+.auth-rules.tried li:not(.ok) .auth-rule-mark { border-color: var(--color-danger-text); color: var(--color-danger-text); }
+@media (prefers-reduced-motion: reduce) { .auth-rule-mark { transition: none; } }
 .auth-note { display: flex; gap: var(--s-2); margin: 0; font-size: var(--fs-small); line-height: 1.5; color: var(--color-text-muted); }
 .auth-note .icon { flex: none; margin-top: 1px; color: var(--color-primary-text); }
 </style>

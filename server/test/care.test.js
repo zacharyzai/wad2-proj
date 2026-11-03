@@ -18,7 +18,7 @@ process.env.AUTH_RATE_LIMIT = '1000'
 const { default: app } = await import('../app.js')
 let mongo, server, api, sequence = 0, ipSequence = 0
 const profile = { name: 'Test Senior', dob: '1952-03-07', citizenship: 'birth', income: 'unsure' }
-const password = 'care-test-password'
+const password = 'kopi-siew-dai-58'
 const digest = (t) => createHash('sha256').update(t).digest('hex')
 const request = (path, { method = 'GET', token, body, ip = `192.0.2.${(++ipSequence % 250) + 1}` } = {}) => fetch(`${api}${path}`, {
   method, headers: { 'content-type': 'application/json', 'x-forwarded-for': ip, ...(token ? { authorization: `Bearer ${token}` } : {}) },

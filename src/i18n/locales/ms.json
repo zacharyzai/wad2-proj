@@ -707,7 +707,7 @@
     "filter": "Papar",
     "filterMed": "Ubat",
     "filterBill": "Bil",
-    "searchMed": "Cari ubat",
+    "searchMed": "Cari ubat mengikut nama atau kegunaannya (contoh: “diabetes”)",
     "searchBill": "Cari klinik atau hospital",
     "clear": "Padam",
     "quick": "Ubat anda",
@@ -847,7 +847,16 @@
       "badText": "Pautan tetapan semula boleh digunakan selama 30 minit, dan sekali sahaja. Anda boleh meminta pautan baharu.",
       "newLink": "Hantar pautan baharu kepada saya"
     },
-    "newHere": "Baru di sini?"
+    "newHere": "Baru di sini?",
+    "pwRules": {
+      "title": "Kata laluan anda perlu:",
+      "length": "Sekurang-kurangnya 8 aksara",
+      "mix": "Huruf dan nombor",
+      "guess": "Tidak mudah diteka (bukan “password123”, dan bukan nama anda)",
+      "warn": "Kata laluan ini tidak cukup selamat. Sila fikirkan kata laluan baharu yang memenuhi setiap syarat di bawah.",
+      "met": "Sudah",
+      "notMet": "Belum"
+    }
   },
   "landing": {
     "hero": {

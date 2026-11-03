@@ -45,7 +45,7 @@ test('real profile signup, account editing, session restoration and protected sc
     await route.fulfill({ response })
   })
   const email = `browser-${randomUUID()}@example.com`
-  const password = 'browser-password123'
+  const password = 'milo-dinosaur-77'
   await page.goto('/signup?next=/account')
   await fillSignup(page, email, password)
   await expect(page).toHaveURL('http://localhost:5173/account')
@@ -98,7 +98,7 @@ async function useRealBackend(page, authBackend) {
 test('real forgotten password: emailed link, new password, every other device logged out', async ({ browser, authBackend }) => {
   const fresh = () => browser.newContext({ storageState: { cookies: [], origins: [{ origin: 'http://localhost:5173', localStorage: [{ name: 'seenWelcome', value: '1' }, { name: 'amag.tour', value: 'seen' }, { name: 'theme', value: 'light' }] }] } })
   const email = `reset-${randomUUID()}@example.com`
-  const oldPassword = 'old-password123'
+  const oldPassword = 'old-teh-tarik-1952'
   const newPassword = 'new-password456'
 
   // Phone A: signs up and stays logged in.

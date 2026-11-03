@@ -68,6 +68,28 @@ test('find a medicine: one tap on a chip, or a few letters, even one that is fol
   await expect(rows(page, 'history-taking')).toHaveCount(2)
 })
 
+test('find a medicine by what it is for: "diabetes", an everyday word, or another language; the row says why it was found', async ({ page }) => {
+  await setUp(page)
+  await page.goto('/history')
+  const find = page.getByTestId('history-find')
+  const row = page.getByTestId('history-row')
+  await find.fill('diabetes')
+  await expect(row).toHaveCount(1)
+  await expect(row).toHaveText(/Metformin 500 mg\s*Usually used for diabetes \(blood sugar\)/) // why it was found, not "Scanned 4 times"
+  for (const [typed, name] of [['blood pressure', 'Amlodipine 5 mg'], ['Sugar', 'Metformin 500 mg'], ['kencing manis', 'Metformin 500 mg'], ['hypertension', 'Amlodipine 5 mg']]) {
+    await find.fill(typed)
+    await expect(row, typed).toHaveCount(1)
+    await expect(row, typed).toContainText(name)
+  }
+  await find.fill('asthma') // nothing saved is for that
+  await expect(page.getByTestId('history-no-match')).toHaveText('Nothing matches “asthma”.')
+  // In 中文, its own word finds it too.
+  await page.getByRole('button', { name: /^中文/ }).click()
+  await find.fill('糖尿病')
+  await expect(row).toHaveCount(1)
+  await expect(row).toContainText('Metformin 500 mg')
+})
+
 test('a medicine opens to every scan of it, each with Listen again, Share and Delete; Back returns to the list', async ({ page }) => {
   await setUp(page)
   await page.goto('/history')

@@ -707,7 +707,7 @@
     "filter": "显示",
     "filterMed": "药物",
     "filterBill": "账单",
-    "searchMed": "查找药物",
+    "searchMed": "按药名或用途查找药物（例如“糖尿病”）",
     "searchBill": "查找诊所或医院",
     "clear": "清除",
     "quick": "您的药物",
@@ -847,7 +847,16 @@
       "badText": "重设链接在 30 分钟内有效，而且只能使用一次。您可以申请新的链接。",
       "newLink": "发送新链接给我"
     },
-    "newHere": "第一次来？"
+    "newHere": "第一次来？",
+    "pwRules": {
+      "title": "您的密码需要：",
+      "length": "至少 8 个字符",
+      "mix": "有字母，也有数字",
+      "guess": "不容易被猜到（不要用“password123”，也不要用您的名字）",
+      "warn": "这个密码不够安全。请想一个符合下面每一项要求的新密码。",
+      "met": "已做到",
+      "notMet": "还没做到"
+    }
   },
   "landing": {
     "hero": {

@@ -23,7 +23,7 @@ const { default: app } = await import('../app.js')
 let mongo, server, base, token, userId
 const profile = { name: 'Test Citizen', dob: '1952-03-07', citizenship: 'birth', citizenSince: null, income: 'upTo1500' }
 const email = 'auth@example.com'
-const password = 'password123'
+const password = 'teh-tarik-1952'
 const publicUser = { ...profile, email, role: 'senior', language: null, theme: null } // no language or theme sent: not chosen yet
 
 beforeAll(async () => {
@@ -160,8 +160,8 @@ test('short passwords and invalid profiles are rejected before account creation'
   for (const bad of [{ password: 'short' }, { email: { $ne: null } }, { dob: '1952-02-30' }, { income: 'invalid' }]) {
     await error(await post('signup', { ...profile, email: 'invalid@example.com', password, ...bad }), 400, 'BAD_REQUEST')
   }
-  assert.equal((await post('signup', { ...profile, email: 'boundary@example.com', password: ' pass123' })).status, 201)
-  assert.equal((await post('login', { email: 'boundary@example.com', password: ' pass123' })).status, 200)
+  assert.equal((await post('signup', { ...profile, email: 'boundary@example.com', password: ' kopi12x' })).status, 201)
+  assert.equal((await post('login', { email: 'boundary@example.com', password: ' kopi12x' })).status, 200)
   await error(await post('login', { email, password: 'incorrect123' }), 401, 'WRONG_LOGIN')
   await error(await post('login', { email: 'absent@example.com', password }), 401, 'WRONG_LOGIN')
 })
@@ -208,7 +208,7 @@ test('missing database config fails safely and a later request can reconnect', a
   delete process.env.MONGODB_URI
   await error(await post('login', { email, password }), 503, 'SERVER_ERROR')
   process.env.MONGODB_URI = uri
-  assert.equal((await post('login', { email: 'boundary@example.com', password: ' pass123' })).status, 200)
+  assert.equal((await post('login', { email: 'boundary@example.com', password: ' kopi12x' })).status, 200)
 })
 
 test('login and signup share the configured IP rate limit', async () => {

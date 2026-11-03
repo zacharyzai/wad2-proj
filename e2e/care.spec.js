@@ -32,7 +32,7 @@ test.describe('signup role', () => {
     await page.getByTestId('signup-role-caregiver').check()
     await page.getByTestId('signup-name').fill('Wei Ling')
     await page.getByTestId('signup-email').fill('weiling@example.com')
-    await page.getByTestId('signup-password').fill('password123')
+    await page.getByTestId('signup-password').fill('teh-tarik-1952')
     await page.getByTestId('signup-dob').fill('1985-05-05')
     await page.getByTestId('signup-citizenship').selectOption('pr')
     await page.getByTestId('signup-submit').click()

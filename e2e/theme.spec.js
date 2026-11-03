@@ -59,7 +59,7 @@ test('after signing up, Home asks day or night first, then the Beginner’s guid
   const sent = page.waitForRequest('**/api/auth/signup')
   await page.getByTestId('signup-name').fill('Lim Ah Huat')
   await page.getByTestId('signup-email').fill('ahhuat@example.com')
-  await page.getByTestId('signup-password').fill('password123')
+  await page.getByTestId('signup-password').fill('teh-tarik-1952')
   await page.getByTestId('signup-dob').fill('1958-11-02')
   await page.getByTestId('signup-citizenship').selectOption('pr')
   await page.getByTestId('signup-submit').click()

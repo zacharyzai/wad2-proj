@@ -9,6 +9,7 @@ import { hashPassword, signToken, verifyPassword, jwtSecret, signResetToken, rea
 import { appUrl, resetLink, sendMail } from '../services/mail.js'
 import { resetEmail } from '../services/resetEmail.js'
 import { requireAuth } from '../middleware/requireAuth.js'
+import { passwordOk } from '../../src/rules/password.js'
 import { authRateLimit, forgotRateLimit, resetRateLimit } from '../middleware/rateLimit.js'
 
 const MIN_PASSWORD = 8
@@ -72,6 +73,10 @@ router.post('/signup', authRateLimit, (req, res) => {
   if (!EMAIL.test(cleanEmail) || cleanEmail.length > 254) return sendError(res, 400, 'BAD_REQUEST', 'email is not valid')
   if (typeof password !== 'string' || password.length < MIN_PASSWORD || password.length > 200) {
     return sendError(res, 400, 'BAD_REQUEST', `password must be ${MIN_PASSWORD} to 200 characters`)
+  }
+  // The same rules the Create account page ticks off (src/rules/password.js): letters and numbers, not easy to guess.
+  if (!passwordOk(password, { name: typeof req.body?.name === 'string' ? req.body.name : '', email: cleanEmail })) {
+    return sendError(res, 400, 'BAD_REQUEST', 'password needs letters and numbers, and must not be easy to guess')
   }
   const { profile, error } = checkProfile(req.body)
   const settingError = checkLanguage(req.body?.language) ?? checkTheme(req.body?.theme)

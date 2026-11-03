@@ -10,9 +10,9 @@ import ErrorBanner from '../components/layout/ErrorBanner.vue'
 import BigButton from '../components/layout/BigButton.vue'
 import AppIcon from '../components/layout/AppIcon.vue'
 import { INCOMES, isCitizen } from '../utils/account'
+import { passwordChecks } from '../rules/password'
 const { enterApp, signup } = useAuthStore()
 
-const MIN_PASSWORD = 8
 // Same values as the subsidy rules (src/rules/subsidies.js, via BillView) and the server (server/models/User.js).
 const CITIZENSHIPS = ['birth', 'became', 'pr', 'other']
 const today = new Date().toISOString().slice(0, 10) // a birth date cannot be in the future
@@ -30,12 +30,15 @@ const errorCode = ref(null)
 const formEl = ref(null) // template ref (Week 4), for focusing the first field to fix
 const tried = ref(false) // show problems only after the first press of Create account
 
+// The password's rules (src/rules/password.js, checked again by the server), ticked off as they type.
+const pwChecks = computed(() => passwordChecks(form.password, { name: form.name, email: form.email.trim() }))
+
 // Every problem at once, each under its own box (not one at a time).
 const problems = computed(() => {
   const p = {}
   if (!form.name.trim()) p.name = t('auth.need.name')
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) p.email = t('auth.need.email')
-  if (form.password.length < MIN_PASSWORD) p.password = t('auth.passwordShort')
+  if (!Object.values(pwChecks.value).every(Boolean)) p.password = t('auth.pwRules.warn')
   if (!form.dob || form.dob > today) p.dob = t('auth.need.dob')
   if (!form.citizenship) p.citizenship = t('auth.need.citizenship')
   const year = Number(form.citizenSince)
@@ -114,15 +117,25 @@ async function submit() {
           <AppIcon name="lock" :size="22" />
           <input
             id="signup-password" v-model="form.password" :type="showPw ? 'text' : 'password'"
-            autocomplete="new-password" aria-describedby="signup-hint" :aria-invalid="!!show('password')" required data-testid="signup-password"
+            autocomplete="new-password" :aria-describedby="show('password') ? 'signup-pw-warn signup-hint' : 'signup-hint'" :aria-invalid="!!show('password')" required data-testid="signup-password"
           />
           <button type="button" class="auth-eye" :aria-pressed="showPw" :aria-label="showPw ? t('auth.hide') : t('auth.show')" data-testid="signup-toggle" @click="showPw = !showPw">
             <AppIcon :name="showPw ? 'blur' : 'eye'" :size="22" />
           </button>
         </div>
-        <!-- Colour never carries meaning alone: the hint turns into a warning with words and an icon. -->
-        <span v-if="show('password')" id="signup-hint" class="auth-warn" data-testid="signup-hint"><AppIcon name="alert" :size="18" />{{ problems.password }}</span>
-        <span v-else id="signup-hint" class="auth-help" data-testid="signup-hint">{{ t('auth.passwordHint') }}</span>
+        <!-- A password that misses a rule, after Create account: a warning in words, with an icon (colour never carries meaning
+             alone), and no account until a new password meets every rule. -->
+        <p v-if="show('password')" id="signup-pw-warn" class="auth-warn m-0" data-testid="signup-pw-warn"><AppIcon name="alert" :size="18" />{{ problems.password }}</p>
+        <!-- The rules, each ticked off as it is met: a tick and "done" once met; after Create account, a cross and "not yet". -->
+        <div id="signup-hint" class="auth-rules" :class="{ tried }" data-testid="signup-hint">
+          <span class="auth-rules-title">{{ t('auth.pwRules.title') }}</span>
+          <ul class="m-0">
+            <li v-for="(ok, rule) in pwChecks" :key="rule" :class="{ ok }" :data-rule="rule" :data-ok="ok">
+              <span class="auth-rule-mark" aria-hidden="true"><AppIcon v-if="ok" name="check" :size="16" :stroke="3" /><AppIcon v-else-if="tried" name="x" :size="16" :stroke="3" /></span>
+              <span><span class="visually-hidden">{{ t(ok ? 'auth.pwRules.met' : 'auth.pwRules.notMet') }}: </span>{{ t(`auth.pwRules.${rule}`) }}</span>
+            </li>
+          </ul>
+        </div>
       </div>
 
       <div>

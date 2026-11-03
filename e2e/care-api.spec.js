@@ -34,7 +34,7 @@ test('senior creates an invite → new caregiver signs up and accepts → senior
     const response = await route.fetch({ url: `${careBackend}${url.pathname}${url.search}` })
     await route.fulfill({ response }) // transport only: real auth, rate limits and database handlers
   })
-  const password = 'browser-care-password'
+  const password = 'roti-prata-2026'
   const seniorEmail = `senior-${randomUUID()}@example.com`
   const caregiverEmail = `caregiver-${randomUUID()}@example.com`
   const profile = { name: 'Sample Senior', dob: '1952-03-07', citizenship: 'birth', income: 'unsure', language: 'en', theme: 'light' }

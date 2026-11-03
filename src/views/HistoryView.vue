@@ -15,7 +15,7 @@ import { useI18n } from 'vue-i18n'
 import { listAllScans, getScan } from '../api/client'
 import { useScanStore } from '../stores/scan'
 import { useMedicinesStore, isFinished } from '../stores/medicines'
-import { billMonths, clinicTotals, matches, medicineGroups, medicineKey } from '../rules/history'
+import { billMonths, clinicTotals, matches, medicineGroups, medicineKey, medicineMatches } from '../rules/history'
 import { todayInSingapore } from '../rules/schedule'
 import { money } from '../components/bill/lines'
 import HistoryItem from '../components/history/HistoryItem.vue'
@@ -65,7 +65,14 @@ const searching = computed(() => Boolean(query.value.trim()))
 const nameOf = (m) => [m.medication.name, m.medication.strength].filter(Boolean).join(' ')
 const takingKeys = computed(() => new Set(medicines.filter((m) => !isFinished(m)).map((m) => medicineKey(nameOf(m)))))
 const groups = computed(() => medicineGroups(items.value, takingKeys.value))
-const foundGroups = computed(() => groups.value.filter((g) => matches(g.title, query.value)))
+// Found by name, or by what it is for ("diabetes", "sugar"): a row found that way says what it is for, so it is clear why.
+const purposeText = (g) => (g.purpose ? t(`purpose.${g.purpose}`) : '')
+const foundGroups = computed(() => groups.value.filter((g) => medicineMatches(g, query.value, purposeText(g))))
+const byPurpose = (g) => searching.value && g.purpose && !matches(g.title, query.value)
+// The line under a row: what it is for (when found that way; on "Taking now", whenever there is one scan), else how often
+// it was scanned.
+const rowSub = (g, showPurpose = false) =>
+  byPurpose(g) || (showPurpose && g.scans.length === 1 && g.purpose) ? `${t('purpose.lead')} ${purposeText(g)}` : g.scans.length > 1 ? t('history.scanned', { n: g.scans.length }, g.scans.length) : ''
 const taking = computed(() => foundGroups.value.filter((g) => g.taking))
 const notTaking = computed(() => foundGroups.value.filter((g) => !g.taking))
 // Two sections only when the person has a timetable to go by; otherwise one plain list, most recent first.
@@ -180,7 +187,7 @@ async function removed(id) {
         </button>
       </div>
 
-      <!-- Find: by name for medicines, by clinic for bills. -->
+      <!-- Find: medicines by name or what they are for, bills by clinic. -->
       <div class="find">
         <label for="history-find" class="find-label">{{ t(tab === 'bill' ? 'history.searchBill' : 'history.searchMed') }}</label>
         <div class="find-box">
@@ -206,7 +213,7 @@ async function removed(id) {
             <ul class="rows" data-testid="history-taking">
               <li v-for="g in taking" :key="g.key"><RouterLink :to="openTo(g.key)" class="row-link" data-testid="history-row">
                 <KindIcon kind="medication" :size="48" />
-                <span class="row-words"><span class="row-title">{{ g.title }}</span><span class="row-sub">{{ g.scans.length > 1 ? t('history.scanned', { n: g.scans.length }, g.scans.length) : g.purpose ? `${t('purpose.lead')} ${t(`purpose.${g.purpose}`)}` : '' }}</span></span>
+                <span class="row-words"><span class="row-title">{{ g.title }}</span><span class="row-sub">{{ rowSub(g, true) }}</span></span>
                 <span class="row-date">{{ savedDay(g.last) }}</span><AppIcon name="right" :size="22" class="row-chev" />
               </RouterLink></li>
             </ul>
@@ -219,7 +226,7 @@ async function removed(id) {
             <ul v-show="showOld || searching" id="not-taking" class="rows" data-testid="history-not-taking">
               <li v-for="g in notTaking" :key="g.key"><RouterLink :to="openTo(g.key)" class="row-link" data-testid="history-row">
                 <KindIcon kind="medication" :size="48" />
-                <span class="row-words"><span class="row-title">{{ g.title }}</span><span class="row-sub">{{ g.scans.length > 1 ? t('history.scanned', { n: g.scans.length }, g.scans.length) : '' }}</span></span>
+                <span class="row-words"><span class="row-title">{{ g.title }}</span><span class="row-sub">{{ rowSub(g) }}</span></span>
                 <span class="row-date">{{ savedDay(g.last) }}</span><AppIcon name="right" :size="22" class="row-chev" />
               </RouterLink></li>
             </ul>
@@ -229,7 +236,7 @@ async function removed(id) {
         <ul v-else class="rows">
           <li v-for="g in foundGroups" :key="g.key"><RouterLink :to="openTo(g.key)" class="row-link" data-testid="history-row">
             <KindIcon kind="medication" :size="48" />
-            <span class="row-words"><span class="row-title">{{ g.title }}</span><span class="row-sub">{{ g.scans.length > 1 ? t('history.scanned', { n: g.scans.length }, g.scans.length) : '' }}</span></span>
+            <span class="row-words"><span class="row-title">{{ g.title }}</span><span class="row-sub">{{ rowSub(g) }}</span></span>
             <span class="row-date">{{ savedDay(g.last) }}</span><AppIcon name="right" :size="22" class="row-chev" />
           </RouterLink></li>
         </ul>

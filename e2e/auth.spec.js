@@ -48,7 +48,7 @@ test.describe('logged out', () => {
     await expect(page).toHaveURL(/\/start$/) // logging out: Start, for whoever uses this device next
     await page.getByTestId('start-login').click()
     await page.getByTestId('login-email').fill(DEMO_USER.email)
-    await page.getByTestId('login-password').fill('password123')
+    await page.getByTestId('login-password').fill('teh-tarik-1952')
     await page.getByTestId('login-remember').uncheck()
     await page.getByTestId('login-submit').click()
     await expect(page).toHaveURL(/\/$/)
@@ -74,20 +74,56 @@ test.describe('logged out', () => {
     expect(calls).toBe(0)
   })
 
+  test('signup: the password rules tick off as they are met; one that misses a rule is warned about, and no account is made until a new one meets them all', async ({ page }) => {
+    await mockAuth(page)
+    let calls = 0
+    page.on('request', (r) => r.url().includes('/api/auth/signup') && calls++)
+    await page.goto('/signup')
+    await page.getByTestId('signup-name').fill('Tan Mei Ling')
+    await page.getByTestId('signup-email').fill('mei@example.com')
+    await page.getByTestId('signup-dob').fill('1952-03-07')
+    await page.getByTestId('signup-citizenship').selectOption('birth')
+    await page.getByTestId('signup-income').selectOption('upTo1500')
+    const rules = page.getByTestId('signup-hint').locator('li')
+    const met = () => rules.evaluateAll((li) => li.map((l) => `${l.dataset.rule}:${l.dataset.ok}`))
+    await expect(rules).toHaveText([/At least 8 characters/, /Letters and numbers/, /Not easy to guess/])
+    for (const [typed, want] of [
+      ['abc', ['length:false', 'mix:false', 'guess:false']],
+      ['password123', ['length:true', 'mix:true', 'guess:false']], // well known
+      ['meiling1952', ['length:true', 'mix:true', 'guess:false']], // their own name
+      ['tehtarikmorning', ['length:true', 'mix:false', 'guess:true']], // no numbers
+    ]) {
+      await page.getByTestId('signup-password').fill(typed)
+      await expect.poll(met, typed).toEqual(want)
+    }
+    await page.getByTestId('signup-submit').click()
+    await expect(page.getByTestId('signup-pw-warn')).toHaveText('This password is not safe enough. Please think of a new one that meets every rule below.')
+    await expect(page.getByTestId('signup-password')).toHaveAttribute('aria-invalid', 'true')
+    await expect(page.getByTestId('signup-password')).toBeFocused() // the only thing to fix
+    await expect(page.getByTestId('signup-password')).toHaveAccessibleDescription(/not safe enough.*Done: At least 8 characters Not yet: Letters and numbers/)
+    expect(calls).toBe(0)
+    // A new one that meets every rule: the warning goes, and the account is made.
+    await page.getByTestId('signup-password').fill('teh-tarik-1952')
+    await expect.poll(met).toEqual(['length:true', 'mix:true', 'guess:true'])
+    await expect(page.getByTestId('signup-pw-warn')).toHaveCount(0)
+    await page.getByTestId('signup-submit').click()
+    await expect.poll(() => calls).toBe(1)
+  })
+
   test('signup sends name, email, password, date of birth and citizenship (with the year), then continues', async ({ page }) => {
     await mockAuth(page)
     const sent = page.waitForRequest('**/api/auth/signup')
     await page.goto('/signup?next=/scan')
     await page.getByTestId('signup-name').fill('Lim Ah Huat')
     await page.getByTestId('signup-email').fill('ahhuat@example.com')
-    await page.getByTestId('signup-password').fill('password123')
+    await page.getByTestId('signup-password').fill('teh-tarik-1952')
     await page.getByTestId('signup-dob').fill('1958-11-02')
     await page.getByTestId('signup-citizenship').selectOption('became')
     await page.getByTestId('signup-citizen-year').fill('1975')
     await page.getByTestId('signup-income').selectOption('1501to2300')
     await page.getByTestId('signup-submit').click()
     expect((await sent).postDataJSON()).toEqual({
-      name: 'Lim Ah Huat', email: 'ahhuat@example.com', password: 'password123', dob: '1958-11-02', citizenship: 'became', citizenSince: 1975, income: '1501to2300', remember: true, language: 'en', role: 'senior', // the default role (a caregiver picks theirs: e2e/care.spec.js)
+      name: 'Lim Ah Huat', email: 'ahhuat@example.com', password: 'teh-tarik-1952', dob: '1958-11-02', citizenship: 'became', citizenSince: 1975, income: '1501to2300', remember: true, language: 'en', role: 'senior', // the default role (a caregiver picks theirs: e2e/care.spec.js)
     })
     await expect(page).toHaveURL(/\/scan$/)
   })
@@ -200,7 +236,7 @@ test('language: chosen on the welcome page becomes the account language at signu
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(/创建|账户|帐户/)
   await page.getByTestId('signup-name').fill('Lim Ah Huat')
   await page.getByTestId('signup-email').fill('ahhuat@example.com')
-  await page.getByTestId('signup-password').fill('password123')
+  await page.getByTestId('signup-password').fill('teh-tarik-1952')
   await page.getByTestId('signup-dob').fill('1958-11-02')
   await page.getByTestId('signup-citizenship').selectOption('pr')
   await page.getByTestId('signup-submit').click()

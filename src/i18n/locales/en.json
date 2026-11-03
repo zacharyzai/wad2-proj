@@ -707,7 +707,7 @@
     "filter": "Show",
     "filterMed": "Medicines",
     "filterBill": "Bills",
-    "searchMed": "Find a medicine",
+    "searchMed": "Find a medicine by its name, or what it is for (like “diabetes”)",
     "searchBill": "Find a clinic or hospital",
     "clear": "Clear",
     "quick": "Your medicines",
@@ -847,7 +847,16 @@
       "badText": "Reset links work for 30 minutes, and only once. You can ask for a new one.",
       "newLink": "Send me a new link"
     },
-    "newHere": "New here?"
+    "newHere": "New here?",
+    "pwRules": {
+      "title": "Your password needs:",
+      "length": "At least 8 characters",
+      "mix": "Letters and numbers",
+      "guess": "Not easy to guess (not “password123”, and not your name)",
+      "warn": "This password is not safe enough. Please think of a new one that meets every rule below.",
+      "met": "Done",
+      "notMet": "Not yet"
+    }
   },
   "landing": {
     "hero": {

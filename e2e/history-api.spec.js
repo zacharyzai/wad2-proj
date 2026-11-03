@@ -28,7 +28,7 @@ const test = base.extend({
 })
 
 test('signup → sample → corrected history → new login → owner-only retrieval and deletion', async ({ request, historyBackend: api }) => {
-  const password = 'history-test-password'
+  const password = 'teh-halia-1962'
   const profile = { name: 'History Test User', dob: '1952-03-07', citizenship: 'birth', income: 'unsure' }
   const email = `history-${randomUUID()}@example.com`
   const signup = await request.post(`${api}/auth/signup`, { data: { ...profile, email, password } })

@@ -17,15 +17,15 @@ afterAll(() => server.close())
 
 const post = (path, body, headers = {}) =>
   fetch(`${base}/api/auth${path}`, { method: 'POST', headers: { 'content-type': 'application/json', ...headers }, body: JSON.stringify(body) })
-const GOOD = { name: 'Tan Mei Ling', email: 'mei@example.com', password: 'password123', dob: '1952-03-07', citizenship: 'birth', income: 'upTo1500' }
+const GOOD = { name: 'Tan Mei Ling', email: 'mei@example.com', password: 'teh-tarik-1952', dob: '1952-03-07', citizenship: 'birth', income: 'upTo1500' }
 
 test('passwords are salted hashes that only the right password matches', async () => {
-  const a = await hashPassword('password123')
-  const b = await hashPassword('password123')
+  const a = await hashPassword('teh-tarik-1952')
+  const b = await hashPassword('teh-tarik-1952')
   assert.match(a, /^\$argon2id\$/)
   assert.notEqual(a, b) // different salt each time
-  assert.ok(!a.includes('password123'))
-  assert.equal(await verifyPassword('password123', a), true)
+  assert.ok(!a.includes('teh-tarik-1952'))
+  assert.equal(await verifyPassword('teh-tarik-1952', a), true)
   assert.equal(await verifyPassword('password124', a), false)
   assert.equal(await verifyPassword('x', 'not-a-hash'), false)
 })
@@ -95,7 +95,7 @@ const account = (passwordHash) => ({ _id: '6a0000000000000000000001', passwordHa
 
 test('a reset link works for 30 minutes, for its own account and its current password only', async () => {
   const now = Date.UTC(2026, 9, 29, 8)
-  const user = account(await hashPassword('password123'))
+  const user = account(await hashPassword('teh-tarik-1952'))
   const link = signResetToken(user, now)
   const payload = readResetToken(link, now)
   assert.equal(payload.sub, user._id)
@@ -108,7 +108,7 @@ test('a reset link works for 30 minutes, for its own account and its current pas
 })
 
 test('a reset link stops working once the password changes, so it works once and older links die too', async () => {
-  const user = account(await hashPassword('password123'))
+  const user = account(await hashPassword('teh-tarik-1952'))
   const first = readResetToken(signResetToken(user))
   const second = readResetToken(signResetToken(user))
   assert.equal(resetTokenMatches(second, user), true) // asking twice: both work until one is used
@@ -118,7 +118,7 @@ test('a reset link stops working once the password changes, so it works once and
 })
 
 test('reset links and logins can never stand in for each other; tampered or forged links are refused', async () => {
-  const user = account(await hashPassword('password123'))
+  const user = account(await hashPassword('teh-tarik-1952'))
   const link = signResetToken(user)
   assert.equal(readToken(link), null) // a reset link is not a login
   assert.equal(readResetToken(signToken(user._id, true)), null) // a login is not a reset link

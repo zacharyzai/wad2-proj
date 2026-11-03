@@ -9,7 +9,7 @@ const { signToken } = await import('../../server/services/auth.js')
 
 // theme: already chosen, so the day/night question (asked once to new accounts) stays out of the way; e2e/theme.spec.js tests it.
 export const DEMO_USER = { name: 'Tan Mei Ling', email: 'demo@example.com', dob: '1952-03-07', citizenship: 'birth', citizenSince: null, income: 'upTo1500', theme: 'light' }
-export const DEMO_PASSWORD = 'password123'
+export const DEMO_PASSWORD = 'teh-tarik-1952'
 export const testToken = (remember = true) => signToken('demo-user', remember)
 
 // Pretend the server accepts logins and signups, knows who the saved token belongs to, and saves edits.

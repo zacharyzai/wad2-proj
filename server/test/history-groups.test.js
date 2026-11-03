@@ -1,7 +1,7 @@
 // src/rules/history.js: how the History page tidies saved scans (medicines grouped, bills by month, totals, search).
 import { test } from 'vitest'
 import assert from 'node:assert/strict'
-import { billDate, billMonths, clinicTotals, matches, medicineGroups, medicineKey } from '../../src/rules/history.js'
+import { billDate, billMonths, clinicTotals, matches, medicineGroups, medicineKey, medicineMatches, PURPOSE_WORDS } from '../../src/rules/history.js'
 
 const med = (id, title, createdAt, purpose = null) => ({ id, type: 'medication', title, createdAt, purpose })
 const bill = (id, title, createdAt, visitDate, totalPayableCents) => ({ id, type: 'bill', title, createdAt, visitDate, totalPayableCents })
@@ -56,4 +56,20 @@ test('search: any part of the name or clinic, ignoring case and spaces; nothing 
   assert.equal(matches('Metformin 500 mg', 'pana'), false)
   assert.equal(matches(null, 'x'), false)
   assert.equal(matches('Anything', '   '), true)
+})
+
+test('medicines found by what they are for: the purpose on the page, everyday words, the four languages; every word typed', () => {
+  const metformin = { title: 'Metformin 500 mg', purpose: 'diabetes' }
+  const panadol = { title: 'Panadol', purpose: null }
+  const shown = 'diabetes (blood sugar)'
+  for (const q of ['diabetes', 'Blood sugar', ' SUGAR ', 'glucose', 'kencing manis', '糖尿病', 'நீரிழிவு', 'metformin', '']) assert.equal(medicineMatches(metformin, q, shown), true, q)
+  for (const q of ['asthma', 'sugar pressure', 'panadol']) assert.equal(medicineMatches(metformin, q, shown), false, q)
+  assert.equal(medicineMatches(panadol, 'pain'), false) // no purpose from its scan: found by name only
+  assert.equal(medicineMatches(panadol, 'pana'), true)
+  assert.equal(medicineMatches({ title: 'Ventolin', purpose: 'breathing' }, 'inhaler'), true)
+})
+
+test('every purpose a scan can give has its everyday words', async () => {
+  const { PURPOSES } = await import('../services/normalizeScan.js')
+  assert.deepEqual(Object.keys(PURPOSE_WORDS).sort(), [...PURPOSES].sort())
 })
