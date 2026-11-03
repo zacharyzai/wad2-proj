@@ -288,6 +288,35 @@ function frame() {
 let raf = 0
 const onScroll = () => (raf ||= requestAnimationFrame(() => ((raf = 0), frame())))
 
+// ---- One mouse-wheel or trackpad gesture = one whole section. CSS snapping alone goes to the *nearest* section, so a small
+// scroll slid back to where it started. Touch keeps the browser's own snapping; reduced motion scrolls freely.
+// A section taller than the screen (the tunnel) is scrolled through freely and only stepped out of at its edges.
+let wheelQuiet = true // a gesture has ended (no wheel for 200 ms), so trackpad momentum can't trigger a second step
+let wheelTimer = 0
+function stops() {
+  return [...root.value.querySelectorAll('.sec, .tunnel')].map((el) => {
+    const start = docTop(el) - parseFloat(getComputedStyle(el).scrollMarginTop || 0)
+    return { start, end: Math.max(start, start + el.offsetHeight - innerHeight) } // end > start only when taller than the screen
+  })
+}
+function onWheel(event) {
+  if (reduceMq.matches || event.ctrlKey || Math.abs(event.deltaX) > Math.abs(event.deltaY) || !event.deltaY) return
+  clearTimeout(wheelTimer)
+  wheelTimer = setTimeout(() => (wheelQuiet = true), 200)
+  if (!wheelQuiet) return event.preventDefault() // the rest of the gesture that just stepped
+  const sy = scrollY
+  const down = event.deltaY > 0
+  const all = stops()
+  if (all.some((s) => (down ? sy >= s.start - 1 && sy < s.end - 1 : sy > s.start + 1 && sy <= s.end + 1))) return // inside a tall one
+  event.preventDefault()
+  const max = document.documentElement.scrollHeight - innerHeight
+  const target = down
+    ? Math.min(max, ...all.map((s) => s.start).filter((y) => y > sy + 1))
+    : Math.max(0, ...all.map((s) => s.end).filter((y) => y < sy - 1)) // back into a tall one at its bottom edge
+  wheelQuiet = false
+  scrollTo({ top: target, behavior: 'smooth' })
+}
+
 // Keyboard (Tab) or screen-reader focus inside a section that hasn't landed yet: land it now and bring it into view,
 // so nobody tabs onto an invisible button.
 // Only keyboard focus (:focus-visible): a tap also focuses, and scrolling under a finger mid-tap would lose the tap.
@@ -310,6 +339,7 @@ onMounted(() => {
   document.documentElement.classList.add('snap-sections') // scrolling stops at each section (LandingPage.css); only on this page
   addEventListener('scroll', onScroll, { passive: true })
   addEventListener('scroll', updateNav, { passive: true })
+  addEventListener('wheel', onWheel, { passive: false }) // not passive: it replaces the scroll with a whole-section step
   root.value?.addEventListener('focusin', onFocusIn)
   updateNav()
   addEventListener('resize', onScroll)
@@ -330,6 +360,8 @@ onBeforeUnmount(() => {
   cancelAnimationFrame(raf)
   removeEventListener('scroll', onScroll)
   removeEventListener('scroll', updateNav)
+  removeEventListener('wheel', onWheel)
+  clearTimeout(wheelTimer)
   root.value?.removeEventListener('focusin', onFocusIn)
   removeEventListener('resize', onScroll)
   reduceMq.removeEventListener('change', onScroll)

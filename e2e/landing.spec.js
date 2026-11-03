@@ -304,13 +304,33 @@ test('scrolling stops at each section: the page snaps while it is open, and only
   // The tunnel between the hero and "scan" is scrolled through freely (it is taller than the screen): a scroll into the middle
   // of it stays there, and is not pulled back to the hero or thrown ahead to the next section.
   const scanTop = await page.locator('#scan').evaluate((el) => el.offsetTop - 66) // its scroll-margin-top
+  const tunnelTop = await page.getByTestId('landing-tunnel').evaluate((el) => el.offsetTop)
+  const scrollTop = () => page.evaluate(() => Math.round(window.scrollY))
   await page.mouse.move(100, 400)
-  // One wheel of 12 notches: on a busy machine 12 separate notches can each end and snap back to the hero
+  // One wheel gesture from the hero steps to the tunnel's top, however big it is (a hero taller than a small screen is
+  // scrolled through freely instead)...
+  const heroFits = await page.getByTestId('landing-hero').evaluate((el) => el.offsetHeight <= innerHeight)
   await page.mouse.wheel(0, 1440)
+  await expect.poll(scrollTop, { timeout: 8000 }).toBeGreaterThan(tunnelTop - 4)
+  if (heroFits) await expect.poll(scrollTop, { timeout: 8000 }).toBeLessThan(tunnelTop + 4)
+  // ...and the next one scrolls freely inside it.
+  await page.evaluate((y) => window.scrollTo(0, y), tunnelTop) // the small screen's free scroll may have gone further
+  await page.waitForTimeout(300) // the first gesture has ended
+  await page.mouse.wheel(0, 600)
   await page.waitForTimeout(900)
-  const inside = await page.evaluate(() => Math.round(window.scrollY))
-  expect(inside).toBeGreaterThan(900)
+  const inside = await scrollTop()
+  expect(inside).toBeGreaterThan(tunnelTop + 200)
   expect(inside).toBeLessThan(scanTop - 100)
+
+  // A small wheel on a section goes on to the whole next one, never sliding back to where it was.
+  const listenTop = await page.locator('#listen').evaluate((el) => el.offsetTop - 66)
+  await page.evaluate((y) => window.scrollTo(0, y), listenTop)
+  await page.waitForTimeout(300)
+  const listenFits = await page.locator('#listen').evaluate((el) => el.offsetHeight <= innerHeight - 66)
+  const dosesTop = await page.locator('#doses').evaluate((el) => el.offsetTop - 66)
+  await page.mouse.wheel(0, 40)
+  if (listenFits) await expect.poll(scrollTop, { timeout: 8000 }).toBeGreaterThan(dosesTop - 4)
+  else await page.waitForTimeout(900).then(async () => expect(await scrollTop()).toBeGreaterThan(listenTop + 10)) // taller than the screen: scrolls inside it
 
   // Coming up to the next section it lands on that section's top, never between two.
   await page.evaluate((y) => window.scrollTo(0, y), scanTop - 150)
