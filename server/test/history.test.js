@@ -137,6 +137,26 @@ test('history pages contain only summaries, newest first, with deterministic tim
   assert.deepEqual(pages, expected)
 })
 
+test('/all gives every summary at once, newest first, with each bill\'s visit date, and only this user\'s', async () => {
+  await Scan.deleteMany({})
+  const bill = await fixture('bill-1')
+  const time = new Date('2026-10-28T00:00:00Z')
+  const docs = await Scan.insertMany([
+    ...Array.from({ length: 12 }, (_, i) => ({ userId: alice.id, type: med.type, source: med.source, medication: med.medication, createdAt: new Date(time.getTime() + i) })),
+    { userId: alice.id, type: 'bill', source: bill.source, bill: { ...bill.bill, visitDate: '2026-10-15' }, createdAt: new Date(time.getTime() + 100) },
+  ])
+  await save(med, { token: bobToken })
+  const { data } = await (await request('/all')).json()
+  assert.equal(data.total, 13)
+  assert.equal(data.capped, false)
+  assert.deepEqual(data.items.map((i) => i.id), [...docs].sort((a, b) => b.createdAt - a.createdAt).map((d) => d.id)) // more than one page's worth
+  assert.deepEqual(Object.keys(data.items[0]).sort(), ['createdAt', 'id', 'purpose', 'shareExpiresAt', 'shareToken', 'source', 'title', 'totalPayableCents', 'type', 'visitDate'])
+  assert.equal(data.items[0].visitDate, '2026-10-15')
+  assert.equal(data.items[1].visitDate, null) // medicines have none
+  await error(await request('/all?page=2'), 400, 'BAD_REQUEST')
+  assert.equal((await request('/all', { token: null })).status, 401)
+})
+
 test('rejects unknown fields, photos, owner injection and malformed or unconfirmed data without saving', async () => {
   const bad = []
   const change = (fn) => { const s = structuredClone(med); fn(s); return { scan: s } }

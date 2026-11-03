@@ -9,4 +9,4 @@
 .replay { width: var(--z52, 52px); height: var(--z52, 52px); --bs-btn-bg: var(--color-surface-2); --bs-btn-border-color: var(--color-border); }
 .speed-label { font-size: 17px; font-weight: 600; color: var(--color-text-muted); }
 .speeds { flex: 1; min-width: 220px; }
-/* Getting the audio (no voice on this device): the turning pill shows in the button (PillLoader). */
+/* Getting the audio (no voice on this device): the turning ring shows in the button (Spinner). */

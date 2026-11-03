@@ -27,6 +27,9 @@ export const useScanStore = defineStore('scan', () => {
   const confirmed = ref(saved?.confirmed ?? false)
   // A photo picked on Home; Scan reads it on arrival.
   const pendingFile = ref(null)
+  // A scan still going, or finished, after the person left the Scan page mid-way (views/ScanView.vue keeps it running):
+  // { type: 'medication' | 'bill', status: 'working' | 'ready' | 'failed' }, shown by components/scan/ScanAwayNotice.vue.
+  const away = ref(null)
 
   // Keep the extracted text for this tab (sessionStorage).
   watch(
@@ -48,7 +51,8 @@ export const useScanStore = defineStore('scan', () => {
     photos.value = []
     pdfPages.value = null
     confirmed.value = false
+    away.value = null
   }
 
-  return { current, photos, pdfPages, confirmed, pendingFile, forget }
+  return { current, photos, pdfPages, confirmed, pendingFile, away, forget }
 })

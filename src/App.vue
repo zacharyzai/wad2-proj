@@ -5,6 +5,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import AppIcon from './components/layout/AppIcon.vue'
 import GuideDialog from './components/guide/GuideDialog.vue'
+import ScanAwayNotice from './components/scan/ScanAwayNotice.vue'
 import ThemePrompt from './components/guide/ThemePrompt.vue'
 import ThemeToggle from './components/layout/ThemeToggle.vue'
 import { useGuideStore } from './stores/guide'
@@ -114,6 +115,8 @@ router.afterEach(async (to, from, failure) => {
         <p>{{ t('app.disclaimer') }}</p>
       </footer>
     </div>
+    <!-- A scan left mid-way carries on: this says how it is going, from any page. -->
+    <ScanAwayNotice />
   </div>
   <ThemePrompt />
   <GuideDialog />

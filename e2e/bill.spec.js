@@ -93,6 +93,7 @@ test.describe('breakdown', () => {
     await signIn(page, { ...DEMO_USER, dob: '1945-03-07' }) // a Pioneer
     await openSample(page, HOSPITAL)
     await expect(youPay(page, 'You pay $106.53')).toBeVisible()
+    await page.getByTestId('bill-group').filter({ hasText: 'Ward / room' }).click() // 8 charges: grouped by kind
     await expect(line(page, 'Daily Ward Charges .* Ward / room \\$140\\.00')).toBeVisible()
     await expect(line(page, 'GST 9% GST \\$87\\.12')).toBeVisible()
     await expect(line(page, 'Insurance \\(MediShield Life or other\\) Insurance −\\$150\\.00')).toBeVisible()

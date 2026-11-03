@@ -62,7 +62,7 @@ test.describe('caregiver-only tab', () => {
     await page.goto('/care')
     await expect(page.getByRole('link', { name: 'My seniors' }).first()).toBeVisible()
     await expect(page.getByTestId('care-senior')).toContainText('Mei Ling Tan')
-    await expect(page.getByTestId('care-senior')).toContainText('1 missed')
+    await expect(page.getByTestId('care-senior')).toContainText('1 not ticked')
   })
 
   test('a caregiver with no seniors is told how to get an invite', async ({ page }) => {
@@ -72,12 +72,12 @@ test.describe('caregiver-only tab', () => {
     await expect(page.getByRole('heading', { name: 'No one linked yet' })).toBeVisible()
   })
 
-  test("a senior's doses show taken, missed and to come, with words, and flag what was missed", async ({ page }) => {
+  test("a senior's doses show taken, not ticked and to come, with words, and flag what was not ticked", async ({ page }) => {
     await signIn(page, CAREGIVER)
     await page.route('**/api/care/seniors/u2/today', (route) => route.fulfill(ok(TODAY)))
     await page.goto('/care/u2')
     await expect(page.getByTestId('care-dose')).toHaveCount(3)
-    await expect(page.getByTestId('care-dose').first()).toContainText('Missed')
+    await expect(page.getByTestId('care-dose').first()).toContainText('Not ticked')
     await expect(page.getByTestId('care-missed')).toContainText('give them a call')
     await expect(page.getByTestId('care-dose').nth(1)).toContainText('Taken')
     await expect(page.getByTestId('care-dose').nth(2)).toContainText('To come')

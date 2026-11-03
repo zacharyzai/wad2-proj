@@ -267,23 +267,29 @@ test('timeInSingapore uses Singapore time, not the device time zone', () => {
   assert.equal(timeInSingapore(new Date('2026-10-27T15:59:00Z')), '23:59')
 })
 
-test('This week: Monday to Sunday; each time of day is taken, missed (time passed, not all ticked) or coming up', () => {
+test('This week: Monday to Sunday, one row per medicine and time; each day is taken, not ticked, take now or later', () => {
   assert.deepEqual(weekOf('2026-10-28'), ['2026-10-26', '2026-10-27', '2026-10-28', '2026-10-29', '2026-10-30', '2026-10-31', '2026-11-01'])
   assert.equal(weekOf('2026-11-01')[0], '2026-10-26') // a Sunday belongs to the week before
-  const medicine = { id: 'm1', medication: { name: 'Metformin', strength: '500 mg', frequencyType: 'daily', timesPerDay: 2, doseAmount: 1 } }
-  const entries = [buildSchedule(medicine, { startDate: '2026-10-27', days: 30 })] // starts on Tuesday
+  const metformin = { id: 'm1', medication: { name: 'Metformin', strength: '500 mg', frequencyType: 'daily', timesPerDay: 2, doseAmount: 1 } }
+  const amlodipine = { id: 'm2', medication: { name: 'Amlodipine', strength: '5 mg', frequencyType: 'daily', timesPerDay: 1, doseAmount: 1 } }
+  const entries = [metformin, amlodipine].map((m) => buildSchedule(m, { startDate: '2026-10-27', days: 30 })) // both start on Tuesday
   const ticks = { '2026-10-27': ['m1-morning'], '2026-10-28': ['m1-morning'] }
   const week = weekSummary(entries, '2026-10-28', '14:00', (date) => new Set(ticks[date] ?? []))
-  assert.deepEqual(week.rows.map((r) => [r.slot, r.cells.map((c) => c.state)]), [
-    ['morning', ['none', 'ok', 'ok', 'up', 'up', 'up', 'up']],
-    ['bedtime', ['none', 'miss', 'up', 'up', 'up', 'up', 'up']], // tonight's 9 pm hasn't come yet
+  // Both are taken in the morning, but each has its own row: Amlodipine not ticked never hides behind Metformin taken.
+  assert.deepEqual(week.rows.map((r) => [r.label, r.slot, r.cells.map((c) => c.state)]), [
+    ['Amlodipine 5 mg', 'morning', ['none', 'not', 'now', 'later', 'later', 'later', 'later']], // 8 am, not ticked at 2 pm: still "Take now", as on Today
+    ['Metformin 500 mg', 'morning', ['none', 'ok', 'ok', 'later', 'later', 'later', 'later']],
+    ['Metformin 500 mg', 'bedtime', ['none', 'not', 'later', 'later', 'later', 'later', 'later']], // tonight's 9 pm hasn't come yet
   ])
-  assert.deepEqual([week.done, week.due], [2, 3])
-  assert.deepEqual(week.missed, [{ date: '2026-10-27', slot: 'bedtime', time: '21:00', label: 'Metformin 500 mg' }])
-  // The day's last time stays due until midnight, as on Today ("Take now"); a day still loading (null) counts nothing as taken.
+  assert.deepEqual(week.notTicked.map((d) => [d.date, d.id]), [['2026-10-27', 'm2-morning'], ['2026-10-27', 'm1-bedtime']])
+  assert.equal(week.anyPassed, true)
+  // At 11:30 pm the morning has passed ("Not ticked") and the day's last time is due until midnight; a day still loading
+  // (null) counts nothing as taken.
   const late = weekSummary(entries, '2026-10-28', '23:30', (date) => (date === '2026-10-27' ? null : new Set(ticks[date] ?? [])))
-  assert.deepEqual(late.rows.map((r) => r.cells[1].state), ['miss', 'miss'])
-  assert.equal(late.rows[1].cells[2].state, 'up')
+  assert.deepEqual(late.rows.map((r) => r.cells[1].state), ['not', 'not', 'not'])
+  assert.deepEqual(late.rows.map((r) => r.cells[2].state), ['not', 'ok', 'now'])
+  // Monday, before either medicine starts: nothing to tick yet.
+  assert.equal(weekSummary(entries, '2026-10-26', '09:00', () => new Set()).anyPassed, false)
 })
 
 test('how long a pack lasts: quantity ÷ (amount each time × times a day), whole days only, never guessed', () => {

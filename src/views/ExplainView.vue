@@ -6,6 +6,7 @@ import { useI18n } from 'vue-i18n'
 import { useScanStore } from '../stores/scan'
 import ReadAloud from '../components/explain/ReadAloud.vue'
 import AppIcon from '../components/layout/AppIcon.vue'
+import KindIcon from '../components/layout/KindIcon.vue'
 import { billGap, linesTotal, sumCents } from '../rules/billCheck'
 import { money, minusMoney } from '../components/bill/lines'
 const scanStore = useScanStore()
@@ -26,7 +27,7 @@ function medication(m) {
   const dose = { amount: m.doseAmount, unit: unit(m.doseAmount) }
   // What it is usually for: a word from our own templates (the AI only picked the key), or nothing when it wasn't sure.
   const purpose = m.purpose ? t(`purpose.${m.purpose}`) : null
-  const base = { tag: t('explain.tag.medication'), icon: 'pill', name: m.name, purpose, warnings: m.warnings }
+  const base = { tag: t('explain.tag.medication'), kind: 'medication', name: m.name, purpose, warnings: m.warnings }
 
   if (m.frequencyType !== 'daily') {
     return {
@@ -77,7 +78,7 @@ function bill(b) {
   const date = b.visitDate && new Date(`${b.visitDate}T00:00`).toLocaleDateString(locale.value, { day: 'numeric', month: 'short', year: 'numeric' })
   return {
     tag: t('explain.tag.bill'),
-    icon: 'receipt',
+    kind: 'bill',
     name: b.clinic || t('explain.tag.bill'),
     sub: date,
     title: t('explain.bill.title', { amount: money(pay) }),
@@ -125,7 +126,7 @@ watch(locale, () => (picked.value = null))
         <section class="card card-result main-card rise">
           <span class="ring" aria-hidden="true"></span>
           <div class="d-flex align-items-center gap-3">
-            <span class="tile tile-lg glow"><AppIcon :name="view.icon" :size="28" /></span>
+            <KindIcon :kind="view.kind" class="glow" />
             <div class="d-flex flex-column min-w-0">
               <span class="med-name" :class="{ long: view.lines }">{{ view.name }}</span>
               <span v-if="view.sub" class="text-muted-a11y">{{ view.sub }}</span>

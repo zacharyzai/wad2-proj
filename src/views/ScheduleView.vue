@@ -19,6 +19,7 @@ import { useScheduleText, nameOf } from '../composables/useScheduleText'
 import { buildSchedule, stopCourse, supplyDays } from '../rules/schedule'
 import EmptyState from '../components/layout/EmptyState.vue'
 import AppIcon from '../components/layout/AppIcon.vue'
+import KindIcon from '../components/layout/KindIcon.vue'
 import CalendarSync from '../components/schedule/CalendarSync.vue'
 import WeekView from '../components/schedule/WeekView.vue'
 import TodayList from '../components/schedule/TodayList.vue'
@@ -173,6 +174,11 @@ function startAgain(medicine) {
   notify(t('schedule.stop.back', { name: nameOf(medicine.medication) }))
 }
 
+// "I took it" on This week for a dose today: saved like a tick on Today.
+async function tickToday(dose) {
+  if ((await doses.toggle(dose, true)) === 'failed') notify(t('schedule.tickFailed'), true)
+}
+
 onBeforeUnmount(() => {
   clearTimeout(undoTimer)
   clearTimeout(stopTimer)
@@ -203,7 +209,7 @@ onBeforeUnmount(() => {
 
     <TodayList v-else-if="view === 'today'" :entries="entries" :need-days="needDays" @notify="notify" />
 
-    <WeekView v-else-if="view === 'week'" :entries="entries" :today="today" :now="nowTime" :taken-today="taken" :flagged="flagged" />
+    <WeekView v-else-if="view === 'week'" :entries="entries" :today="today" :now="nowTime" :taken-today="taken" :flagged="flagged" @toggle="tickToday" />
 
     <div v-else-if="view === 'meds'" class="d-flex flex-column gap-4">
       <section v-if="timetable.length" aria-labelledby="meds-title" data-testid="schedule-meds">

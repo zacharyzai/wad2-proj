@@ -26,12 +26,12 @@
     "emptyTitle": "还没有关联的人",
     "emptyText": "请您的父母或亲人在应用里打开“账户”，点“邀请照护者”，然后用 WhatsApp 把链接发给您。",
     "nTaken": "已服 {n} 次",
-    "nMissed": "漏服 {n} 次",
+    "nMissed": "{n} 次没打勾",
     "nUpcoming": "待服 {n} 次",
     "todayFor": "{name}：今天",
     "goneTitle": "您已无法查看此人",
     "goneText": "对方可能已移除链接。如有误，请向对方要一个新的邀请。",
-    "missedBanner": "{name} 今天有 {n} 次药还没吃。您可以打电话提醒一下。",
+    "missedBanner": "{name} 今天有 {n} 次药没打勾。您可以打电话问问。",
     "allTaken": "{name} 今天到目前为止的药都吃了。",
     "noDoses": "还没有安排药物",
     "noDosesText": "{name} 还没有把药物加入时间表。",
@@ -39,7 +39,7 @@
     "refresh": "刷新",
     "status": {
       "taken": "已服",
-      "missed": "漏服",
+      "missed": "没打勾",
       "upcoming": "待服"
     },
     "notShared": "还未分享",
@@ -136,7 +136,7 @@
     "RESET_LINK_INVALID": "这个链接已经过期或已经用过了。请申请新的链接。"
   },
   "home": {
-    "title": "您想了解什么？",
+    "title": "您想做什么？",
     "lead": "拍一张照片，我们用简单的话解释，并读给您听。",
     "med": {
       "title": "扫描药物标签",
@@ -146,19 +146,22 @@
       "title": "扫描医药账单",
       "text": "看看您要付多少，以及可能适用哪些津贴。"
     },
-    "sample": "不确定？先试用示例",
     "greet": {
       "morning": "早上好",
       "afternoon": "下午好",
       "evening": "晚上好"
     },
-    "what": "可以扫描什么？",
     "ask": {
       "text": "用您的语言询问有关药物的问题。"
     },
-    "breakdown": {
-      "title": "您的账单明细",
-      "text": "再看一次您上一张账单，以及您可能获得的津贴。"
+    "lastBill": "您最近的账单",
+    "today": {
+      "title": "今天的药物",
+      "open": "打开我的服药时间表",
+      "noMeds": "扫描药物标签，我们会提醒您什么时候吃药。",
+      "missed": "有 {n} 次较早的服药还没打勾",
+      "saved": "已记录为已服用。",
+      "loadFailed": "暂时无法查看今天的服药记录。请打开时间表查看。"
     }
   },
   "scan": {
@@ -213,6 +216,57 @@
     },
     "covering": "正在遮盖您的个人资料…",
     "coveringPage": "正在遮盖第 {n} 页（共 {total} 页）的个人资料…",
+    "pages": {
+      "title": "账单页面",
+      "count": "已拍 {n} 页，最多 {max} 页",
+      "page": "第 {n} 页",
+      "checking": "正在检查照片…",
+      "ok": "照片清楚",
+      "problem": {
+        "dark": "太暗，看不清",
+        "blurry": "太模糊，看不清",
+        "glare": "反光太强，看不清"
+      },
+      "more": "这张账单还有下一页吗？",
+      "add": "拍下一页",
+      "full": "已经 {max} 页了，一次最多只能读这么多。如果账单还有更多页，请把其余的当作另一张账单来扫描。",
+      "done": "没有了，开始读取",
+      "fixFirst": "请先重拍第 {pages} 页，或选择“仍然使用”。",
+      "tip": "请确保包含印有总额的那一页。",
+      "retake": "重拍",
+      "retakeN": "重拍第 {n} 页",
+      "remove": "删除",
+      "removeN": "删除第 {n} 页",
+      "anyway": "仍然使用",
+      "anywayN": "仍然使用第 {n} 页",
+      "taking": "正在拍第 {n} 页",
+      "retaking": "正在重拍第 {n} 页",
+      "back": "回到我的页面",
+      "throw": {
+        "title": "要丢掉这 {n} 页吗？",
+        "text": "您需要重新拍照。",
+        "keep": "保留这些页",
+        "yes": "丢掉"
+      }
+    },
+    "away": {
+      "working": {
+        "medication": "还在读取您的药物标签…",
+        "bill": "还在读取您的账单…"
+      },
+      "ready": {
+        "medication": "您的药物标签已读好，可以核对了。",
+        "bill": "您的账单已读好，可以核对了。"
+      },
+      "failed": {
+        "medication": "我们没能读完您的药物标签。",
+        "bill": "我们没能读完您的账单。"
+      },
+      "see": "查看",
+      "check": "现在核对",
+      "why": "查看原因",
+      "close": "关闭"
+    },
     "dz": {
       "title": "点击上传或拖入照片",
       "hint": "PNG、JPG、HEIC 或 PDF · 最多 {max} 页 · 每个最大 10MB",
@@ -374,7 +428,9 @@
       "medisave": "保健储蓄支付",
       "total": "您需要支付",
       "gap": "这些项目加起来是 {lines}，不是 {total}。可能有一个金额读错了，但总额是从您的账单上照抄的，您可以继续。",
-      "gapWhere": "如果想核对，请看“{section}”下的项目：账单上写的小计是 {printed}。"
+      "gapWhere": "如果想核对，请看“{section}”下的项目：账单上写的小计是 {printed}。",
+      "fine": "其他 {n} 项看起来没问题。点击查看",
+      "hideFine": "收起看起来没问题的项目"
     },
     "steps": {
       "label": "步骤",
@@ -633,11 +689,27 @@
     "scanMed": "扫描药物标签"
   },
   "history": {
-    "lead": "您保存的药物标签和账单，最新的在前面。",
+    "lead": "找到您以前扫描过的药物或账单。",
     "filter": "显示",
-    "filterAll": "全部",
     "filterMed": "药物",
     "filterBill": "账单",
+    "searchMed": "查找药物",
+    "searchBill": "查找诊所或医院",
+    "clear": "清除",
+    "quick": "您的药物",
+    "takingNow": "正在服用",
+    "notTaking": "已不再服用（{n}）",
+    "scanned": "扫描了 {n} 次",
+    "noMatch": "没有找到“{q}”。",
+    "thisMonth": "本月",
+    "jump": "跳到某个月",
+    "yearTitle": "{year} 年您付的钱",
+    "clinicLine": "{n} 张账单",
+    "back": "返回扫描记录",
+    "allScans": "每次扫描，最新的在前",
+    "capped": "只显示最新的 {n} 次扫描。",
+    "noMeds": "还没有保存药物标签。",
+    "noBills": "还没有保存账单。",
     "saved": "保存于 {date}",
     "youPaid": "您支付了 {amount}",
     "sharing": "已开启分享链接",
@@ -663,8 +735,6 @@
     "deleteYes": "是，删除",
     "keep": "保留",
     "deleted": "扫描已删除。",
-    "loadMore": "显示更早的扫描",
-    "noneOfType": "还没有这一类的记录。",
     "emptyTitle": "还没有保存的记录",
     "emptyText": "扫描后核对并点击“没有问题”，就会保存在这里，最新的在最上面。需要先登录。"
   },
@@ -865,6 +935,9 @@
     "charged": "收费项目",
     "showItems": "查看每一项收费 ({n})",
     "hideItems": "收起各项收费",
+    "groupCount": "{n} 项",
+    "biggest": "最大的几项费用",
+    "toSummary": "回到总览",
     "takenOff": "从账单中扣除",
     "total": "您需要支付",
     "takenOffAmount": "扣除 {amount}",
@@ -1187,21 +1260,31 @@
       "one": "该服 {name} 了",
       "many": "该服 {n} 种药了",
       "text": "{time} 该服药。服药后，请点下面的按钮。",
-      "take": "我已经服了"
+      "textMany": "{time} 该服药。每种药服完后，请点一下。",
+      "take": "我已经服了",
+      "takeLabel": "我已经服了：{name}"
     },
     "week": {
-      "sum": "本周到目前为止，已服 {done} / {due} 次",
       "loading": "正在查看本周的记录",
       "range": "{start} 至 {end}",
-      "caption": "本周按时段的服药情况",
-      "cell": "{day}，{slot}：{state}",
+      "caption": "本周每天的服药情况",
+      "cell": "{name}，{day}{slot}：{state}",
       "state": {
         "ok": "已服",
-        "miss": "漏服",
-        "up": "还没到"
+        "not": "没打勾",
+        "now": "现在吃",
+        "later": "稍后"
       },
-      "missedTitle": "本周漏服",
-      "noneMissed": "本周没有漏服。",
+      "explain": "“没打勾”是指时间已过，但没有打勾。",
+      "allTicked": "本周到目前为止，每次服药都打了勾。",
+      "nothingYet": "本周还没有需要打勾的。",
+      "notTicked": "本周有 {n} 次没打勾",
+      "listTitle": "本周没打勾的",
+      "forgot": "服了但忘了打勾？请点“我服了”。",
+      "took": "我服了",
+      "tookLabel": "我服了：{name}，{day}{slot}",
+      "ticked": "已打勾：{name}，{day}{slot}。",
+      "undo": "撤销",
       "notDaily": "不是每天服"
     },
     "rem": {

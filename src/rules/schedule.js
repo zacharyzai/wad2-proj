@@ -159,36 +159,39 @@ export function weekOf(date) {
   return Array.from({ length: 7 }, (_, i) => addDays(monday, i))
 }
 
-// The week at a glance (Schedule, This week). One row per time of day; a cell per day says how that time went:
-// 'ok' every dose ticked, 'miss' not all ticked and its time has passed, 'up' still to come, 'none' nothing due.
-// takenOn(date) gives that day's ticked dose ids (a Set), or null while unknown. A time today counts as passed once
-// timeStates calls it 'earlier', the same moment Today starts saying "Not ticked yet".
-// done/due count doses up to now; `missed` lists each passed, unticked dose, oldest first.
+// The week at a glance (Schedule, This week). One row per medicine and time of day ("Metformin 500 mg, Morning"), so a
+// dose never hides behind another one taken at the same time. A cell per day says how that one dose went:
+// 'ok' ticked, 'not' its time has passed with no tick, 'now' today's dose that is due ("Take now"), 'later' not due yet,
+// 'none' not on the timetable that day. Today uses Today's own times (timeStates): a dose is 'now' from an hour before
+// its time until the next time's hour before (the day's last: until midnight), then 'not', when Today says "Not ticked yet".
+// takenOn(date) gives that day's ticked dose ids (a Set), or null while unknown.
+// notTicked lists each 'not' dose, oldest first; anyPassed says whether any dose's time has come yet this week.
 export function weekSummary(entries, today, now, takenOn) {
   const days = weekOf(today)
   const todayTimes = [...new Set(dosesOn(entries, today).map((d) => d.time))]
-  const passedToday = new Map(todayTimes.map((time, i) => [time, timeStates(todayTimes, now)[i] === 'earlier']))
+  const todayState = new Map(todayTimes.map((time, i) => [time, timeStates(todayTimes, now)[i]]))
   const perDay = days.map((date) => ({ date, doses: dosesOn(entries, date), taken: takenOn(date) }))
-  const slots = TIMINGS.filter((slot) => perDay.some((d) => d.doses.some((dose) => dose.slot === slot)))
-  let done = 0
-  let due = 0
-  const missed = []
-  const rows = slots.map((slot) => ({
-    slot,
-    cells: perDay.map(({ date, doses, taken }) => {
-      const here = doses.filter((dose) => dose.slot === slot)
-      if (!here.length) return { date, state: 'none' }
-      if (date > today) return { date, state: 'up' }
-      const ticked = here.filter((dose) => taken?.has(dose.id))
-      const passed = date < today || here.every((dose) => passedToday.get(dose.time))
-      done += ticked.length
-      due += passed ? here.length : ticked.length
-      if (ticked.length === here.length) return { date, state: 'ok' }
-      if (!passed) return { date, state: 'up' }
-      for (const dose of here) if (!taken?.has(dose.id)) missed.push({ date, slot, time: dose.time, label: dose.label })
-      return { date, state: 'miss' }
-    }),
-  }))
-  missed.sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time))
-  return { days, rows, done, due, missed }
+  const found = new Map()
+  for (const { doses } of perDay) for (const d of doses) if (!found.has(d.id)) found.set(d.id, { id: d.id, medicineId: d.medicineId, slot: d.slot, time: d.time, label: d.label })
+  const notTicked = []
+  let anyPassed = false
+  const rows = [...found.values()]
+    .sort((a, b) => a.time.localeCompare(b.time) || a.label.localeCompare(b.label))
+    .map((row) => ({
+      ...row,
+      cells: perDay.map(({ date, doses, taken }) => {
+        if (!doses.some((d) => d.id === row.id)) return { date, state: 'none' }
+        if (taken?.has(row.id)) {
+          anyPassed = true
+          return { date, state: 'ok' }
+        }
+        const when = date < today ? 'earlier' : date > today ? 'later' : todayState.get(row.time)
+        if (when !== 'earlier') return { date, state: when }
+        anyPassed = true
+        notTicked.push({ date, id: row.id, slot: row.slot, time: row.time, label: row.label })
+        return { date, state: 'not' }
+      }),
+    }))
+  notTicked.sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time) || a.label.localeCompare(b.label))
+  return { days, rows, notTicked, anyPassed }
 }

@@ -1,4 +1,4 @@
-<!-- Owner: Isaac. Caregivers only. One senior's doses today: taken, missed or still to come. Refreshes every minute.
+<!-- Owner: Isaac. Caregivers only. One senior's doses today: taken, not ticked or still to come. Refreshes every minute.
      Read-only: no scans, photos, bills or account details ever reach this page. API: docs/care-contract.md (assumed). -->
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
@@ -25,7 +25,7 @@ const gone = computed(() => errorCode.value === 'NOT_FOUND')
 
 const STATUS = {
   taken: { icon: 'checkCircle', badge: 'badge-success' },
-  missed: { icon: 'xCircle', badge: 'badge-danger' },
+  missed: { icon: 'alert', badge: 'badge-warning' }, // "Not ticked": maybe forgotten, so amber, not red
   upcoming: { icon: 'clock', badge: 'badge-teal' },
 }
 const count = (status) => doses.value.filter((d) => d.status === status).length

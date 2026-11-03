@@ -9,7 +9,7 @@
 .stagger > :nth-child(5) { animation-delay: calc(var(--stagger) * 4); }
 .stagger > :nth-child(n + 6) { animation-delay: calc(var(--stagger) * 5); }
 
-/* Busy ring (Scan): the turning pill (PillLoader) in a card, with two soft pulsing rings around it */
+/* Busy ring (Scan): the turning ring (Spinner) in a card, with two soft pulsing rings around it */
 .progress-ring { position: relative; width: 216px; height: 216px; display: grid; place-items: center; }
 .progress-ring__pulse { position: absolute; border-radius: 50%; border: 2px solid var(--color-tint-strong); animation: ahma-pulse 2s ease-in-out infinite; }
 .progress-ring__pulse + .progress-ring__pulse { border-color: var(--color-tint); animation-delay: 0.4s; }
@@ -20,7 +20,7 @@
    changes as one picture (the page's own transition layers are folded in), so every part changes together.
    theme: half a second. lang: a third of a second. enter: the old screen fades out, the new one fades and settles in. */
 .fade-vt #main, .fade-vt .ft, .fade-vt .nav, .fade-vt .cover-view, .fade-vt .photo.stick,
-.fade-vt .ph, .fade-vt .band, .fade-vt .auth-band, .fade-vt .auth-form { view-transition-name: none !important; }
+.fade-vt .ph, .fade-vt .band, .fade-vt .auth-band, .fade-vt .auth-form, .fade-vt .away { view-transition-name: none !important; }
 .fade-vt::view-transition-group(root) { animation: none; }
 .fade-vt::view-transition-old(root) { animation: screen-out var(--fade-ms, 500ms) cubic-bezier(0.4, 0, 0.2, 1) both; }
 .fade-vt::view-transition-new(root) { animation: screen-in var(--fade-ms, 500ms) cubic-bezier(0.4, 0, 0.2, 1) both; }
@@ -51,6 +51,10 @@
 .nav { view-transition-name: tabs; }
 ::view-transition-group(tabs), ::view-transition-old(tabs), ::view-transition-new(tabs) { animation: none; }
 ::view-transition-old(tabs) { display: none; } /* only the new bar (new page highlighted), straight away */
+/* A scan still going while the person moves around (components/scan/ScanAwayNotice.vue): its own layer, after the page
+   and footer, so it stays on top and still through a page change instead of being covered for a moment. */
+::view-transition-group(scan-away), ::view-transition-old(scan-away), ::view-transition-new(scan-away) { animation: none; }
+::view-transition-old(scan-away) { display: none; }
 /* The sidebar and tab bar don't fade: they swap at once (only the highlighted item changes), so they never flicker pale. */
 ::view-transition-old(root) { animation: none; }
 /* The new frame (on phones: the header at the top) appears once the old page has faded out (80ms), so it never shows

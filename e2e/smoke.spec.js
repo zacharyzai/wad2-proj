@@ -4,10 +4,10 @@ import { testToken, switchLanguage } from './helpers/auth.js'
 
 test('home page loads and switches language @i18n @smoke', async ({ page }) => {
   await page.goto('/')
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('What would you like to understand?')
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('What would you like to do?')
 
   await switchLanguage(page, '中文')
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('您想了解什么？')
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('您想做什么？')
   await expect(page.locator('html')).toHaveAttribute('lang', 'zh')
 })
 

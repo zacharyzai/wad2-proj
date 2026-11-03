@@ -64,6 +64,7 @@ test('first visit: welcome card, then it points at the real buttons and waits fo
 
   await page.getByTestId('guide-start').click()
   await expect(guide(page)).toHaveCount(0)
+  await expect(page).toHaveURL(/\/$/) // back to Home, not left on Account
   await expect(page.getByTestId('guide-toast')).toContainText('You are ready. Open this again from "How to use the app".')
   await page.reload()
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible()

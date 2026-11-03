@@ -16,6 +16,8 @@
 .gap-note { display: flex; gap: 10px; padding: 12px 14px; border-radius: var(--r-sm); background: var(--color-link-bg); border: 1px solid var(--color-link-border); color: var(--color-text); }
 .gap-note > :first-child { flex: none; color: var(--color-link); }
 .field-input.is-check { border: 2px dashed var(--color-warning); }
+/* A long bill: "22 other lines look fine. Show them" (or Hide), under the lines that need checking. */
+.fine-toggle { justify-content: flex-start; gap: 10px; margin-block: 4px; text-align: left; white-space: normal; }
 .row-label { padding-left: 4px; }
 .total { font-weight: 800; font-size: var(--t20, 20px); }
 label.total { padding-top: 10px; border-top: 1px dashed var(--color-border-strong); }

@@ -13,6 +13,7 @@ import EmptyState from '../components/layout/EmptyState.vue'
 import LoadingState from '../components/layout/LoadingState.vue'
 import ErrorBanner from '../components/layout/ErrorBanner.vue'
 import AppIcon from '../components/layout/AppIcon.vue'
+import KindIcon from '../components/layout/KindIcon.vue'
 import { CATEGORY_STYLE, SUBSIDY_STYLE, MEDISAVE_STYLE, money, minusMoney, sumCents, deducted } from '../components/bill/lines'
 import { citizenshipText } from '../utils/account'
 import { billGap, linesTotal, sectionsOff } from '../rules/billCheck'
@@ -107,6 +108,43 @@ watch(bill, () => (showItems.value = false))
 const itemLines = computed(() => charged.value.filter((l) => l.category !== 'tax'))
 const taxLines = computed(() => charged.value.filter((l) => l.category === 'tax'))
 
+// A long bill (more than GROUP_AT charges, often 30+ over several pages): the charges open as one row per kind
+// ("Medicine · 12 items · $84.20"), biggest first, each opening its own lines, instead of one long list. Shorter bills keep
+// the plain list. The summary card names the three biggest kinds, which is often all people want to know.
+const GROUP_AT = 6
+const grouped = computed(() => itemLines.value.length > GROUP_AT)
+const groups = computed(() => {
+  const byKind = new Map()
+  for (const line of itemLines.value) byKind.set(line.category, [...(byKind.get(line.category) ?? []), line])
+  return [...byKind]
+    .map(([category, lines]) => ({ category, ...CATEGORY_STYLE[category], name: t(`bill.category.${category}`), lines, cents: sumCents(lines) }))
+    .sort((a, b) => b.cents - a.cents)
+})
+const biggest = computed(() => (grouped.value ? groups.value.slice(0, 3) : []))
+const openGroups = ref([])
+watch(bill, () => (openGroups.value = []))
+const toggleGroup = (category) =>
+  (openGroups.value = openGroups.value.includes(category) ? openGroups.value.filter((c) => c !== category) : [...openGroups.value, category])
+
+// Phones: with the charges open, "You pay" scrolls out of sight. A slim bar above the bottom tabs keeps it in view while the
+// summary card is scrolled past, with a way back to it. Hidden on desktop, where the summary sits beside the list.
+const summaryCard = ref(null)
+const summaryPassed = ref(false)
+let summaryWatch = null
+watch(summaryCard, (card) => {
+  summaryWatch?.disconnect()
+  summaryPassed.value = false
+  if (!card) return
+  summaryWatch = new IntersectionObserver(([entry]) => (summaryPassed.value = !entry.isIntersecting && entry.boundingClientRect.top < 0))
+  summaryWatch.observe(card)
+})
+onBeforeUnmount(() => summaryWatch?.disconnect())
+const payBar = computed(() => showItems.value && summaryPassed.value)
+function toSummary() {
+  summaryCard.value?.scrollIntoView({ block: 'start', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })
+  summaryCard.value?.focus({ preventScroll: true })
+}
+
 const takenOff = computed(() => {
   const b = bill.value
   if (!b) return []
@@ -196,10 +234,10 @@ const summary = computed(() => [
 
     <div v-if="bill" class="cols">
       <div>
-        <section class="card card-result main-card rise" :aria-label="t('bill.summary.label')">
+        <section ref="summaryCard" tabindex="-1" class="card card-result main-card rise" :aria-label="t('bill.summary.label')">
           <span class="ring" aria-hidden="true"></span>
           <div class="d-flex align-items-center gap-3">
-            <span class="tile tile-lg glow"><AppIcon name="receipt" :size="28" /></span>
+            <KindIcon kind="bill" class="glow" />
             <div class="d-flex flex-column min-w-0">
               <span class="clinic">{{ bill.clinic || t('pages.bill') }}</span>
               <span v-if="date" class="text-muted-a11y">{{ date }}</span>
@@ -218,6 +256,12 @@ const summary = computed(() => [
               <dd>{{ amount }}</dd>
             </div>
           </dl>
+          <p v-if="biggest.length" class="biggest" data-testid="bill-biggest">
+            <span class="biggest-label">{{ t('bill.biggest') }}</span>
+            <span>
+              <template v-for="(g, i) in biggest" :key="g.category"><template v-if="i"> · </template>{{ g.name }} <strong>{{ money(g.cents) }}</strong></template>
+            </span>
+          </p>
           <span v-if="scan.source === 'sample'" class="badge badge-navy align-self-start"><AppIcon name="file" :size="18" />{{ t('bill.sampleTag') }}</span>
         </section>
 
@@ -249,7 +293,25 @@ const summary = computed(() => [
             <AppIcon :name="showItems ? 'up' : 'down'" />{{ t(showItems ? 'bill.hideItems' : 'bill.showItems', { n: itemLines.length }) }}
           </button>
           <ul v-show="showItems" id="bill-items" class="lines">
-            <BillLine v-for="line in itemLines" :key="line.id" :line="line" :open="openId === line.id" @toggle="toggle(line.id)" />
+            <template v-if="grouped">
+              <li v-for="g in groups" :key="g.category" class="group" :class="`tone-${g.tone}`">
+                <button type="button" class="group-btn" :aria-expanded="openGroups.includes(g.category)" :aria-controls="`group-${g.category}`" data-testid="bill-group" @click="toggleGroup(g.category)">
+                  <span class="group-tile"><AppIcon :name="g.icon" :size="24" /></span>
+                  <span class="d-flex flex-column gap-1 flex-grow-1 min-w-0">
+                    <span class="group-name">{{ g.name }}</span>
+                    <span class="group-count">{{ t('bill.groupCount', { n: g.lines.length }, g.lines.length) }}</span>
+                  </span>
+                  <span class="group-amount">{{ money(g.cents) }}</span>
+                  <AppIcon :name="openGroups.includes(g.category) ? 'up' : 'down'" :size="22" class="group-chev" />
+                </button>
+                <ul v-if="openGroups.includes(g.category)" :id="`group-${g.category}`" class="lines group-lines">
+                  <BillLine v-for="line in g.lines" :key="line.id" :line="line" :open="openId === line.id" @toggle="toggle(line.id)" />
+                </ul>
+              </li>
+            </template>
+            <template v-else>
+              <BillLine v-for="line in itemLines" :key="line.id" :line="line" :open="openId === line.id" @toggle="toggle(line.id)" />
+            </template>
           </ul>
           <ul v-if="taxLines.length" class="lines">
             <BillLine v-for="line in taxLines" :key="line.id" :line="line" :open="openId === line.id" @toggle="toggle(line.id)" />
@@ -272,6 +334,13 @@ const summary = computed(() => [
           <button type="button" class="btn btn-ghost" data-testid="bill-top" @click="toTop"><AppIcon name="up" />{{ t('nav.backTop') }}</button>
         </div>
       </div>
+
+      <Transition name="pay-bar">
+        <div v-if="payBar" class="pay-bar" data-testid="bill-pay-bar">
+          <span class="pay-bar-text">{{ t('bill.total') }}<strong>{{ money(bill.totalPayableCents) }}</strong></span>
+          <button type="button" data-testid="bill-pay-bar-top" @click="toSummary"><AppIcon name="up" :size="20" />{{ t('bill.toSummary') }}</button>
+        </div>
+      </Transition>
     </div>
 
     <div v-else-if="unchecked" class="alert alert-warning">
