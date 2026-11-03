@@ -137,7 +137,7 @@ const cellLabel = (date, slot, state) => t('schedule.week.cell', { day: day(date
 .legend li { display: inline-flex; align-items: center; gap: 8px; }
 .legend .wk-mark { width: 24px; height: 24px; }
 
-.week-lists { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 20px; align-items: start; }
+.week-lists { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 20px; } /* cards in a row are the same height */
 .plain { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
 .plain li { display: flex; align-items: center; gap: 14px; padding: 12px 0; border-top: 1px solid var(--color-border); }
 .plain li:first-child { border-top: 0; padding-top: 0; }
