@@ -347,8 +347,8 @@ onBeforeUnmount(() => {
         <a v-for="id in SECTIONS" :key="id" :href="`#${id}`" :class="{ on: navActive === id }" :aria-current="navActive === id ? 'true' : null" @click.prevent="goTo(id)">{{ t(`landing.nav.${id}`) }}</a>
       </nav>
       <div class="lnav-acts">
-        <RouterLink :to="{ name: 'login' }" class="lnav-login">{{ t('nav.login') }}</RouterLink>
-        <RouterLink :to="{ name: 'login' }" class="cta sm"><HandLabel>{{ t('landing.try') }}</HandLabel></RouterLink>
+        <!-- One way in for a first-time visitor: Try me out, to Create an account (Log in is a link there). -->
+        <RouterLink :to="{ name: 'signup' }" class="cta sm"><HandLabel>{{ t('landing.try') }}</HandLabel></RouterLink>
       </div>
     </header>
 
@@ -374,7 +374,7 @@ onBeforeUnmount(() => {
             </div>
             <p class="lede">{{ t('landing.hero.lead') }}</p>
             <div class="ctas">
-              <RouterLink :to="{ name: 'login' }" class="cta" data-testid="landing-cta-hero"><HandLabel>{{ t('landing.try') }}</HandLabel></RouterLink>
+              <RouterLink :to="{ name: 'signup' }" class="cta" data-testid="landing-cta-hero"><HandLabel>{{ t('landing.try') }}</HandLabel></RouterLink>
               <button type="button" class="ghost" @click="scrollToScan">{{ t('landing.hero.how') }} <span aria-hidden="true">↓</span></button>
             </div>
           </div>
@@ -599,7 +599,7 @@ onBeforeUnmount(() => {
         </div>
       </div>
       <div class="final" data-testid="landing-final">
-        <RouterLink :to="{ name: 'login' }" class="big-cta" data-fall="5" data-a="0.45" data-b="0.88" data-r0="-30" data-dx="0" data-testid="landing-cta-final">
+        <RouterLink :to="{ name: 'signup' }" class="big-cta" data-fall="5" data-a="0.45" data-b="0.88" data-r0="-30" data-dx="0" data-testid="landing-cta-final">
           <span data-morph="in" data-ma="0.86" data-mb="0.98" class="big-face"><HandLabel>{{ t('landing.try') }}</HandLabel> <span aria-hidden="true">→</span></span>
           <span data-morph="out" data-ma="0.84" data-mb="0.96" class="capsule fill" :style="pill('coral')" aria-hidden="true"></span>
         </RouterLink>

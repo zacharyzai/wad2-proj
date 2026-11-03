@@ -62,22 +62,21 @@ test('signed in before, but the server no longer accepts that login: off to Log 
   expect(await page.evaluate(() => [localStorage.getItem('token'), localStorage.getItem('user')])).toEqual([null, null])
 })
 
-test('both "Try me out" buttons go to Log in (which then opens Home)', async ({ page }) => {
+test('every "Try me out" goes to Create an account; there is no separate Log in button', async ({ page }) => {
+  await page.goto('/welcome')
+  await expect(page.getByTestId('landing-nav').getByRole('link', { name: /^log in$/i })).toHaveCount(0)
+  await page.getByTestId('landing-nav').locator('.cta').click()
+  await expect(page).toHaveURL(/\/signup$/)
+
   await page.goto('/welcome')
   await page.getByTestId('landing-cta-hero').click()
-  await expect(page).toHaveURL(/\/login$/)
+  await expect(page).toHaveURL(/\/signup$/)
 
   await page.goto('/welcome')
   // It lands at the very end of the page. Retry: the router's scroll-to-top can still run just after load and undo one scroll.
   await expect.poll(() => page.evaluate(() => (window.scrollTo(0, document.body.scrollHeight), scrollY > 0))).toBe(true)
   await page.getByTestId('landing-cta-final').click()
-  await expect(page).toHaveURL(/\/login$/)
-
-  // Logging in from there opens Home, not Scan.
-  await mockAuth(page)
-  await fillLogin(page)
-  await expect(page).toHaveURL(/\/$/)
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('What would you like to do?')
+  await expect(page).toHaveURL(/\/signup$/)
 })
 
 test('the headline changes language on its own; tapping a language stops it and switches the page', async ({ page }) => {
@@ -315,9 +314,9 @@ test('scrolling stops at each section: the page snaps while it is open, and only
   await expect.poll(() => page.evaluate(() => Math.round(window.scrollY)), { timeout: 8000 }).toBeGreaterThan(scanTop - 4)
   await expect.poll(() => page.evaluate(() => Math.round(window.scrollY)), { timeout: 8000 }).toBeLessThan(scanTop + 4)
 
-  // Leaving the page (a link, not a reload) takes the snapping away: Login scrolls normally.
-  await page.getByTestId('landing-cta-hero').or(page.getByRole('link', { name: /log in|log masuk|登录|உள்நுழை/i }).first()).first().click()
-  await expect(page).toHaveURL(/\/login|\/signup/)
+  // Leaving the page (a link, not a reload) takes the snapping away: Create an account scrolls normally.
+  await page.getByTestId('landing-cta-hero').click()
+  await expect(page).toHaveURL(/\/signup$/)
   await expect(html).not.toHaveClass(/snap-sections/)
 })
 
