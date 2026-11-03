@@ -104,6 +104,62 @@ test('Scan first asks label or bill with two picture cards; picking one opens it
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('What would you like to scan today?')
 })
 
+test('the picture cards breathe at rest; with a mouse they rest in teal, and the one under it stops still in full colour, its arrow coral', async ({ page, isMobile }) => {
+  await page.goto('/scan')
+  const [label, bill] = [page.getByTestId('choose-medication'), page.getByTestId('choose-bill')]
+  const tint = (card) => card.locator('.pick-scene').evaluate((e) => getComputedStyle(e, '::after').opacity)
+  const breathing = (card) => card.locator('.pick-paper').evaluate((e) => [getComputedStyle(e).animationName.split('-')[0], getComputedStyle(e).animationPlayState].join(' ')) // scoped keyframes get a suffix: float-4a99…)
+  expect(await breathing(label)).toBe('float running')
+  expect(await breathing(bill)).toBe('float running')
+  if (isMobile) {
+    // No hover on a phone: both always in colour, and the tags give way so both cards fit on screen.
+    expect([await tint(label), await tint(bill)]).toEqual(['0', '0'])
+    await expect(label.locator('.pick-tags')).toBeHidden()
+    return
+  }
+  await expect(label.locator('.pick-chip')).toHaveText(['Tablets', 'Syrups', 'Creams'])
+  await expect(bill.locator('.pick-chip')).toHaveText(['Clinic', 'Hospital', 'Subsidies'])
+  expect([await tint(label), await tint(bill)]).toEqual(['0.88', '0.88'])
+  for (const [on, off] of [[label, bill], [bill, label]]) {
+    await on.hover()
+    await expect.poll(() => tint(on)).toBe('0')
+    expect(await breathing(on)).toBe('float paused') // still under the mouse
+    await expect(on.locator('.pick-arrow')).toHaveCSS('background-color', 'rgb(255, 127, 92)')
+    await expect.poll(() => tint(off)).toBe('0.88')
+    expect(await breathing(off)).toBe('float running')
+    await expect.poll(() => off.evaluate((e) => getComputedStyle(e).filter)).not.toBe('none') // the other steps back
+  }
+  // The keyboard gets the same as the mouse.
+  await page.mouse.move(0, 0)
+  await label.focus()
+  await page.keyboard.press('Tab')
+  await expect(bill).toBeFocused()
+  await expect.poll(() => tint(bill)).toBe('0')
+})
+
+for (const [kind, url] of [['medication', /\/scan\?type=medication$/], ['bill', /\/scan\?type=bill$/]]) {
+  test(`picking ${kind}: its own short picture plays first, then its scan page opens`, async ({ page }) => {
+    await page.goto('/scan')
+    await page.getByTestId(`choose-${kind}`).click()
+    const launch = page.getByTestId('scan-launch')
+    await expect(launch).toHaveAttribute('data-kind', kind)
+    await expect(launch).toHaveAttribute('aria-hidden', 'true') // decoration: the scan page says where you are
+    await expect(launch.locator('.sl-item')).toHaveCount(12)
+    await expect(page).toHaveURL(/\/scan$/) // still the question while it plays
+    await expect(page).toHaveURL(url)
+    await expect(launch).toHaveCount(0) // gone with the question
+  })
+}
+
+test('reduced motion: picking a card opens its scan page at once, with no picture', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await page.goto('/scan')
+  await page.getByTestId('choose-bill').click()
+  await expect(page).toHaveURL(/\/scan\?type=bill$/)
+  await expect(page.getByTestId('scan-launch')).toHaveCount(0)
+  expect(await page.getByTestId('choose-bill').count()).toBe(0)
+})
+
 test('the privacy line sits right under the photo buttons', async ({ page }) => {
   await page.goto('/scan?type=medication')
   const [upload, privacy] = await Promise.all([page.locator('.dz-card').boundingBox(), page.getByText('blacked out on this device').boundingBox()])

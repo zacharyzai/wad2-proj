@@ -152,7 +152,9 @@
       "evening": "Selamat malam"
     },
     "ask": {
-      "text": "Tanya soalan tentang ubat anda dalam bahasa anda sendiri."
+      "text": "Tanya soalan tentang ubat anda dalam bahasa anda sendiri.",
+      "demoQ": "Boleh saya ambil bersama makanan?",
+      "demoA": "Boleh. Ambil selepas makan."
     },
     "lastBill": "Bil terakhir anda",
     "today": {
@@ -161,7 +163,9 @@
       "noMeds": "Imbas label ubat dan kami akan ingatkan anda bila perlu mengambilnya.",
       "missed": "{n} dos tadi belum ditanda | {n} dos tadi belum ditanda",
       "saved": "Ditanda sebagai sudah diambil.",
-      "loadFailed": "Kami tidak dapat menyemak dos hari ini sekarang. Buka jadual anda untuk melihatnya."
+      "loadFailed": "Kami tidak dapat menyemak dos hari ini sekarang. Buka jadual anda untuk melihatnya.",
+      "nextChip": "Seterusnya",
+      "rest": "Tiada lagi ubat untuk diambil hari ini."
     }
   },
   "scan": {
@@ -337,12 +341,22 @@
       "question": "Apakah yang anda mahu imbas hari ini?",
       "medication": {
         "title": "Label ubat",
-        "text": "Tablet, sirap, krim",
+        "text": "Untuk apa, dan bila perlu diambil.",
+        "tags": [
+          "Tablet",
+          "Sirap",
+          "Krim"
+        ],
         "go": "Imbas label"
       },
       "bill": {
         "title": "Bil perubatan",
-        "text": "Jumlah bayaran dan subsidi",
+        "text": "Jumlah bayaran, dan bantuan yang boleh didapati.",
+        "tags": [
+          "Klinik",
+          "Hospital",
+          "Subsidi"
+        ],
         "go": "Imbas bil"
       },
       "pending": "Gambar anda sudah sedia. Apakah ia? Ketik satu untuk mengimbasnya.",
@@ -1294,7 +1308,36 @@
       "timesHelp": "Untuk menukar waktu, buka Ubat saya dan pilih Ubah."
     },
     "supply": "Daripada label: {qty}, {per} sehari, jadi ia cukup untuk {days} hari. | Daripada label: {qty}, {per} sehari, jadi ia cukup untuk {days} hari.",
-    "limit": "Daripada label: {qty}. Label menyatakan jangan gunakan lebih daripada {days} hari, jadi dijadualkan untuk {days} hari."
+    "limit": "Daripada label: {qty}. Label menyatakan jangan gunakan lebih daripada {days} hari, jadi dijadualkan untuk {days} hari.",
+    "plan": {
+      "title": "Ubat hari ini",
+      "total": "Dos hari ini",
+      "taken": "Sudah ambil",
+      "done": "siap"
+    },
+    "medsCount": "{n} ubat | {n} ubat",
+    "noneOnDay": "Tiada ubat pada hari ini.",
+    "strip": {
+      "label": "Pilih hari",
+      "today": "Kembali ke hari ini",
+      "notTicked": "{n} dos terlepas minggu ini. | {n} dos terlepas minggu ini.",
+      "state": {
+        "ok": "semua sudah diambil",
+        "not": "ada dos terlepas",
+        "open": "akan datang",
+        "none": "tiada ubat"
+      }
+    },
+    "day": {
+      "later": "Akan datang. Tandakan pada hari itu.",
+      "allTaken": "Semua sudah diambil. Syabas!",
+      "missed": "{n} dos terlepas pada hari ini. | {n} dos terlepas pada hari ini.",
+      "missedState": "Terlepas"
+    },
+    "ask": {
+      "title": "Sudah ambil {name}?",
+      "when": "Masa ambil: {time}."
+    }
   },
   "start": {
     "title": "Cara lebih mudah untuk memahami ubat dan bil anda.",

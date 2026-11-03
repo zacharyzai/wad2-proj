@@ -1,7 +1,8 @@
 /* Scoped styles for components/schedule/TodayList.vue (time-of-day colours: views/ScheduleSlots.css). */
 /* What's due now: in the time of day's own colour, so it reads as "this compartment, now". */
 .due { display: flex; flex-direction: column; gap: 16px; padding: 20px; border-radius: var(--r-card); background: var(--band); border: 2px solid var(--edge); box-shadow: var(--shadow-hover); color: var(--color-text); }
-.due .slot-tile { color: var(--ink); border-color: var(--edge); }
+.due .slot-tile { color: var(--ink); border-color: var(--edge); animation: bob 2.6s ease-in-out infinite; } /* due now: it moves a little */
+@keyframes bob { 50% { transform: translateY(-3px) rotate(-4deg); } }
 .due-title { margin: 0; font-size: var(--t22, 22px); font-weight: 800; line-height: 1.3; color: var(--ink); overflow-wrap: anywhere; }
 /* Several due together: one row each, the medicine and its own button. */
 .due-list { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px; }
@@ -11,59 +12,105 @@
 .due .btn { align-self: flex-start; }
 @media (max-width: 575.98px) { .due .btn, .due-list .badge { align-self: stretch; flex: 1 1 100%; justify-content: center; } }
 
-/* Progress: the ring fills as doses are ticked (the words beside it say the same thing). */
-.progress-card { display: flex; align-items: center; gap: 18px; padding: 18px 20px; border-radius: var(--r-card); background: var(--gradient-result); border: 1px solid var(--color-border); box-shadow: var(--shadow-card); }
-.ring { width: 72px; height: 72px; flex: none; }
-.ring circle { fill: none; stroke-width: 8; }
-.ring-track { stroke: var(--color-surface-2); }
-.ring-fill { stroke: var(--color-primary); stroke-linecap: round; transform: rotate(-90deg); transform-origin: 36px 36px; transition: stroke-dashoffset 300ms var(--ease-out), stroke 200ms ease; }
-.ring-fill.full { stroke: var(--color-success); }
-.ring-num { fill: var(--color-primary-text); font-family: var(--font-sans); font-size: 17px; font-weight: 800; font-variant-numeric: tabular-nums; }
+/* Progress: today's plan, in a soft teal-to-blue card; the two numbers, the words, and a ring that fills (the words say it all). */
+.progress-card { position: relative; overflow: hidden; display: flex; align-items: center; gap: 16px; padding: 20px 22px; border-radius: var(--r-card); background: linear-gradient(135deg, #1a7070 0%, #2f86b8 100%); color: #fff; box-shadow: 0 18px 40px -18px rgba(26, 90, 140, 0.55); animation: plan-in 520ms var(--ease-settle) both; }
+.progress-card::after { content: ''; position: absolute; right: -60px; top: -70px; width: 200px; height: 200px; border-radius: 50%; background: radial-gradient(circle, rgba(255, 255, 255, 0.22), transparent 70%); animation: glow 9s ease-in-out infinite alternate; pointer-events: none; }
+.pc-words { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.pc-title { font-size: var(--t21, 21px); font-weight: 800; }
+.pc-stats { display: flex; gap: 28px; }
+.pc-stats span { display: flex; flex-direction: column; }
+.pc-stats small { font-size: 15px; opacity: 0.85; }
+.pc-stats b { font-family: var(--font-display); font-weight: 400; font-size: 30px; line-height: 1.1; font-variant-numeric: tabular-nums lining-nums; }
 .progress-words { font-size: var(--fs-lead); line-height: 1.35; }
+.pc-next { font-size: 16px; opacity: 0.9; }
+.ring { width: 104px; height: 104px; flex: none; }
+.ring circle { fill: none; stroke-width: 7; }
+.ring-track { stroke: rgba(255, 255, 255, 0.25); }
+.ring-fill { stroke: #8ff0e6; stroke-linecap: round; transform: rotate(-90deg); transform-origin: 36px 36px; }
+.ring-fill.full { stroke: #b9f5c9; }
+.ring-num { fill: #fff; font-family: var(--font-sans); font-size: 17px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.ring-sub { fill: #fff; opacity: 0.85; font-family: var(--font-sans); font-size: 8px; font-weight: 600; }
+@keyframes plan-in { from { opacity: 0; transform: translateY(10px); } }
+@keyframes glow { to { transform: translate(-30px, 30px) scale(1.2); } }
 
-
-.slot-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 400px), 1fr)); gap: 20px; align-items: start; }
-
-/* One card per time of day. Due now: a thick edge in the compartment's colour. Later today: toned down, still tickable. */
-.slot-card { display: flex; flex-direction: column; padding: 18px 18px 6px; border-radius: var(--r-card); background: var(--color-card); border: 1px solid var(--color-border); box-shadow: var(--shadow-card); }
-.slot-card.is-now { border: 2px solid var(--edge); padding: 17px 17px 5px; box-shadow: var(--shadow-hover); }
-.slot-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding-bottom: 12px; }
-.slot-name { flex: 1 1 auto; min-width: 0; margin: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 10px; font-size: var(--t21, 21px); font-weight: 800; line-height: 1.3; }
-.slot-clock { font-size: var(--t18, 18px); font-weight: 600; color: var(--color-text-muted); font-variant-numeric: tabular-nums; }
+.slot-grid { display: flex; flex-direction: column; gap: 22px; }
+.slot-clock { margin-left: 8px; font-size: var(--t17, 17px); font-weight: 600; color: var(--color-text-muted); font-variant-numeric: tabular-nums; }
 .slot-state { flex: none; }
 .slot-state.state-now { background: var(--ink); color: var(--band); border-color: var(--ink); }
 .slot-state.state-later { background: var(--color-card); color: var(--color-text-muted); }
 .slot-state.state-earlier { background: var(--color-warning-bg); color: var(--color-warning-text); border-color: var(--color-warning-border); }
 .slot-state.state-done { background: var(--color-success-bg); color: var(--color-success-text); border-color: var(--color-success-border); }
-.slot-note { padding-bottom: 10px; font-size: 16px; font-weight: 600; color: var(--color-warning-text); }
+.slot-note { font-size: 16px; font-weight: 600; color: var(--color-warning-text); }
+/* Due now: its cards get the compartment's edge. */
+.is-now .dose:not(.done) { border: 2px solid var(--edge); padding: 13px 13px 13px 15px; }
 
-.doses { list-style: none; margin: 0; padding: 0; }
-.doses > li { border-top: 1px solid var(--color-border); }
-
-/* The tick: a box that fills with a tick, the medicine's name (the button) and a word. The button's ::after covers the whole
-   row, so anywhere on it ticks; focus and press show on the row. */
-.dose { position: relative; display: flex; align-items: center; gap: 14px; padding: 12px 0; border-radius: var(--r-tile); -webkit-tap-highlight-color: transparent; }
+/* The tick: the medicine's name is the button, and its ::after covers the whole card, so anywhere on it ticks (a big
+   target for unsteady hands); focus and press show on the card. The state on the right says what tapping does. */
+.dose { -webkit-tap-highlight-color: transparent; transition: border-color 200ms ease, box-shadow 200ms ease, transform 120ms var(--ease-out); }
 .dose:has(.dose-btn:focus-visible) { box-shadow: var(--focus-ring); }
-.dose-btn { position: static; padding: 0; border: 0; background: none; color: var(--color-text); font: inherit; font-size: var(--t19, 19px); font-weight: 700; line-height: 1.3; text-align: left; overflow-wrap: anywhere; cursor: pointer; }
+.dose:not(.busy):active { transform: scale(0.985); }
+.dose-btn { position: static; padding: 0; border: 0; background: none; color: var(--color-text); font: inherit; font-size: var(--t20, 20px); font-weight: 800; line-height: 1.25; text-align: left; overflow-wrap: anywhere; cursor: pointer; }
 .dose-btn::after { content: ''; position: absolute; inset: 0; border-radius: inherit; }
 .dose-btn:focus-visible { outline: none; }
 .dose-btn:disabled { cursor: progress; }
-.box { width: 52px; height: 52px; flex: none; display: grid; place-items: center; border-radius: var(--r-tile); border: 2px solid var(--color-border-strong); background: var(--color-card); color: var(--color-on-primary); transition: background-color 160ms ease, border-color 160ms ease, box-shadow 160ms ease, transform 120ms var(--ease-out); }
-.box :deep(svg) { opacity: 0; transform: scale(0.6); transition: opacity 160ms var(--ease-out), transform 200ms var(--ease-out); }
-.dose:not(.busy):active .box { transform: scale(0.94); } /* presses in under the finger */
-.dose.busy .box { border-style: dashed; }
-.dose.done .box { background: var(--color-primary); border-color: var(--color-primary); box-shadow: var(--shadow-glow); }
-.dose.done .box :deep(svg) { opacity: 1; transform: none; }
-.is-earlier .dose:not(.done) .box { border-color: var(--color-warning); background: var(--color-warning-bg); }
-.dose-info { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 3px; }
+.dose-detail { font-size: 16px; line-height: 1.4; color: var(--color-text-muted); }
+.pill-tap { border: 2px solid var(--color-primary); color: var(--color-primary-text); background: var(--color-card); }
+.dose.busy .pill-tap { border-style: dashed; }
+.is-earlier .dose:not(.done) .pill-tap { border-color: var(--color-warning); color: var(--color-warning-text); background: var(--color-warning-bg); }
 .is-later .dose:not(.done) .dose-btn { color: var(--color-text-muted); }
-.dose-detail { font-size: var(--t17, 17px); line-height: 1.4; color: var(--color-text-muted); }
-.dose-word { display: inline-flex; align-items: center; gap: 6px; margin-top: 2px; font-size: 16px; font-weight: 600; color: var(--color-text-muted); }
-.dose.done .dose-word { padding: 1px 10px; border-radius: var(--r-pill); background: var(--color-success-bg); border: 1px solid var(--color-success-border); color: var(--color-success-text); font-weight: 700; }
-.early { margin-bottom: 12px; }
+.dose.done { border-color: color-mix(in srgb, var(--color-primary) 35%, var(--color-border)); }
+/* Ticked: the state pops in, and a ring spreads from it once. */
+.pop { animation: pop 420ms cubic-bezier(0.3, 1.6, 0.5, 1); }
+@keyframes pop { 0% { scale: 0.6; } 60% { scale: 1.12; box-shadow: 0 0 0 10px color-mix(in srgb, var(--color-primary) 18%, transparent); } }
 .need-link { text-decoration: none; align-items: center; }
 
 @media (prefers-reduced-motion: reduce) {
-  .ring-fill, .box, .box :deep(svg) { transition: none; }
-  .dose:not(.busy):active .box { transform: none; }
+  .progress-card, .progress-card::after, .due .slot-tile, .pop { animation: none; }
+  .dose, .dose:not(.busy):active { transition: none; transform: none; }
 }
+
+/* "Did you take it?": a calm pop-up that springs up, the pill bobbing inside two soft rings, then two big choices. */
+.take-ask { width: min(420px, calc(100% - 32px)); max-height: calc(100dvh - 32px); padding: 0; margin: auto; overflow: auto; border: 0; border-radius: var(--r-card); background: var(--color-card); color: var(--color-text); box-shadow: 0 24px 64px rgba(0, 0, 0, 0.28); }
+.take-ask[open] { animation: ask-pop 400ms cubic-bezier(0.3, 1.4, 0.5, 1) both; }
+.take-ask::backdrop { background: rgba(20, 18, 16, 0.55); animation: ask-fade 220ms ease-out both; }
+.ask-card { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 24px 22px 22px; text-align: center; }
+.ask-art { position: relative; display: grid; place-items: center; width: 124px; height: 112px; margin-bottom: 4px; }
+.ask-ring { position: absolute; inset: 8px; border-radius: 50%; border: 3px solid var(--color-tint-strong); animation: ask-ring 1.8s ease-out infinite; }
+.ask-ring.two { animation-delay: 0.9s; }
+.ask-pill { position: relative; animation: ask-bob 1.8s ease-in-out infinite; }
+.ask-title { margin: 0; font-family: var(--font-display); font-weight: 400; font-size: var(--t26, 26px); line-height: 1.2; text-wrap: balance; overflow-wrap: anywhere; }
+:lang(ta) .ask-title { font-family: var(--font-sans); font-weight: 800; font-size: 22px; }
+.ask-dose { margin: 0; font-size: 18px; font-weight: 700; }
+.ask-text { margin: 0; font-size: 17px; line-height: 1.5; color: var(--color-text-muted); text-wrap: pretty; }
+.ask-acts { width: 100%; display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+.ask-acts .btn { width: 100%; border-radius: var(--r-pill); }
+@keyframes ask-pop { from { opacity: 0; transform: translateY(26px) scale(0.9); } }
+@keyframes ask-fade { from { opacity: 0; } }
+@keyframes ask-bob { 0%, 100% { transform: translateY(0) rotate(-12deg); } 50% { transform: translateY(-8px) rotate(8deg); } }
+@keyframes ask-ring { from { transform: scale(0.6); opacity: 0.9; } to { transform: scale(1.2); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .take-ask[open], .take-ask::backdrop, .ask-ring, .ask-pill { animation: none; } }
+
+/* Success after a tick, quick and plain: a soft glow sweeps the whole card from its left edge to its right at one speed
+   (0.7 s), its front edge brightest, then fades. The moment the front edge reaches the ring (--arrive, worked out in
+   TodayList.vue from where the ring is: --rx, --ry), it is logged: two rings ripple out of the progress ring, the ring
+   glows, the card's edge flashes green, "+1" floats up from Taken, and the % counts up. */
+.pc-sweep { position: absolute; inset: 0; z-index: 2; pointer-events: none; overflow: hidden; border-radius: inherit; }
+.pc-trail { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(185, 245, 201, 0.04) 0%, rgba(185, 245, 201, 0.16) 60%, rgba(185, 245, 201, 0.34) 100%); animation: trail 700ms linear both, trail-out 500ms var(--ease-out) 700ms forwards; }
+.pc-trail::after { content: ''; position: absolute; top: 0; bottom: 0; right: -28px; width: 56px; background: linear-gradient(90deg, transparent, rgba(220, 255, 230, 0.6), transparent); } /* the bright front edge */
+.pc-ripple { position: absolute; left: 0; top: 0; width: 104px; height: 104px; margin: -52px 0 0 -52px; border-radius: 50%; border: 3px solid #b9f5c9; transform: translate(var(--rx), var(--ry)); opacity: 0; animation: ripple 800ms var(--ease-out) var(--arrive) both; }
+.pc-ripple.late { animation-delay: calc(var(--arrive) + 180ms); }
+.progress-card > :not(.pc-sweep) { position: relative; z-index: 1; }
+.progress-card { transition: box-shadow 300ms var(--ease-out); }
+.progress-card.logged { box-shadow: inset 0 0 0 3px rgba(185, 245, 201, 0.9), 0 0 0 4px rgba(185, 245, 201, 0.35), 0 18px 40px -18px rgba(26, 90, 140, 0.55); }
+.ring { transition: filter 300ms var(--ease-out), scale 300ms var(--ease-settle); }
+.ring.landed { filter: drop-shadow(0 0 12px rgba(185, 245, 201, 0.9)); scale: 1.08; }
+.pc-taken { position: relative; }
+.pc-stats b.bump { animation: bump 500ms var(--ease-settle) var(--arrive, 500ms) both; }
+.pc-plus { position: absolute; left: calc(100% + 4px); bottom: 4px; font-size: 22px; font-weight: 800; color: #b9f5c9; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3); opacity: 0; animation: plus 1200ms var(--ease-out) var(--arrive, 500ms) both; }
+/* The glow: from off the left edge to covering the card, its front edge moving at one speed; then it fades. */
+@keyframes trail { from { transform: translateX(-100%); } to { transform: translateX(0); } }
+@keyframes trail-out { to { opacity: 0; } }
+@keyframes ripple { 0% { scale: 1; opacity: 0.9; } 100% { scale: 1.7; opacity: 0; } }
+@keyframes plus { 0% { translate: 0 6px; opacity: 0; } 20% { translate: 0 0; opacity: 1; } 75% { opacity: 1; } 100% { translate: 0 -16px; opacity: 0; } }
+@keyframes bump { 50% { scale: 1.3; color: #b9f5c9; } }
+@media (prefers-reduced-motion: reduce) { .pc-sweep, .pc-plus { display: none; } .pc-stats b.bump { animation: none; } .ring, .progress-card { transition: none; } .ring.landed { filter: none; scale: none; } }

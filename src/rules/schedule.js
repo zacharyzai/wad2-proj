@@ -153,10 +153,10 @@ export function dosesOn(entries, date) {
     .sort((a, b) => a.time.localeCompare(b.time) || a.label.localeCompare(b.label))
 }
 
-// Monday to Sunday of the week `date` is in (Singapore days, as everywhere here).
+// Sunday to Saturday of the week `date` is in, as on a calendar on the wall (Singapore days, as everywhere here).
 export function weekOf(date) {
-  const monday = addDays(date, -((new Date(`${date}T00:00:00Z`).getUTCDay() + 6) % 7))
-  return Array.from({ length: 7 }, (_, i) => addDays(monday, i))
+  const sunday = addDays(date, -new Date(`${date}T00:00:00Z`).getUTCDay())
+  return Array.from({ length: 7 }, (_, i) => addDays(sunday, i))
 }
 
 // The week at a glance (Schedule, This week). One row per medicine and time of day ("Metformin 500 mg, Morning"), so a

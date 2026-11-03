@@ -34,3 +34,12 @@
 @media (min-width: 992px) {
   .toast-slot { bottom: 32px; left: 248px; }
 }
+
+/* Today: picking another day slides its list in from that side (later days from the right), the old one out the other way. */
+.day-later-enter-active, .day-earlier-enter-active { transition: opacity 260ms var(--ease-out), transform 320ms var(--ease-settle); }
+.day-later-leave-active, .day-earlier-leave-active { transition: opacity 140ms ease-in, transform 140ms ease-in; }
+.day-later-enter-from, .day-earlier-leave-to { opacity: 0; transform: translateX(28px); }
+.day-later-leave-to, .day-earlier-enter-from { opacity: 0; transform: translateX(-28px); }
+@media (prefers-reduced-motion: reduce) {
+  .day-later-enter-active, .day-earlier-enter-active, .day-later-leave-active, .day-earlier-leave-active { transition: none; }
+}

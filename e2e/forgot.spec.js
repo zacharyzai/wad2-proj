@@ -93,7 +93,7 @@ test('Forgot and Reset have no missing translations in any language @i18n', asyn
   for (const path of ['/forgot', '/reset#token=a.b.c', '/reset']) {
     await page.goto(path)
     for (const language of ['中文', 'BM', 'தமிழ்', 'EN']) {
-      await page.getByRole('button', { name: language, exact: true }).click()
+      await page.getByRole('button', { name: new RegExp(`^${language}( |$)`) }).click() // "BM Bahasa Melayu", "EN English": the short name, then the full one
       await expect(page.locator('main')).not.toContainText(/\b(auth|common|errors|pages)\.[A-Za-z.]+/)
     }
   }

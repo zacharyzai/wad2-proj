@@ -1,13 +1,13 @@
-<!-- Owner: Lokesh (redesigned by Claude from the Claude Design "Schedule" screens, declared in README.txt). Medicine schedule in
-     four tabs, each its own address (?view=week | meds | reminders), so Back works:
-       Today        what's due now, the day's progress, and a tick for every dose (components/schedule/TodayList.vue)
-       This week    Monday to Sunday at a glance (components/schedule/WeekView.vue)
-       My medicines one card per medicine (MedicineCard.vue, EditDaysForm.vue) and the pharmacist list (PharmacistList.vue)
-       Reminders    Google Calendar alerts (CalendarSync.vue) and the day's dose times (RemindersPanel.vue)
+<!-- Owner: Lokesh (redesigned by Claude from the Claude Design "Schedule" screens, declared in README.txt; Today and This week
+     made one view, Reminders folded into My medicines, by Asher). Medicine schedule in two tabs (?view=meds), so Back works:
+       Today        the week as a strip of days (DayStrip.vue); today below it: what's due, the day's progress and a card
+                    for every dose (TodayList.vue); another day: what was taken or is coming (DayOther.vue)
+       My medicines one card per medicine (MedicineCard.vue, EditDaysForm.vue), the pharmacist list (PharmacistList.vue),
+                    and Google Calendar reminders (CalendarSync.vue). Old links to This week or Reminders open these.
      This page keeps what the tabs share: the header, which card has a panel open, Remove and Stop with Undo, and the toast.
      Times come from src/rules/schedule.js (our own rules, never AI). Ticks are in stores/doses.js. -->
 <script setup>
-import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useI18n } from 'vue-i18n'
@@ -20,16 +20,16 @@ import { buildSchedule, stopCourse, supplyDays } from '../rules/schedule'
 import EmptyState from '../components/layout/EmptyState.vue'
 import AppIcon from '../components/layout/AppIcon.vue'
 import CalendarSync from '../components/schedule/CalendarSync.vue'
-import WeekView from '../components/schedule/WeekView.vue'
+import DayStrip from '../components/schedule/DayStrip.vue'
+import DayOther from '../components/schedule/DayOther.vue'
 import TodayList from '../components/schedule/TodayList.vue'
 import MedicineCard from '../components/schedule/MedicineCard.vue'
 import PharmacistList from '../components/schedule/PharmacistList.vue'
-import RemindersPanel from '../components/schedule/RemindersPanel.vue'
 
 const { medicines, setSchedule, forgetMedicine, restoreMedicine } = useMedicinesStore()
 const scanStore = useScanStore()
 const doses = useDosesStore()
-const { today, nowTime, taken } = storeToRefs(doses)
+const { today } = storeToRefs(doses)
 const { toast, notify } = useToast()
 const { dateText } = useScheduleText()
 
@@ -38,9 +38,21 @@ const router = useRouter()
 const route = useRoute()
 
 // Which tab: in the address, so Back returns to it and a link can open it. Unknown values show Today.
-const VIEWS = ['today', 'week', 'meds', 'reminders']
-// Back from Google (?google=connected) opens Reminders, where the calendar card is; CalendarSync then tidies the address.
-const view = computed(() => (route.query.google !== undefined ? 'reminders' : VIEWS.includes(route.query.view) ? route.query.view : 'today'))
+// Old links: This week is the strip on Today now; Reminders (the calendar card) is on My medicines.
+const VIEWS = ['today', 'meds']
+const OLD = { week: 'today', reminders: 'meds' }
+// Back from Google (?google=connected) opens My medicines, where the calendar card is; CalendarSync then tidies the address.
+const view = computed(() => (route.query.google !== undefined ? 'meds' : OLD[route.query.view] ?? (VIEWS.includes(route.query.view) ? route.query.view : 'today')))
+
+// The day shown under the strip: today, unless another day is picked. Back to today when the day changes.
+const day = ref(today.value)
+watch(today, (now) => (day.value = now))
+// The day's list slides in from the side of the day picked (later days from the right).
+const slide = ref('later')
+function pickDay(date) {
+  slide.value = date > day.value ? 'later' : 'earlier'
+  day.value = date
+}
 const viewLink = (v) => ({ query: v === 'today' ? {} : { view: v } })
 // Keyboard users never lose their place: after the page updates, focus moves to the element that now matters.
 const pageEl = ref(null) // template ref (Week 4): look only inside this page, never the whole document
@@ -174,11 +186,6 @@ function startAgain(medicine) {
   notify(t('schedule.stop.back', { name: nameOf(medicine.medication) }))
 }
 
-// "I took it" on This week for a dose today: saved like a tick on Today.
-async function tickToday(dose) {
-  if ((await doses.toggle(dose, true)) === 'failed') notify(t('schedule.tickFailed'), true)
-}
-
 onBeforeUnmount(() => {
   clearTimeout(undoTimer)
   clearTimeout(stopTimer)
@@ -201,15 +208,17 @@ onBeforeUnmount(() => {
     <nav v-if="medicines.length" class="tabs" :aria-label="t('pages.schedule')">
       <RouterLink v-for="v in VIEWS" :key="v" :to="viewLink(v)" class="tab" :aria-current="view === v ? 'page' : null" :data-testid="`tab-${v}`">{{ t(`schedule.tab.${v}`) }}</RouterLink>
     </nav>
-    <p v-if="view === 'reminders'" class="lead m-0">{{ t('schedule.rem.lead') }}</p>
-
-    <EmptyState v-if="!medicines.length && view !== 'reminders'" :title="t('schedule.empty.title')" :text="t('schedule.empty.text')" icon="calendar">
+    <EmptyState v-if="!medicines.length" :title="t('schedule.empty.title')" :text="t('schedule.empty.text')" icon="calendar">
       <RouterLink :to="{ name: 'scan', query: { type: 'medication' } }" class="btn btn-primary"><AppIcon name="scan" />{{ t('soon.scanMed') }}</RouterLink>
     </EmptyState>
 
-    <TodayList v-else-if="view === 'today'" :entries="entries" :need-days="needDays" @notify="notify" />
-
-    <WeekView v-else-if="view === 'week'" :entries="entries" :today="today" :now="nowTime" :taken-today="taken" :flagged="flagged" @toggle="tickToday" />
+    <div v-else-if="view === 'today'" class="d-flex flex-column gap-4">
+      <DayStrip :entries="entries" :selected="day" @select="pickDay" />
+      <Transition :name="`day-${slide}`" mode="out-in">
+        <TodayList v-if="day === today" key="today" :entries="entries" :need-days="needDays" @notify="notify" />
+        <DayOther v-else :key="day" :entries="entries" :date="day" />
+      </Transition>
+    </div>
 
     <div v-else-if="view === 'meds'" class="d-flex flex-column gap-4">
       <section v-if="timetable.length" aria-labelledby="meds-title" data-testid="schedule-meds">
@@ -239,11 +248,11 @@ onBeforeUnmount(() => {
       <PharmacistList v-if="flagged.length" :rows="flagged" :managing="managing" @manage="toggleManage" @fix="fix" @remove="remove" />
     </div>
 
-    <!-- One calendar card, always mounted (hidden off this page): every edit or Remove still reaches Google, even removing
-         the last medicine (its reminders are deleted), and switching tabs doesn't ask Google again. -->
-    <div v-show="view === 'reminders'" class="rem-grid">
+    <!-- Reminders on the phone's own calendar, under My medicines. One card, always mounted (hidden on Today): every edit
+         or Remove still reaches Google, even removing the last medicine (its reminders are deleted), and switching tabs
+         doesn't ask Google again. -->
+    <div v-show="view === 'meds'" class="rem-grid">
       <CalendarSync class="g-cal" :entries="entries" @notify="notify" />
-      <RemindersPanel :rows="timetable" />
     </div>
 
     <!-- Always in the page, so screen readers announce what appears in it. -->

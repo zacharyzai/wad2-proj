@@ -44,6 +44,33 @@ test('reduced motion: the capsule stays still', async ({ page }) => {
   const capsule = page.getByTestId('home-capsule')
   await expect(capsule).toHaveAttribute('aria-hidden', 'true') // decoration: the greeting says hello in words
   expect(await capsule.locator('.spin').evaluate((el) => getComputedStyle(el).animationName)).toBe('none')
+  // Nor does it get up to anything on its own, or when tapped.
+  await page.clock.install()
+  await page.clock.runFor(30_000)
+  await capsule.click()
+  await expect(capsule).toHaveAttribute('data-action', '')
+})
+
+test('the capsule is alive: it does different things on its own, and waves hello when tapped', async ({ page }) => {
+  await page.clock.install()
+  await page.goto('/')
+  const capsule = page.getByTestId('home-capsule')
+  await expect(capsule).toHaveAttribute('data-action', '') // first it arrives and waves
+  // Note every change (a blink lasts half a second, so sampling could miss it), over half a minute.
+  await capsule.evaluate((el) => {
+    window.__acts = []
+    new MutationObserver(() => el.dataset.action && window.__acts.push(el.dataset.action)).observe(el, { attributes: true, attributeFilter: ['data-action'] })
+  })
+  await page.clock.runFor(30_000)
+  const seen = new Set(await page.evaluate(() => window.__acts))
+  expect(seen.size).toBeGreaterThanOrEqual(2) // more than one kind of thing, without anyone touching it
+  for (const a of seen) expect(['blink', 'look', 'hop', 'wiggle', 'turn', 'stretch', 'wave']).toContain(a)
+
+  await capsule.click()
+  await expect(capsule).toHaveAttribute('data-action', 'hello')
+  await expect(capsule.locator('.actor .happy')).toHaveCSS('opacity', '1') // happy eyes while it waves
+  await page.clock.runFor(3_000)
+  await expect(capsule).not.toHaveAttribute('data-action', 'hello') // then back to its own things
 })
 
 test('the greeting uses the name on the account', async ({ page }) => {
@@ -71,7 +98,7 @@ async function seed(page, list) {
   }, list)
 }
 async function mockDoses(page, { at, taken = [], failChanges = false }) {
-  await page.clock.setFixedTime(new Date(`${TODAY}T${at}:00+08:00`))
+  if (at) await page.clock.setFixedTime(new Date(`${TODAY}T${at}:00+08:00`)) // at: null leaves the clock alone (for clock.install)
   const ticks = new Set(taken)
   const sent = []
   await page.route('**/api/doses**', (route) => {
@@ -99,7 +126,8 @@ test('Today: the dose due now is taken from Home, and the card turns to what is 
   await page.goto('/')
   const due = page.getByTestId('home-today-due')
   await expect(due).toContainText('Time for Metformin 500 mg')
-  await expect(due).toContainText('1 tablet · After food')
+  await expect(due).toContainText('1 tablet') // how much, in the pill's tile
+  await expect(due).toContainText('After food')
   await expect(page.getByTestId('home-today-progress')).toHaveText('0 of 2 doses taken')
   await page.getByTestId('home-today-take').click()
   await expect(page.getByTestId('home-today-status')).toHaveText('Marked as taken.')
@@ -147,4 +175,54 @@ test('desktop puts Today\'s medicines beside the greeting; phones put it under',
   const today = await page.getByTestId('home-today').boundingBox()
   if (isMobile) expect(today.y).toBeGreaterThan(greet.y + greet.height)
   else expect(Math.abs(today.y - greet.y)).toBeLessThan(2)
+})
+
+test('Today: one reminder, the next pill, with a bell that rings with the capsule and opens Schedule', async ({ page }) => {
+  await page.clock.install({ time: new Date(`${TODAY}T08:10:00+08:00`) })
+  await seed(page, [METFORMIN])
+  await mockDoses(page, { at: null })
+  await page.goto('/')
+  const card = page.getByTestId('home-today')
+  await expect(page.getByTestId('home-today-due')).toBeVisible()
+  await expect(card.getByText('Metformin 500 mg', { exact: true })).toHaveCount(1) // the next pill only, not the whole day
+  await expect(page.getByTestId('home-today-bell')).toHaveAccessibleName('Take now. Open my schedule') // a bell, named in words
+  const bell = page.getByTestId('home-today-bell')
+  // It rings each time the greeting's capsule does something.
+  await bell.evaluate((el) => {
+    window.__rang = 0
+    window.__moved = 0
+    new MutationObserver(() => el.classList.contains('ringing') && window.__rang++).observe(el, { attributes: true, attributeFilter: ['class'] })
+    const capsule = document.querySelector('[data-testid="home-capsule"]')
+    new MutationObserver(() => capsule.dataset.action && capsule.dataset.action !== 'hello' && window.__moved++).observe(capsule, { attributes: true, attributeFilter: ['data-action'] })
+  })
+  await page.clock.runFor(20_000)
+  const [rang, moved] = await page.evaluate(() => [window.__rang, window.__moved])
+  expect(moved).toBeGreaterThanOrEqual(2)
+  expect(rang).toBe(moved) // once for each thing the capsule did
+  // Tapping the bell opens Schedule (after its short picture).
+  await page.clock.resume()
+  await bell.click()
+  await expect(page).toHaveURL(/\/schedule$/)
+})
+
+test('Today: with reduced motion the bell stays still', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await page.clock.install({ time: new Date(`${TODAY}T08:10:00+08:00`) })
+  await seed(page, [METFORMIN])
+  await mockDoses(page, { at: null })
+  await page.goto('/')
+  await expect(page.getByTestId('home-today-bell')).toBeVisible()
+  await page.clock.runFor(30_000)
+  await expect(page.getByTestId('home-today-bell')).not.toHaveClass(/ringing/)
+})
+
+test('desktop: Today\'s medicines is the same size as the greeting beside it', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'side by side on computers only')
+  await seed(page, [METFORMIN])
+  await mockDoses(page, { at: '08:10' })
+  await page.goto('/')
+  await expect(page.getByTestId('home-today-due')).toBeVisible()
+  const greet = await page.locator('.greet-panel').boundingBox()
+  const today = await page.getByTestId('home-today').boundingBox()
+  expect(Math.abs(today.height - greet.height)).toBeLessThan(2)
 })

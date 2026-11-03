@@ -152,7 +152,9 @@
       "evening": "Good evening"
     },
     "ask": {
-      "text": "Ask a question about your medicine, in your own language."
+      "text": "Ask a question about your medicine, in your own language.",
+      "demoQ": "Can I take it with food?",
+      "demoA": "Yes. Take it after your meal."
     },
     "lastBill": "Your last bill",
     "today": {
@@ -161,7 +163,9 @@
       "noMeds": "Scan a medicine label and we will remind you when to take it.",
       "missed": "{n} earlier dose not ticked yet | {n} earlier doses not ticked yet",
       "saved": "Marked as taken.",
-      "loadFailed": "We could not check today’s doses just now. Open your schedule to see them."
+      "loadFailed": "We could not check today’s doses just now. Open your schedule to see them.",
+      "nextChip": "Next",
+      "rest": "Nothing more to take today."
     }
   },
   "scan": {
@@ -337,12 +341,22 @@
       "question": "What would you like to scan today?",
       "medication": {
         "title": "Medicine label",
-        "text": "Tablets, syrups, creams",
+        "text": "What it is for, and when to take it.",
+        "tags": [
+          "Tablets",
+          "Syrups",
+          "Creams"
+        ],
         "go": "Scan a label"
       },
       "bill": {
         "title": "Medical bill",
-        "text": "What you pay, and subsidies",
+        "text": "What you pay, and the help you can get.",
+        "tags": [
+          "Clinic",
+          "Hospital",
+          "Subsidies"
+        ],
         "go": "Scan a bill"
       },
       "pending": "Your photo is ready. What is it? Tap one to scan it.",
@@ -1294,7 +1308,36 @@
       "timesHelp": "To change a time, open My medicines and choose Change."
     },
     "supply": "From the label: {qty}, {per} a day, so it lasts {days} day. | From the label: {qty}, {per} a day, so it lasts {days} days.",
-    "limit": "From the label: {qty}. It says not to use it for more than {days} day, so it is scheduled for {days} day. | From the label: {qty}. It says not to use it for more than {days} days, so it is scheduled for {days} days."
+    "limit": "From the label: {qty}. It says not to use it for more than {days} day, so it is scheduled for {days} day. | From the label: {qty}. It says not to use it for more than {days} days, so it is scheduled for {days} days.",
+    "plan": {
+      "title": "Today’s medicines",
+      "total": "Doses today",
+      "taken": "Taken",
+      "done": "done"
+    },
+    "medsCount": "{n} medicine | {n} medicines",
+    "noneOnDay": "No medicines on this day.",
+    "strip": {
+      "label": "Choose a day",
+      "today": "Back to today",
+      "notTicked": "{n} dose missed this week. | {n} doses missed this week.",
+      "state": {
+        "ok": "all taken",
+        "not": "a dose missed",
+        "open": "still to come",
+        "none": "no medicines"
+      }
+    },
+    "day": {
+      "later": "Coming up. You can tick these on the day.",
+      "allTaken": "Everything was taken. Well done!",
+      "missed": "{n} dose was missed on this day. | {n} doses were missed on this day.",
+      "missedState": "Missed"
+    },
+    "ask": {
+      "title": "Did you take {name}?",
+      "when": "Due at {time}."
+    }
   },
   "start": {
     "title": "An easier way to understand your medicine and bills.",

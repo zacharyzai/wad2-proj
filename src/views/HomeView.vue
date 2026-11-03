@@ -4,10 +4,12 @@
      quiet line back to it. Phones: one column, Today's medicines under the greeting. Desktop (≥992px): the greeting and
      Today's medicines side by side, the choices in one row under them.
      The choices press in where touched and lean a little towards the mouse (CSS 3D); still with reduced motion.
-     The two scan choices show what they read: sample labels sliding past, and a bill feeding out of a printer slot (they
-     loop for as long as Home is open, pause on hover or focus, and stay still with reduced motion). -->
+     The two scan choices show what they read: sample labels sliding past, and a bill feeding out of a printer slot; Ask
+     shows a short chat, a question and the capsule's answer (all loop while Home is open, pause on hover or focus, and stay
+     still with reduced motion). The greeting is one centred column: hello, the capsule, the question, its caption.
+     Each choice, and Today's "Open my schedule", opens with a short picture of its own (CardLaunch.vue). -->
 <script setup>
-import { computed } from 'vue'
+import { computed, onBeforeUnmount } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useScanStore } from '../stores/scan'
 import { useAuthStore } from '../stores/auth'
@@ -16,10 +18,13 @@ import AppIcon from '../components/layout/AppIcon.vue'
 import KindIcon from '../components/layout/KindIcon.vue'
 import WavingCapsule from '../components/home/WavingCapsule.vue'
 import TodayMedicines from '../components/home/TodayMedicines.vue'
+import CardLaunch from '../components/home/CardLaunch.vue'
+import { launch, endLaunch } from '../composables/useCardLaunch'
 const scanStore = useScanStore()
 const authStore = useAuthStore()
 
 const { t, locale } = useI18n()
+onBeforeUnmount(endLaunch)
 
 const CHOICES = [
   // kind: shown as the coloured capsule or bill (KindIcon), so the two scans look like what they are.
@@ -81,25 +86,26 @@ function rest(event) {
 
 <template>
   <div class="page home">
+    <CardLaunch />
+
+    <!-- One centred column: hello, the capsule, the question, its caption. -->
     <section class="greet-panel">
-      <div class="greet-words">
-        <p class="greet" data-testid="home-greet">{{ hello }}</p>
-        <h1 class="display">{{ t('home.title') }}</h1>
-        <p class="greet-lead">{{ t('home.lead') }}</p>
-      </div>
+      <p class="greet" data-testid="home-greet">{{ hello }}</p>
       <WavingCapsule class="capsule" />
+      <h1 class="display">{{ t('home.title') }}</h1>
+      <p class="greet-lead">{{ t('home.lead') }}</p>
     </section>
 
     <TodayMedicines class="today-card" />
 
     <div class="choices">
-      <RouterLink
-        v-for="c in CHOICES"
-        :key="c.key"
-        :to="c.to"
+      <RouterLink v-for="c in CHOICES" :key="c.key" v-slot="{ href, navigate }" :to="c.to" custom>
+      <a
+        :href="href"
         class="go"
         :class="`go-${c.key}`"
         :data-testid="`home-${c.key}`"
+        @click="launch($event, c.key, navigate)"
         @pointermove="onMove"
         @pointerdown="onDown"
         @pointerup="onUp"
@@ -121,6 +127,13 @@ function rest(event) {
           <span class="receipt-slot"></span>
           <span class="receipt-paper"><span class="receipt-track"><img v-for="(id, i) in RECEIPT_LOOP" :key="i" :src="`/samples/${id}.svg`" alt="" loading="lazy" decoding="async" width="480" :height="SIZE[id]" /></span></span>
         </span>
+        <!-- Ask: a short chat that plays over and over: their question, the capsule typing, its answer. -->
+        <span v-else class="go-art chat" aria-hidden="true">
+          <span class="bubble mine">{{ t('home.ask.demoQ') }}</span>
+          <span class="bubble theirs typing"><i></i><i></i><i></i></span>
+          <span class="bubble theirs answer"><span class="mini-cap"></span>{{ t('home.ask.demoA') }}</span>
+        </span>
+      </a>
       </RouterLink>
     </div>
 

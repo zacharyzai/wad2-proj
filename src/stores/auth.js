@@ -10,6 +10,7 @@ import { ref, watch } from 'vue'
 import { defineStore } from 'pinia'
 import { useScanStore } from './scan'
 import { useAskStore } from './ask'
+import { useDosesStore } from './doses'
 import { api, TOKEN_KEY, readToken } from '../api/client'
 import i18n, { setLocale } from '../i18n'
 import { resetTheme, setTheme } from '../theme'
@@ -172,6 +173,7 @@ export const useAuthStore = defineStore('auth', () => {
     checked.value = true
     useScanStore().forget()
     useAskStore().forget() // the next person on this device never sees these questions
+    useDosesStore().forget() // nor their ticks
     resetTheme()
   }
 

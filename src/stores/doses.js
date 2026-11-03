@@ -33,6 +33,7 @@ export const useDosesStore = defineStore('doses', () => {
     nowTime.value = timeInSingapore()
     if (todayInSingapore() === today.value) return false
     today.value = todayInSingapore()
+    past.clear() // a new day may be a new week: the strip loads what it needs again
     loadTicks()
     return true
   }
@@ -54,6 +55,23 @@ export const useDosesStore = defineStore('doses', () => {
     return 'failed'
   }
 
+  // Earlier days this week (Schedule's day strip and the day it opens): their ticks, loaded once a visit, by date. Read
+  // only: a day that is over can't be ticked any more.
+  const past = reactive(new Map()) // 'YYYY-MM-DD' → Set of dose ids
+  const pastError = ref(null)
+  async function loadPast(dates) {
+    pastError.value = null
+    const missing = dates.filter((date) => date < today.value && !past.has(date))
+    const answers = await Promise.all(missing.map((date) => dosesTaken(date)))
+    answers.forEach((res, i) => (res.ok ? past.set(missing[i], new Set(res.data.taken)) : (pastError.value = res.error.code)))
+  }
+  // action: whoever is logged out takes their ticks with them.
+  function forget() {
+    taken.clear()
+    past.clear()
+    ready.value = false
+  }
+
   // Home's Today card and the Schedule page keep the day current while they are open.
   let clock = 0
   const onVisible = () => document.visibilityState === 'visible' && newDay()
@@ -67,5 +85,5 @@ export const useDosesStore = defineStore('doses', () => {
     document.removeEventListener('visibilitychange', onVisible)
   }
 
-  return { today, nowTime, taken, busy, ready, loadError, loadTicks, newDay, toggle, startClock, stopClock }
+  return { today, nowTime, taken, busy, ready, loadError, loadTicks, newDay, toggle, startClock, stopClock, past, pastError, loadPast, forget }
 })

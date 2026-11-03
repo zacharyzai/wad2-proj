@@ -118,8 +118,8 @@ test.describe('logged out', () => {
   test('Start, Log in and Create account have no missing translations in any language @i18n', async ({ page }) => {
     for (const path of ['/start', '/login', '/signup']) {
       await page.goto(path)
-      for (const language of ['中文', 'BM', 'தமிழ்', 'EN']) {
-        await page.getByRole('button', { name: language, exact: true }).click()
+      for (const code of ['zh', 'ms', 'ta', 'en']) {
+        await page.getByTestId('lang-switch').locator(`[lang="${code}"]`).click()
         await expect(page.locator('main')).not.toContainText(/\b(auth|common|errors|pages|account|start|timing|food|player|unit)\.[A-Za-z]+/)
       }
     }
@@ -224,7 +224,7 @@ test('language: picked on the login page wins over the account language, and is 
   page.on('request', (r) => r.url().includes('/api/auth/me') && r.method() === 'PATCH' && patches.push(r.postDataJSON()))
   await page.addInitScript(() => localStorage.getItem('locale') || localStorage.setItem('locale', 'zh')) // this device was in Chinese
   await page.goto('/login')
-  await page.getByRole('button', { name: 'EN', exact: true }).click()
+  await page.getByRole('button', { name: /^EN\b/ }).click()
   await fillLogin(page)
   await expect(page).toHaveURL(/\/$/)
   await expect(page.locator('html')).toHaveAttribute('lang', 'en')

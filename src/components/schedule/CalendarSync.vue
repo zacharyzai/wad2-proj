@@ -134,7 +134,7 @@ onMounted(async () => {
   // Back from Google's permission page: say how it went, then tidy the address so a reload doesn't say it again.
   const result = RESULTS.includes(route.query.google) ? route.query.google : null
   // Back from Google: tidy the address, staying on Reminders (where this card is shown).
-  if (route.query.google !== undefined) router.replace({ query: { ...route.query, google: undefined, ...(route.name === 'schedule' && { view: 'reminders' }) } })
+  if (route.query.google !== undefined) router.replace({ query: { ...route.query, google: undefined, ...(route.name === 'schedule' && { view: 'meds' }) } })
   if (result) emit('notify', t(`schedule.calendar.result.${result}`), result !== 'connected')
 
   const res = await googleStatus()

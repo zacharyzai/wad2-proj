@@ -8,6 +8,8 @@ import GuideDialog from './components/guide/GuideDialog.vue'
 import ScanAwayNotice from './components/scan/ScanAwayNotice.vue'
 import ThemePrompt from './components/guide/ThemePrompt.vue'
 import ThemeToggle from './components/layout/ThemeToggle.vue'
+import LanguageSwitch from './components/layout/LanguageSwitch.vue'
+import PageBackdrop from './components/layout/PageBackdrop.vue'
 import { useGuideStore } from './stores/guide'
 import { useAuthStore } from './stores/auth'
 import { syncMedicinesWithAccount } from './stores/scheduleSync'
@@ -97,7 +99,12 @@ router.afterEach(async (to, from, failure) => {
         <span class="navi-label">{{ t('guide.open') }}</span>
       </button>
 
-      <!-- Day / night, one tap from every page: above Account in the sidebar, beside Account in the phone header. Language lives on the Account page. -->
+      <!-- Day / night, one tap from every page: above Account in the sidebar, beside Account in the phone header. Language is the row above it (and on the Account page). -->
+      <!-- Language, one tap from every page: a row under the phone header; in the sidebar's settings group on computers. -->
+      <div class="lang-box">
+        <span class="lang-label desk-only" aria-hidden="true"><AppIcon name="globe" :size="20" />{{ t('nav.language') }}</span>
+        <LanguageSwitch />
+      </div>
       <div class="theme-box"><ThemeToggle /></div>
 
       <!-- Everyone has an account, so this is always Account (logged-out visitors are sent to Log in by the router). -->
@@ -109,7 +116,8 @@ router.afterEach(async (to, from, failure) => {
     </aside>
 
     <div class="col-main">
-      <main id="main" class="main" tabindex="-1"><div class="wrap"><RouterView /></div></main>
+      <!-- Every page sits on the same faint drawings of medicine, bills and the people the app is for. -->
+      <main id="main" class="main" tabindex="-1"><PageBackdrop /><div class="wrap"><RouterView /></div></main>
       <footer class="ft">
         <AppIcon name="shield" :size="22" class="ft-icon" />
         <p>{{ t('app.disclaimer') }}</p>

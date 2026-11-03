@@ -34,9 +34,7 @@ test('404 works by keyboard: Go to home shows its focus ring and opens with Ente
 
 // Pages whose own specs have no axe or size check. /scan?sample opens Confirm.
 for (const path of ['/', '/scan', '/scan?sample=med-1', '/history', '/no-such-page']) {
-  test(`${path}: big targets and text, no axe problems @a11y`, async ({ page, isMobile }) => {
-    // App bug (E2E_REPORT.md #1): the picture cards' captions are 15px on phones. Remove this line once fixed.
-    test.fail(isMobile && path === '/scan', 'ScanPicker.css .pick-text is 15px at 375px')
+  test(`${path}: big targets and text, no axe problems @a11y`, async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' })
     await page.goto(path)
     await expect(page.getByRole('heading', { level: 1 }).first()).toBeVisible()

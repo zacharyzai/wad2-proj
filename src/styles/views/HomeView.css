@@ -1,13 +1,12 @@
 /* Scoped styles for HomeView.vue. Phones: one column (greeting, Today's medicines, choices, last bill). Desktop: a grid. */
-.home { gap: 16px; }
+.home { gap: 16px; position: relative; isolation: isolate; } /* its own layer, so the background drawings stay behind */
 
-/* Greeting on a soft teal panel, the capsule beside it (as on the log-out pop-up). */
-.greet-panel { grid-area: greet; display: flex; align-items: center; gap: 8px; padding: 20px 14px 20px 20px; border-radius: var(--r-card); background: var(--color-tint); }
-.greet-words { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+/* Greeting on a soft teal panel: one centred column, hello above the capsule, the question and its caption below. */
+.greet-panel { grid-area: greet; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 20px 20px 22px; border-radius: var(--r-card); background: var(--color-tint); text-align: center; }
 .greet { margin: 0; font-size: 18px; font-weight: 700; line-height: 1.35; color: var(--color-primary-text); }
-.greet-words h1 { margin: 0; }
-.greet-lead { display: none; margin: 0; font-size: var(--fs-lead); line-height: 1.55; color: var(--color-text-muted); text-wrap: pretty; }
-.capsule { width: 128px; }
+.greet-panel h1 { margin: 0; text-wrap: balance; }
+.greet-lead { margin: 0; max-width: 34ch; font-size: var(--fs-lead); line-height: 1.5; color: var(--color-text-muted); text-wrap: pretty; }
+.capsule { width: 150px; margin: 2px 0 4px; }
 
 /* Three big choices: full-width rows on phones. 3D: the card tilts by --rx/--ry (set on press and mouse move) and sinks
    while pressed; the icon tile floats a little above the card, so it shifts against it. */
@@ -40,7 +39,22 @@
 .receipt-track { display: flex; flex-direction: column; animation: receipt-feed 26s linear infinite; }
 .receipt img { display: block; width: 100%; height: auto; border-bottom: 2px dashed #c9c2b6; } /* a tear line between bills */
 @keyframes receipt-feed { from { transform: translateY(-50%); } to { transform: translateY(0); } }
-.go:hover :is(.labels-track, .receipt-track), .go:focus-visible :is(.labels-track, .receipt-track) { animation-play-state: paused; }
+/* Ask: a short chat across the bottom, over and over (7 s): their question, the capsule typing, its answer, then a rest. */
+.chat { display: flex; flex-direction: column; gap: 8px; min-height: 112px; margin: 0 -2px -4px; padding: 4px 0; }
+.bubble { max-width: 86%; padding: 8px 14px; border-radius: 18px; font-size: 16px; font-weight: 600; line-height: 1.35; opacity: 0; }
+.mine { align-self: flex-end; border-bottom-right-radius: 6px; background: #5b3f94; color: #fff; animation: chat-q 7s ease-out infinite; }
+.theirs { align-self: flex-start; display: inline-flex; align-items: center; gap: 8px; border-bottom-left-radius: 6px; background: var(--color-surface-2); color: var(--color-text); }
+.typing { gap: 5px; padding: 12px 14px; animation: chat-typing 7s ease-out infinite; }
+.typing i { width: 7px; height: 7px; border-radius: 50%; background: #6a4fa8; animation: chat-dot 0.9s ease-in-out infinite; }
+.typing i:nth-child(2) { animation-delay: 0.15s; }
+.typing i:nth-child(3) { animation-delay: 0.3s; }
+.answer { animation: chat-a 7s ease-out infinite; margin-top: -48px; } /* takes the typing bubble's place */
+.mini-cap { flex: none; width: 22px; height: 11px; border-radius: 6px; background: linear-gradient(90deg, var(--color-primary) 50%, #f3d27a 50%); rotate: -14deg; }
+@keyframes chat-q { 0%, 6% { opacity: 0; translate: 0 8px; } 12%, 86% { opacity: 1; translate: 0 0; } 94%, 100% { opacity: 0; } }
+@keyframes chat-typing { 0%, 18% { opacity: 0; } 22%, 40% { opacity: 1; } 43%, 100% { opacity: 0; } }
+@keyframes chat-a { 0%, 42% { opacity: 0; translate: 0 8px; } 48%, 86% { opacity: 1; translate: 0 0; } 94%, 100% { opacity: 0; } }
+@keyframes chat-dot { 50% { translate: 0 -4px; opacity: 0.5; } }
+.go:hover :is(.labels-track, .receipt-track, .bubble, .typing i), .go:focus-visible :is(.labels-track, .receipt-track, .bubble, .typing i) { animation-play-state: paused; }
 
 .chev { width: var(--hit); height: var(--hit); border-radius: 50%; display: grid; place-items: center; flex: none; background: var(--color-surface-2); color: var(--color-primary-text); }
 
@@ -57,9 +71,8 @@
 /* Desktop: the greeting and Today's medicines side by side, the three choices in one row under them. */
 @media (min-width: 992px) {
   .home { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-areas: 'greet today' 'choices choices'; gap: 20px; } /* the last bill, when there is one, takes a row below */
-  .greet-panel { flex-direction: column; align-items: flex-start; justify-content: space-between; padding: 30px 30px 16px; }
-  .greet-lead { display: block; max-width: 34ch; }
-  .capsule { width: 200px; align-self: flex-end; margin-top: -8px; }
+  .greet-panel { justify-content: center; padding: 26px 30px 28px; }
+  .capsule { width: 190px; }
   .choices { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
   .go { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: 'tile chev' 'words words' 'art art'; align-items: start; min-height: 190px; padding: 22px; gap: 16px; }
   .go-art { grid-area: art; }
@@ -76,4 +89,9 @@
 @media (prefers-reduced-motion: reduce) {
   .go, .go[data-pressed], .go-tile, .go[data-pressed] .go-tile { transform: none !important; }
   .labels-track, .receipt-track { animation: none; }
+  /* The chat stays still: the question and the answer, no typing. */
+  .bubble, .typing i { animation: none; }
+  .mine, .answer { opacity: 1; }
+  .typing { display: none; }
+  .answer { margin-top: 0; }
 }

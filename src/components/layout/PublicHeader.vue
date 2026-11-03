@@ -2,11 +2,7 @@
      name (back to Start), the language switch, and the page's own buttons in the slot (Start: Log in).
      Phones: name and buttons on one row, the languages full width below. -->
 <script setup>
-import { useI18n } from 'vue-i18n'
-import { chooseLocale } from '../../i18n'
-
-const { t, locale } = useI18n()
-const LANGS = { en: 'EN', zh: '中文', ms: 'BM', ta: 'தமிழ்' }
+import LanguageSwitch from './LanguageSwitch.vue'
 </script>
 
 <template>
@@ -15,9 +11,7 @@ const LANGS = { en: 'EN', zh: '中文', ms: 'BM', ta: 'தமிழ்' }
       <img src="/logo-192.png" alt="" class="logo-tile" width="44" height="44" />
       <span>Ah Ma Ah Gong <span class="ph-can">Can</span></span>
     </RouterLink>
-    <div class="segmented ph-langs" role="group" :aria-label="t('nav.language')">
-      <button v-for="(label, code) in LANGS" :key="code" type="button" :lang="code" :aria-pressed="locale === code" @click="chooseLocale(code)">{{ label }}</button>
-    </div>
+    <LanguageSwitch class="ph-langs" />
     <div class="ph-acts"><slot /></div>
   </header>
 </template>
@@ -29,7 +23,6 @@ const LANGS = { en: 'EN', zh: '中文', ms: 'BM', ta: 'தமிழ்' }
 .ph-brand .logo-tile { width: 44px; height: 44px; border-radius: 12px; }
 .ph-can { color: var(--color-primary-text); }
 .ph-langs { grid-area: langs; }
-.ph-langs > button[aria-pressed='true'] { color: var(--color-primary-text); }
 .ph-acts { grid-area: acts; display: flex; align-items: center; gap: 10px; }
 .ph-acts:empty { display: none; }
 @media (min-width: 768px) {

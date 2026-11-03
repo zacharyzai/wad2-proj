@@ -1,56 +1,129 @@
 /* Scoped styles for components/scan/ScanPicker.vue. */
-/* "What would you like to scan today?": the question and two tall picture cards, centred on the page. Both cards are the
-   app's teal; each shows its sample paper, a teal shade at the bottom under white words, a frosted arrow badge and a
-   frosted "Scan a label →" bar. Under the mouse the card zooms in a little; the badge and the bar each light up (white,
-   teal text) when the mouse is on them. Reduced motion: no zoom. */
+/* "What would you like to scan today?": the question and two dark picture cards, centred on the page. Each card: a rounded
+   picture (its sample paper on a coloured scene) with what to do on a tag at its top, and a corner cut out of it holding a
+   round arrow; under it the name, one line on what it tells you, and tags.
+   At rest the picture breathes: its paper floats and turns a little, the things round it drift, and a soft ring pulses
+   out of the arrow. With a mouse (hover: hover), both pictures rest in the app's teal. The card under the mouse stops
+   still and comes to life: its picture fills with its own colours and zooms in a little, its paper lifts, its arrow turns
+   coral and grows, the card leans gently towards the mouse (--mx, --my from ScanPicker.vue) with a soft light following
+   it, and the other card steps back. The keyboard gets the same as the mouse. Phones and tablets have no hover, so both
+   cards are always in colour (and always breathing).
+   Reduced motion: nothing breathes, leans, zooms or lifts; the colours still change. */
 .picker { align-items: center; text-align: center; }
 .picker .page-head { align-items: center; }
-.picks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; width: 100%; max-width: 820px; margin-inline: auto; }
+.picks { --card: #172423; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; width: 100%; max-width: 820px; margin-inline: auto; perspective: 1200px; }
 .pick {
-  position: relative; display: flex; flex-direction: column; gap: 10px; min-width: 0;
-  padding: 12px; overflow: hidden; isolation: isolate; text-align: left; color: #fff;
-  border: 0; border-radius: 26px; background: linear-gradient(160deg, #1a7070, #0f4b4b);
-  box-shadow: 0 18px 40px -18px rgba(0, 0, 0, 0.45), 0 2px 6px rgba(0, 0, 0, 0.12);
-  transform: scale(var(--grow, 1)); transition: transform 320ms var(--ease-out), box-shadow 320ms var(--ease-out);
+  --notch: 58px; /* the corner cut out of the picture, for the arrow */
+  --lean-x: calc((var(--mx, 0.5) - 0.5) * 7deg);
+  --lean-y: calc((0.5 - var(--my, 0.5)) * 7deg);
+  position: relative; display: flex; flex-direction: column; gap: 12px; min-width: 0;
+  padding: 8px 8px 14px; overflow: hidden; isolation: isolate; text-align: left; color: #fff;
+  border: 0; border-radius: 26px; background: var(--card);
+  box-shadow: 0 18px 40px -20px rgba(0, 0, 0, 0.55), 0 2px 6px rgba(0, 0, 0, 0.12);
+  transform: translateY(var(--lift, 0)) scale(var(--grow, 1)) rotateX(var(--tilt-y, 0deg)) rotateY(var(--tilt-x, 0deg));
+  transition: transform 360ms var(--ease-out), box-shadow 360ms var(--ease-out), opacity 360ms var(--ease-out), filter 360ms var(--ease-out);
 }
-.pick:hover { --grow: 1.03; box-shadow: 0 30px 60px -22px rgba(0, 0, 0, 0.5), 0 4px 10px rgba(0, 0, 0, 0.14); }
 .pick:active { --grow: 0.98; }
 .pick:focus-visible { outline: 4px solid var(--color-primary); outline-offset: 4px; }
+/* The soft light that follows the mouse. */
+.pick::after { content: ''; position: absolute; inset: 0; z-index: 3; pointer-events: none; border-radius: inherit; background: radial-gradient(circle at calc(var(--mx, 0.5) * 100%) calc(var(--my, 0.3) * 100%), rgba(255, 255, 255, 0.13), transparent 55%); opacity: 0; transition: opacity 360ms var(--ease-out); }
 
-/* The picture: the sample paper, tilted, in its own space at the top, so it never covers the words at any width. */
-.pick-art { position: relative; z-index: -2; flex: 1 0 auto; display: flex; justify-content: center; align-items: flex-start; padding: 8px 4px 4px; transition: transform 500ms var(--ease-out); }
-.pick:hover .pick-art { transform: scale(1.05); }
-.pick-paper { width: 90%; height: auto; border-radius: 10px; background: #fff; transform: rotate(-7deg); box-shadow: 0 16px 32px -12px rgba(0, 0, 0, 0.55); }
-.pick-bill .pick-paper { width: 80%; transform: rotate(6deg); }
-/* The shade under the words, so white text reads well over the paper. */
-.pick::before { content: ''; position: absolute; inset: 0; z-index: -1; background: linear-gradient(to bottom, rgba(15, 75, 75, 0) 25%, rgba(15, 75, 75, 0.85) 55%, rgba(15, 75, 75, 0.97)); }
+/* The picture: a coloured scene with the sample paper on it. Only the scene turns grey, never the corner or the tag. */
+.pick-img { position: relative; display: block; aspect-ratio: 1 / 1; border-radius: 20px; overflow: hidden; }
+.pick-scene { position: absolute; inset: 0; display: grid; place-items: center; transition: transform 600ms var(--ease-out); }
+/* The teal the pictures rest in (with a mouse only): the app's own colour over the picture's light and shade. */
+.pick-scene::after { content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none; background: linear-gradient(160deg, #3fa39a, #1a7070 55%, #0f4b4b); mix-blend-mode: color; opacity: 0; transition: opacity 450ms var(--ease-out); }
+.pick-medication .pick-scene { background: radial-gradient(circle at 25% 20%, #6fd3c4, transparent 60%), linear-gradient(150deg, #2a9d8f, #1a7070 60%, #135555); }
+.pick-bill .pick-scene { background: radial-gradient(circle at 75% 20%, #ffd39a, transparent 60%), linear-gradient(150deg, #f4a259, #e0703f 60%, #b5532d); }
+.pick-deco { position: absolute; inset: 0; width: 100%; height: 100%; }
+.pick-deco g { transform-box: fill-box; transform-origin: center; transition: transform 700ms var(--ease-out); }
+.pick-paper { position: relative; width: 78%; height: auto; margin-top: 8%; border-radius: 8px; background: #fff; transform: rotate(-6deg); box-shadow: 0 16px 30px -12px rgba(0, 0, 0, 0.55); transition: transform 600ms var(--ease-settle); }
+/* Breathing, at rest: on their own properties (translate, rotate), so the hover's transform adds to where they are. */
+.pick-paper { animation: float 4.6s ease-in-out infinite; }
+.drift-a { animation: drift-a 5.2s ease-in-out infinite; }
+.drift-b { animation: drift-b 6.4s ease-in-out infinite; }
+.pick-bill .pick-paper, .pick-bill .pick-deco g { animation-delay: -2.3s; } /* the two cards out of step */
+.pick-arrow::after { content: ''; position: absolute; inset: 0; border-radius: 50%; border: 2px solid rgba(255, 255, 255, 0.55); animation: arrow-pulse 2.8s ease-out infinite; pointer-events: none; }
+.pick-bill .pick-arrow::after { animation-delay: -1.4s; }
+@keyframes float { 0%, 100% { translate: 0 0; rotate: 0deg; } 50% { translate: 0 -6px; rotate: 1.5deg; } }
+@keyframes drift-a { 0%, 100% { translate: 0 0; rotate: 0deg; } 50% { translate: 4px -6px; rotate: 10deg; } }
+@keyframes drift-b { 0%, 100% { translate: 0 0; rotate: 0deg; } 50% { translate: -5px 4px; rotate: -12deg; } }
+@keyframes arrow-pulse { 0% { scale: 1; opacity: 0.8; } 70%, 100% { scale: 1.45; opacity: 0; } }
+/* In use (under the mouse, or chosen with the keyboard): it all stops still. */
+.pick:hover :is(.pick-paper, .pick-deco g), .pick:focus-visible :is(.pick-paper, .pick-deco g) { animation-play-state: paused; }
+.pick:hover .pick-arrow::after, .pick:focus-visible .pick-arrow::after { animation: none; opacity: 0; }
+.pick-bill .pick-paper { width: 70%; transform: rotate(5deg); }
 
-/* The arrow badge and the bar: frosted, then white with teal text when the mouse is on them. */
-.pick-badge { position: absolute; z-index: 2; top: 10px; right: 10px; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: rgba(15, 75, 75, 0.55); border: 1px solid rgba(255, 255, 255, 0.45); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); transition: transform 300ms var(--ease-settle), background-color 200ms var(--ease-out), color 200ms var(--ease-out), border-color 200ms var(--ease-out); }
-.pick-badge:hover { transform: scale(1.12); background: #fff; border-color: #fff; color: #135555; }
-.pick-badge svg { transition: transform 300ms var(--ease-settle); }
-.pick-badge:hover svg { transform: translate(2px, -2px); }
-.pick-words { display: flex; flex-direction: column; gap: 4px; padding: 0 4px; }
-.pick-title { font-family: var(--font-display); font-size: clamp(21px, 5.6vw, 30px); line-height: 1.12; text-wrap: balance; }
+/* What to do, on a tag at the top of the picture. */
+.pick-tag { position: absolute; top: 10px; left: 50%; z-index: 1; translate: -50% 0; width: max-content; max-width: calc(100% - 20px); padding: 5px 12px; border-radius: var(--r-pill); background: rgba(10, 20, 20, 0.8); border: 1px solid rgba(255, 255, 255, 0.22); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); font-size: 16px; font-weight: 700; line-height: 1.25; text-align: center; text-wrap: balance; }
+
+/* The corner cut out of the picture: a square of the card's own colour, its inner corner rounded, with two small curves
+   where it meets the picture's edges, so the picture flows round it. */
+.pick-notch { position: absolute; right: 0; bottom: 0; z-index: 1; width: var(--notch); height: var(--notch); background: var(--card); border-top-left-radius: 22px; }
+.pick-notch::before, .pick-notch::after { content: ''; position: absolute; width: 18px; height: 18px; background: radial-gradient(circle at 0 0, transparent 17.5px, var(--card) 18px); }
+.pick-notch::before { right: 0; bottom: 100%; }
+.pick-notch::after { right: 100%; bottom: 0; }
+/* The arrow in the corner: quiet, then coral and a little bigger, and it nudges the way it points. */
+.pick-arrow { position: absolute; right: 5px; bottom: 5px; z-index: 2; display: grid; place-items: center; width: calc(var(--notch) - 12px); height: calc(var(--notch) - 12px); border-radius: 50%; background: #2a3a39; color: #fff; transition: transform 360ms var(--ease-settle), background-color 300ms var(--ease-out), color 300ms var(--ease-out), box-shadow 300ms var(--ease-out); }
+.pick-arrow svg { transition: transform 360ms var(--ease-settle); }
+
+.pick-words { display: flex; flex-direction: column; gap: 6px; padding: 0 6px; }
+.pick-title { font-family: var(--font-display); font-size: clamp(20px, 5.4vw, 28px); line-height: 1.15; text-wrap: balance; }
 :lang(ta) .pick-title { font-family: var(--font-sans); font-weight: 800; font-size: clamp(17px, 4vw, 22px); line-height: 1.3; }
-.pick-text { font-size: clamp(15px, 3.6vw, 17px); line-height: 1.35; color: rgba(255, 255, 255, 0.88); }
-.pick-go { display: flex; align-items: center; justify-content: space-between; gap: 6px; min-height: 52px; padding: 8px 10px 8px 14px; border-radius: 16px; background: rgba(255, 255, 255, 0.16); border: 1px solid rgba(255, 255, 255, 0.28); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); font-size: clamp(16px, 3.8vw, 18px); font-weight: 700; line-height: 1.25; transition: background-color 200ms var(--ease-out), color 200ms var(--ease-out), border-color 200ms var(--ease-out); }
-:lang(ta) .pick-go, :lang(ta) .pick-text { font-size: 15px; } /* Tamil words are long: a size down keeps the cards on screen */
-.pick-go .icon { flex: none; transition: transform 250ms var(--ease-settle); }
-.pick-go:hover { background: #fff; border-color: #fff; color: #135555; }
-.pick-go:hover .icon { transform: translateX(5px); }
+.pick-text { font-size: clamp(16px, 3.8vw, 18px); line-height: 1.35; color: #b9c6c4; }
+.pick-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.pick-chip { padding: 3px 10px; border-radius: var(--r-pill); border: 1px solid rgba(255, 255, 255, 0.24); background: rgba(255, 255, 255, 0.06); color: #e3ebe9; font-size: 16px; font-weight: 700; letter-spacing: 0.04em; line-height: 1.3; text-transform: uppercase; transition: border-color 300ms var(--ease-out), background-color 300ms var(--ease-out); }
+
+/* The card in use: under the mouse, or chosen with the keyboard. */
+.pick:hover, .pick:focus-visible { --lift: -6px; --tilt-x: var(--lean-x); --tilt-y: var(--lean-y); box-shadow: 0 32px 60px -24px rgba(0, 0, 0, 0.6), 0 4px 12px rgba(0, 0, 0, 0.16); }
+.pick:hover::after { opacity: 1; }
+.pick:hover .pick-scene, .pick:focus-visible .pick-scene { transform: scale(1.06); }
+.pick:hover .pick-paper, .pick:focus-visible .pick-paper { transform: translateY(-6px) rotate(-2deg) scale(1.04); }
+.pick-bill:hover .pick-paper, .pick-bill:focus-visible .pick-paper { transform: translateY(-6px) rotate(2deg) scale(1.04); }
+.pick:hover .drift-a, .pick:focus-visible .drift-a { transform: translate(-6px, -5px) rotate(-10deg); }
+.pick:hover .drift-b, .pick:focus-visible .drift-b { transform: translate(6px, 5px) rotate(12deg); }
+.pick:hover .pick-arrow, .pick:focus-visible .pick-arrow { transform: scale(1.08); background: #ff7f5c; color: #1d1410; box-shadow: 0 8px 18px -6px rgba(255, 127, 92, 0.7); }
+.pick:hover .pick-arrow svg, .pick:focus-visible .pick-arrow svg { transform: translate(2px, -2px); }
+.pick:hover .pick-chip, .pick:focus-visible .pick-chip { border-color: rgba(255, 255, 255, 0.4); background: rgba(255, 255, 255, 0.1); }
+
+/* With a mouse: the pictures rest in teal until the card is in use, and the other card steps back. */
+@media (hover: hover) and (pointer: fine) {
+  .pick-scene::after { opacity: 0.88; }
+  .pick:hover .pick-scene::after, .pick:focus-visible .pick-scene::after { opacity: 0; }
+  .picks:has(.pick:hover) .pick:not(:hover) { --grow: 0.97; filter: saturate(0.7) brightness(0.85); }
+}
+
 @media (min-width: 768px) {
   .picks { gap: 28px; }
-  .pick { aspect-ratio: 3 / 4.1; gap: 12px; padding: 18px; border-radius: 30px; } /* tall like the videos once there's room */
-  .pick-art { padding: 10px 6px 6px; }
-  .pick-paper { width: 88%; }
-  .pick-badge { top: 16px; right: 16px; width: 48px; height: 48px; }
+  .pick { --notch: 74px; gap: 16px; padding: 12px 12px 20px; border-radius: 32px; }
+  .pick-img { aspect-ratio: 5 / 4; border-radius: 24px; }
+  .pick-notch { border-top-left-radius: 28px; }
+  .pick-tag { top: 14px; padding: 6px 14px; }
+  .pick-words { padding: 0 8px; gap: 8px; }
 }
-/* Small phones: the line under the question gives way, so both cards fit on screen. */
-@media (max-width: 575.98px) { .pick-lead { display: none; } }
+:lang(ta) .pick-text, :lang(ta) .pick-chip { letter-spacing: 0; } /* Tamil words are long: no extra spacing */
+/* Night mode: the cards a shade lighter than the page, with a fine edge. */
+:root[data-theme='dark'] .picks { --card: #203433; }
+:root[data-theme='dark'] .pick { box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1), 0 18px 40px -20px rgba(0, 0, 0, 0.7); }
+/* Small phones: the line under the question and the tags give way, and the pictures are shorter, so both cards fit on
+   screen above the tab bar. */
+@media (max-width: 575.98px) {
+  .pick-lead, .pick-tags { display: none; }
+  .pick { --notch: 50px; gap: 10px; }
+  .pick-img { aspect-ratio: 4 / 3; }
+  .pick-notch { border-top-left-radius: 18px; }
+  .pick-notch::before, .pick-notch::after { width: 14px; height: 14px; background: radial-gradient(circle at 0 0, transparent 13.5px, var(--card) 14px); }
+  .pick-tag { top: 8px; padding: 3px 10px; }
+  .pick-paper { width: 72%; margin-top: 14%; }
+}
 @media (prefers-reduced-motion: reduce) {
-  .pick, .pick:hover, .pick:active { transform: none; }
-  .pick:hover .pick-art, .pick-badge:hover, .pick-badge:hover svg, .pick-go:hover .icon { transform: none; }
+  .pick, .pick:hover, .pick:focus-visible, .pick:active { transform: none; }
+  .pick:hover .pick-scene, .pick:focus-visible .pick-scene, .pick:hover .pick-paper, .pick:focus-visible .pick-paper,
+  .pick:hover .pick-deco g, .pick:focus-visible .pick-deco g, .pick:hover .pick-arrow svg, .pick:focus-visible .pick-arrow svg { transform: none; }
+  .pick:hover .pick-paper, .pick:focus-visible .pick-paper { transform: rotate(-6deg); }
+  .pick-bill:hover .pick-paper, .pick-bill:focus-visible .pick-paper { transform: rotate(5deg); }
+  .picks:has(.pick:hover) .pick:not(:hover) { --grow: 1; }
+  .pick-paper, .pick-deco g, .pick-arrow::after { animation: none; }
 }
 
 /* A photo picked on Home, waiting above the cards. */
