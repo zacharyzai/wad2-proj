@@ -199,6 +199,7 @@ function scrollToScan() {
 
 // ---- Scroll engine (ported from the design). Every position comes from scroll; scrolling back plays it in reverse.
 const root = ref(null)
+const BAR = 66 // the sticky top bar's height, and each section's scroll-margin-top (LandingPage.css)
 const clamp = (v) => (v < 0 ? 0 : v > 1 ? 1 : v)
 const ease = (v) => 1 - (1 - v) ** 3
 // offsetTop ignores transforms, so a falling item's own movement never feeds back into its position.
@@ -218,13 +219,13 @@ function frame() {
   const sy = scrollY
   const red = reduceMq.matches
   const maxScroll = Math.max(0, document.documentElement.scrollHeight - H)
-  // One progress value per section: 0 when its top enters at the bottom, 1 when it reaches the top
-  // (or when its bottom meets the screen bottom, if it is taller than the screen).
+  // One progress value per section: 0 when its top enters at the bottom, 1 when it reaches the top bar
+  // (or, if it is taller than the screen, when it has been scrolled through as far as the top bar's height).
   const T = {}
   el.querySelectorAll('[data-sec]').forEach((s) => {
     const top = docTop(s)
     const now = top - sy
-    const endTop = Math.max(Math.min(0, H - s.offsetHeight), top - maxScroll)
+    const endTop = Math.max(Math.min(BAR, H + BAR - s.offsetHeight), top - maxScroll) // landed = where scrolling stops it, below the top bar
     T[s.dataset.sec] = { t: red || landed.has(s.dataset.sec) ? 1 : clamp((H - now) / Math.max(1, H - endTop)), top, now }
   })
   const compact = !red && el.clientWidth < 1024
@@ -288,15 +289,17 @@ function frame() {
 let raf = 0
 const onScroll = () => (raf ||= requestAnimationFrame(() => ((raf = 0), frame())))
 
-// ---- One mouse-wheel or trackpad gesture = one whole section. CSS snapping alone goes to the *nearest* section, so a small
-// scroll slid back to where it started. Touch keeps the browser's own snapping; reduced motion scrolls freely.
-// A section taller than the screen (the tunnel) is scrolled through freely and only stepped out of at its edges.
-let wheelQuiet = true // a gesture has ended (no wheel for 200 ms), so trackpad momentum can't trigger a second step
+// ---- The hero and the tunnel scroll freely. From "scan" on, each feature is a magnet: one mouse-wheel or trackpad gesture
+// moves to the whole next (or previous) one. Scrolling up from "scan" goes back to free scrolling. A feature taller than the
+// screen is scrolled through inside and only steps at its edges. Touch: CSS snapping (LandingPage.css). Reduced motion: free.
+const FEATURES = ['scan', 'listen', 'doses', 'ask']
+let wheelQuiet = true // the last gesture has ended (no wheel for 200 ms), so trackpad momentum can't step twice
 let wheelTimer = 0
-function stops() {
-  return [...root.value.querySelectorAll('.sec, .tunnel')].map((el) => {
-    const start = docTop(el) - parseFloat(getComputedStyle(el).scrollMarginTop || 0)
-    return { start, end: Math.max(start, start + el.offsetHeight - innerHeight) } // end > start only when taller than the screen
+function featureStops() {
+  return FEATURES.map((id) => {
+    const el = root.value.querySelector(`#${id}`)
+    const start = docTop(el) - BAR // its scroll-margin-top: the title lands below the top bar
+    return { start, end: start + Math.max(0, el.offsetHeight - innerHeight - BAR) } // end > start only when clearly taller than the screen (more than its bottom padding)
   })
 }
 function onWheel(event) {
@@ -306,13 +309,16 @@ function onWheel(event) {
   if (!wheelQuiet) return event.preventDefault() // the rest of the gesture that just stepped
   const sy = scrollY
   const down = event.deltaY > 0
-  const all = stops()
-  if (all.some((s) => (down ? sy >= s.start - 1 && sy < s.end - 1 : sy > s.start + 1 && sy <= s.end + 1))) return // inside a tall one
+  const stops = featureStops()
+  const first = stops[0].start
+  if (down ? sy < first - innerHeight + BAR : sy <= first + 1) return // before "scan" comes into view, or leaving it upwards: free
+  if (stops.some((s) => (down ? sy >= s.start - 1 && sy < s.end - 1 : sy > s.start + 1 && sy <= s.end + 1))) return
   event.preventDefault()
-  const max = document.documentElement.scrollHeight - innerHeight
-  const target = down
-    ? Math.min(max, ...all.map((s) => s.start).filter((y) => y > sy + 1))
-    : Math.max(0, ...all.map((s) => s.end).filter((y) => y < sy - 1)) // back into a tall one at its bottom edge
+  const here = stops.findLastIndex((s) => s.start <= sy + 1) // the feature on screen (-1: "scan" is still coming up)
+  const cur = stops[here]
+  // Down: the next feature (below the last one there is only its bottom padding). Up: this feature's bottom edge if it is
+  // taller than the screen and we are past it, else the previous feature, at its bottom edge.
+  const target = down ? (stops[here + 1]?.start ?? sy) : sy > cur.end + BAR ? cur.end : (stops[here - 1]?.end ?? first)
   wheelQuiet = false
   scrollTo({ top: target, behavior: 'smooth' })
 }
@@ -336,7 +342,7 @@ onMounted(() => {
   } catch {
     // Storage blocked (private mode): the welcome page just shows again next time.
   }
-  document.documentElement.classList.add('snap-sections') // scrolling stops at each section (LandingPage.css); only on this page
+  document.documentElement.classList.add('snap-sections') // touch screens snap to each feature (LandingPage.css); only on this page
   addEventListener('scroll', onScroll, { passive: true })
   addEventListener('scroll', updateNav, { passive: true })
   addEventListener('wheel', onWheel, { passive: false }) // not passive: it replaces the scroll with a whole-section step
