@@ -3,17 +3,21 @@
      medicines" (components/home/TodayMedicines.vue) shows what is due. The last bill checked, when there is one, is one
      quiet line back to it. Phones: one column, Today's medicines under the greeting. Desktop (≥992px): the greeting and
      Today's medicines side by side, the choices in one row under them.
-     The choices press in where touched and lean a little towards the mouse (CSS 3D); still with reduced motion. -->
+     The choices press in where touched and lean a little towards the mouse (CSS 3D); still with reduced motion.
+     The two scan choices show what they read: sample labels sliding past, and a bill feeding out of a printer slot (they
+     loop for as long as Home is open, pause on hover or focus, and stay still with reduced motion). -->
 <script setup>
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { scanStore } from '../stores/scan'
-import { authStore } from '../stores/auth'
+import { useScanStore } from '../stores/scan'
+import { useAuthStore } from '../stores/auth'
 import { money } from '../components/bill/lines'
 import AppIcon from '../components/layout/AppIcon.vue'
 import KindIcon from '../components/layout/KindIcon.vue'
 import WavingCapsule from '../components/home/WavingCapsule.vue'
 import TodayMedicines from '../components/home/TodayMedicines.vue'
+const scanStore = useScanStore()
+const authStore = useAuthStore()
 
 const { t, locale } = useI18n()
 
@@ -23,6 +27,12 @@ const CHOICES = [
   { key: 'bill', to: { name: 'scan', query: { type: 'bill' } }, kind: 'bill', title: 'home.bill.title', text: 'home.bill.text' },
   { key: 'ask', to: { name: 'ask' }, icon: 'chat', title: 'pages.ask', text: 'home.ask.text' },
 ]
+
+// Each list is shown twice in a row, so the loop is seamless: when the first copy has moved out, the second is in its place.
+const LABEL_LOOP = ['med-1', 'med-2', 'med-3', 'med-1', 'med-2', 'med-3']
+const RECEIPT_LOOP = ['bill-1', 'bill-2', 'bill-3', 'bill-1', 'bill-2', 'bill-3']
+// Each picture's real size (from its SVG), so the strips keep their shape while the pictures load instead of growing.
+const SIZE = { 'med-1': 360, 'med-2': 360, 'med-3': 360, 'bill-1': 360, 'bill-2': 420, 'bill-3': 448 } // height when 480 wide
 
 const hour = new Date().getHours()
 const greet = hour < 12 ? 'morning' : hour < 18 ? 'afternoon' : 'evening'
@@ -103,6 +113,14 @@ function rest(event) {
           <span class="text-muted-a11y">{{ t(c.text) }}</span>
         </span>
         <span class="chev"><AppIcon name="right" :size="22" /></span>
+        <!-- Decoration, so hidden from screen readers. After the arrow, so it gets a row of its own. -->
+        <span v-if="c.key === 'med'" class="go-art labels" aria-hidden="true">
+          <span class="labels-track"><img v-for="(id, i) in LABEL_LOOP" :key="i" :src="`/samples/${id}.svg`" alt="" loading="lazy" decoding="async" width="480" :height="SIZE[id]" /></span>
+        </span>
+        <span v-else-if="c.key === 'bill'" class="go-art receipt" aria-hidden="true">
+          <span class="receipt-slot"></span>
+          <span class="receipt-paper"><span class="receipt-track"><img v-for="(id, i) in RECEIPT_LOOP" :key="i" :src="`/samples/${id}.svg`" alt="" loading="lazy" decoding="async" width="480" :height="SIZE[id]" /></span></span>
+        </span>
       </RouterLink>
     </div>
 

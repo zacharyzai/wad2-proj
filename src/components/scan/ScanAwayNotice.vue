@@ -5,9 +5,10 @@
 import { computed, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { scanStore } from '../../stores/scan'
+import { useScanStore } from '../../stores/scan'
 import AppIcon from '../layout/AppIcon.vue'
 import Spinner from '../layout/Spinner.vue'
+const scanStore = useScanStore()
 
 const { t } = useI18n()
 const route = useRoute()

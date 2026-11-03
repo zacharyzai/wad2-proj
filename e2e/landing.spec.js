@@ -181,7 +181,8 @@ test('the reminder phone buzzes while Reminders is on; switching it off stops it
   // The whole section in view, so the plan card (and its switch) has landed.
   await page.locator('#doses').evaluate((el) => window.scrollTo(0, Math.max(el.offsetTop, el.offsetTop + el.offsetHeight - innerHeight)))
   await expect.poll(() => phone.evaluate((el) => getComputedStyle(el).animationName)).toMatch(/^buzz/) // scoped: Vue adds a suffix
-  await page.getByRole('switch', { name: 'Reminders' }).click()
+  // dispatchEvent: under load, scroll-snap can pull the page back while click() scrolls the switch into view
+  await page.getByRole('switch', { name: 'Reminders' }).dispatchEvent('click')
   await expect(phone).toHaveClass(/\boff\b/)
   await expect.poll(() => phone.evaluate((el) => getComputedStyle(el).animationName)).toBe('none')
 })
@@ -234,7 +235,7 @@ test('read-aloud demo: pick a language, tap the speaker, tap again to stop', asy
 })
 
 for (const colorScheme of ['light', 'dark']) {
-  test(`welcome page has no WCAG A/AA violations (${colorScheme})`, async ({ page }) => {
+  test(`welcome page has no WCAG A/AA violations (${colorScheme}) @a11y`, async ({ page }) => {
     await page.emulateMedia({ colorScheme, reducedMotion: 'reduce' })
     await page.goto('/welcome')
     // The dev server adds page styles a moment after load; check colours only once they have all arrived.
@@ -292,32 +293,80 @@ test('on a phone the reminder phone picture is left out (the card says it alread
   else await expect(phone).toBeAttached().then(() => phone.scrollIntoViewIfNeeded()).then(() => expect(phone).toBeVisible())
 })
 
-test('scrolling stops at each section: the page snaps while it is open, and only then', async ({ page }) => {
+test('the hero and tunnel scroll freely; from Scan on, one wheel gesture moves a whole feature, both ways', async ({ page, isMobile }) => {
   await page.goto('/welcome')
   const html = page.locator('html')
   await expect(html).toHaveClass(/snap-sections/)
-  expect(await html.evaluate((el) => getComputedStyle(el).scrollSnapType)).toBe('y mandatory')
-  expect(await page.locator('section.sec').evaluateAll((els) => els.map((el) => getComputedStyle(el).scrollSnapAlign.split(' ')[0]))).toEqual(Array(5).fill('start'))
+  const top = (id) => page.locator(`#${id}`).evaluate((el) => el.offsetTop - 66) // its scroll-margin-top
+  const scrollTop = () => page.evaluate(() => Math.round(window.scrollY))
+  const at = async (y) => {
+    await expect.poll(scrollTop, { timeout: 8000 }).toBeGreaterThan(y - 4)
+    await expect.poll(scrollTop, { timeout: 8000 }).toBeLessThan(y + 4)
+  }
+  const gesture = async (dy) => {
+    await page.waitForTimeout(300) // the last gesture has ended
+    await page.mouse.wheel(0, dy)
+  }
 
-  // The tunnel between the hero and "scan" is scrolled through freely (it is taller than the screen): a scroll into the middle
-  // of it stays there, and is not pulled back to the hero or thrown ahead to the next section.
-  const scanTop = await page.locator('#scan').evaluate((el) => el.offsetTop - 66) // its scroll-margin-top
-  await page.mouse.move(100, 400)
-  for (let i = 0; i < 12; i++) await page.mouse.wheel(0, 120)
-  await page.waitForTimeout(900)
-  const inside = await page.evaluate(() => Math.round(window.scrollY))
-  expect(inside).toBeGreaterThan(900)
-  expect(inside).toBeLessThan(scanTop - 100)
+  if (isMobile) {
+    // Touch: a gentle CSS pull to each feature, and none on the hero or tunnel.
+    expect(await html.evaluate((el) => getComputedStyle(el).scrollSnapType)).toBe('y') // proximity is the default, so it isn't spelled out
+    expect(await page.locator('section.sec').evaluateAll((els) => els.map((el) => getComputedStyle(el).scrollSnapAlign.split(' ')[0]))).toEqual(['none', 'start', 'start', 'start', 'start'])
+  } else {
+    expect(await html.evaluate((el) => getComputedStyle(el).scrollSnapType)).toBe('none')
+    await page.mouse.move(100, 400)
+    // The hero and tunnel: a scroll stays where it was left.
+    await page.mouse.wheel(0, 600)
+    await page.waitForTimeout(900)
+    expect(Math.abs((await scrollTop()) - 600)).toBeLessThan(40)
 
-  // Coming up to the next section it lands on that section's top, never between two.
-  await page.evaluate((y) => window.scrollTo(0, y), scanTop - 150)
-  await expect.poll(() => page.evaluate(() => Math.round(window.scrollY)), { timeout: 8000 }).toBeGreaterThan(scanTop - 4)
-  await expect.poll(() => page.evaluate(() => Math.round(window.scrollY)), { timeout: 8000 }).toBeLessThan(scanTop + 4)
+    // Near the end of the tunnel, a small scroll pulls Scan in whole, then each gesture moves one feature.
+    const [scan, listen, doses] = [await top('scan'), await top('listen'), await top('doses')]
+    await page.evaluate((y) => window.scrollTo(0, y), scan - 150)
+    await gesture(40)
+    await at(scan)
+    await gesture(40)
+    await at(listen)
+    await gesture(40)
+    await at(doses)
+    // Landed where it stops (below the top bar), so the pills finish falling into place.
+    await expect.poll(() => page.locator('#doses .blister').evaluate((el) => el.style.transform)).toBe('')
+    // The last feature is one stop: a gesture down stays, and one gesture up goes all the way back to Doses.
+    await gesture(40)
+    await at(await top('ask'))
+    await gesture(40)
+    await page.waitForTimeout(600)
+    await at(await top('ask'))
+    await gesture(-40)
+    await at(doses)
+    // And back up, one feature at a time; up from Scan is free scrolling again.
+    await gesture(-40)
+    await at(listen)
+    await gesture(-40)
+    await at(scan)
+    await gesture(-300)
+    await page.waitForTimeout(900)
+    expect(await scrollTop()).toBeLessThan(scan - 200)
+  }
 
   // Leaving the page (a link, not a reload) takes the snapping away: Create an account scrolls normally.
+  await page.evaluate(() => window.scrollTo(0, 0))
   await page.getByTestId('landing-cta-hero').click()
   await expect(page).toHaveURL(/\/signup$/)
   await expect(html).not.toHaveClass(/snap-sections/)
+})
+
+test('every part invites a scroll with down arrows (no button); the hero cue fades once the page moves', async ({ page }) => {
+  await page.goto('/welcome')
+  const cue = page.getByTestId('landing-scroll-cue')
+  await expect(cue).toHaveText('Scroll to see how it works')
+  await expect(cue).toHaveCSS('opacity', '1')
+  await expect(page.getByTestId('landing-hero').getByRole('button', { name: /how it works/i })).toHaveCount(0)
+  // Every part has one (down arrows) except the last, which has nothing below it.
+  for (const id of ['landing-tunnel', 'landing-scan', 'landing-listen', 'landing-doses']) await expect(page.getByTestId(id).locator('.scroll-cue')).toHaveCount(1)
+  await expect(page.getByTestId('landing-ask').locator('.scroll-cue')).toHaveCount(0)
+  await page.evaluate(() => window.scrollTo(0, 200))
+  await expect(cue).toHaveCSS('opacity', '0')
 })
 
 test('with reduced motion the page scrolls normally, with no snapping', async ({ page }) => {

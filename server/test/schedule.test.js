@@ -1,5 +1,5 @@
 // Owner: Lokesh. Schedule rules for the Schedule page and Google sync (src/rules/schedule.js). Entry shape: docs/google-contract.md.
-import { test } from 'node:test'
+import { test } from 'vitest'
 import assert from 'node:assert/strict'
 import { weekOf, weekSummary, labelLimitDays, packDays, stopCourse, supplyDays, buildSchedule, dosesOn, doseSlots, addDays, validTime, validDays, validDate, todayInSingapore, timeInSingapore, timeStates, tooEarly, syncEntries, MAX_DAYS } from '../../src/rules/schedule.js'
 import med1 from '../fixtures/med-1.json' with { type: 'json' }
@@ -7,7 +7,12 @@ import en from '../../src/i18n/locales/en.json' with { type: 'json' }
 import zh from '../../src/i18n/locales/zh.json' with { type: 'json' }
 import ms from '../../src/i18n/locales/ms.json' with { type: 'json' }
 import ta from '../../src/i18n/locales/ta.json' with { type: 'json' }
-import { medicines, rememberMedicine, setSchedule, replaceMedicine, scanFromMedicine } from '../../src/stores/medicines.js'
+import { createPinia, setActivePinia } from 'pinia'
+import { useMedicinesStore, scanFromMedicine } from '../../src/stores/medicines.js'
+
+// The medicine list is a Pinia store: give it a Pinia to live in, as the app does in main.js.
+setActivePinia(createPinia())
+const { medicines, rememberMedicine, setSchedule, replaceMedicine } = useMedicinesStore()
 
 const med = (fields, id = 'm1') => ({ id, medication: { name: 'Metformin', strength: '500 mg', doseAmount: 1, doseUnit: 'tablet', withFood: 'after', frequencyType: 'daily', timesPerDay: 2, timing: null, ...fields } })
 const times = (entry) => entry.doses.map((d) => d.time)

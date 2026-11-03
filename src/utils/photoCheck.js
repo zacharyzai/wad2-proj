@@ -9,6 +9,8 @@ const INK_BELOW = 0.04 // ...AND almost no text-like dark pixels (under 200) lef
 //                         mostly pure white too, but its text is crisp and dark (about 15% of its pixels), so it is not glare.
 const BLUR_BELOW = 15 // sharpness (variance of the Laplacian); printed text gives hundreds, a blur or flat colour gives ~0
 const MAX_SIDE = 480 // measured on a small copy: faster, and a blur is still a blur
+// The error code (and errors.* text) for each problem. "Scan it anyway" skips the check.
+export const CHECK_ERRORS = { dark: 'PHOTO_DARK', blurry: 'PHOTO_BLURRY', glare: 'PHOTO_GLARE' }
 
 // rgba: Uint8ClampedArray from canvas getImageData. Returns 'dark' | 'glare' | 'blurry' | null (null = looks fine).
 export function photoProblem(rgba, width, height) {

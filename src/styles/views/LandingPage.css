@@ -43,13 +43,12 @@
 .paper { position: relative; background: var(--l-card); box-shadow: 0 30px 60px -30px oklch(0.35 0.06 45 / 0.5), 0 1px 0 oklch(0.87 0.022 70); }
 
 /* Buttons */
-.cta, .ghost, .outline, .hchip, .voice, .speaker, .big-cta, .switch-btn { font: inherit; cursor: pointer; text-decoration: none; transition: background-color 0.25s, color 0.25s, scale 160ms cubic-bezier(0.23, 1, 0.32, 1); }
+.cta, .outline, .hchip, .voice, .speaker, .big-cta, .switch-btn { font: inherit; cursor: pointer; text-decoration: none; transition: background-color 0.25s, color 0.25s, scale 160ms cubic-bezier(0.23, 1, 0.32, 1); }
 /* Press feedback uses `scale`, not `transform`, so it never fights the scroll engine's inline transforms. */
-.cta:active, .ghost:active, .outline:active, .hchip:active, .voice:active, .speaker:active, .big-cta:active, .switch-btn:active, .scan-pick > button:active { scale: 0.97; }
+.cta:active, .outline:active, .hchip:active, .voice:active, .speaker:active, .big-cta:active, .switch-btn:active, .scan-pick > button:active { scale: 0.97; }
 .cta { display: inline-flex; align-items: center; min-height: 58px; padding: 0 30px; border-radius: 999px; background: var(--l-accent); color: var(--l-on-accent); font-size: 20px; font-weight: 700; box-shadow: 0 12px 24px -14px rgba(19, 85, 85, 0.8); }
 .cta:hover { background: var(--l-accent-hover); color: var(--l-on-accent); }
-.ghost { min-height: 58px; padding: 0 26px; border: 2px solid oklch(0.28 0.035 45 / 0.3); border-radius: 999px; background: transparent; color: var(--l-ink); font-size: 20px; font-weight: 700; }
-.ghost:hover, .outline:hover { background: oklch(0.28 0.035 45 / 0.06); color: var(--l-ink); }
+.outline:hover { background: oklch(0.28 0.035 45 / 0.06); color: var(--l-ink); }
 .outline { align-self: flex-start; display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 0 24px; border-radius: 999px; border: 2px solid var(--l-ink); color: var(--l-ink); font-size: 19px; font-weight: 700; }
 .ctas { display: flex; flex-wrap: wrap; gap: 12px; padding-top: 4px; }
 
@@ -76,7 +75,14 @@
 .sec { scroll-margin-top: 66px; } /* section titles land below the top bar */
 .brand { display: flex; align-items: center; justify-content: center; gap: 12px; min-height: 48px; min-width: 48px; text-decoration: none; color: var(--l-ink); font-size: 22px; line-height: 1.1; }
 .brand:hover { color: var(--l-ink); }
-.hero-body { flex: 1; display: flex; align-items: center; padding: 0 var(--l-gutter) clamp(40px, 8vh, 96px); }
+.hero-body { flex: 1; display: flex; align-items: center; padding: 0 var(--l-gutter) clamp(24px, 5vh, 64px); }
+/* The cues (components/landing/ScrollCue.vue). Under the hero: fades away fast once the page moves, back at the top. */
+.hero-cue { align-self: center; padding: 0 var(--l-gutter) clamp(16px, 3vh, 32px); transition: opacity 200ms cubic-bezier(0.23, 1, 0.32, 1), translate 200ms cubic-bezier(0.23, 1, 0.32, 1); }
+.hero-cue.gone { opacity: 0; translate: 0 8px; }
+/* Each feature: just above the fold. A section stops 66px down (under the top bar), so measured from its top the screen's bottom
+   edge is 100svh - 66px, whatever the section's height. */
+.sec-cue { position: absolute; left: 50%; top: calc(100svh - 66px - 64px); translate: -50% 0; }
+@media (prefers-reduced-motion: reduce) { .hero-cue { transition: opacity 200ms ease; } .hero-cue.gone { translate: none; } }
 .hero-row { flex-wrap: wrap-reverse; gap: clamp(4px, 4vw, 72px); }
 .hero-text { flex: 1.15 1 340px; position: relative; z-index: 2; display: flex; flex-direction: column; gap: 22px; }
 .hero-text .lede { font-size: clamp(19px, 1.5vw, 22px); max-width: 31em; }
@@ -206,7 +212,7 @@
 /* The morning reminder arriving on the lock screen of a small phone shaped like an iPhone (no brand marks; small so
    the plan card and phone fit one screen; the text is decoration, aria-hidden): it buzzes, the
    Calendar notification drops in, stays, then goes; every 7 s. The Reminders switch turns it off; it waits while off screen (.idle). */
-.phone-wrap { position: relative; z-index: 1; align-self: flex-end; margin: -8px 6% 0 0; } /* tucks under the card without covering the Night row */
+.phone-wrap { position: relative; z-index: 1; align-self: flex-end; margin: -8px 6% 0 0; zoom: 0.8; } /* tucks under the card without covering the Night row */
 .phone { position: relative; rotate: 4deg; width: 172px; aspect-ratio: 9 / 19.5; padding: 9px 9px 7px; border: 7px solid oklch(0.2 0.015 45); border-radius: 36px; background: linear-gradient(165deg, #00897b, #1a7070 55%, #135555) /* the app's --gradient-hero */; box-shadow: 0 0 0 2px oklch(0.62 0.02 60), 0 40px 60px -30px var(--l-shadow); display: flex; flex-direction: column; align-items: center; color: oklch(0.99 0.005 80); animation: buzz 7s linear infinite; }
 /* Side buttons: volume up and down on the left, power on the right. */
 .side { position: absolute; width: 3px; border-radius: 2px; background: oklch(0.45 0.015 50); }
@@ -281,13 +287,11 @@
   .phone, .phone::before, .phone::after, .notif { animation: none; }
 }
 
-/* Scrolling stops at each of the five sections, on purpose. A section taller than the screen can still be scrolled freely
-   inside (it only stops again at its top and bottom edge), so nothing is skipped. The class is on <html> only while this
-   page is open (LandingPage.vue). Snapping animates, so people who ask for less motion get plain scrolling. */
-:global(html.snap-sections) { scroll-snap-type: y mandatory; }
-/* The tunnel (the long scroll-tied scene between the hero and "scan") is a stop too: it is taller than the screen, so you scroll
-   through it freely and it only stops at its edges. Without this, snapping treats it as empty space and pulls the page back. */
-.sec, .tunnel { scroll-snap-align: start; } /* .sec lands below the top bar: scroll-margin-top above */
+/* The hero and the tunnel scroll freely. From "scan" on, each feature is a stop. With a mouse or trackpad, LandingPage.vue moves
+   one whole feature per gesture. On touch screens, CSS gives a gentle pull to the nearest one (proximity, never a trap).
+   The class is on <html> only while this page is open. People who ask for less motion get plain scrolling. */
+@media (pointer: coarse) { :global(html.snap-sections) { scroll-snap-type: y proximity; } }
+.sec:not(.hero-sec) { scroll-snap-align: start; } /* lands below the top bar: scroll-margin-top above */
 @media (prefers-reduced-motion: reduce) { :global(html.snap-sections) { scroll-snap-type: none; } }
 
 /* On a phone the reminder phone picture (172px wide, 380px tall) is bigger than the card it decorates: the card says it already. */

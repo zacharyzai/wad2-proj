@@ -1,11 +1,12 @@
-// Beginner's guide ("How to use the app"): shown once, reopened any time. From the Claude Design walkthrough, extended to
+// Beginner's guide ("How to use the app"), a Pinia store: shown once, reopened any time. From the Claude Design walkthrough, extended to
 // walk people through the real app: a welcome card, then it points at real buttons (nav ones must be tapped), then a finish card.
 // When it shows: the first time a logged-in person opens Home or Scan on this device. If they arrived mid-task
 // (a sample link or any other deep link), it waits and shows the next time Home opens. Never on public pages.
 // Before it, an account that hasn't chosen day, night or "same as my device" is asked that first (ThemePrompt).
 // shortcut: "seen" is per device (localStorage), not per account; a second device shows it once more.
-import { reactive } from 'vue'
-import { authStore } from './auth'
+import { computed, ref } from 'vue'
+import { defineStore } from 'pinia'
+import { useAuthStore } from './auth'
 
 const KEY = 'amag.tour' // 'seen' | 'deferred'
 const read = () => {
@@ -35,31 +36,42 @@ export const STEPS = [
   { id: 'account', kind: 'tap', target: '/account' },
   { id: 'finish', kind: 'card' },
 ]
-// step: 1-based index into STEPS. ended: 'skip' | 'esc' | 'sample' | 'start' (picks the closing message).
-// askTheme: the day/night question is showing (components/guide/ThemePrompt.vue).
-export const guide = reactive({ open: false, step: 1, ended: null, askTheme: false })
-export const currentStep = () => STEPS[guide.step - 1]
-export function nextStep() {
-  if (guide.step < STEPS.length) guide.step++
-}
+export const useGuideStore = defineStore('guide', () => {
+  // state. step: 1-based index into STEPS. ended: 'skip' | 'esc' | 'sample' | 'start' (picks the closing message).
+  // askTheme: the day/night question is showing (components/guide/ThemePrompt.vue).
+  const open = ref(false)
+  const step = ref(1)
+  const ended = ref(null)
+  const askTheme = ref(false)
+  // getter
+  const currentStep = computed(() => STEPS[step.value - 1])
 
-export function openGuide() {
-  Object.assign(guide, { open: true, step: 1, ended: null })
-}
+  // actions
+  function nextStep() {
+    if (step.value < STEPS.length) step.value++
+  }
+  function openGuide() {
+    open.value = true
+    step.value = 1
+    ended.value = null
+  }
+  function endGuide(kind) {
+    write('seen')
+    open.value = false
+    ended.value = kind
+  }
+  // App.vue calls this after every navigation to an app (non-public) page. `first` = the first such page this visit.
+  // ThemePrompt calls it again once they've chosen, so the guide follows straight after.
+  function maybeShowGuide(route, first) {
+    if (open.value || askTheme.value) return
+    const startPage = ['home', 'scan'].includes(route.name) && !route.query.sample
+    const user = useAuthStore().user
+    if (startPage && user && !user.theme) return void (askTheme.value = true)
+    const state = read()
+    if (state === 'seen') return
+    if (first && !startPage) return write('deferred') // arrived mid-task: wait for Home
+    if (state === 'deferred' ? route.name === 'home' : startPage) openGuide()
+  }
 
-export function endGuide(kind) {
-  write('seen')
-  Object.assign(guide, { open: false, ended: kind })
-}
-
-// App.vue calls this after every navigation to an app (non-public) page. `first` = the first such page this visit.
-// ThemePrompt calls it again once they've chosen, so the guide follows straight after.
-export function maybeShowGuide(route, first) {
-  if (guide.open || guide.askTheme) return
-  const startPage = ['home', 'scan'].includes(route.name) && !route.query.sample
-  if (startPage && authStore.user && !authStore.user.theme) return void (guide.askTheme = true)
-  const state = read()
-  if (state === 'seen') return
-  if (first && !startPage) return write('deferred') // arrived mid-task: wait for Home
-  if (state === 'deferred' ? route.name === 'home' : startPage) openGuide()
-}
+  return { open, step, ended, askTheme, currentStep, nextStep, openGuide, endGuide, maybeShowGuide }
+})

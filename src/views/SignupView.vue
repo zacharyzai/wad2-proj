@@ -4,12 +4,13 @@
 import { computed, nextTick, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { enterApp, signup } from '../stores/auth'
+import { useAuthStore } from '../stores/auth'
 import AuthShell from '../components/layout/AuthShell.vue'
 import ErrorBanner from '../components/layout/ErrorBanner.vue'
 import BigButton from '../components/layout/BigButton.vue'
 import AppIcon from '../components/layout/AppIcon.vue'
 import { INCOMES, isCitizen } from '../utils/account'
+const { enterApp, signup } = useAuthStore()
 
 const MIN_PASSWORD = 8
 // Same values as the subsidy rules (src/rules/subsidies.js, via BillView) and the server (server/models/User.js).
@@ -26,6 +27,7 @@ const remember = ref(true)
 const showPw = ref(false)
 const busy = ref(false)
 const errorCode = ref(null)
+const formEl = ref(null) // template ref (Week 4), for focusing the first field to fix
 const tried = ref(false) // show problems only after the first press of Create account
 
 // Every problem at once, each under its own box (not one at a time).
@@ -55,7 +57,7 @@ async function submit() {
   const first = Object.keys(problems.value)[0]
   if (first) {
     await nextTick()
-    document.getElementById(`signup-${{ citizenSince: 'citizen-year' }[first] ?? first}`)?.focus()
+    formEl.value.querySelector('[aria-invalid="true"]')?.focus() // the first field to fix
     return
   }
   busy.value = true
@@ -74,7 +76,7 @@ async function submit() {
 
 <template>
   <AuthShell active="signup">
-    <form class="d-flex flex-column gap-3" novalidate @submit.prevent="submit">
+    <form ref="formEl" class="d-flex flex-column gap-3" novalidate @submit.prevent="submit">
       <ErrorBanner v-if="errorCode" :code="errorCode" data-testid="signup-error" />
       <p v-if="tried && Object.keys(problems).length" class="auth-warn m-0" role="alert" data-testid="signup-missing">
         <AppIcon name="alert" :size="20" />{{ t('auth.missingFields') }}

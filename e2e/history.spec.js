@@ -16,7 +16,7 @@ async function mockHistory(page, items = [MED, BILL]) {
 const openFirst = (page) => page.getByTestId('history-row').first().click()
 
 test.describe('history list', () => {
-  test('medicines and bills are two lists of short rows', async ({ page }) => {
+  test('medicines and bills are two lists of short rows @smoke', async ({ page }) => {
     await mockHistory(page)
     await page.goto('/history')
     await expect(page.getByTestId('history-row')).toHaveCount(1)

@@ -33,6 +33,3 @@ export async function withDb(res, work) {
   }
   return work()
 }
-
-// Existing local MongoDB launcher and diagnostics use this name.
-export const connectDatabase = connectDb

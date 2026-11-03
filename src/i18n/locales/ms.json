@@ -105,7 +105,6 @@
   },
   "errors": {
     "WRONG_ROLE": "Tindakan ini memerlukan peranan akaun yang berbeza.",
-    "CAREGIVER_ALREADY_LINKED": "Warga emas ini sudah mempunyai penjaga. Putuskan pautan semasa sebelum menjemput orang lain.",
     "AUTH_UNAVAILABLE": "Log masuk dan pendaftaran tidak tersedia buat sementara waktu. Sila cuba lagi nanti.",
     "BAD_REQUEST": "Kami tidak dapat menggunakannya. Sila cuba lagi.",
     "NOT_FOUND": "Kami tidak dapat menjumpainya.",
@@ -840,7 +839,7 @@
     "hero": {
       "title": "Fahami bil perubatan anda",
       "lead": "Bil perubatan, subsidi dan label ubat, diterangkan dengan kata-kata mudah dan dibacakan dengan kuat. Dibuat untuk Ah Ma, Ah Gong dan keluarga yang menjaga mereka.",
-      "how": "Lihat cara ia berfungsi"
+      "how": "Tatal ke bawah untuk lihat cara ia berfungsi"
     },
     "try": "Cuba sekarang",
     "scan": {
@@ -1244,7 +1243,8 @@
     "title": {
       "today": "Ubat anda hari ini",
       "week": "Minggu ini",
-      "meds": "Ubat saya"
+      "meds": "Ubat saya",
+      "reminders": "Peringatan"
     },
     "tab": {
       "today": "Hari ini",
@@ -1253,7 +1253,6 @@
       "reminders": "Peringatan"
     },
     "add": "Tambah ubat",
-    "back": "Kembali ke jadual",
     "tapWhenTaken": "Tekan selepas ambil ubat",
     "next": "Seterusnya: {name} pada {time}",
     "needDaysCount": "{n} ubat perlukan bilangan hari | {n} ubat perlukan bilangan hari",

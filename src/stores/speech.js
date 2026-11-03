@@ -1,6 +1,8 @@
 // Reading aloud for every player (Explain, Ask, the guide, the welcome page): this device's voice for the language when it has
-// one, otherwise audio made by our server (/api/tts, Gemini). Also the shared speed, remembered on this device.
+// one, otherwise audio made by our server (/api/tts, Gemini). Also the shared speed, remembered on this device. A Pinia store:
+// state = the speed and this device's voices; actions = speak, stop, pause, resume.
 import { ref, watch } from 'vue'
+import { defineStore } from 'pinia'
 import { readAloudAudio } from '../api/client'
 
 const KEY = 'speechRate'
@@ -15,32 +17,8 @@ function load() {
   }
 }
 
-// This device's voices (they load a moment after the page in Chrome). Only speak with a voice that really is the language:
-// given just a lang it has no voice for, the browser reads with its English voice (Tamil comes out as "dot").
 const synth = typeof window !== 'undefined' && 'speechSynthesis' in window ? window.speechSynthesis : null
-export const voices = ref(synth?.getVoices() ?? [])
-synth?.addEventListener?.('voiceschanged', () => (voices.value = synth.getVoices()))
-export const voiceFor = (lang) => voices.value.find((v) => v.lang.toLowerCase().startsWith(lang))
-
-export const speechRate = ref(load())
-watch(speechRate, (rate) => {
-  try {
-    localStorage.setItem(KEY, String(rate))
-  } catch {
-    // Not critical: the speed just won't be remembered.
-  }
-})
-
-// ---- speaking ----
-// One reading at a time: starting one stops the last. speak() resolves when the reading ends:
-// 'done', 'stopped' (stopSpeaking() or a newer reading), or 'failed' (no device voice and no audio from the server).
-// onPlaying runs once sound starts (straight away with a device voice; after the download, about 6 s, otherwise).
-// onWord(charIndex) follows the reading, for highlighting the word being said: the device voice reports each word;
-// server audio has no word timings, so the place is estimated from how far the clip has played.
-export const canSpeak = typeof window !== 'undefined' && ('speechSynthesis' in window || 'Audio' in window)
 const clips = new Map() // lang + text → data URL, so a replay doesn't download it again
-let audio = null
-let finish = null // ends the current reading's promise
 
 // A tenth of a second of silence. Played inside the tap, it lets iPhones play the real clip after the download.
 const SILENT = (() => {
@@ -53,66 +31,95 @@ const SILENT = (() => {
   return `data:audio/wav;base64,${btoa(String.fromCharCode(...new Uint8Array(view.buffer)))}`
 })()
 
-export function stopSpeaking() {
-  synth?.cancel()
-  audio?.pause()
-  audio = null
-  finish?.('stopped')
-}
-export const pauseSpeaking = () => (audio ? audio.pause() : synth?.pause())
-export const resumeSpeaking = () => (audio ? audio.play().catch(() => {}) : synth?.resume())
-// A server clip changes speed as it plays; a device voice can't, so the caller reads it again (usesDeviceVoice).
-export const setSpeakingRate = (rate) => audio && (audio.playbackRate = rate)
-export const usesDeviceVoice = (lang) => Boolean(voiceFor(lang))
+export const useSpeechStore = defineStore('speech', () => {
+  // This device's voices (they load a moment after the page in Chrome). Only speak with a voice that really is the language:
+  // given just a lang it has no voice for, the browser reads with its English voice (Tamil comes out as "dot").
+  const voices = ref(synth?.getVoices() ?? [])
+  synth?.addEventListener?.('voiceschanged', () => (voices.value = synth.getVoices()))
+  const voiceFor = (lang) => voices.value.find((v) => v.lang.toLowerCase().startsWith(lang))
 
-export function speak(text, lang, { rate = speechRate.value, onPlaying, onWord } = {}) {
-  stopSpeaking()
-  return new Promise((resolve) => {
-    let over = false
-    const end = (result) => {
-      if (over) return
-      over = true
-      if (finish === end) finish = null
-      resolve(result)
+  // state: the reading speed, shared by every player.
+  const rate = ref(load())
+  watch(rate, (speed) => {
+    try {
+      localStorage.setItem(KEY, String(speed))
+    } catch {
+      // Not critical: the speed just won't be remembered.
     }
-    finish = end
-    const voice = voiceFor(lang)
-    if (voice && synth) {
-      const u = new SpeechSynthesisUtterance(text)
-      if (typeof SpeechSynthesisVoice !== 'undefined' && voice instanceof SpeechSynthesisVoice) u.voice = voice
-      u.lang = voice.lang
-      u.rate = rate
-      u.onend = () => end('done')
-      u.onerror = (e) => end(/interrupted|canceled/.test(e.error ?? '') ? 'stopped' : 'failed')
-      if (onWord) u.onboundary = (e) => !over && (e.name ?? 'word') === 'word' && onWord(e.charIndex)
-      synth.speak(u)
-      onPlaying?.()
-      return
-    }
-    // No voice here: get the audio from our server. The element starts playing (silence) inside the tap.
-    const a = (audio = new Audio(SILENT))
-    a.play().catch(() => {})
-    const key = `${lang}\n${text}`
-    const ready = clips.has(key) ? Promise.resolve({ ok: true, data: { audio: null } }) : readAloudAudio(text, lang)
-    ready.then((res) => {
-      if (over) return
-      if (!res.ok) return end('failed')
-      if (res.data.audio) clips.set(key, `data:audio/wav;base64,${res.data.audio}`)
-      a.src = clips.get(key)
-      a.playbackRate = rate
-      a.onended = () => end('done')
-      a.onerror = () => end('failed')
-      a.play().then(() => {
-        if (over) return
-        onPlaying?.()
-        if (!onWord) return
-        const follow = () => {
-          if (over || a !== audio) return
-          if (a.duration > 0) onWord(Math.floor((text.length * a.currentTime) / a.duration))
-          requestAnimationFrame(follow)
-        }
-        requestAnimationFrame(follow)
-      }, () => end('failed'))
-    })
   })
-}
+
+  // ---- speaking ----
+  // One reading at a time: starting one stops the last. speak() resolves when the reading ends:
+  // 'done', 'stopped' (stopSpeaking() or a newer reading), or 'failed' (no device voice and no audio from the server).
+  // onPlaying runs once sound starts (straight away with a device voice; after the download, about 6 s, otherwise).
+  // onWord(charIndex) follows the reading, for highlighting the word being said: the device voice reports each word;
+  // server audio has no word timings, so the place is estimated from how far the clip has played.
+  let audio = null
+  let finish = null // ends the current reading's promise
+
+  function stopSpeaking() {
+    synth?.cancel()
+    audio?.pause()
+    audio = null
+    finish?.('stopped')
+  }
+  const pauseSpeaking = () => (audio ? audio.pause() : synth?.pause())
+  const resumeSpeaking = () => (audio ? audio.play().catch(() => {}) : synth?.resume())
+  // A server clip changes speed as it plays; a device voice can't, so the caller reads it again (usesDeviceVoice).
+  const setSpeakingRate = (speed) => audio && (audio.playbackRate = speed)
+  const usesDeviceVoice = (lang) => Boolean(voiceFor(lang))
+
+  function speak(text, lang, { rate: speed = rate.value, onPlaying, onWord } = {}) {
+    stopSpeaking()
+    return new Promise((resolve) => {
+      let over = false
+      const end = (result) => {
+        if (over) return
+        over = true
+        if (finish === end) finish = null
+        resolve(result)
+      }
+      finish = end
+      const voice = voiceFor(lang)
+      if (voice && synth) {
+        const u = new SpeechSynthesisUtterance(text)
+        if (typeof SpeechSynthesisVoice !== 'undefined' && voice instanceof SpeechSynthesisVoice) u.voice = voice
+        u.lang = voice.lang
+        u.rate = speed
+        u.onend = () => end('done')
+        u.onerror = (e) => end(/interrupted|canceled/.test(e.error ?? '') ? 'stopped' : 'failed')
+        if (onWord) u.onboundary = (e) => !over && (e.name ?? 'word') === 'word' && onWord(e.charIndex)
+        synth.speak(u)
+        onPlaying?.()
+        return
+      }
+      // No voice here: get the audio from our server. The element starts playing (silence) inside the tap.
+      const a = (audio = new Audio(SILENT))
+      a.play().catch(() => {})
+      const key = `${lang}\n${text}`
+      const ready = clips.has(key) ? Promise.resolve({ ok: true, data: { audio: null } }) : readAloudAudio(text, lang)
+      ready.then((res) => {
+        if (over) return
+        if (!res.ok) return end('failed')
+        if (res.data.audio) clips.set(key, `data:audio/wav;base64,${res.data.audio}`)
+        a.src = clips.get(key)
+        a.playbackRate = speed
+        a.onended = () => end('done')
+        a.onerror = () => end('failed')
+        a.play().then(() => {
+          if (over) return
+          onPlaying?.()
+          if (!onWord) return
+          const follow = () => {
+            if (over || a !== audio) return
+            if (a.duration > 0) onWord(Math.floor((text.length * a.currentTime) / a.duration))
+            requestAnimationFrame(follow)
+          }
+          requestAnimationFrame(follow)
+        }, () => end('failed'))
+      })
+    })
+  }
+
+  return { rate, voices, speak, stopSpeaking, pauseSpeaking, resumeSpeaking, setSpeakingRate, usesDeviceVoice }
+})

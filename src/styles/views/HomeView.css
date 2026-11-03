@@ -23,6 +23,25 @@
 .go-words { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 .go-title { font-size: var(--t21, 21px); font-weight: 800; line-height: 1.25; }
 .go-words .text-muted-a11y { font-size: 17px; line-height: 1.4; text-wrap: pretty; }
+/* The two scan choices show what they read, in a strip across the bottom of the card. The card itself can't clip (that
+   would flatten its 3D tilt), so each strip clips itself and reaches the card's edges with negative margins. */
+.go-art { grid-column: 1 / -1; }
+/* Medicine label: the sample labels slide past, endlessly (the track holds the list twice; moving it by half loops seamlessly). */
+.labels { display: block; margin: 0 -14px -18px -18px; padding: 4px 0 16px; overflow: hidden; border-radius: 0 0 var(--r-card) var(--r-card); -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent); mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent); }
+.labels-track { display: flex; gap: 14px; width: max-content; animation: labels-slide 32s linear infinite; }
+.labels img { width: 150px; height: auto; flex: none; border-radius: var(--r-sm); background: #fff; box-shadow: var(--shadow-card); transform: rotate(-2deg); }
+/* Tilt by position within each copy of the list (3 labels), so both copies match and the loop point is invisible. */
+.labels img:nth-child(3n + 2) { transform: rotate(2deg) translateY(6px); }
+@keyframes labels-slide { to { transform: translateX(calc(-50% - 7px)); } }
+/* Bill: a receipt that never ends, feeding down out of a printer slot. */
+.receipt { display: flex; flex-direction: column; align-items: center; justify-self: center; width: min(72%, 240px); height: 110px; margin-bottom: -18px; }
+.receipt-slot { flex: none; width: 112%; height: 12px; border-radius: 0 0 8px 8px; background: var(--color-text); opacity: 0.85; position: relative; z-index: 1; }
+.receipt-paper { flex: 1; width: 100%; overflow: hidden; background: #fff; box-shadow: var(--shadow-card); -webkit-mask-image: linear-gradient(#000 65%, transparent); mask-image: linear-gradient(#000 65%, transparent); }
+.receipt-track { display: flex; flex-direction: column; animation: receipt-feed 26s linear infinite; }
+.receipt img { display: block; width: 100%; height: auto; border-bottom: 2px dashed #c9c2b6; } /* a tear line between bills */
+@keyframes receipt-feed { from { transform: translateY(-50%); } to { transform: translateY(0); } }
+.go:hover :is(.labels-track, .receipt-track), .go:focus-visible :is(.labels-track, .receipt-track) { animation-play-state: paused; }
+
 .chev { width: var(--hit); height: var(--hit); border-radius: 50%; display: grid; place-items: center; flex: none; background: var(--color-surface-2); color: var(--color-primary-text); }
 
 /* The last bill: one quiet line. Phones stack title, amount, then where and when, so a long hospital name has room;
@@ -42,7 +61,11 @@
   .greet-lead { display: block; max-width: 34ch; }
   .capsule { width: 200px; align-self: flex-end; margin-top: -8px; }
   .choices { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
-  .go { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: 'tile chev' 'words words'; align-items: start; min-height: 190px; padding: 22px; gap: 16px; }
+  .go { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: 'tile chev' 'words words' 'art art'; align-items: start; min-height: 190px; padding: 22px; gap: 16px; }
+  .go-art { grid-area: art; }
+  .labels { margin: 0 -22px -22px; }
+  .labels img { width: 180px; }
+  .receipt { height: 130px; margin-bottom: -22px; }
   .go-tile { grid-area: tile; }
   .go .chev { grid-area: chev; }
   .go-words { grid-area: words; }
@@ -52,4 +75,5 @@
 
 @media (prefers-reduced-motion: reduce) {
   .go, .go[data-pressed], .go-tile, .go[data-pressed] .go-tile { transform: none !important; }
+  .labels-track, .receipt-track { animation: none; }
 }

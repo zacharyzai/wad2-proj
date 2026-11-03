@@ -1,4 +1,5 @@
-// One slot per senior: either a pending invitation or one active caregiver. Never store the raw invite token.
+// One row per link: a senior has at most one pending invitation (caregiverId null) and any number of caregivers. Never store
+// the raw invite token.
 import mongoose from 'mongoose'
 
 const schema = new mongoose.Schema({
@@ -9,8 +10,8 @@ const schema = new mongoose.Schema({
   linkedAt: Date,
 }, { timestamps: true, bufferCommands: false, strict: 'throw' })
 
-// A caregiver is intentionally NOT unique: they may look after multiple seniors.
-schema.index({ seniorId: 1 }, { unique: true })
+// Many-to-many: one pending invite per senior (null counts as a value) and one link per senior-caregiver pair.
+schema.index({ seniorId: 1, caregiverId: 1 }, { unique: true })
 schema.index({ caregiverId: 1 })
 schema.index({ tokenHash: 1 }, { unique: true, sparse: true })
 export const CareLink = mongoose.models.CareLink ?? mongoose.model('CareLink', schema)

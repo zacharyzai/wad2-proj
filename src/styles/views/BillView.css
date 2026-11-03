@@ -7,7 +7,7 @@
 .clinic { font-family: var(--font-display); font-size: var(--fs-h2); font-weight: 400; line-height: 1.25; overflow-wrap: anywhere; }
 :lang(ta) .clinic { font-family: var(--font-sans); font-weight: 800; }
 .pay-title { font-size: var(--t24, 24px); line-height: 1.3; }
-.pay-title .hero-number { display: inline-block; margin-top: 6px; }
+.pay-title .hero-number { display: inline; } /* inline, not inline-block: the full stop after it never wraps onto a line alone */
 @media (min-width: 992px) { .pay-title { font-size: var(--t28, 28px); } }
 
 /* Split bar: teal = you pay (same colour as the big amount), green = subsidies, rose = MediSave. Grows in from the left. */
@@ -16,8 +16,7 @@
 .seg + .seg { animation-delay: 120ms; }
 .seg-pay { background: var(--color-primary); }
 .seg-subsidy { background: var(--color-success); }
-.seg-medisave { background: #c2417f; }
-:root[data-theme='dark'] .seg-medisave { background: #e07aab; }
+.seg-medisave { background: var(--color-rose); }
 @keyframes seg-grow { from { transform: scaleX(0); } }
 .swatch { display: inline-block; width: 10px; height: 10px; margin-right: 6px; border-radius: 3px; vertical-align: 1px; }
 .summary-row { margin: 0; }

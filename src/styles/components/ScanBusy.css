@@ -1,0 +1,24 @@
+/* Scoped styles for components/scan/ScanBusy.vue. */
+.text-teal { color: var(--color-primary-text); }
+
+/* Processing */
+.busy { min-height: 60vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px; padding: 24px 0; text-align: center; }
+
+/* Covering: the photo with a scan line; then the blacked-out version wipes down over it (REVEAL_MS in ScanView.vue). */
+.cover-view { position: relative; width: min(100%, 380px); overflow: hidden; border-radius: var(--r-panel); background: var(--color-surface-2); box-shadow: var(--shadow-hover); }
+.cover-view img { display: block; width: 100%; max-height: 44vh; object-fit: contain; }
+.cover-view .cover-after { position: absolute; inset: 0; height: 100%; animation: cover-wipe 1000ms var(--ease-out) both; }
+.cover-line { position: absolute; inset: 0; border-bottom: 3px solid var(--color-accent); background: linear-gradient(to bottom, transparent 65%, rgba(0, 184, 169, 0.22)); transform: translateY(-100%); animation: cover-scan 1.8s ease-in-out infinite alternate; }
+.done .cover-line { animation: cover-follow 1000ms var(--ease-out) forwards; }
+@keyframes cover-scan { to { transform: translateY(0); } }
+@keyframes cover-wipe { from { clip-path: inset(0 0 100% 0); } 90%, to { clip-path: inset(0); } }
+@keyframes cover-follow { 0% { transform: translateY(-100%); } 90% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(0); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .cover-line { display: none; } }
+
+/* The two steps of a photo scan: done (tick), now (filled), next (outlined). */
+.scan-steps { display: flex; flex-direction: column; gap: 12px; margin: 0; padding: 0; list-style: none; text-align: left; font-size: 18px; font-weight: 600; line-height: 1.35; }
+.scan-steps li { display: flex; align-items: center; gap: 12px; color: var(--color-text-muted); }
+.scan-steps li.now { color: var(--color-text); }
+.step-mark { flex: none; width: 32px; height: 32px; display: grid; place-items: center; border-radius: 50%; border: 2px solid var(--color-border-strong); font-size: 16px; font-weight: 700; transition: background-color 200ms var(--ease-out), border-color 200ms var(--ease-out), color 200ms var(--ease-out); }
+.scan-steps li.now .step-mark { border-color: var(--color-primary); background: var(--color-primary); color: #fff; }
+.scan-steps li.done .step-mark { border-color: var(--color-success); background: var(--color-success); color: #fff; }

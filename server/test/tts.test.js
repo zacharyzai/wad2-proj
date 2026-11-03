@@ -1,4 +1,4 @@
-import { test, before, after, beforeEach } from 'node:test'
+import { test, beforeAll, afterAll, beforeEach, vi } from 'vitest'
 import assert from 'node:assert/strict'
 
 process.env.USE_MOCK_AI = 'true'
@@ -10,11 +10,11 @@ const { synthesize, forgetSpeech, silentWav } = await import('../services/tts.js
 const { forgetResting } = await import('../services/gemini.js')
 
 let server, base
-before(() => {
+beforeAll(() => {
   server = app.listen(0)
   base = `http://localhost:${server.address().port}`
 })
-after(() => server.close())
+afterAll(() => server.close())
 beforeEach(() => (forgetSpeech(), forgetResting()))
 
 const say = (body) => fetch(`${base}/api/tts`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) })
@@ -37,7 +37,7 @@ test('with mock AI it answers with a short silent WAV and no account', async () 
 
 test('synthesize falls back to the next model, then caches the clip', async (t) => {
   const calls = []
-  t.mock.method(globalThis, 'fetch', async (url, init) => {
+  vi.spyOn(globalThis, 'fetch').mockImplementation(async (url, init) => {
     const { model, input } = JSON.parse(init.body)
     calls.push(model)
     if (model === 'tts-a') return new Response('overloaded', { status: 503 })
@@ -48,7 +48,7 @@ test('synthesize falls back to the next model, then caches the clip', async (t) 
 })
 
 test('a reply with no audio is an outage, not an empty clip', async (t) => {
-  t.mock.method(globalThis, 'fetch', async () => Response.json({ steps: [{ content: [{ type: 'text', text: 'sorry' }] }] }))
+  vi.spyOn(globalThis, 'fetch').mockImplementation(async () => Response.json({ steps: [{ content: [{ type: 'text', text: 'sorry' }] }] }))
   await assert.rejects(synthesize('hello', 'en'), { code: 'AI_UNAVAILABLE' })
 })
 

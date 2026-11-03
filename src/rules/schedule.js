@@ -11,9 +11,9 @@
 import { TIMINGS } from '../../server/services/normalizeScan.js'
 
 export const MAX_DAYS = 366 // same limit as Google sync
-export const SLOT_TIMES = { morning: '08:00', afternoon: '13:00', evening: '18:00', bedtime: '21:00' }
+const SLOT_TIMES = { morning: '08:00', afternoon: '13:00', evening: '18:00', bedtime: '21:00' }
 // Labels that only say "N times a day": the slots we use for each N. More than 4 a day is unusual, so a pharmacist checks it.
-export const SLOTS_PER_DAY = {
+const SLOTS_PER_DAY = {
   1: ['morning'],
   2: ['morning', 'bedtime'],
   3: ['morning', 'afternoon', 'bedtime'],
@@ -65,7 +65,7 @@ const minutes = (hhmm) => Number(hhmm.slice(0, 2)) * 60 + Number(hhmm.slice(3, 5
 // For the day's dose times (sorted), each is 'earlier', 'now' or 'later' at time `now`. A time is "now" from NOW_LEAD_MIN
 // before it until the next time's "now" starts (the last one: until midnight), and always includes its own time, so two
 // close times can both be "now". Times are 'HH:MM'.
-export const NOW_LEAD_MIN = 60
+const NOW_LEAD_MIN = 60
 export function timeStates(times, now) {
   const at = minutes(now)
   return times.map((time, i) => {
@@ -76,7 +76,7 @@ export function timeStates(times, now) {
 }
 
 // Ticking a dose more than this long before its time asks "Have you already taken it?" first.
-export const EARLY_MIN = 120
+const EARLY_MIN = 120
 export const tooEarly = (time, now) => minutes(time) - minutes(now) > EARLY_MIN
 
 // The slots a medicine is taken at, or null when it can't be scheduled safely.
@@ -138,7 +138,7 @@ export function buildSchedule(medicine, { startDate, days, times = {} } = {}) {
 
 // What POST /api/google/sync gets: every entry, flagged ones too (the server skips those itself). The server needs a real
 // startDate and a label of at most 80 characters on every entry, even ones it skips, or it refuses the whole schedule.
-export const LABEL_MAX = 80
+const LABEL_MAX = 80
 export function syncEntries(entries, today) {
   return entries.map((e) => ({ ...e, label: e.label.slice(0, LABEL_MAX), startDate: e.startDate ?? today }))
 }

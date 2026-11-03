@@ -1,6 +1,5 @@
-// Run: node --test src/utils/photoCheck.test.js
-import { test } from 'node:test'
-import assert from 'node:assert/strict'
+// Run: pnpm vitest run src/utils/photoCheck.test.js
+import { describe, it, expect } from 'vitest'
 import { photoProblem } from './photoCheck.js'
 
 const W = 120
@@ -18,31 +17,33 @@ const image = (grey) => {
 // Pretend text: white paper with dark 2-pixel strokes, like a printed line.
 const text = (paper) => (x, y) => (y % 8 < 2 && x % 6 < 4 ? 20 : paper)
 
-test('a well lit photo of printed text has no problem', () => {
-  assert.equal(photoProblem(image(text(225)), W, H), null)
-})
+describe('photoProblem: is the photo too dark, blurry or glary?', () => {
+  it('a well lit photo of printed text has no problem', () => {
+    expect(photoProblem(image(text(225)), W, H)).toBe(null)
+  })
 
-test('too dark: a dim photo is called dark, even with text in it', () => {
-  assert.equal(photoProblem(image(text(40)), W, H), 'dark')
-  assert.equal(photoProblem(image(() => 10), W, H), 'dark')
-})
+  it('too dark: a dim photo is called dark, even with text in it', () => {
+    expect(photoProblem(image(text(40)), W, H)).toBe('dark')
+    expect(photoProblem(image(() => 10), W, H)).toBe('dark')
+  })
 
-test('glare: mostly blown out, the text faded to almost white', () => {
-  assert.equal(photoProblem(image((x, y) => (y % 8 < 2 && x % 6 < 4 ? 235 : 255)), W, H), 'glare')
-  assert.equal(photoProblem(image(() => 255), W, H), 'glare') // a completely white photo
-})
+  it('glare: mostly blown out, the text faded to almost white', () => {
+    expect(photoProblem(image((x, y) => (y % 8 < 2 && x % 6 < 4 ? 235 : 255)), W, H)).toBe('glare')
+    expect(photoProblem(image(() => 255), W, H)).toBe('glare') // a completely white photo
+  })
 
-test('a PDF or screenshot of a bill is mostly pure white but not glare: its text is crisp and dark', () => {
-  assert.equal(photoProblem(image(text(255)), W, H), null) // white page, lots of text
-  assert.equal(photoProblem(image((x, y) => (y % 24 < 2 && x % 6 < 4 ? 20 : 255)), W, H), null) // a sparse receipt: about 5% ink
-})
+  it('a PDF or screenshot of a bill is mostly pure white but not glare: its text is crisp and dark', () => {
+    expect(photoProblem(image(text(255)), W, H)).toBe(null) // white page, lots of text
+    expect(photoProblem(image((x, y) => (y % 24 < 2 && x % 6 < 4 ? 20 : 255)), W, H)).toBe(null) // a sparse receipt: about 5% ink
+  })
 
-test('blurry: smooth gradients and flat colour have no edges for the text to be read from', () => {
-  assert.equal(photoProblem(image((x) => 100 + x), W, H), 'blurry')
-  assert.equal(photoProblem(image(() => 140), W, H), 'blurry')
-})
+  it('blurry: smooth gradients and flat colour have no edges for the text to be read from', () => {
+    expect(photoProblem(image((x) => 100 + x), W, H)).toBe('blurry')
+    expect(photoProblem(image(() => 140), W, H)).toBe('blurry')
+  })
 
-test('ordinary white paper is not glare, and a tiny image is never judged', () => {
-  assert.equal(photoProblem(image(text(240)), W, H), null)
-  assert.equal(photoProblem(new Uint8ClampedArray(4 * 4 * 4), 4, 4), null)
+  it('ordinary white paper is not glare, and a tiny image is never judged', () => {
+    expect(photoProblem(image(text(240)), W, H)).toBe(null)
+    expect(photoProblem(new Uint8ClampedArray(4 * 4 * 4), 4, 4)).toBe(null)
+  })
 })

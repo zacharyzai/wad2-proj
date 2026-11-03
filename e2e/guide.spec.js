@@ -96,7 +96,7 @@ test('Skip or Esc end it at any step; the closing message fades after a few seco
   await expect(page.getByTestId('guide-toast')).toHaveCount(0, { timeout: 4500 }) // gone after 3 seconds
 })
 
-test('the language buttons on the welcome card switch the app; tap steps name the button in that language', async ({ page }) => {
+test('the language buttons on the welcome card switch the app; tap steps name the button in that language @i18n', async ({ page }) => {
   await page.goto('/')
   await guide(page).getByRole('button', { name: '中文' }).click()
   await expect(title(page)).toHaveText('选择语言，朗读页面')
@@ -176,7 +176,7 @@ test('no Tamil voice on the device: the speaker plays Tamil audio from our serve
 })
 
 for (const colorScheme of ['light', 'dark']) {
-  test(`the guide has no WCAG A/AA violations: card, pointing step, finish (${colorScheme})`, async ({ page }) => {
+  test(`the guide has no WCAG A/AA violations: card, pointing step, finish (${colorScheme}) @a11y`, async ({ page }) => {
     await page.emulateMedia({ colorScheme, reducedMotion: 'reduce' })
     await page.goto('/')
     await page.waitForLoadState('networkidle')

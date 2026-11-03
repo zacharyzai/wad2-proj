@@ -12,7 +12,7 @@ async function openSample(page, name, path = '/scan?type=medication') {
   await page.getByRole('button', { name }).click()
 }
 
-test('medication sample: confirm, explain and quick check', async ({ page }) => {
+test('medication sample: confirm, explain and quick check @smoke', async ({ page }) => {
   await openSample(page, 'Metformin label')
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Check what we read')
   await expect(page.getByLabel('Medicine name')).toHaveValue('Metformin')
@@ -63,7 +63,7 @@ test('when-needed medicine is flagged for the pharmacist, and Add to schedule la
   await expect(page.getByText('Cough syrup')).toBeVisible()
 })
 
-test('bill sample shows what you pay', async ({ page }) => {
+test('bill sample shows what you pay @smoke', async ({ page }) => {
   await openSample(page, 'Medical bill', '/bill/scan')
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Check your bill items')
   await page.getByRole('button', { name: 'Looks correct' }).click()
@@ -286,10 +286,10 @@ test('Scan errors can be read aloud (H10)', async ({ page }) => {
   await expect(page.getByRole('button', { name: 'Read aloud' })).toBeVisible()
 })
 
-test('explanation follows the language switch', async ({ page }) => {
+test('explanation follows the language switch @i18n', async ({ page }) => {
   await openSample(page, 'Metformin label')
   await page.getByRole('button', { name: 'Looks correct' }).click()
-  await expect(page).toHaveURL(/\/scan\/explain$/) // on Explain before going to Account, or Back returns to Confirm
+  await expect(page).toHaveURL(/\/scan\/explain$/) // on Explain before leaving, so Back returns here and not to Confirm
   await switchLanguage(page, '中文')
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('每次 1 粒，每天 2 次。')
 })
@@ -362,12 +362,12 @@ test('Confirm: "Add more details" shows the empty optional fields and "Show fewe
   })
   await openSample(page, 'Metformin label')
   const more = page.getByTestId('confirm-more')
-  await expect(page.getByLabel('Amount in the pack')).toHaveCount(0)
+  await expect(page.getByLabel('Amount in the pack', { exact: true })).toHaveCount(0)
   await more.click()
-  await expect(page.getByLabel('Amount in the pack')).toBeVisible()
+  await expect(page.getByLabel('Amount in the pack', { exact: true })).toBeVisible()
   await expect(more).toHaveAttribute('aria-expanded', 'true')
   await more.click()
-  await expect(page.getByLabel('Amount in the pack')).toHaveCount(0)
+  await expect(page.getByLabel('Amount in the pack', { exact: true })).toHaveCount(0)
 })
 
 // A one-page PDF with a line of text, written by hand (no xref table: PDF.js rebuilds it).

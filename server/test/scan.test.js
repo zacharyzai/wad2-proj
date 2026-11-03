@@ -1,4 +1,4 @@
-import { test, before, after } from 'node:test'
+import { test, beforeAll, afterAll } from 'vitest'
 import assert from 'node:assert/strict'
 
 // Low limits so the rate-limit tests stay fast. Must be set before the app is imported.
@@ -13,11 +13,11 @@ const AUTH = { authorization: `Bearer ${signToken('test-user', false)}` } // sca
 const TINY_PNG = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='
 let server, base
 
-before(() => {
+beforeAll(() => {
   server = app.listen(0)
   base = `http://localhost:${server.address().port}`
 })
-after(() => server.close())
+afterAll(() => server.close())
 
 const scan = (body) =>
   fetch(`${base}/api/scan`, {

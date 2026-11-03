@@ -2,7 +2,7 @@
 import { test, expect } from './fixtures.js'
 import { switchLanguage } from './helpers/auth.js'
 
-test('skip link jumps past the navigation', async ({ page, browserName }) => {
+test('skip link jumps past the navigation @a11y', async ({ page, browserName }) => {
   test.skip(browserName === 'webkit', 'Safari only tabs to links with a system setting')
   await page.goto('/')
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible() // the app shows once the first page has loaded
@@ -13,14 +13,14 @@ test('skip link jumps past the navigation', async ({ page, browserName }) => {
   await expect(page.locator('#main')).toBeFocused()
 })
 
-test('tab title names the page in the chosen language', async ({ page }) => {
+test('tab title names the page in the chosen language @i18n', async ({ page }) => {
   await page.goto('/scan?type=medication')
   await expect(page).toHaveTitle('Scan a label or bill · Ah Ma Ah Gong Can')
   await switchLanguage(page, '中文')
   await expect(page).toHaveTitle(/^扫描/)
 })
 
-test('a new page opens at the top with its heading focused', async ({ page }) => {
+test('a new page opens at the top with its heading focused @a11y', async ({ page }) => {
   await page.goto('/scan?type=medication')
   await page.getByTestId('scan-examples').click() // samples sit behind "Try an example"
   await page.getByRole('button', { name: 'Metformin label' }).click()

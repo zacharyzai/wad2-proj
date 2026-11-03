@@ -67,7 +67,7 @@ test('adding a medicine without a name says what is missing', async ({ page }) =
 })
 
 for (const theme of ['light', 'dark']) {
-  test(`Ask has no WCAG A/AA violations (${theme})`, async ({ page }) => {
+  test(`Ask has no WCAG A/AA violations (${theme}) @a11y`, async ({ page }) => {
     await page.emulateMedia({ colorScheme: theme, reducedMotion: 'reduce' })
     await page.route('**/api/chat', (route) => route.fulfill({ json: answer('Keep them in a cool, dry place.') }))
     await page.goto('/ask')

@@ -11,6 +11,8 @@ a:hover { color: var(--color-primary-pressed); }
 button { cursor: pointer; font-family: inherit; }
 a, button, input, select, textarea, label { touch-action: manipulation; }
 :focus-visible { outline: none; box-shadow: var(--focus-ring); }
+/* Windows High Contrast drops box-shadows, so the ring above vanishes there: draw a real outline in the system colour. */
+@media (forced-colors: active) { :focus-visible { outline: 3px solid CanvasText !important; outline-offset: 2px; } }
 /* Page heading gets focus after navigation (for screen readers), without a ring on mouse use. */
 h1[tabindex='-1']:focus { box-shadow: none; }
 

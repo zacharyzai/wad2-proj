@@ -1,5 +1,5 @@
 // Real account linking and races against disposable MongoDB. Never loads .env or shared Atlas data.
-import { test, before, after } from 'node:test'
+import { test, beforeAll, afterAll } from 'vitest'
 import assert from 'node:assert/strict'
 import { once } from 'node:events'
 import { createHash, randomBytes } from 'node:crypto'
@@ -50,14 +50,14 @@ async function error(response, status, code) {
   assert.equal(body.error.code, code)
   return body
 }
-before(async () => {
+beforeAll(async () => {
   mongo = await MongoMemoryServer.create()
   process.env.MONGODB_URI = mongo.getUri('care_test')
   server = app.listen(0, '127.0.0.1')
   await once(server, 'listening')
   api = `http://127.0.0.1:${server.address().port}/api`
 })
-after(async () => {
+afterAll(async () => {
   if (server) await new Promise((resolve) => server.close(resolve))
   await mongoose.disconnect()
   await mongo?.stop()
@@ -114,7 +114,7 @@ test('invite is a seven-day random secret; only its hash is stored and public pr
   assert.equal(response.headers.get('cache-control'), 'no-store')
   assert.deepEqual(await response.json(), { ok: true, data: { senior: { name: 'Sample Senior' }, expiresAt: data.expiresAt } })
   const indexes = await CareLink.collection.indexes()
-  assert.ok(indexes.some((i) => i.unique && JSON.stringify(i.key) === JSON.stringify({ seniorId: 1 })))
+  assert.ok(indexes.some((i) => i.unique && JSON.stringify(i.key) === JSON.stringify({ seniorId: 1, caregiverId: 1 })))
   assert.ok(!indexes.some((i) => i.unique && JSON.stringify(i.key) === JSON.stringify({ caregiverId: 1 })))
 })
 
@@ -133,7 +133,6 @@ test('an existing caregiver can log in and accept; one caregiver may link severa
     assert.equal(data.caregivers[0].name, 'Sample Caregiver')
     assert.equal(data.caregivers[0].id, (await links(owner))[0].id)
     assert.ok(Number.isFinite(Date.parse(data.caregivers[0].since)))
-    await error(await invite(owner), 409, 'CAREGIVER_ALREADY_LINKED')
   }
   const all = await links(cg)
   assert.equal(all.length, 2)
@@ -155,7 +154,21 @@ test('two caregivers racing to accept the same invitation cannot claim the same 
   assert.equal(stored.inviteExpiresAt, undefined)
   assert.ok([a.id, b.id].includes(String(stored.caregiverId)))
   assert.equal((await links(a)).length + (await links(b)).length, 1)
-  await error(await invite(owner), 409, 'CAREGIVER_ALREADY_LINKED')
+})
+
+test('a senior may link several caregivers; re-accepting a fresh invite never duplicates a link', async () => {
+  const owner = await user(), a = await user('caregiver', 'Daughter'), b = await user('caregiver', 'Son')
+  assert.equal((await accept(a, (await issued(owner)).token)).status, 200)
+  assert.equal((await accept(b, (await issued(owner)).token)).status, 200)
+  const again = await issued(owner)
+  assert.deepEqual(await (await accept(a, again.token)).json(), { ok: true, data: { seniorId: owner.id } })
+  await error(await preview(again.token), 404, 'NOT_FOUND')
+  const { data } = await (await care('/caregivers', { token: owner.token })).json()
+  assert.deepEqual(data.caregivers.map((c) => c.name).sort(), ['Daughter', 'Son'])
+  assert.equal(await CareLink.countDocuments({ seniorId: owner.id }), 2)
+  // Removing one caregiver leaves the other.
+  assert.equal((await care(`/links/${data.caregivers[0].id}`, { method: 'DELETE', token: owner.token })).status, 200)
+  assert.equal((await links(owner)).length, 1)
 })
 
 test('rotating/cancelling an invitation invalidates the old link; expiry is enforced without waiting for cleanup', async () => {
@@ -202,23 +215,18 @@ test('a replaced invitation racing acceptance never installs two caregivers or o
   const owner = await user(), cg = await user('caregiver')
   const first = await issued(owner)
   const [created, accepted] = await Promise.all([invite(owner), accept(cg, first.token)])
-  assert.ok([201, 409].includes(created.status))
+  assert.equal(created.status, 201)
   assert.ok([200, 404].includes(accepted.status))
-  assert.equal(await CareLink.countDocuments({ seniorId: owner.id }), 1)
-  const stored = await CareLink.findOne({ seniorId: owner.id }).select('+tokenHash').lean()
-  if (accepted.status === 200) {
-    assert.equal(String(stored.caregiverId), cg.id)
-    assert.equal(stored.tokenHash, undefined)
-    assert.equal((await links(owner)).length, 1)
-  } else {
-    assert.equal(created.status, 201)
-    assert.equal(stored.caregiverId, null)
-    const next = (await created.json()).data
-    assert.equal((await accept(cg, next.token)).status, 200)
-  }
+  assert.equal(await CareLink.countDocuments({ seniorId: owner.id, caregiverId: null }), 1)
+  assert.equal((await links(owner)).length, accepted.status === 200 ? 1 : 0)
+  const active = await CareLink.findOne({ seniorId: owner.id, caregiverId: { $ne: null } }).select('+tokenHash').lean()
+  if (active) assert.equal(active.tokenHash, undefined)
+  const next = (await created.json()).data
+  assert.equal((await accept(cg, next.token)).status, 200)
+  assert.equal((await links(owner)).length, 1)
 })
 
-test('a deleted caregiver cannot permanently lock the senior out of issuing a replacement invitation', async () => {
+test('a deleted caregiver is hidden and never blocks a replacement invitation', async () => {
   const owner = await user(), first = await user('caregiver'), replacement = await user('caregiver')
   const i = await issued(owner)
   assert.equal((await accept(first, i.token)).status, 200)
@@ -226,8 +234,7 @@ test('a deleted caregiver cannot permanently lock the senior out of issuing a re
   assert.deepEqual((await (await care('/caregivers', { token: owner.token })).json()).data.caregivers, [])
   const next = await issued(owner)
   assert.equal((await accept(replacement, next.token)).status, 200)
-  assert.equal(await CareLink.countDocuments({ seniorId: owner.id }), 1)
-  assert.equal((await links(owner))[0].caregiver.id, replacement.id)
+  assert.deepEqual((await links(owner)).map((l) => l.caregiver.id), [replacement.id])
 })
 
 test('quota is atomic and survives invite cancellation; concurrent creation is bounded across instances', async () => {

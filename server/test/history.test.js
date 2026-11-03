@@ -1,5 +1,5 @@
 // Owner isolation and persistence against a disposable MongoDB. Never uses .env or Atlas.
-import { test, before, after } from 'node:test'
+import { test, beforeAll, afterAll } from 'vitest'
 import assert from 'node:assert/strict'
 import { once } from 'node:events'
 import { readFile } from 'node:fs/promises'
@@ -17,7 +17,7 @@ const { default: app } = await import('../app.js')
 const fixture = async (id) => JSON.parse(await readFile(new URL(`../fixtures/${id}.json`, import.meta.url), 'utf8'))
 const med = await fixture('med-1')
 let mongo, server, base, alice, bob, aliceToken, bobToken
-before(async () => {
+beforeAll(async () => {
   mongo = await MongoMemoryServer.create()
   process.env.MONGODB_URI = mongo.getUri('history_test')
   await connectDb()
@@ -30,7 +30,7 @@ before(async () => {
   await once(server, 'listening')
   base = `http://127.0.0.1:${server.address().port}/api/history`
 })
-after(async () => {
+afterAll(async () => {
   if (server) await new Promise((resolve) => server.close(resolve))
   await mongoose.disconnect()
   await mongo?.stop()

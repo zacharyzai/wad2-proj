@@ -4,10 +4,10 @@
 import { computed, onBeforeUnmount, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { authStore, leaveApp, saveLanguage, saveTheme, updateProfile } from '../stores/auth'
+import { useAuthStore } from '../stores/auth'
 import { LOCALES, chooseLocale } from '../i18n'
 import { THEME_ICONS, THEMES, setTheme, themeChoice } from '../theme'
-import { openGuide } from '../stores/guide'
+import { useGuideStore } from '../stores/guide'
 import { INCOMES, citizenshipText, incomeText, isCitizen } from '../utils/account'
 import PageHeader from '../components/layout/PageHeader.vue'
 import Card from '../components/layout/Card.vue'
@@ -17,8 +17,12 @@ import ErrorBanner from '../components/layout/ErrorBanner.vue'
 import AppIcon from '../components/layout/AppIcon.vue'
 import CaregiverCard from '../components/care/CaregiverCard.vue'
 import CalendarSync from '../components/schedule/CalendarSync.vue'
-import { medicines } from '../stores/medicines'
+import { useMedicinesStore } from '../stores/medicines'
 import { buildSchedule } from '../rules/schedule'
+const authStore = useAuthStore()
+const { leaveApp, saveLanguage, saveTheme, updateProfile } = authStore
+const { openGuide } = useGuideStore()
+const { medicines } = useMedicinesStore()
 
 // The same whole schedule the Schedule page sends, so connecting or syncing here puts the right doses in the calendar.
 const entries = computed(() => medicines.map((m) => buildSchedule(m, m.schedule ?? {})))

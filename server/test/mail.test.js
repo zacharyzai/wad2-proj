@@ -1,5 +1,5 @@
 // Password reset email: the link, the four languages, and console mode. No database or real email needed.
-import { test, afterEach } from 'node:test'
+import { test, afterEach } from 'vitest'
 import assert from 'node:assert/strict'
 import { appUrl, resetLink, sendMail, sentMail } from '../services/mail.js'
 import { resetEmail } from '../services/resetEmail.js'

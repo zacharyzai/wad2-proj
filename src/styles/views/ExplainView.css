@@ -47,4 +47,4 @@
 .feedback.right { color: var(--color-success-text); }
 .feedback.wrong { color: var(--color-warning-text); }
 .med-name.long { font-size: var(--fs-h2); }
-.explain-title .hero-number { display: inline-block; margin-top: 6px; }
+.explain-title .hero-number { display: inline; } /* inline, not inline-block: the full stop after it never wraps onto a line alone */

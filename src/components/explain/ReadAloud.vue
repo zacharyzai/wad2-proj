@@ -3,9 +3,13 @@
 <script setup>
 import { onBeforeUnmount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { SPEEDS, speechRate, speak as say, stopSpeaking, pauseSpeaking, resumeSpeaking, setSpeakingRate, usesDeviceVoice } from '../../stores/speech'
+import { storeToRefs } from 'pinia'
+import { useSpeechStore, SPEEDS } from '../../stores/speech'
 import AppIcon from '../layout/AppIcon.vue'
 import Spinner from '../layout/Spinner.vue'
+const speech = useSpeechStore()
+const { rate } = storeToRefs(speech)
+const { speak: say, stopSpeaking, pauseSpeaking, resumeSpeaking, setSpeakingRate, usesDeviceVoice } = speech
 
 const props = defineProps({ text: { type: String, required: true } })
 const { t, locale } = useI18n()
@@ -13,7 +17,7 @@ const { t, locale } = useI18n()
 const status = ref('idle') // idle | loading (fetching audio for a device with no voice) | playing | paused
 const failed = ref(false)
 // Shared with every read-aloud button in the app (stores/speech.js).
-const rate = speechRate
+
 let run = 0
 
 async function speak() {

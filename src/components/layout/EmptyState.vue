@@ -2,11 +2,13 @@
      One drawing for every empty page (two paper sheets on a soft blob), so they all look like one set. -->
 <script setup>
 import AppIcon from './AppIcon.vue'
+import KindIcon from './KindIcon.vue'
 
 defineProps({
   title: { type: String, required: true },
   text: { type: String, default: '' },
   icon: { type: String, default: 'info' },
+  kind: { type: String, default: null }, // 'medication' | 'bill': the coloured picture (KindIcon) instead of the icon
   label: { type: String, default: '' }, // small caps line above the title
   as: { type: String, default: 'h2' }, // 'h1' when it is the whole page (404)
 })
@@ -22,7 +24,8 @@ defineProps({
         <circle class="dot" cx="34" cy="48" r="5" /><circle class="dot" cx="190" cy="128" r="4" /><circle class="dot soft" cx="196" cy="40" r="7" />
         <path class="spark" d="M176 18v12M170 24h12" />
       </svg>
-      <span class="tile tile-lg"><AppIcon :name="icon" :size="30" /></span>
+      <KindIcon v-if="kind" :kind="kind" :size="76" class="tile" />
+      <span v-else class="tile tile-lg"><AppIcon :name="icon" :size="30" /></span>
     </span>
     <span v-if="label" class="section-label">{{ label }}</span>
     <component :is="as" class="empty-title">{{ title }}</component>

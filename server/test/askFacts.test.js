@@ -1,5 +1,5 @@
 // Which medicines go to the AI with a question (src/rules/askFacts.js).
-import { test } from 'node:test'
+import { test } from 'vitest'
 import assert from 'node:assert/strict'
 import { factsFor, namedIn } from '../../src/rules/askFacts.js'
 

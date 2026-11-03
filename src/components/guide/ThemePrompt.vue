@@ -6,10 +6,13 @@
 import { nextTick, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { guide, maybeShowGuide } from '../../stores/guide'
-import { saveTheme } from '../../stores/auth'
+import { useGuideStore } from '../../stores/guide'
+import { useAuthStore } from '../../stores/auth'
 import { THEME_ICONS, THEMES, setTheme, themeChoice } from '../../theme'
 import AppIcon from '../layout/AppIcon.vue'
+const guide = useGuideStore()
+const { maybeShowGuide } = guide
+const { saveTheme } = useAuthStore()
 
 const { t } = useI18n()
 const route = useRoute()

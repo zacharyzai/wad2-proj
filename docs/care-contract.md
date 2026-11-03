@@ -4,12 +4,12 @@ Owner: Sheen Hern (backend); Isaac (signup, Account and caregiver pages). This P
 
 ## Rules
 
-- **One senior has at most one caregiver. One caregiver may link to multiple seniors.**
+- **Many-to-many: a senior may have several caregivers, and a caregiver may link to several seniors.** A senior has at most one pending invitation at a time; issuing a new one replaces it.
 - A senior creates a private invitation link and sends it to the intended caregiver. No email/message is sent by this backend. The public app route is `/shared/<token>` (already built by Isaac), not `/api/share`.
 - The recipient opens the link, signs up with `role: caregiver` or logs into an existing caregiver account, returns to the link and explicitly accepts. Creating an account alone does not accept an invitation. Login/signup use `next=/shared/<token>` to preserve the destination.
 - A senior account cannot accept an invite, and a caregiver account cannot issue one. Accounts have one role for now, consistent with the existing signup UI. Existing accounts without a stored role count as seniors; prior caregiver choices that the old backend ignored cannot be recovered automatically. Create a caregiver account for that case; no silent promotion is performed.
 - Only the senior or their linked caregiver can remove the relationship. A replacement requires removing the active link and issuing a new invitation. Removed caregivers have no link for future data access checks.
-- If the caregiver account has been deleted, it is omitted from relationship responses and creating a new invite releases that stale slot. A deleted account cannot keep a senior permanently blocked.
+- If the caregiver account has been deleted, it is omitted from relationship responses and never blocks new invitations.
 - Anyone with the invite secret and a caregiver account can claim it; invitations are not bound to an email address. Share only with the intended person. Public preview discloses just the senior's display name and expiry, never profile/contact/health data.
 
 ## Endpoints
@@ -22,7 +22,7 @@ Responses use `{ ok: true, data }` or `{ ok: false, error: { code, message } }`;
 | GET | `/api/care/invites/:token` | public | 200, `{ senior: { name }, expiresAt }` |
 | POST | `/api/care/invites/:token/accept` | caregiver | 200, `{ seniorId }` |
 | DELETE | `/api/care/invites` | senior | 200, `{ revoked: boolean }` (cancel pending invitation only) |
-| GET | `/api/care/caregivers` | senior | 200, `{ caregivers: [{ id, name, since }] }` (zero or one) |
+| GET | `/api/care/caregivers` | senior | 200, `{ caregivers: [{ id, name, since }] }` (newest first) |
 | GET | `/api/care/links` | either | 200, `{ links: [{ id, since, senior: { id, name }, caregiver: { id, name } }] }` |
 | DELETE | `/api/care/links/:id` | either participant | 200, `{ id }` |
 
@@ -49,8 +49,8 @@ The backend returns token/expiry rather than building URLs from an untrusted Hos
 
 - Invites expire **7 days** after generation, checked in the query. No cleanup timer is relied upon.
 - A newly generated invitation invalidates the senior's previous unused invitation. Keep the newest link. Concurrent generations can return multiple successful responses, but only the last stored secret works.
-- Acceptance is a single conditional MongoDB update on the current hash, an unexpired invite and an empty caregiver slot. Only one concurrent acceptance succeeds; others get 404. The token hash and expiry are removed on success. It is never reusable, including after link removal.
-- A unique index on `seniorId` enforces one slot (pending or active) per senior. `caregiverId` is indexed but not unique, allowing many seniors per caregiver. Generation cannot overwrite an accepted link, including when acceptance races replacement.
+- Acceptance is a single conditional MongoDB update on the current hash, an unexpired invite and an empty caregiver slot. Only one concurrent acceptance succeeds; others get 404. A caregiver who is already linked to that senior gets 200 and the invite is used up without a second link. The token hash and expiry are removed on success. It is never reusable, including after link removal.
+- A unique index on `{ seniorId, caregiverId }` allows one pending invite (caregiverId null) per senior and one link per senior-caregiver pair. Generation cannot overwrite an accepted link, including when acceptance races replacement. The route runs `syncIndexes` once per process so older databases drop the previous unique `seniorId` index.
 - Cancelling an unused invitation deletes only the pending slot. It never removes an active relationship. Removing an active link deletes it permanently; the next invite creates a new link ID so stale removal requests cannot delete a replacement relationship.
 - Each senior can issue at most **5 invitations per fixed UTC hour**. The atomic quota is stored in MongoDB so Vercel instances share it. Cancellation/removal does not reset the quota. An attempted creation that loses a race may still consume an issuance slot.
 - Public preview/accept and authenticated generation also have a 60-request/minute IP limiter. That secondary IP limiter is per process; the issuance quota is shared. Expired quota records have a TTL cleanup index, but expiration of invites does not depend on TTL.
@@ -63,7 +63,6 @@ The backend returns token/expiry rather than building URLs from an untrusted Hos
 | 401 | `NOT_LOGGED_IN` | Missing/invalid token or deleted/missing account |
 | 403 | `WRONG_ROLE` | Wrong account role for this operation |
 | 404 | `NOT_FOUND` | Unknown, malformed, expired, consumed, replaced or revoked invite; missing inviter; unknown/other person's link |
-| 409 | `CAREGIVER_ALREADY_LINKED` | The senior already has a caregiver |
 | 429 | `RATE_LIMITED` | Persistent hourly issuance quota or secondary IP limit reached |
 | 503 | `SERVER_ERROR` | Database unavailable; no database URI/driver error exposed |
 
@@ -73,7 +72,7 @@ Failed requests do not reveal whether a particular account email exists; the flo
 
 The existing senior Account card can create a link, show the linked caregiver and remove the link. The Shared page supports signup/login return and acceptance. The backend now persists the signup role so these real flows work instead of only mocked tests.
 
-Two frontend follow-ups: hide/disable Create invite when the senior already has a caregiver (backend returns 409 today), and expose Cancel invitation via `DELETE /care/invites`. Creation already replaces an old pending invite.
+Frontend follow-up: expose Cancel invitation via `DELETE /care/invites`. Creation already replaces an old pending invite.
 
 **No fake health data:** the medicine list belongs to the account, not the browser. `GET /api/schedule` → `{ medicines }` (`null`: never saved) and `PUT /api/schedule { medicines }` → `{ saved }` (the whole list, at most 10, shape of `src/stores/medicines.js`, checked by `server/validation/medicines.js`; `src/stores/scheduleSync.js` loads it at login and on every page load and saves each change). The server works out the timetable from that list with `src/rules/schedule.js` (`buildSchedule`), so every device and the caregiver see the same doses.
 - `GET /care/seniors` (caregiver) → `{ seniors: [{ id, name, today: { taken, missed, upcoming } | null }] }`. `today` is `null` when the senior's app has never saved a timetable.
@@ -84,7 +83,7 @@ Before adding scan access, align the frontend's consent: its invitation currentl
 
 ## Setup and tests
 
-No new environment variables or manual migration. Use existing `MONGODB_URI`/`JWT_SECRET`; collection/index initialization is lazy. New collections are `carelinks` and `careinvitequotas`, alongside `users`. Pending expired links occupy one row per senior and are replaced on the next issuance. No shared Atlas records are created by tests.
+No new environment variables or manual migration. Use existing `MONGODB_URI`/`JWT_SECRET`; collection/index initialization is lazy. New collections are `carelinks` and `careinvitequotas`, alongside `users`. Pending expired invites occupy one row per senior and are replaced on the next issuance. No shared Atlas records are created by tests.
 
 - `node --test server/test/care.test.js`: real disposable MongoDB; roles, privacy, acceptance races, multi-senior caregivers, rotation/expiry, participant-only removal, replacement races, persistent quota, reconnect and DB failure.
 - `pnpm exec playwright test e2e/care-api.spec.js`: existing Account → invite → caregiver signup → accept → senior removes, with real backend/MongoDB on desktop and iPhone 6 projects. Transport is redirected to the disposable server; auth/link endpoints are not mocked.

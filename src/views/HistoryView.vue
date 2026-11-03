@@ -13,8 +13,8 @@ import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { listAllScans, getScan } from '../api/client'
-import { scanStore } from '../stores/scan'
-import { medicines, isFinished } from '../stores/medicines'
+import { useScanStore } from '../stores/scan'
+import { useMedicinesStore, isFinished } from '../stores/medicines'
 import { billMonths, clinicTotals, matches, medicineGroups, medicineKey } from '../rules/history'
 import { todayInSingapore } from '../rules/schedule'
 import { money } from '../components/bill/lines'
@@ -24,6 +24,8 @@ import EmptyState from '../components/layout/EmptyState.vue'
 import ErrorBanner from '../components/layout/ErrorBanner.vue'
 import AppIcon from '../components/layout/AppIcon.vue'
 import KindIcon from '../components/layout/KindIcon.vue'
+const scanStore = useScanStore()
+const { medicines } = useMedicinesStore()
 
 const { t, locale } = useI18n()
 const route = useRoute()
@@ -83,8 +85,9 @@ const totals = computed(() => clinicTotals(items.value, thisYear))
 const monthDate = (m, options) => new Date(`${m}-01T00:00:00Z`).toLocaleDateString(locale.value, { timeZone: 'UTC', ...options })
 const monthName = (m) => (m === thisMonth ? t('history.thisMonth') : monthDate(m, { month: 'long', year: 'numeric' }))
 const monthChip = (m) => (m === thisMonth ? t('history.thisMonth') : monthDate(m, m.startsWith(thisYear) ? { month: 'short' } : { month: 'short', year: 'numeric' }))
-async function jumpTo(m) {
-  const heading = document.getElementById(`month-${m}`)
+const monthHeadings = ref([]) // template refs in v-for (Week 4): one per month heading
+function jumpTo(m) {
+  const heading = monthHeadings.value.find((h) => h.id === `month-${m}`)
   heading?.scrollIntoView({ block: 'start', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })
   heading?.focus({ preventScroll: true })
 }
@@ -119,7 +122,7 @@ async function replay(item) {
   const res = await getScan(item.id)
   opening.value = null
   if (!res.ok) return void (errorCode.value = res.error.code)
-  Object.assign(scanStore, { current: res.data.scan, photo: null, confirmed: true })
+  Object.assign(scanStore, { current: res.data.scan, photos: [], pdfPages: null, confirmed: true }) // saved scans have no photo
   router.push({ name: 'explain' })
 }
 
@@ -252,7 +255,7 @@ async function removed(id) {
         <p v-if="!items.some((i) => i.type === 'bill')" class="text-muted-a11y m-0">{{ t('history.noBills') }}</p>
         <p v-else-if="!months.length" class="text-muted-a11y m-0" data-testid="history-no-match">{{ t('history.noMatch', { q: query.trim() }) }}</p>
         <section v-for="m in months" :key="m.month" class="rows-block" :aria-labelledby="`month-${m.month}`">
-          <h2 :id="`month-${m.month}`" class="section-label month" tabindex="-1">{{ monthName(m.month) }}</h2>
+          <h2 :id="`month-${m.month}`" ref="monthHeadings" class="section-label month" tabindex="-1">{{ monthName(m.month) }}</h2>
           <ul class="rows" :data-testid="`history-month-${m.month}`">
             <li v-for="b in m.bills" :key="b.id"><RouterLink :to="openTo(b.id)" class="row-link" data-testid="history-row">
               <KindIcon kind="bill" :size="48" />

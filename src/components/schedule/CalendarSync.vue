@@ -8,8 +8,9 @@ import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { googleStatus, googleConnect, googleSync, googleDisconnect } from '../../api/client'
 import { syncEntries, todayInSingapore } from '../../rules/schedule'
-import { authStore } from '../../stores/auth'
+import { useAuthStore } from '../../stores/auth'
 import AppIcon from '../layout/AppIcon.vue'
+const authStore = useAuthStore()
 
 const props = defineProps({
   entries: { type: Array, required: true }, // every ScheduleEntry, flagged ones included

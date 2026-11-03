@@ -1,5 +1,5 @@
 // Accounts: password hashing, login tokens, profile checks and the routes' answers before the database. No database needed.
-import { test, before, after } from 'node:test'
+import { test, beforeAll, afterAll } from 'vitest'
 import assert from 'node:assert/strict'
 
 process.env.JWT_SECRET = 'test-secret-for-auth-checks-at-least-32-bytes'
@@ -9,11 +9,11 @@ const { hashPassword, verifyPassword, signToken, readToken, TOKEN_SECONDS, signR
 const { checkProfile } = await import('../routes/auth.js')
 
 let server, base
-before(() => {
+beforeAll(() => {
   server = app.listen(0)
   base = `http://localhost:${server.address().port}`
 })
-after(() => server.close())
+afterAll(() => server.close())
 
 const post = (path, body, headers = {}) =>
   fetch(`${base}/api/auth${path}`, { method: 'POST', headers: { 'content-type': 'application/json', ...headers }, body: JSON.stringify(body) })

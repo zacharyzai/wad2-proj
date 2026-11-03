@@ -1,5 +1,5 @@
 // Database integration and migration compatibility. Never reads the shared Atlas database.
-import { test, before, after } from 'node:test'
+import { test, beforeAll, afterAll } from 'vitest'
 import assert from 'node:assert/strict'
 import { once } from 'node:events'
 import { createHmac, randomBytes, scryptSync } from 'node:crypto'
@@ -26,7 +26,7 @@ const email = 'auth@example.com'
 const password = 'password123'
 const publicUser = { ...profile, email, role: 'senior', language: null, theme: null } // no language or theme sent: not chosen yet
 
-before(async () => {
+beforeAll(async () => {
   mongo = await MongoMemoryServer.create()
   process.env.MONGODB_URI = mongo.getUri('auth_test')
   await connectDb()
@@ -34,7 +34,7 @@ before(async () => {
   await once(server, 'listening')
   base = `http://127.0.0.1:${server.address().port}/api`
 })
-after(async () => {
+afterAll(async () => {
   if (server) await new Promise((resolve) => server.close(resolve))
   await mongoose.disconnect()
   await mongo?.stop()

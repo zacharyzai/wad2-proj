@@ -45,7 +45,7 @@ router.post('/', scanRateLimit, async (req, res) => {
 
   if (!takeDailyQuota()) return sendError(res, 429, 'RATE_LIMITED', 'Daily scan limit reached, please try again tomorrow')
 
-  if (process.env.USE_MOCK_AI !== 'false') {
+  if (process.env.USE_MOCK_AI === 'true') {
     return res.json({ ok: true, data: { ...MOCK_BY_TYPE[type], source: 'mock' } })
   }
 

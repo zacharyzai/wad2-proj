@@ -120,7 +120,7 @@ pnpm dev      # app on http://localhost:5173 (sends /api to the API)
 
 | Variable | What for |
 |---|---|
-| `USE_MOCK_AI` | `true` (default): fixed answers, no AI quota. `false`: real AI |
+| `USE_MOCK_AI` | `true`: fixed answers, no AI quota (tests and local work). Anything else, or unset: real AI |
 | `GEMINI_API_KEY`, `GEMINI_MODEL`, `GEMINI_FALLBACK_MODELS`, `GROQ_API_KEY`, `GROQ_MODELS` | Reading photos and the chatbot. Gemini first, Groq as the backup. Overloaded models rest for 2 minutes |
 | `MONGODB_URI`, `JWT_SECRET` | Accounts. `JWT_SECRET` must be at least 32 bytes |
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI`, `GOOGLE_TOKEN_KEY` | Google Calendar. See [docs/google-contract.md](docs/google-contract.md) |

@@ -3,7 +3,8 @@
 import { useI18n } from 'vue-i18n'
 import EmptyState from '../components/layout/EmptyState.vue'
 import AppIcon from '../components/layout/AppIcon.vue'
-import { openGuide } from '../stores/guide'
+import { useGuideStore } from '../stores/guide'
+const { openGuide } = useGuideStore()
 
 const { t } = useI18n()
 </script>

@@ -93,9 +93,9 @@ test('senior creates an invite → new caregiver signs up and accepts → senior
 
   await login(seniorEmail)
   await expect(page.getByTestId('care-caregivers')).toContainText('Sample Caregiver')
-  // UI currently still offers invite when linked; the backend enforces the one-caregiver rule.
+  // A linked senior can still invite another caregiver.
   const extra = await request.post(`${careBackend}/api/care/invites`, { headers: { authorization: `Bearer ${seniorToken}` } })
-  expect(extra.status()).toBe(409)
+  expect(extra.status()).toBe(201)
   await page.getByTestId('care-remove').click()
   await page.getByTestId('care-remove-yes').click()
   await expect(page.getByTestId('care-caregivers')).toHaveCount(0)

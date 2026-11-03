@@ -1,5 +1,5 @@
 // Gemini is never called for real: global fetch is stubbed per test.
-import { test, afterEach } from 'node:test'
+import { test, afterEach, onTestFinished } from 'vitest'
 import assert from 'node:assert/strict'
 import { attempts, extractScan, forgetResting, ScanError } from '../services/gemini.js'
 
@@ -73,7 +73,7 @@ const OK = { status: 200, body: geminiText({ readable: true, name: 'Metformin', 
 test('falls back to the next model when one is overloaded, slow, out of quota or retired', async (t) => {
   process.env.GEMINI_MODEL = 'main'
   process.env.GEMINI_FALLBACK_MODELS = 'backup-1, backup-2'
-  t.after(() => {
+  onTestFinished(() => {
     delete process.env.GEMINI_MODEL
     delete process.env.GEMINI_FALLBACK_MODELS
   })
@@ -94,7 +94,7 @@ test('falls back to the next model when one is overloaded, slow, out of quota or
 test('a model that was just overloaded is tried last for a while, so the next scan goes straight to one that works', async (t) => {
   process.env.GEMINI_MODEL = 'main'
   process.env.GEMINI_FALLBACK_MODELS = 'backup-1, backup-2'
-  t.after(() => {
+  onTestFinished(() => {
     delete process.env.GEMINI_MODEL
     delete process.env.GEMINI_FALLBACK_MODELS
   })
@@ -121,7 +121,7 @@ test('a model that was just overloaded is tried last for a while, so the next sc
 
 test('no fallback for a bad request or key, or for an unreadable photo', async (t) => {
   process.env.GEMINI_FALLBACK_MODELS = 'backup-1'
-  t.after(() => delete process.env.GEMINI_FALLBACK_MODELS)
+  onTestFinished(() => delete process.env.GEMINI_FALLBACK_MODELS)
 
   for (const status of [400, 403]) {
     const calls = replies({ status }, OK)
@@ -157,7 +157,7 @@ test('a bill scanned as a label (or a label as a bill) gets its own code, so the
 
 test('when every model fails: quota everywhere is RATE_LIMITED, anything else AI_UNAVAILABLE', async (t) => {
   process.env.GEMINI_FALLBACK_MODELS = 'backup-1'
-  t.after(() => delete process.env.GEMINI_FALLBACK_MODELS)
+  onTestFinished(() => delete process.env.GEMINI_FALLBACK_MODELS)
 
   replies({ status: 429 }, { status: 429 })
   await rejectsWith('RATE_LIMITED')
@@ -207,7 +207,7 @@ test('Groq is the last resort after every Gemini model, in the OpenAI format', a
   process.env.GEMINI_FALLBACK_MODELS = 'backup-1'
   process.env.GROQ_API_KEY = 'groq-key'
   process.env.GROQ_MODELS = 'vision-model'
-  t.after(() => {
+  onTestFinished(() => {
     delete process.env.GEMINI_FALLBACK_MODELS
     delete process.env.GROQ_API_KEY
     delete process.env.GROQ_MODELS
@@ -238,7 +238,7 @@ test('Groq is the last resort after every Gemini model, in the OpenAI format', a
 test('Groq alone works when there is no Gemini key', async (t) => {
   delete process.env.GEMINI_API_KEY
   process.env.GROQ_API_KEY = 'groq-key'
-  t.after(() => delete process.env.GROQ_API_KEY)
+  onTestFinished(() => delete process.env.GROQ_API_KEY)
   const content = JSON.stringify({ readable: false })
   const calls = []
   globalThis.fetch = async (url) => (calls.push(url), new Response(JSON.stringify({ choices: [{ message: { content } }] })))
@@ -298,7 +298,7 @@ test('no second reading when it adds up, for labels, or when the daily cap says 
 
 test('add-on keys are tried only after every model on the main key', (t) => {
   process.env.GEMINI_EXTRA_KEYS = 'key-2, key-3'
-  t.after(() => delete process.env.GEMINI_EXTRA_KEYS)
+  onTestFinished(() => delete process.env.GEMINI_EXTRA_KEYS)
   const names = attempts({ gemini: ['a', 'b'], groq: [], geminiBody: {}, groqBody: {} }).map((x) => x.name)
   assert.deepEqual(names, ['a', 'b', 'a#2', 'b#2', 'a#3', 'b#3'])
 })

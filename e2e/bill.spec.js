@@ -163,7 +163,7 @@ test.describe('breakdown', () => {
     await expect(page.getByText('The Merdeka Generation gets extra help with healthcare costs.')).toBeVisible()
   })
 
-  test('labels follow the chosen language', async ({ page }) => {
+  test('labels follow the chosen language @i18n', async ({ page }) => {
     await openSample(page, BEDOK)
     await switchLanguage(page, '中文')
     await page.getByTestId('bill-items-toggle').click() // the page was reopened: the charges are folded again
@@ -324,7 +324,7 @@ test.describe('layout and accessibility', () => {
   })
 
   for (const theme of ['light', 'dark']) {
-    test(`no WCAG A/AA violations, line open and a Pioneer senior's subsidies showing (${theme})`, async ({ page }) => {
+    test(`no WCAG A/AA violations, line open and a Pioneer senior's subsidies showing (${theme}) @a11y`, async ({ page }) => {
       await page.emulateMedia({ colorScheme: theme, reducedMotion: 'reduce' })
       await as(page, '1945-08-12', 'birth')
       await openSample(page, MARINE_PARADE)

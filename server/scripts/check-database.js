@@ -1,6 +1,6 @@
 // Deliberately prints no URI, credentials, signing secret or raw driver errors.
 import mongoose from 'mongoose'
-import { connectDatabase } from '../db.js'
+import { connectDb } from '../db.js'
 import { jwtSecret } from '../services/auth.js'
 
 let valid = true
@@ -19,7 +19,7 @@ try {
   if (!parsed || !['mongodb:', 'mongodb+srv:'].includes(parsed.protocol) || !parsed.pathname.slice(1)) {
     throw new Error('DATABASE_NAME_REQUIRED')
   }
-  await connectDatabase()
+  await connectDb()
   await mongoose.connection.db.command({ ping: 1 })
   console.log('MongoDB connection: OK')
   console.log('Unique users.email index: ready')

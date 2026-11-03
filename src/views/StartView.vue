@@ -12,12 +12,13 @@
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AppIcon from '../components/layout/AppIcon.vue'
+import KindIcon from '../components/layout/KindIcon.vue'
 import PublicHeader from '../components/layout/PublicHeader.vue'
 
 const { t, locale } = useI18n()
 const PROMISES = [
   { key: 'read', icon: 'volume' },
-  { key: 'bill', icon: 'receipt' },
+  { key: 'bill', kind: 'bill' }, // the coloured bill, as everywhere a tile stands for a bill
   { key: 'private', icon: 'shield' },
 ]
 // The phone shows what the Explain page says about the sample label, in the page language (its own words).
@@ -153,7 +154,7 @@ let introPlayed = false
           <div class="phone">
             <span class="phone-top"><img src="/logo-192.png" alt="" class="phone-logo" />Ah Ma Ah Gong Can</span>
             <div class="phone-card">
-              <span class="phone-med"><span class="phone-tile"><AppIcon name="pill" :size="20" /></span><span><b>Metformin</b><small>500 mg</small></span></span>
+              <span class="phone-med"><KindIcon kind="medication" :size="32" /><span><b>Metformin</b><small>500 mg</small></span></span>
               <span class="phone-dose">{{ doseText() }}</span>
               <span class="phone-chips">
                 <span class="phone-chip on"><AppIcon name="sunrise" :size="16" />{{ t('timing.morning') }}</span>
@@ -179,7 +180,7 @@ let introPlayed = false
     <section ref="gets" class="gets" :class="{ watching }" aria-labelledby="start-gets">
       <h2 id="start-gets" class="section-label">{{ t('start.what') }}</h2>
       <ul>
-        <li v-for="p in PROMISES" :key="p.key"><span class="tile tile-soft tile-lg"><AppIcon :name="p.icon" :size="26" /></span>{{ t(`auth.promise.${p.key}`) }}</li>
+        <li v-for="p in PROMISES" :key="p.key"><KindIcon v-if="p.kind" :kind="p.kind" class="tile tile-lg" /><span v-else class="tile tile-soft tile-lg"><AppIcon :name="p.icon" :size="26" /></span>{{ t(`auth.promise.${p.key}`) }}</li>
       </ul>
       <p class="note"><AppIcon name="lock" :size="20" /><span>{{ t('auth.privacy') }}</span></p>
     </section>
@@ -218,7 +219,6 @@ let introPlayed = false
 .phone-med { display: flex; align-items: center; gap: 9px; }
 .phone-med b { display: block; font-family: var(--font-display); font-weight: 400; font-size: 17px; }
 .phone-med small { display: block; color: var(--color-text-muted); font-size: 11px; }
-.phone-tile { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 10px; background: var(--color-primary); color: #fff; }
 .phone-dose { font-family: var(--font-display); font-size: 16px; line-height: 1.25; font-variant-numeric: lining-nums; }
 .lang-ta .phone-dose { font-family: var(--font-sans); font-weight: 700; font-size: 13px; }
 .phone-chips { display: flex; flex-wrap: wrap; gap: 5px; }

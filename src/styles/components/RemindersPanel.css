@@ -1,0 +1,11 @@
+/* Scoped styles for components/schedule/RemindersPanel.vue (the slot tile: views/ScheduleSlots.css). */
+.time-list { list-style: none; margin: 0; padding: 0; }
+.time-list li { display: flex; align-items: center; gap: 14px; padding: 10px 0; border-top: 1px solid var(--color-border); font-size: var(--t18, 18px); font-weight: 600; }
+.time-list li:first-child { border-top: 0; }
+/* A time of day with several times (each medicine can have its own): stacked on the right, what is due under each. */
+.time-list > li { align-items: flex-start; }
+.time-list > li > .flex-grow-1 { padding-top: 6px; }
+.slot-times { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; align-items: flex-end; text-align: right; max-width: 60%; }
+.slot-times li { display: flex; flex-direction: column; align-items: flex-end; gap: 0; padding: 0; border: 0; }
+.slot-times .text-muted-a11y { font-size: var(--t16, 16px); font-weight: 500; overflow-wrap: anywhere; }
+.tnum { font-variant-numeric: tabular-nums; }

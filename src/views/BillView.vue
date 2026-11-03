@@ -4,8 +4,8 @@
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { scanStore } from '../stores/scan'
-import { authStore } from '../stores/auth'
+import { useScanStore } from '../stores/scan'
+import { useAuthStore } from '../stores/auth'
 import { scanSample } from '../api/client'
 import BillLine from '../components/bill/BillLine.vue'
 import SubsidyResults from '../components/bill/SubsidyResults.vue'
@@ -17,6 +17,8 @@ import KindIcon from '../components/layout/KindIcon.vue'
 import { CATEGORY_STYLE, SUBSIDY_STYLE, MEDISAVE_STYLE, money, minusMoney, sumCents, deducted } from '../components/bill/lines'
 import { citizenshipText } from '../utils/account'
 import { billGap, linesTotal, sectionsOff } from '../rules/billCheck'
+const scanStore = useScanStore()
+const authStore = useAuthStore()
 
 const { t, locale } = useI18n()
 const router = useRouter()
@@ -349,7 +351,7 @@ const summary = computed(() => [
       </div>
     </div>
 
-    <EmptyState v-else :title="t('bill.none.title')" :text="t('bill.none.text')" icon="receipt">
+    <EmptyState v-else :title="t('bill.none.title')" :text="t('bill.none.text')" kind="bill">
       <RouterLink :to="{ name: 'scan', hash: '#bill' }" class="btn btn-primary"><AppIcon name="scan" />{{ t('bill.scan') }}</RouterLink>
     </EmptyState>
 
