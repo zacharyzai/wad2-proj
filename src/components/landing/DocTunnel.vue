@@ -7,6 +7,7 @@
 <script setup>
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import ScrollCue from './ScrollCue.vue'
 
 const { t } = useI18n()
 
@@ -166,7 +167,7 @@ onBeforeUnmount(() => {
         </div>
       </div>
 
-      <span ref="hint" class="hint" aria-hidden="true">{{ t('landing.tunnel.hint') }}<span class="hint-line"></span></span>
+      <span ref="hint" class="hint" aria-hidden="true"><ScrollCue :text="t('landing.tunnel.hint')" /></span>
     </div>
   </section>
 </template>
@@ -203,7 +204,6 @@ onBeforeUnmount(() => {
 .chip span:lang(ta) { font-family: var(--font-sans); font-weight: 700; font-size: 18px; }
 
 .hint { position: absolute; bottom: 28px; z-index: 3; display: flex; flex-direction: column; align-items: center; gap: 8px; font-size: 16px; font-weight: 700; color: var(--l-muted); }
-.hint-line { width: 2px; height: 28px; border-radius: 2px; background: linear-gradient(var(--l-accent), transparent); }
 
 @media (max-width: 767.98px) {
   .tunnel { height: 230vh; }

@@ -11,6 +11,7 @@ import { useSpeechStore } from '../stores/speech'
 import AppIcon from '../components/layout/AppIcon.vue'
 import DocTunnel from '../components/landing/DocTunnel.vue'
 import HandLabel from '../components/landing/HandLabel.vue'
+import ScrollCue from '../components/landing/ScrollCue.vue'
 const { speak: sayAloud, stopSpeaking } = useSpeechStore()
 
 const { t, locale } = useI18n()
@@ -193,9 +194,6 @@ function goTo(id) {
   root.value.querySelector(`#${id}`)?.scrollIntoView({ behavior: reduceMq.matches ? 'auto' : 'smooth' })
 }
 
-function scrollToScan() {
-  root.value.querySelector('#scan')?.scrollIntoView({ behavior: reduceMq.matches ? 'auto' : 'smooth' })
-}
 
 // ---- Scroll engine (ported from the design). Every position comes from scroll; scrolling back plays it in reverse.
 const root = ref(null)
@@ -414,7 +412,6 @@ onBeforeUnmount(() => {
             <p class="lede">{{ t('landing.hero.lead') }}</p>
             <div class="ctas">
               <RouterLink :to="{ name: 'login' }" class="cta" data-testid="landing-cta-hero"><HandLabel>{{ t('landing.try') }}</HandLabel></RouterLink>
-              <button type="button" class="ghost" @click="scrollToScan">{{ t('landing.hero.how') }} <span aria-hidden="true">↓</span></button>
             </div>
           </div>
 
@@ -430,6 +427,8 @@ onBeforeUnmount(() => {
           </div>
         </div>
       </div>
+      <!-- A cue, not a button: the page itself is the way in. Fades out once the page moves (navSolid). -->
+      <ScrollCue :text="t('landing.hero.how')" class="hero-cue" :class="{ gone: navSolid }" data-testid="landing-scroll-cue" />
     </section>
 
     <!-- Between the hero and "Snap a photo": real labels and bills fly past through a 3D tunnel as you scroll (DocTunnel.vue). -->
@@ -507,6 +506,7 @@ onBeforeUnmount(() => {
           </div>
         </div>
       </div>
+      <ScrollCue class="sec-cue" />
     </section>
 
     <section id="listen" data-sec="3" class="sec" data-testid="landing-listen" aria-labelledby="listen-title">
@@ -547,6 +547,7 @@ onBeforeUnmount(() => {
           </div>
         </div>
       </div>
+      <ScrollCue class="sec-cue" />
     </section>
 
     <section id="doses" data-sec="4" class="sec sand" data-testid="landing-doses" aria-labelledby="doses-title">
@@ -600,6 +601,7 @@ onBeforeUnmount(() => {
           </div>
         </div>
       </div>
+      <ScrollCue class="sec-cue" />
     </section>
 
     <section id="ask" data-sec="5" class="sec ask-sec" data-testid="landing-ask" aria-labelledby="ask-title">

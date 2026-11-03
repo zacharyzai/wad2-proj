@@ -357,6 +357,19 @@ test('the hero and tunnel scroll freely; from Scan on, one wheel gesture moves a
   await expect(html).not.toHaveClass(/snap-sections/)
 })
 
+test('every part invites a scroll with down arrows (no button); the hero cue fades once the page moves', async ({ page }) => {
+  await page.goto('/welcome')
+  const cue = page.getByTestId('landing-scroll-cue')
+  await expect(cue).toHaveText('Scroll to see how it works')
+  await expect(cue).toHaveCSS('opacity', '1')
+  await expect(page.getByTestId('landing-hero').getByRole('button', { name: /how it works/i })).toHaveCount(0)
+  // Every part has one (down arrows) except the last, which has nothing below it.
+  for (const id of ['landing-tunnel', 'landing-scan', 'landing-listen', 'landing-doses']) await expect(page.getByTestId(id).locator('.scroll-cue')).toHaveCount(1)
+  await expect(page.getByTestId('landing-ask').locator('.scroll-cue')).toHaveCount(0)
+  await page.evaluate(() => window.scrollTo(0, 200))
+  await expect(cue).toHaveCSS('opacity', '0')
+})
+
 test('with reduced motion the page scrolls normally, with no snapping', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' })
   await page.goto('/welcome')
