@@ -7,47 +7,10 @@
        ScanProblem   an unclear photo, the wrong paper, or a service error
      This page runs the scan itself: photo → shrink (utils/images.js) → check (utils/photoCheck.js) → cover details
      (utils/redact.js) → send (/api/scan) → Confirm. Bills have no tab of their own: they start here. -->
-<script>
-// The scan in progress lives here, outside the page, so it carries on when the person taps elsewhere mid-way (a tab, Back,
-// Home): coming back to Scan shows it still covering or reading, or what went wrong. One that finishes while they are on
-// another page doesn't pull them to Confirm: it is kept, and scanStore.away tells the rest of the app
-// (components/scan/ScanAwayNotice.vue). Like any scan not yet checked, it is gone on a refresh (photos are never stored).
-import { ref, watch } from 'vue'
-
-const state = ref('idle') // idle | loading | error
-const covering = ref(false) // loading, step 1: blacking out personal details on this phone
-// The photo shown while it is covered, so people watch their details being blacked out: { original, covered }.
-const coverView = ref(null)
-// Which coverView page is being covered, for "Covering page 2 of 3".
-const coverPage = ref(null)
-const readingType = ref('medication')
-const errorCode = ref(null)
-// The pages of this scan, in order: compressed, then covered, data URLs. Usually one photo; a long bill can be several
-// photos or a PDF's pages, each its own image so the AI reads every page at full detail.
-const photos = ref([])
-let lastRequest = null
-let coverDocType = null
-let run = 0 // bumped by Cancel so a late reply is ignored
-let handingOver = false // a finished scan is opening Confirm: the page closing now is not the person leaving mid-scan
-let pageOpen = false // the person is on Scan (set by the page; cleared the moment they tap elsewhere)
-let pdfPages = null // { total, read } of the PDF being read, for the note on Confirm
-// A PDF is already clean and sharp (never dark, blurry or glary), so the photo check skips its pages, including on Try again.
-let fromPdf = new Set()
-// Bill pages taken with the camera were checked one by one as they were taken (or kept with "Use it anyway"): not again.
-const checkedShots = new Set()
-const SLOW_MS = 15_000 // then the wait text says it is slower than usual, and when we will stop
-const slow = ref(false)
-let slowTimer
-watch(state, (s) => {
-  clearTimeout(slowTimer)
-  slow.value = false
-  if (s === 'loading') slowTimer = setTimeout(() => (slow.value = true), SLOW_MS)
-})
-</script>
-
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router'
+import { storeToRefs } from 'pinia'
 import { useI18n } from 'vue-i18n'
 import { scanImage, scanSample } from '../api/client'
 import { redactImage, warmUp } from '../utils/redact'
@@ -62,6 +25,14 @@ import ScanPages from '../components/scan/ScanPages.vue'
 import ScanBusy from '../components/scan/ScanBusy.vue'
 import ScanProblem from '../components/scan/ScanProblem.vue'
 const scanStore = useScanStore()
+// The scan in progress lives in the scan store, not on this page, so it carries on when the person taps elsewhere mid-way
+// (a tab, Back, Home): coming back to Scan shows it still covering or reading, or what went wrong. One that finishes while
+// they are on another page doesn't pull them to Confirm: it is kept, and scanStore.away tells the rest of the app
+// (components/scan/ScanAwayNotice.vue). Log out stops it (scanStore.forget). Photos are never stored.
+const {
+  reading: state, covering, coverView, coverPage, readingType, errorCode, slow, pages: photos, pagesPdf: pdfPages,
+  fromPdf, checkedShots, lastRequest, coverDocType, run, handingOver, pageOpen,
+} = storeToRefs(scanStore)
 const { t } = useI18n()
 
 const SAMPLES = [
@@ -115,17 +86,17 @@ const COVER_LIMIT_MS = 12_000
 const camera = ref(null)
 const upload = ref(null)
 
-// The scan in progress belongs to the module (the <script> above), not to this page.
+// The scan in progress belongs to the scan store, not to this page.
 // They are away from the moment they tap elsewhere, not when the next page has opened: a reply arriving in between is
 // already one for while they were away.
-pageOpen = true
-const onScanPage = () => pageOpen
+pageOpen.value = true
+const onScanPage = () => pageOpen.value
 // Back on Scan mid-scan: its kind again (the address may not say), and nothing more to tell them elsewhere.
 if (state.value !== 'idle') type.value = readingType.value
 scanStore.away = null
 // Leaving mid-scan: it carries on, and the rest of the app says so. An error they have seen here starts fresh next time.
 function leaving() {
-  pageOpen = false
+  pageOpen.value = false
   if (state.value === 'loading') scanStore.away = { type: readingType.value, status: 'working' }
   else if (state.value === 'error') state.value = 'idle'
 }
@@ -133,7 +104,7 @@ function leaving() {
 // here. Checked after every move, finished or not.
 const stopChecking = router.afterEach(() => {
   if (router.currentRoute.value.name !== 'scan') return
-  pageOpen = true
+  pageOpen.value = true
   scanStore.away = null
 })
 onBeforeUnmount(stopChecking)
@@ -141,9 +112,9 @@ onBeforeUnmount(stopChecking)
 // Too dark, blurry or glary? 'dark' | 'blurry' | 'glare' | null. Tests that fake covering skip this check too.
 const photoCheck = (page) => (window.__photoCheckForTests ?? (window.__redactForTests ? async () => null : checkPhoto))(page)
 function freshPages() {
-  pdfPages = null
-  fromPdf = new Set()
-  checkedShots.clear()
+  pdfPages.value = null
+  fromPdf.value = new Set()
+  checkedShots.value.clear()
 }
 
 // Live camera (LiveCamera.vue shows it). No camera API (e.g. plain http on a phone): the native camera via the file input.
@@ -234,7 +205,7 @@ function removeShot(i) {
 function readShots() {
   freshPages()
   photos.value = shots.value.map((s) => s.src)
-  photos.value.forEach((page) => checkedShots.add(page))
+  photos.value.forEach((page) => checkedShots.value.add(page))
   shots.value = []
   coverAndSend('bill')
 }
@@ -262,34 +233,34 @@ onBeforeRouteLeave((to) => {
     askThrow.value = true
     return false
   }
-  if (!handingOver) leaving()
+  if (!handingOver.value) leaving()
   return true
 })
 
 // request(ms) makes the call with that time limit. Try again gives it a fresh full limit.
 async function send(docType, request, limit = scanLimit(photos.value.length)) {
-  const id = ++run
-  lastRequest = { docType, request }
+  const id = ++run.value
+  lastRequest.value = { docType, request }
   readingType.value = docType
   state.value = 'loading'
   const res = await request(limit)
-  if (id !== run) return
+  if (id !== run.value) return
   if (!res.ok) {
     errorCode.value = res.error.code
     state.value = 'error'
     if (!onScanPage()) scanStore.away = { type: docType, status: 'failed' }
     return
   }
-  Object.assign(scanStore, { current: res.data, photos: photos.value, pdfPages, confirmed: false })
+  Object.assign(scanStore, { current: res.data, photos: photos.value, pdfPages: pdfPages.value, confirmed: false })
   // On another page: keep it for when they are ready ("Your label is ready to check"), never pull them away.
   if (!onScanPage()) {
     state.value = 'idle'
     scanStore.away = { type: docType, status: 'ready' }
     return
   }
-  handingOver = true
+  handingOver.value = true
   await router.push({ name: 'confirm' })
-  handingOver = false
+  handingOver.value = false
   state.value = 'idle' // after the page has gone, so the picker never flashes up first
 }
 
@@ -310,8 +281,8 @@ async function useFiles(files, k = type.value) {
     const result = await compress(files)
     freshPages()
     photos.value = result.pages
-    pdfPages = result.pdfPages
-    fromPdf = result.fromPdf
+    pdfPages.value = result.pdfPages
+    fromPdf.value = result.fromPdf
   } catch {
     // The browser couldn't open a file (e.g. HEIC on a laptop, or not an image), so the server was never asked.
     covering.value = false
@@ -328,11 +299,11 @@ async function useFiles(files, k = type.value) {
 // e2e tests swap in a fake via window.__redactForTests (e2e/helpers/mockImageScan.js); real covering needs the reader download.
 // Each page is checked and covered on its own, one after another (the reader reads one picture at a time).
 async function coverAndSend(docType, skipCheck = false) {
-  const id = ++run
+  const id = ++run.value
   const pages = photos.value
   const deadline = Date.now() + scanLimit(pages.length)
-  coverDocType = docType
-  lastRequest = null // Try again covers again until the covered photos have been sent
+  coverDocType.value = docType
+  lastRequest.value = null // Try again covers again until the covered photos have been sent
   readingType.value = docType
   covering.value = true
   state.value = 'loading'
@@ -346,8 +317,8 @@ async function coverAndSend(docType, skipCheck = false) {
   // Too dark, blurry or glary: say so now, before covering and uploading.
   for (const page of pages) {
     coverView.value = { original: page, covered: null }
-    const problem = skipCheck || fromPdf.has(page) || checkedShots.has(page) ? null : await photoCheck(page)
-    if (id !== run) return // cancelled
+    const problem = skipCheck || fromPdf.value.has(page) || checkedShots.value.has(page) ? null : await photoCheck(page)
+    if (id !== run.value) return // cancelled
     if (problem) return fail(CHECK_ERRORS[problem])
   }
   let tooSlow = false
@@ -362,7 +333,7 @@ async function coverAndSend(docType, skipCheck = false) {
     } catch {
       // Reader could not load (offline, very old phone) or crashed: fail closed.
     }
-    if (id !== run) return // cancelled
+    if (id !== run.value) return // cancelled
     if (!result) return fail(tooSlow ? 'TIMEOUT' : 'COVER_FAILED')
     // A page where nothing looks like a label or bill (a blank back page) would be all black: it is left out.
     if (!result.keep.length) continue
@@ -370,12 +341,12 @@ async function coverAndSend(docType, skipCheck = false) {
     coverView.value = { original: page, covered: result.dataUrl }
     // Let the blacked-out version wipe in before the next step (shorter with reduced motion: there is no wipe).
     await new Promise((done) => setTimeout(done, matchMedia('(prefers-reduced-motion: reduce)').matches ? 300 : REVEAL_MS))
-    if (id !== run) return
+    if (id !== run.value) return
   }
   // No page had anything to read: don't send black pictures.
   if (!covered.length) return fail('UNREADABLE_IMAGE')
   covered = await fitUpload(covered).catch(() => covered)
-  if (id !== run) return
+  if (id !== run.value) return
   photos.value = covered
   covering.value = false
   coverPage.value = null
@@ -391,8 +362,8 @@ function trySample(sample) {
 }
 
 function retry() {
-  if (errorCode.value === 'COVER_FAILED' || !lastRequest) return coverAndSend(coverDocType)
-  send(lastRequest.docType, lastRequest.request)
+  if (errorCode.value === 'COVER_FAILED' || !lastRequest.value) return coverAndSend(coverDocType.value)
+  send(lastRequest.value.docType, lastRequest.value.request)
 }
 
 // "Use a sample instead" on the error screen: back to the page with the examples already open.
@@ -403,7 +374,7 @@ function showExamples() {
 }
 
 function cancel() {
-  run++
+  run.value++
   covering.value = false
   state.value = 'idle'
 }

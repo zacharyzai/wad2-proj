@@ -8,18 +8,13 @@
      helpful?". The empty page greets the person by name, with questions about their own medicines.
      The pieces: components/ask/AskMedicines.vue (My medicines), AskReply.vue (one reply), AskComposer.vue (the question box),
      composables/useAnswer.js (word by word and read aloud). This page keeps the conversation and sends the questions. -->
-<script>
-import { reactive } from 'vue'
-// One thread for the visit, so leaving this page and coming back keeps the answers.
-const messages = reactive([])
-</script>
-
 <script setup>
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, toRaw, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, toRaw, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { askMedicine } from '../api/client'
 import { useMedicinesStore, isFinished } from '../stores/medicines'
 import { useAuthStore } from '../stores/auth'
+import { useAskStore } from '../stores/ask'
 import { useAnswer } from '../composables/useAnswer'
 import { factsFor } from '../rules/askFacts'
 import AppIcon from '../components/layout/AppIcon.vue'
@@ -29,6 +24,7 @@ import AskReply from '../components/ask/AskReply.vue'
 import AskComposer from '../components/ask/AskComposer.vue'
 const { medicines } = useMedicinesStore()
 const authStore = useAuthStore()
+const { messages } = useAskStore() // one thread for the visit
 const { reveal, stopRevealing, stopReading } = useAnswer()
 
 const CHIPS = ['when', 'food', 'missed', 'store']
