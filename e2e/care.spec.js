@@ -189,7 +189,19 @@ test.describe("senior's Account page", () => {
     await expect(page.getByTestId('care-caregivers')).toHaveCount(0)
     expect(removed).toBe(true)
   })
-
+    test('the Remove question moves focus inside, Esc closes it and focus returns to Remove', async ({ page }) => {
+    await signIn(page, SENIOR)
+    await page.route('**/api/care/caregivers', (route) => route.fulfill(ok({ caregivers: [{ id: 'l1', name: 'Wei Ling', since: '2026-10-01T00:00:00Z' }] })))
+    await page.goto('/account')
+    const remove = page.getByTestId('care-remove')
+    await remove.click()
+    await expect(page.getByRole('alertdialog')).toBeVisible()
+    await expect(page.getByTestId('care-remove-keep')).toBeFocused()
+    await page.keyboard.press('Escape')
+    await expect(page.getByRole('alertdialog')).toHaveCount(0)
+    await expect(remove).toBeFocused()
+  })
+  
   test('a caregiver account has no caregiver card', async ({ page }) => {
     await signIn(page, CAREGIVER)
     await page.goto('/account')

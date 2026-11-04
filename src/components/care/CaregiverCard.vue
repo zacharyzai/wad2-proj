@@ -1,7 +1,7 @@
 <!-- Owner: Isaac. On a senior's Account page: who can see my doses today, and "Invite a caregiver".
      Says what a caregiver will see BEFORE the link is made, and anyone can be removed at any time. API: docs/care-contract.md (assumed). -->
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, nextTick, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { createInvite, myCaregivers, removeCareLink } from '../../api/client'
 import Card from '../layout/Card.vue'
@@ -38,6 +38,21 @@ async function run(call, onOk) {
   if (res.ok) onOk(res.data)
   else errorCode.value = res.error.code
 }
+
+// The remove question is an alertdialog, so focus moves into it (onto "Keep", the safe answer),
+// and goes back to that caregiver's Remove button when it closes. Esc closes it too.
+async function askRemove(c, event) {
+  const row = event.currentTarget.closest('li')
+  if (removing.value === c.id) return closeRemove(row)
+  removing.value = c.id
+  await nextTick()
+  row.querySelector('[data-testid="care-remove-keep"]')?.focus()
+}
+async function closeRemove(row) {
+  removing.value = null
+  await nextTick()
+  row?.querySelector('[data-testid="care-remove"]')?.focus()
+}
 const makeInvite = () => run(createInvite, (d) => (invite.value = d))
 const remove = (c) => run(() => removeCareLink(c.id), () => { caregivers.value = caregivers.value.filter((x) => x.id !== c.id); removing.value = null })
 
@@ -61,13 +76,13 @@ async function copy() {
       <li v-for="c in caregivers" :key="c.id" class="d-flex flex-column gap-2">
         <div class="d-flex align-items-center gap-3 flex-wrap">
           <span class="flex-grow-1"><strong>{{ c.name }}</strong><br /><span class="text-body-secondary">{{ t('careCard.since', { date: fmt(c.since, { day: 'numeric', month: 'short', year: 'numeric' }) }) }}</span></span>
-          <button type="button" class="btn btn-outline btn-sm" :aria-expanded="removing === c.id" data-testid="care-remove" @click="removing = removing === c.id ? null : c.id">{{ t('careCard.remove') }}</button>
+            <button type="button" class="btn btn-outline btn-sm" :aria-expanded="removing === c.id" data-testid="care-remove" @click="askRemove(c, $event)">{{ t('careCard.remove') }}</button>
         </div>
-        <div v-if="removing === c.id" class="alert alert-warning flex-column" role="alertdialog">
+        <div v-if="removing === c.id" class="alert alert-warning flex-column" role="alertdialog" :aria-label="t('careCard.removeAsk', { name: c.name })" @keydown.esc.stop="closeRemove($event.currentTarget.closest('li'))">
           <strong>{{ t('careCard.removeAsk', { name: c.name }) }}</strong>
           <div class="d-flex flex-wrap gap-2">
             <button type="button" class="btn btn-danger btn-sm" :disabled="busy" data-testid="care-remove-yes" @click="remove(c)">{{ t('careCard.removeYes') }}</button>
-            <button type="button" class="btn btn-secondary btn-sm" @click="removing = null">{{ t('careCard.keep') }}</button>
+            <button type="button" class="btn btn-secondary btn-sm" data-testid="care-remove-keep" @click="closeRemove($event.currentTarget.closest('li'))">{{ t('careCard.keep') }}</button>
           </div>
         </div>
       </li>

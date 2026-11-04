@@ -65,7 +65,31 @@ test.describe('deleting', () => {
     await expect(page.getByRole('status').filter({ hasText: 'Scan deleted.' })).toBeAttached()
   })
 })
+test.describe('delete question is a real alert dialog', () => {
+  test('focus moves into it, Esc closes it and puts focus back on Delete', async ({ page }) => {
+    await mockHistory(page)
+    await page.goto('/history')
+    await openFirst(page)
+    const del = page.getByTestId('history-delete').first()
+    await del.click()
+    await expect(page.getByRole('alertdialog')).toBeVisible()
+    await expect(page.getByTestId('history-delete-keep')).toBeFocused() // the safe answer, not "Yes, delete"
+    await page.keyboard.press('Escape')
+    await expect(page.getByRole('alertdialog')).toHaveCount(0)
+    await expect(del).toBeFocused()
+  })
 
+  test('Keep it also closes it and returns focus to Delete', async ({ page }) => {
+    await mockHistory(page)
+    await page.goto('/history')
+    await openFirst(page)
+    const del = page.getByTestId('history-delete').first()
+    await del.click()
+    await page.getByTestId('history-delete-keep').click()
+    await expect(page.getByRole('alertdialog')).toHaveCount(0)
+    await expect(del).toBeFocused()
+  })
+})
 test('a saved scan can no longer be shared', async ({ page }) => {
   await mockHistory(page)
   await page.goto('/history')
