@@ -92,13 +92,16 @@ const dayName = (date) => dateText(date, { weekday: 'long', day: 'numeric', mont
 /* The pill box: a clear plastic box, seven compartments side by side. */
 .pillbox { position: relative; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 5px; padding: 10px 8px; border-radius: 26px; background: linear-gradient(180deg, color-mix(in srgb, var(--color-card) 92%, transparent), color-mix(in srgb, var(--color-surface-2) 85%, transparent)); border: 1px solid var(--color-border-strong); box-shadow: var(--shadow-card), inset 0 2px 0 rgba(255, 255, 255, 0.6); }
 
+/* Small phones (iPhone 6, 375px): tighter gaps, so each day is still a 44px-wide tap target. */
+@media (max-width: 399.98px) { .pillbox { gap: 2px; padding: 10px 6px; } }
+
 /* A compartment: its own colour, like the rainbow lids of a weekly pill box; the day's letter on the lid. */
 .comp { position: relative; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 6px 0 10px; border: 0; border-radius: 16px; background: var(--color-surface-2); box-shadow: inset 0 -3px 0 var(--color-border-strong), inset 0 1px 0 rgba(255, 255, 255, 0.7); color: var(--color-text); font: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; transition: background-color 280ms var(--ease-out), box-shadow 280ms var(--ease-out); }
 .comp:hover:not([aria-pressed='true']) { background: var(--color-border); }
 /* The day you are on: its own compartment colour and its own pill, always different from the rest. */
 .comp[aria-pressed='true'] { background: var(--color-tint-strong); box-shadow: inset 0 -3px 0 var(--color-primary), inset 0 1px 0 rgba(255, 255, 255, 0.7); }
 .comp:focus-visible { outline: none; box-shadow: var(--focus-ring); }
-.lid { font-size: 15px; font-weight: 800; color: var(--color-text-muted); }
+.lid { font-size: 16px; font-weight: 800; color: var(--color-text-muted); }
 .comp[aria-pressed='true'] .lid { color: var(--color-tint-text); }
 
 /* The capsule: upright, two halves, the date on it, the same for every day but today (teal and cream). The chosen day's
@@ -117,7 +120,7 @@ const dayName = (date) => dateText(date, { weekday: 'long', day: 'numeric', mont
 .comp.today:not([aria-pressed='true']) .capsule { box-shadow: 0 0 0 2px var(--color-surface-2), 0 0 0 4px var(--color-primary), 0 3px 6px -2px rgba(60, 40, 20, 0.25); }
 .comp:active .capsule { scale: 0.94; }
 /* How the day went: a badge on the capsule (the button's name says it in words). */
-.badge-dot { position: absolute; right: -7px; top: -6px; z-index: 2; display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--color-card); font-size: 12px; font-weight: 900; line-height: 1; color: #fff; }
+.badge-dot { position: absolute; right: -5px; top: -8px; z-index: 2; display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--color-card); font-size: 16px; font-weight: 900; line-height: 1; color: #fff; }
 .is-ok .badge-dot { background: var(--color-success); }
 .is-not .badge-dot { background: var(--color-warning); }
 

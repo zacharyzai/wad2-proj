@@ -61,6 +61,9 @@ const tick = (page, name, time) => page.getByRole('button', { name: new RegExp(`
 const OPTIONS = { days: (name) => `Days and times for ${name}`, fix: (name) => `Fix what we read for ${name}`, remove: (name) => `Delete ${name} from my list` }
 // The tabs are links: Today has no ?view, My medicines is ?view=meds.
 async function toTab(page, view) {
+  // Desktop: an open card sits forward over a dimmed page; like a person, click the dim to put it back first.
+  const scrim = page.getByTestId('med-scrim')
+  if (await scrim.isVisible()) await scrim.click({ position: { x: 5, y: 5 } })
   await page.getByTestId(`tab-${view}`).click()
   await expect(page).toHaveURL(view === 'today' ? /\/schedule$/ : new RegExp(`view=${view}`))
 }

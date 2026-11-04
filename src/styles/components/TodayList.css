@@ -19,7 +19,7 @@
 .pc-title { font-size: var(--t21, 21px); font-weight: 800; }
 .pc-stats { display: flex; gap: 28px; }
 .pc-stats span { display: flex; flex-direction: column; }
-.pc-stats small { font-size: 15px; opacity: 0.85; }
+.pc-stats small { font-size: 16px; opacity: 0.85; }
 .pc-stats b { font-family: var(--font-display); font-weight: 400; font-size: 30px; line-height: 1.1; font-variant-numeric: tabular-nums lining-nums; }
 .progress-words { font-size: var(--fs-lead); line-height: 1.35; }
 .pc-next { font-size: 16px; opacity: 0.9; }

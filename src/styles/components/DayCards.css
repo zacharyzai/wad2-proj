@@ -11,7 +11,7 @@
 .dcard { position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: 'icon info state'; align-items: center; gap: 8px 14px; padding: 14px 14px 14px 16px; border-radius: var(--r-card); background: var(--color-card); border: 1px solid var(--color-border); box-shadow: var(--shadow-card); animation: card-in 420ms var(--ease-settle) both; animation-delay: calc(var(--n, 0) * 60ms + 60ms); }
 .dcard > :first-child { grid-area: icon; }
 .dcard-info { grid-area: info; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; }
-.tag { padding: 1px 10px; border-radius: var(--r-pill); background: var(--band); color: var(--ink); border: 1px solid var(--edge); font-size: 14px; font-weight: 700; line-height: 1.5; }
+.tag { padding: 1px 10px; border-radius: var(--r-pill); background: var(--band); color: var(--ink); border: 1px solid var(--edge); font-size: 16px; font-weight: 700; line-height: 1.5; }
 .dcard-name { font-size: var(--t20, 20px); font-weight: 800; line-height: 1.25; overflow-wrap: anywhere; }
 .dcard-detail { font-size: 16px; line-height: 1.4; color: var(--color-text-muted); }
 
