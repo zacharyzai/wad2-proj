@@ -33,15 +33,17 @@ const resume = computed(() => {
   return { kind: s.type, name, checked: scanStore.confirmed, to: { name: scanStore.confirmed ? 'explain' : 'confirm' } }
 })
 
-// Picking a card: its short picture plays first (about a second), then its scan page opens. Reduced motion: at once.
-const LAUNCH_MS = 1050
-const launching = ref(null) // { kind, x, y } while the picture plays
+// Picking a card: its short picture plays first (about 1.7 seconds), then its scan page opens. Reduced motion: at once.
+// SLOW stretches every part of the picture (ScanLaunch.vue) and this wait by the same amount: 1 is the original second, 2 is twice as slow.
+const SLOW = 1.6
+const LAUNCH_MS = 1050 * SLOW
+const launching = ref(null) // { kind, x, y, k } while the picture plays
 let launchTimer = 0
 function choose(event, kind) {
   if (launching.value) return // already on its way: a second tap does nothing
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) return emit('pick', kind)
   const box = event.currentTarget.getBoundingClientRect()
-  launching.value = { kind, x: box.left + box.width / 2, y: box.top + box.height / 2 }
+  launching.value = { kind, x: box.left + box.width / 2, y: box.top + box.height / 2, k: SLOW }
   launchTimer = setTimeout(() => emit('pick', kind), LAUNCH_MS)
 }
 onBeforeUnmount(() => clearTimeout(launchTimer))

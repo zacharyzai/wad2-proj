@@ -99,6 +99,8 @@ test('a medicine opens to every scan of it, each with Listen again, Share and De
   await expect(page.getByText('Scanned 4 times')).toBeVisible()
   await expect(page.getByTestId('history-item')).toHaveCount(4)
   await expect(page.getByTestId('history-replay')).toHaveCount(4)
+  await expect(page.getByTestId('history-back')).toHaveAccessibleName('Back to History') // an arrow on screen, its words for screen readers
+  await expect(page.getByTestId('history-back')).toHaveText('')
   await page.getByTestId('history-back').click()
   await expect(page).toHaveURL(/\/history$/)
   await expect(rows(page, 'history-taking')).toHaveCount(2)

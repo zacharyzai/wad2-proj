@@ -71,7 +71,7 @@ Tap **Schedule**. The labels you checked become a daily timetable, built by our 
 
 To see it update, log in as `pioneer.demo` in a second browser, scan the **Metformin label** sample, tap **Looks correct** and tick a dose; the caregiver's page refreshes every minute.
 
-A senior links their own caregiver from **Account → Invite a caregiver**: the link works once, for 7 days, and the caregiver never sees scans, photos, bills or account details.
+A senior links their own caregiver from **Account → Invite a caregiver**: the link works for 7 days for anyone it is sent to, and the caregiver never sees scans, photos, bills or account details.
 
 ### 7. Make it yours
 

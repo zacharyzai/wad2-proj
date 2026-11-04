@@ -3,7 +3,7 @@
      burst out and settle around the middle, then drift gently up as the scan page opens:
        medication  capsules, tablets, a blister pack, a syrup bottle and a cream tube, round a big medicine bottle
        bill        receipts, notes and coins, round a big receipt with a coin stamped on it
-     About a second (LAUNCH_MS). Decoration (aria-hidden): the scan page says where you are. Covers the screen, so a second
+     About 1.7 seconds (ScanPicker's SLOW stretches every time below by k). Decoration (aria-hidden): the scan page says where you are. Covers the screen, so a second
      tap can't land on the other card. Never shown with reduced motion (the card opens at once). -->
 <script setup>
 import { computed } from 'vue'
@@ -12,6 +12,7 @@ const props = defineProps({
   kind: { type: String, required: true }, // 'medication' | 'bill'
   x: { type: Number, required: true }, // the centre of the card it came from
   y: { type: Number, required: true },
+  k: { type: Number, default: 1 }, // how much slower than the original second: every time below is multiplied by it
 })
 
 const SHAPES = {
@@ -28,7 +29,7 @@ const items = computed(() => {
     const angle = (i / 12) * Math.PI * 2 + 0.3
     const tx = w / 2 + Math.cos(angle) * reach * SPREAD[i] * (w > h ? 1.5 : 1)
     const ty = h / 2 + Math.sin(angle) * reach * SPREAD[i]
-    const delay = 60 + i * 22
+    const delay = (60 + i * 22) * props.k
     return {
       shape,
       style: {
@@ -38,12 +39,12 @@ const items = computed(() => {
         '--fy': `${props.y - ty}px`,
         '--rot': `${(i % 2 ? 1 : -1) * (20 + ((i * 37) % 50))}deg`,
         '--s': `${Math.round(Math.min(w, h) * (0.1 + (i % 3) * 0.025))}px`,
-        animationDelay: `${delay}ms, ${delay + 520}ms`, // it drifts away once it has landed
+        animationDelay: `${delay}ms, ${delay + 520 * props.k}ms`, // it drifts away once it has landed
       },
     }
   })
 })
-const from = computed(() => ({ '--x': `${props.x}px`, '--y': `${props.y}px` }))
+const from = computed(() => ({ '--x': `${props.x}px`, '--y': `${props.y}px`, '--k': props.k }))
 </script>
 
 <template>
@@ -87,7 +88,7 @@ const from = computed(() => ({ '--x': `${props.x}px`, '--y': `${props.y}px` }))
 <style scoped>
 .sl { position: fixed; inset: 0; z-index: 60; overflow: hidden; cursor: progress; }
 /* The wash: a circle of the card's colour growing out of it until it covers the screen. */
-.sl-wash { position: absolute; inset: 0; clip-path: circle(0 at var(--x) var(--y)); animation: spread 560ms cubic-bezier(0.5, 0, 0.2, 1) both; }
+.sl-wash { position: absolute; inset: 0; clip-path: circle(0 at var(--x) var(--y)); animation: spread calc(560ms * var(--k)) cubic-bezier(0.5, 0, 0.2, 1) both; }
 .sl-medication .sl-wash { background: radial-gradient(circle at var(--x) var(--y), #d5efea, #eef7f4 70%); }
 .sl-bill .sl-wash { background: radial-gradient(circle at var(--x) var(--y), #fde3cc, #fdf3e8 70%); }
 :root[data-theme='dark'] .sl-medication .sl-wash { background: radial-gradient(circle at var(--x) var(--y), #1d4744, #122725 70%); }
@@ -95,14 +96,14 @@ const from = computed(() => ({ '--x': `${props.x}px`, '--y': `${props.y}px` }))
 @keyframes spread { to { clip-path: circle(150vmax at var(--x) var(--y)); } }
 
 /* Each thing: thrown out of the card to its place round the middle, turning as it goes, then drifting up and away. */
-.sl-item { position: absolute; width: var(--s); height: var(--s); margin: calc(var(--s) / -2) 0 0 calc(var(--s) / -2); animation: burst 620ms cubic-bezier(0.2, 0.9, 0.3, 1.1) both, away 400ms ease-in forwards; }
+.sl-item { position: absolute; width: var(--s); height: var(--s); margin: calc(var(--s) / -2) 0 0 calc(var(--s) / -2); animation: burst calc(620ms * var(--k)) cubic-bezier(0.2, 0.9, 0.3, 1.1) both, away calc(400ms * var(--k)) ease-in forwards; }
 .sl-item svg, .sl-hero svg { display: block; width: 100%; height: 100%; overflow: visible; filter: drop-shadow(0 8px 10px rgba(30, 40, 40, 0.18)); }
 @keyframes burst { from { translate: var(--fx) var(--fy); scale: 0.2; rotate: 0deg; opacity: 0; } 30% { opacity: 1; } to { translate: 0 0; scale: 1; rotate: var(--rot); opacity: 1; } }
 @keyframes away { from { translate: 0 0; scale: 1; rotate: var(--rot); opacity: 1; } to { translate: 0 -28px; scale: 1; rotate: var(--rot); opacity: 0; } }
 
 /* The big one: pops up in the middle, wobbles once, then goes up with the rest. */
-.sl-hero { position: absolute; left: 50%; top: 50%; width: min(40vmin, 200px); aspect-ratio: 1; translate: -50% -50%; animation: hero 520ms cubic-bezier(0.3, 1.5, 0.5, 1) 180ms both, hero-away 380ms ease-in 720ms forwards; }
-.sl-stamp { transform-box: fill-box; transform-origin: center; animation: stamp 340ms cubic-bezier(0.3, 1.6, 0.5, 1) 520ms both; }
+.sl-hero { position: absolute; left: 50%; top: 50%; width: min(40vmin, 200px); aspect-ratio: 1; translate: -50% -50%; animation: hero calc(520ms * var(--k)) cubic-bezier(0.3, 1.5, 0.5, 1) calc(180ms * var(--k)) both, hero-away calc(380ms * var(--k)) ease-in calc(720ms * var(--k)) forwards; }
+.sl-stamp { transform-box: fill-box; transform-origin: center; animation: stamp calc(340ms * var(--k)) cubic-bezier(0.3, 1.6, 0.5, 1) calc(520ms * var(--k)) both; }
 @keyframes hero { from { scale: 0; rotate: -12deg; opacity: 0; } 70% { rotate: 4deg; } to { scale: 1; rotate: 0deg; opacity: 1; } }
 @keyframes hero-away { to { translate: -50% calc(-50% - 24px); opacity: 0; } }
 @keyframes stamp { from { scale: 2.2; opacity: 0; rotate: -25deg; } }

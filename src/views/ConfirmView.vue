@@ -161,13 +161,21 @@ function confirm(sure = false) {
       done = true
       return router.push({ name: 'schedule', query: { view: 'meds' }, state: { fixedId: draft.savedId } }) // back to its Change button
     }
-    if (!sure && (duplicate.value = savedMedicine(draft.medication) ?? null)) return
-    // Ask (the chatbot) answers about the medicines the user has checked.
-    rememberMedicine(draft.medication, 'label', draft.source === 'sample')
+    // Back from Explain: this scan's own medicine, not a second one. `addedId` lives on the scan, so a new scan clears it.
+    if (draft.addedId) replaceMedicine(draft.addedId, draft.medication)
+    else {
+      if (!sure && (duplicate.value = savedMedicine(draft.medication) ?? null)) return
+      // Ask (the chatbot) answers about the medicines the user has checked.
+      draft.addedId = rememberMedicine(draft.medication, 'label', draft.source === 'sample')
+    }
   }
-  // Logged in: the checked scan goes to History too (contract fields only, never the photo). Not waited for: a failed save
-  // must not stop the explanation, and History simply won't list this one.
-  if (authStore.user) saveScan({ type: draft.type, source: draft.source, unclear: [], [draft.type]: draft[draft.type] })
+  // Logged in: the checked scan goes to History too (contract fields only, never the photo), once unless it was changed. Not
+  // waited for: a failed save must not stop the explanation, and History simply won't list this one.
+  const checked = JSON.stringify(draft[draft.type])
+  if (authStore.user && draft.savedCopy !== checked) {
+    draft.savedCopy = checked
+    saveScan({ type: draft.type, source: draft.source, unclear: [], [draft.type]: draft[draft.type] })
+  }
   scanStore.current = draft
   scanStore.confirmed = true
   done = true
@@ -287,7 +295,7 @@ const scanAgain = () => router.push(fixing ? { name: 'schedule', query: { view: 
           </template>
 
           <ConfirmField v-if="showOptional('medication.withFood')" class="span2" :label="t('confirm.med.food')" :flagged="needs('medication.withFood')">
-            <div class="d-flex flex-wrap gap-2">
+            <div class="food-choices" data-testid="confirm-food">
               <button v-for="key in WITH_FOOD" :key="key" type="button" class="choice" :aria-pressed="draft.medication.withFood === key" @click="draft.medication.withFood = key">
                 {{ t(`food.${key}`) }}
               </button>

@@ -59,7 +59,7 @@
     "accept": "Terima dan jaga {name}",
     "seniorAccount": "Ini akaun warga emas, jadi tidak boleh menjadi penjaga. Untuk menjadi penjaga, buat akaun kedua dan pilih \"Penjaga\".",
     "goneTitle": "Jemputan ini tidak lagi tersedia",
-    "goneText": "Ia mungkin sudah tamat tempoh atau sudah digunakan. Minta pautan baharu."
+    "goneText": "Ia mungkin sudah tamat tempoh, atau digantikan dengan pautan baharu. Minta pautan baharu."
   },
   "careCard": {
     "title": "Penjaga anda",
@@ -74,7 +74,7 @@
     "inviteTitle": "Sebelum anda hantar pautan",
     "inviteSee": "Penjaga akan nampak: nama anda, masa ubat anda hari ini, dan sama ada setiap dos sudah diambil, terlepas atau akan datang.",
     "inviteNot": "Mereka tidak akan nampak: imbasan, gambar, bil atau butiran akaun anda. Anda boleh membuang mereka pada bila-bila masa.",
-    "inviteExpiry": "Pautan hanya boleh digunakan sekali dan tamat selepas 7 hari.",
+    "inviteExpiry": "Sesiapa yang menerima pautan ini boleh menggunakannya selama 7 hari, jadi hantar hanya kepada orang yang anda percayai.",
     "create": "Buat pautan",
     "linkReady": "Pautan anda sudah sedia",
     "linkLabel": "Pautan jemputan",
@@ -769,8 +769,6 @@
   "auth": {
     "email": "E-mel",
     "password": "Kata laluan",
-    "passwordHint": "Sekurang-kurangnya 8 aksara",
-    "passwordShort": "Kata laluan anda perlu sekurang-kurangnya 8 aksara.",
     "login": "Log masuk",
     "signup": "Cipta akaun",
     "working": "Sila tunggu…",
@@ -852,7 +850,7 @@
       "title": "Kata laluan anda perlu:",
       "length": "Sekurang-kurangnya 8 aksara",
       "mix": "Huruf dan nombor",
-      "guess": "Tidak mudah diteka (bukan “password123”, dan bukan nama anda)",
+      "special": "Satu aksara khas, seperti ! ? # atau -",
       "warn": "Kata laluan ini tidak cukup selamat. Sila fikirkan kata laluan baharu yang memenuhi setiap syarat di bawah.",
       "met": "Sudah",
       "notMet": "Belum"

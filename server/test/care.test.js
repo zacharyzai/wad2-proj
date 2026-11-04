@@ -126,8 +126,8 @@ test('an existing caregiver can log in and accept; one caregiver may link severa
     const accepted = await accept(cg, i.token)
     assert.equal(accepted.status, 200)
     assert.deepEqual(await accepted.json(), { ok: true, data: { seniorId: owner.id } })
-    await error(await preview(i.token), 404, 'NOT_FOUND')
-    await error(await accept(cg, i.token), 404, 'NOT_FOUND')
+    assert.equal((await preview(i.token)).status, 200) // the link keeps working until it expires
+    assert.equal((await accept(cg, i.token)).status, 200) // pressed twice: still one link
     const { data } = await (await care('/caregivers', { token: owner.token })).json()
     assert.equal(data.caregivers.length, 1)
     assert.equal(data.caregivers[0].name, 'Sample Caregiver')
@@ -142,18 +142,20 @@ test('an existing caregiver can log in and accept; one caregiver may link severa
   assert.equal((await links(cg)).length, 2)
 })
 
-test('two caregivers racing to accept the same invitation cannot claim the same senior', async () => {
+test('one invitation works for every caregiver it was sent to, until it expires; the link rows never hold the secret', async () => {
   const owner = await user()
   const a = await user('caregiver'), b = await user('caregiver')
   const i = await issued(owner)
   const responses = await Promise.all([accept(a, i.token), accept(b, i.token)])
-  assert.deepEqual(responses.map((r) => r.status).sort(), [200, 404])
-  const stored = await CareLink.findOne({ seniorId: owner.id }).select('+tokenHash').lean()
-  assert.equal(await CareLink.countDocuments({ seniorId: owner.id }), 1)
-  assert.equal(stored.tokenHash, undefined)
-  assert.equal(stored.inviteExpiresAt, undefined)
-  assert.ok([a.id, b.id].includes(String(stored.caregiverId)))
-  assert.equal((await links(a)).length + (await links(b)).length, 1)
+  assert.deepEqual(responses.map((r) => r.status), [200, 200])
+  const stored = await CareLink.find({ seniorId: owner.id, caregiverId: { $ne: null } }).select('+tokenHash').lean()
+  assert.deepEqual(stored.map((l) => String(l.caregiverId)).sort(), [a.id, b.id].sort())
+  for (const link of stored) assert.deepEqual([link.tokenHash, link.inviteExpiresAt], [undefined, undefined])
+  assert.equal((await links(a)).length + (await links(b)).length, 2)
+  // Past its date it stops for the next person; those already linked stay linked.
+  await CareLink.updateOne({ seniorId: owner.id, caregiverId: null }, { $set: { inviteExpiresAt: new Date(Date.now() - 1) } })
+  await error(await accept(await user('caregiver'), i.token), 404, 'NOT_FOUND')
+  assert.equal((await links(owner)).length, 2)
 })
 
 test('a senior may link several caregivers; re-accepting a fresh invite never duplicates a link', async () => {
@@ -162,10 +164,9 @@ test('a senior may link several caregivers; re-accepting a fresh invite never du
   assert.equal((await accept(b, (await issued(owner)).token)).status, 200)
   const again = await issued(owner)
   assert.deepEqual(await (await accept(a, again.token)).json(), { ok: true, data: { seniorId: owner.id } })
-  await error(await preview(again.token), 404, 'NOT_FOUND')
   const { data } = await (await care('/caregivers', { token: owner.token })).json()
   assert.deepEqual(data.caregivers.map((c) => c.name).sort(), ['Daughter', 'Son'])
-  assert.equal(await CareLink.countDocuments({ seniorId: owner.id }), 2)
+  assert.equal(await CareLink.countDocuments({ seniorId: owner.id, caregiverId: { $ne: null } }), 2)
   // Removing one caregiver leaves the other.
   assert.equal((await care(`/links/${data.caregivers[0].id}`, { method: 'DELETE', token: owner.token })).status, 200)
   assert.equal((await links(owner)).length, 1)
@@ -188,7 +189,7 @@ test('rotating/cancelling an invitation invalidates the old link; expiry is enfo
   await error(await preview('bad'), 404, 'NOT_FOUND')
 })
 
-test('only the linked senior/caregiver can revoke; revocation cannot restore a consumed invite', async () => {
+test('only the linked senior/caregiver can revoke; a removed caregiver cannot rejoin from the same invite', async () => {
   const owner = await user(), cg = await user('caregiver'), stranger = await user('caregiver')
   const first = await issued(owner)
   assert.equal((await accept(cg, first.token)).status, 200)
@@ -196,13 +197,15 @@ test('only the linked senior/caregiver can revoke; revocation cannot restore a c
   assert.equal((await care(`/seniors/${owner.id}/today`, { token: cg.token })).status, 200)
   await error(await care(`/links/${link.id}`, { method: 'DELETE', token: stranger.token }), 404, 'NOT_FOUND')
   await error(await care(`/links/not-an-id`, { method: 'DELETE', token: owner.token }), 404, 'NOT_FOUND')
-  // Cancelling pending invitations never accidentally deletes the active caregiver.
-  assert.equal((await (await care('/invites', { method: 'DELETE', token: owner.token })).json()).data.revoked, false)
+  // Cancelling a pending invitation never accidentally deletes the active caregiver.
+  assert.equal((await (await care('/invites', { method: 'DELETE', token: owner.token })).json()).data.revoked, true)
+  assert.equal((await links(owner)).length, 1)
+  const second = await issued(owner)
   assert.equal((await care(`/links/${link.id}`, { method: 'DELETE', token: owner.token })).status, 200)
   assert.deepEqual(await links(cg), [])
   await error(await care(`/seniors/${owner.id}/today`, { token: cg.token }), 404, 'NOT_FOUND')
-  await error(await preview(first.token), 404, 'NOT_FOUND')
-  await error(await accept(stranger, first.token), 404, 'NOT_FOUND')
+  await error(await preview(second.token), 404, 'NOT_FOUND') // removing someone also ends any open invite
+  await error(await accept(cg, second.token), 404, 'NOT_FOUND')
   const next = await issued(owner)
   assert.equal((await accept(stranger, next.token)).status, 200)
   const [newLink] = await links(stranger)

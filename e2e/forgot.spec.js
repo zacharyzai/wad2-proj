@@ -63,15 +63,16 @@ test('Reset: the link is taken out of the address, the new password logs this de
 
   await page.getByTestId('reset-password').fill('short')
   await page.getByTestId('reset-submit').click()
-  await expect(page.getByText('Your password needs at least 8 characters.')).toBeVisible()
+  await expect(page.getByTestId('reset-pw-warn')).toContainText('not safe enough')
+  await expect(page.getByTestId('reset-hint').locator('[data-rule="special"]')).toHaveAttribute('data-ok', 'false')
   expect(body).toBeUndefined()
 
-  await page.getByTestId('reset-password').fill('brand-new-pass')
+  await page.getByTestId('reset-password').fill('brand-new-pass-7')
   await page.getByTestId('reset-toggle').click()
   await expect(page.getByTestId('reset-password')).toHaveAttribute('type', 'text') // can check what they typed
   await page.getByTestId('reset-submit').click()
   await expect(page.getByTestId('reset-done')).toContainText('Password changed')
-  expect(body).toEqual({ token: 'link.from.email', password: 'brand-new-pass', remember: true })
+  expect(body).toEqual({ token: 'link.from.email', password: 'brand-new-pass-7', remember: true })
   await page.getByTestId('reset-continue').click()
   await expect(page).toHaveURL(/localhost:5173\/$/)
 })
@@ -79,7 +80,7 @@ test('Reset: the link is taken out of the address, the new password logs this de
 test('Reset: an expired or used link, or none, offers a new link instead of a dead end', async ({ page }) => {
   await page.route('**/api/auth/reset', (route) => route.fulfill({ status: 400, json: { ok: false, error: { code: 'RESET_LINK_INVALID', message: '' } } }))
   await page.goto('/reset#token=old.used.link')
-  await page.getByTestId('reset-password').fill('brand-new-pass')
+  await page.getByTestId('reset-password').fill('brand-new-pass-7')
   await page.getByTestId('reset-submit').click()
   await expect(page.getByTestId('reset-bad')).toContainText('This link has expired or was already used')
   await page.goto('/reset') // no link at all

@@ -160,8 +160,8 @@ test('short passwords and invalid profiles are rejected before account creation'
   for (const bad of [{ password: 'short' }, { email: { $ne: null } }, { dob: '1952-02-30' }, { income: 'invalid' }]) {
     await error(await post('signup', { ...profile, email: 'invalid@example.com', password, ...bad }), 400, 'BAD_REQUEST')
   }
-  assert.equal((await post('signup', { ...profile, email: 'boundary@example.com', password: ' kopi12x' })).status, 201)
-  assert.equal((await post('login', { email: 'boundary@example.com', password: ' kopi12x' })).status, 200)
+  assert.equal((await post('signup', { ...profile, email: 'boundary@example.com', password: ' kopi-12x' })).status, 201)
+  assert.equal((await post('login', { email: 'boundary@example.com', password: ' kopi-12x' })).status, 200)
   await error(await post('login', { email, password: 'incorrect123' }), 401, 'WRONG_LOGIN')
   await error(await post('login', { email: 'absent@example.com', password }), 401, 'WRONG_LOGIN')
 })
@@ -208,7 +208,7 @@ test('missing database config fails safely and a later request can reconnect', a
   delete process.env.MONGODB_URI
   await error(await post('login', { email, password }), 503, 'SERVER_ERROR')
   process.env.MONGODB_URI = uri
-  assert.equal((await post('login', { email: 'boundary@example.com', password: ' kopi12x' })).status, 200)
+  assert.equal((await post('login', { email: 'boundary@example.com', password: ' kopi-12x' })).status, 200)
 })
 
 test('login and signup share the configured IP rate limit', async () => {
@@ -249,13 +249,13 @@ test('reset: the link sets the new password, logs this device in and logs every 
   assert.equal((await me(oldLogin)).status, 200)
   sentMail.length = 0
   await forgot({ email: 'reset@example.com' })
-  const done = await reset({ token: linkIn(sentMail[0]), password: 'brand-new-pass', remember: false })
+  const done = await reset({ token: linkIn(sentMail[0]), password: 'brand-new-pass-7', remember: false })
   assert.equal(done.status, 200)
   const { data } = await done.json()
   assert.equal(data.user.email, 'reset@example.com')
   assert.equal((await me(data.token)).status, 200) // this device: logged in
   await error(await me(oldLogin), 401, 'NOT_LOGGED_IN') // every other device: logged out
-  assert.equal((await post('login', { email: 'reset@example.com', password: 'brand-new-pass' })).status, 200)
+  assert.equal((await post('login', { email: 'reset@example.com', password: 'brand-new-pass-7' })).status, 200)
   await error(await post('login', { email: 'reset@example.com', password }), 401, 'WRONG_LOGIN')
   assert.equal('passwordChangedAt' in data.user, false)
 })
@@ -267,9 +267,10 @@ test('reset links work once; an older unused link dies too; bad links and short 
   await forgot({ email: 'once@example.com' })
   const [older, newer] = sentMail.map(linkIn)
   await error(await reset({ token: newer, password: 'short' }), 400, 'BAD_REQUEST')
-  assert.equal((await reset({ token: newer, password: 'first-new-pass' })).status, 200)
-  await error(await reset({ token: newer, password: 'second-new-pass' }), 400, 'RESET_LINK_INVALID') // used
-  await error(await reset({ token: older, password: 'second-new-pass' }), 400, 'RESET_LINK_INVALID') // superseded
+  await error(await reset({ token: newer, password: 'gardenwalk58' }), 400, 'BAD_REQUEST') // no special character: the same rules as Sign up
+  assert.equal((await reset({ token: newer, password: 'first-new-pass-7' })).status, 200)
+  await error(await reset({ token: newer, password: 'second-new-pass-7' }), 400, 'RESET_LINK_INVALID') // used
+  await error(await reset({ token: older, password: 'second-new-pass-7' }), 400, 'RESET_LINK_INVALID') // superseded
   const someone = await User.findOne({ email: 'once@example.com' })
   for (const bad of [undefined, 'not-a-link', signToken(someone.id, true), newer.slice(0, -4) + 'abcd']) {
     await error(await reset({ token: bad, password: 'another-pass-1' }), 400, 'RESET_LINK_INVALID')
@@ -279,7 +280,7 @@ test('reset links work once; an older unused link dies too; bad links and short 
 test('a link pressed twice at the same moment changes the password only once', async () => {
   const user = await User.create({ ...profile, email: 'double-press@example.com', passwordHash: await argon2.hash(password) })
   const token = signResetToken(user)
-  const answers = await Promise.all(['race-pass-one', 'race-pass-two'].map((value, i) => reset({ token, password: value }, `198.51.100.${10 + i}`)))
+  const answers = await Promise.all(['race-pass-1', 'race-pass-2'].map((value, i) => reset({ token, password: value }, `198.51.100.${10 + i}`)))
   assert.deepEqual(answers.map((r) => r.status).sort(), [200, 400])
 })
 

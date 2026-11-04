@@ -26,13 +26,14 @@ const write = (value) => {
 
 // card: a centred card (GuideDialog). tap: a glowing nav button the person must tap (or "Take me there"); it opens that page.
 // look: points at one key button on the page just opened; Next moves on. target = the element's data-guide value.
+// page: where a look step's button lives, so Back can return there.
 export const STEPS = [
   { id: 'intro', kind: 'card' },
   { id: 'scan', kind: 'tap', target: '/scan' },
   // Labels and bills both start on Scan: point at the two cards.
-  { id: 'scanChoose', kind: 'look', target: 'scan-choice' },
+  { id: 'scanChoose', kind: 'look', target: 'scan-choice', page: '/scan' },
   { id: 'ask', kind: 'tap', target: '/ask' },
-  { id: 'askBox', kind: 'look', target: 'ask-box' },
+  { id: 'askBox', kind: 'look', target: 'ask-box', page: '/ask' },
   { id: 'account', kind: 'tap', target: '/account' },
   { id: 'finish', kind: 'card' },
 ]
@@ -49,6 +50,9 @@ export const useGuideStore = defineStore('guide', () => {
   // actions
   function nextStep() {
     if (step.value < STEPS.length) step.value++
+  }
+  function prevStep() {
+    if (step.value > 1) step.value--
   }
   function openGuide() {
     open.value = true
@@ -73,5 +77,5 @@ export const useGuideStore = defineStore('guide', () => {
     if (state === 'deferred' ? route.name === 'home' : startPage) openGuide()
   }
 
-  return { open, step, ended, askTheme, currentStep, nextStep, openGuide, endGuide, maybeShowGuide }
+  return { open, step, ended, askTheme, currentStep, nextStep, prevStep, openGuide, endGuide, maybeShowGuide }
 })

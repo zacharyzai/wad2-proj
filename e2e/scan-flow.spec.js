@@ -26,6 +26,28 @@ test('medication sample: confirm, explain and quick check @smoke', async ({ page
   await expect(page.getByRole('link', { name: 'Add to schedule' })).toBeVisible()
 })
 
+test('going back from Explain and pressing Looks correct again is the same medicine: no duplicate question, one History entry', async ({ page }) => {
+  const saves = []
+  await page.route('**/api/history', (route) => (route.request().method() === 'POST' ? (saves.push(route.request().postDataJSON()), route.fulfill({ status: 201, json: { ok: true, data: { id: 's1' } } })) : route.fallback()))
+  await openSample(page, 'Metformin label')
+  await page.getByRole('button', { name: 'Looks correct' }).click()
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Take 1 tablet, 2 times a day.')
+  await page.getByRole('link', { name: 'Back' }).click()
+  await page.getByRole('button', { name: 'Looks correct' }).click()
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Take 1 tablet, 2 times a day.')
+  await expect(page.getByTestId('confirm-duplicate')).toHaveCount(0)
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem('medicines')).length)).toBe(1)
+  expect(saves).toHaveLength(1)
+})
+
+test('the before or after food boxes are all the same size', async ({ page }) => {
+  await openSample(page, 'Metformin label')
+  await expect(page.getByTestId('confirm-food')).toBeVisible()
+  const boxes = await page.getByTestId('confirm-food').locator('.choice').evaluateAll((els) => els.map((el) => [Math.round(el.offsetWidth), Math.round(el.offsetHeight)].join('x')))
+  expect(boxes.length).toBeGreaterThan(1)
+  expect(new Set(boxes).size).toBe(1)
+})
+
 test('confirming a medicine already on the list asks before updating it', async ({ page }) => {
   await openSample(page, 'Metformin label')
   await page.getByRole('button', { name: 'Looks correct' }).click()

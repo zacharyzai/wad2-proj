@@ -369,6 +369,18 @@ test('every part invites a scroll with down arrows (no button); the hero cue fad
   await expect(cue).toHaveCSS('opacity', '0')
 })
 
+test('on a phone each feature\'s arrow sits at the foot of the section, below its content and inside it', async ({ page, isMobile }) => {
+  test.skip(!isMobile, 'phone layout: the content stacks and is taller than the screen')
+  await page.goto('/welcome')
+  for (const id of ['scan', 'listen', 'doses']) {
+    const section = page.locator(`#${id}`)
+    const [sec, demo, cue] = await Promise.all([section.boundingBox(), section.locator('.demo').boundingBox(), section.locator('.scroll-cue').boundingBox()])
+    expect(sec.height).toBeGreaterThan(page.viewportSize().height * 0.85) // a feature fills about a screen or more on a phone
+    expect(cue.y).toBeGreaterThanOrEqual(demo.y + demo.height) // not on top of the picture
+    expect(cue.y + cue.height).toBeLessThanOrEqual(sec.y + sec.height + 1) // still inside its own section
+  }
+})
+
 test('with reduced motion the page scrolls normally, with no snapping', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' })
   await page.goto('/welcome')

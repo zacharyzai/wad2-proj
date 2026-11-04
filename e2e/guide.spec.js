@@ -87,6 +87,83 @@ test('every step that leads on has the same Next button; on a "Tap" step it does
   await expect(title(page)).toHaveText('Choose what to scan')
 })
 
+test('Back goes to the step before, on its own page; the first step has none', async ({ page }) => {
+  await page.goto('/')
+  await expect(page.getByTestId('guide-back')).toHaveCount(0) // the welcome card: nothing to go back to
+  // All the way to the finish card (on Account)...
+  await walkToFinish(page)
+  await expect(page).toHaveURL(/\/account$/)
+  // ...and back through each step: the pointing steps return to the page their button is on.
+  await page.getByTestId('guide-back').click()
+  await stepText(page, 6)
+  await page.getByTestId('guide-back').click()
+  await stepText(page, 5)
+  await expect(page).toHaveURL(/\/ask$/)
+  await page.getByTestId('guide-back').click()
+  await stepText(page, 4)
+  await page.getByTestId('guide-back').click()
+  await stepText(page, 3)
+  await expect(page).toHaveURL(/\/scan$/)
+  await page.getByTestId('guide-back').click()
+  await stepText(page, 2)
+  await page.getByTestId('guide-back').click()
+  await stepText(page, 1)
+  await expect(page.getByTestId('guide-back')).toHaveCount(0)
+  // Forward again works as before.
+  for (let i = 0; i < 2; i++) await page.getByTestId('guide-next').click()
+  await stepText(page, 3)
+  await expect(page).toHaveURL(/\/scan$/)
+})
+
+for (const height of [844, 667, 568]) {
+  test(`on a ${height}px tall phone, step 3 shows both cards whole, clear of the bubble`, async ({ page, isMobile }) => {
+    test.skip(!isMobile, 'phone sizes')
+    await page.setViewportSize({ width: 375, height })
+    await page.goto('/')
+    for (let i = 0; i < 2; i++) await page.getByTestId('guide-next').click()
+    await stepText(page, 3)
+    await expect(page.locator('[data-guide="scan-choice"]')).toBeVisible()
+    const clear = () => page.evaluate(() => {
+      const r = document.querySelector('[data-guide="scan-choice"]').getBoundingClientRect()
+      const b = document.querySelector('.bubble').getBoundingClientRect()
+      return r.top >= 0 && (b.top >= r.bottom || b.bottom <= r.top)
+    })
+    await expect.poll(clear).toBe(true)
+  })
+}
+
+test('on a phone, the question box in step 5 shows above the tab bar, clear of the bubble', async ({ page, isMobile }) => {
+  test.skip(!isMobile, 'the phone tab bar')
+  await page.setViewportSize({ width: 375, height: 667 })
+  await page.goto('/')
+  for (let i = 0; i < 4; i++) await page.getByTestId('guide-next').click()
+  await stepText(page, 5)
+  await expect(page.locator('[data-guide="ask-box"]')).toBeVisible()
+  const clear = () => page.evaluate(() => {
+    const r = document.querySelector('[data-guide="ask-box"]').getBoundingClientRect()
+    const b = document.querySelector('.bubble').getBoundingClientRect()
+    return r.top >= 0 && r.bottom <= document.querySelector('.nav').getBoundingClientRect().top && (b.top >= r.bottom || b.bottom <= r.top)
+  })
+  await expect.poll(clear).toBe(true)
+})
+
+test('the page does not move under the guide, and it scrolls again afterwards', async ({ page, isMobile }) => {
+  await page.setViewportSize({ width: isMobile ? 375 : 1280, height: 500 }) // shorter than the page, so it could scroll
+  await page.goto('/')
+  await page.getByTestId('guide-next').click()
+  await stepText(page, 2)
+  const y = await page.evaluate(() => scrollY)
+  await page.mouse.move(100, 200)
+  await page.mouse.wheel(0, 400)
+  await page.keyboard.press('PageDown')
+  await page.waitForTimeout(400)
+  expect(await page.evaluate(() => scrollY)).toBe(y)
+  await page.keyboard.press('Escape')
+  await expect(page.getByTestId('guide-coach')).toHaveCount(0)
+  await expect.poll(async () => { await page.mouse.wheel(0, 200); return page.evaluate(() => scrollY) }).toBeGreaterThan(y)
+  expect(await page.evaluate(() => document.body.style.paddingBottom)).toBe('')
+})
+
 test('Skip or Esc end it at any step; the closing message fades after a few seconds', async ({ page }) => {
   await page.goto('/scan?type=medication')
   await page.getByTestId('guide-next').click()

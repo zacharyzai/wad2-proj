@@ -74,10 +74,8 @@ router.post('/signup', authRateLimit, (req, res) => {
   if (typeof password !== 'string' || password.length < MIN_PASSWORD || password.length > 200) {
     return sendError(res, 400, 'BAD_REQUEST', `password must be ${MIN_PASSWORD} to 200 characters`)
   }
-  // The same rules the Create account page ticks off (src/rules/password.js): letters and numbers, not easy to guess.
-  if (!passwordOk(password, { name: typeof req.body?.name === 'string' ? req.body.name : '', email: cleanEmail })) {
-    return sendError(res, 400, 'BAD_REQUEST', 'password needs letters and numbers, and must not be easy to guess')
-  }
+  // The same rules the Create account page ticks off (src/rules/password.js).
+  if (!passwordOk(password)) return sendError(res, 400, 'BAD_REQUEST', 'password needs letters, numbers and a special character')
   const { profile, error } = checkProfile(req.body)
   const settingError = checkLanguage(req.body?.language) ?? checkTheme(req.body?.theme)
   if (error || settingError) return sendError(res, 400, 'BAD_REQUEST', error ?? settingError)
@@ -193,6 +191,7 @@ router.post('/reset', resetRateLimit, (req, res) => {
   if (typeof password !== 'string' || password.length < MIN_PASSWORD || password.length > 200) {
     return sendError(res, 400, 'BAD_REQUEST', `password must be ${MIN_PASSWORD} to 200 characters`)
   }
+  if (!passwordOk(password)) return sendError(res, 400, 'BAD_REQUEST', 'password needs letters, numbers and a special character') // the same rules as Sign up
   if (!configured(res)) return
   const link = readResetToken(token)
   const badLink = () => sendError(res, 400, 'RESET_LINK_INVALID', 'This link has expired or was already used')

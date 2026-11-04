@@ -129,24 +129,17 @@ router.post('/invites/:token/accept', ...caregiver, inviteRateLimit, (req, res) 
     return sendError(res, 400, 'BAD_REQUEST', 'No acceptance fields are accepted; log in as the accepting caregiver')
   }
   return database(res, async () => {
-    const filter = liveInvite(req.params.token)
-    const invite = await CareLink.findOne(filter).select('seniorId').lean()
+    const invite = await CareLink.findOne(liveInvite(req.params.token)).select('seniorId').lean()
     if (!invite || String(invite.seniorId) === req.userId) return gone(res)
     const owner = await User.findById(invite.seniorId).select('role').lean()
     if (!owner || roleOf(owner) !== 'senior') return gone(res)
-    let result
+    // The invite stays: the link works for every caregiver it was sent to until it expires. Each gets their own link row.
     try {
-      result = await CareLink.findOneAndUpdate({ ...liveInvite(req.params.token), _id: invite._id }, {
-        $set: { caregiverId: req.userId, linkedAt: new Date() },
-        $unset: { tokenHash: 1, inviteExpiresAt: 1 },
-      }, { returnDocument: 'after', runValidators: true })
+      await CareLink.create({ seniorId: invite.seniorId, caregiverId: req.userId, linkedAt: new Date() })
     } catch (error) {
-      if (error?.code !== 11000) throw error
-      // Already this senior's caregiver: use up the invite and keep the existing link.
-      result = await CareLink.findOneAndDelete({ ...liveInvite(req.params.token), _id: invite._id })
+      if (error?.code !== 11000) throw error // already this senior's caregiver: keep the existing link
     }
-    if (!result) return gone(res) // already used, expired, replaced or revoked; one atomic update wins
-    res.json({ ok: true, data: { seniorId: String(result.seniorId) } })
+    res.json({ ok: true, data: { seniorId: String(invite.seniorId) } })
   })
 })
 
@@ -177,8 +170,9 @@ router.get('/links', ...either, (req, res) => database(res, async () => {
 router.delete('/links/:id', ...either, (req, res) => {
   if (!mongoose.isObjectIdOrHexString(req.params.id)) return gone(res)
   return database(res, async () => {
-    const result = await CareLink.deleteOne({ _id: req.params.id, caregiverId: { $ne: null }, $or: [{ seniorId: req.userId }, { caregiverId: req.userId }] })
-    if (!result.deletedCount) return gone(res)
+    const link = await CareLink.findOneAndDelete({ _id: req.params.id, caregiverId: { $ne: null }, $or: [{ seniorId: req.userId }, { caregiverId: req.userId }] })
+    if (!link) return gone(res)
+    await CareLink.deleteOne({ seniorId: link.seniorId, caregiverId: null }) // or a removed caregiver could rejoin from the same invite
     res.json({ ok: true, data: { id: req.params.id } })
   })
 })

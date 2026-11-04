@@ -82,6 +82,9 @@
 /* Each feature: just above the fold. A section stops 66px down (under the top bar), so measured from its top the screen's bottom
    edge is 100svh - 66px, whatever the section's height. */
 .sec-cue { position: absolute; left: 50%; top: calc(100svh - 66px - 64px); translate: -50% 0; }
+/* Phones: a feature is taller than the screen (its picture stacks under its words), so "a screen down" lands in the middle of the
+   content. The arrow sits at the section's own bottom edge instead, in its bottom padding, clear of the content. */
+@media (max-width: 991.98px) { .sec-cue { top: auto; bottom: 8px; } }
 @media (prefers-reduced-motion: reduce) { .hero-cue { transition: opacity 200ms ease; } .hero-cue.gone { translate: none; } }
 .hero-row { flex-wrap: wrap-reverse; gap: clamp(4px, 4vw, 72px); }
 .hero-text { flex: 1.15 1 340px; position: relative; z-index: 2; display: flex; flex-direction: column; gap: 22px; }

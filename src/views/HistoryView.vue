@@ -148,7 +148,7 @@ async function removed(id) {
 <template>
   <!-- One medicine or bill: its scans, each with Listen again, Share and Delete. -->
   <div v-if="opened" class="page">
-    <button type="button" class="back align-self-start" data-testid="history-back" @click="close">{{ t('history.back') }}</button>
+    <button type="button" class="back align-self-start" :aria-label="t('history.back')" data-testid="history-back" @click="close"></button>
     <div class="detail-head">
       <KindIcon :kind="opened.kind" :size="64" />
       <div class="d-flex flex-column gap-1 min-w-0">

@@ -9,6 +9,7 @@ import AuthShell from '../components/layout/AuthShell.vue'
 import ErrorBanner from '../components/layout/ErrorBanner.vue'
 import BigButton from '../components/layout/BigButton.vue'
 import AppIcon from '../components/layout/AppIcon.vue'
+import PasswordRules from '../components/layout/PasswordRules.vue'
 import { INCOMES, isCitizen } from '../utils/account'
 import { passwordChecks } from '../rules/password'
 const { enterApp, signup } = useAuthStore()
@@ -31,7 +32,7 @@ const formEl = ref(null) // template ref (Week 4), for focusing the first field 
 const tried = ref(false) // show problems only after the first press of Create account
 
 // The password's rules (src/rules/password.js, checked again by the server), ticked off as they type.
-const pwChecks = computed(() => passwordChecks(form.password, { name: form.name, email: form.email.trim() }))
+const pwChecks = computed(() => passwordChecks(form.password))
 
 // Every problem at once, each under its own box (not one at a time).
 const problems = computed(() => {
@@ -127,15 +128,7 @@ async function submit() {
              alone), and no account until a new password meets every rule. -->
         <p v-if="show('password')" id="signup-pw-warn" class="auth-warn m-0" data-testid="signup-pw-warn"><AppIcon name="alert" :size="18" />{{ problems.password }}</p>
         <!-- The rules, each ticked off as it is met: a tick and "done" once met; after Create account, a cross and "not yet". -->
-        <div id="signup-hint" class="auth-rules" :class="{ tried }" data-testid="signup-hint">
-          <span class="auth-rules-title">{{ t('auth.pwRules.title') }}</span>
-          <ul class="m-0">
-            <li v-for="(ok, rule) in pwChecks" :key="rule" :class="{ ok }" :data-rule="rule" :data-ok="ok">
-              <span class="auth-rule-mark" aria-hidden="true"><AppIcon v-if="ok" name="check" :size="16" :stroke="3" /><AppIcon v-else-if="tried" name="x" :size="16" :stroke="3" /></span>
-              <span><span class="visually-hidden">{{ t(ok ? 'auth.pwRules.met' : 'auth.pwRules.notMet') }}: </span>{{ t(`auth.pwRules.${rule}`) }}</span>
-            </li>
-          </ul>
-        </div>
+        <PasswordRules id="signup-hint" :checks="pwChecks" :tried="tried" data-testid="signup-hint" />
       </div>
 
       <div>

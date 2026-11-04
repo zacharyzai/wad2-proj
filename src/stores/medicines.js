@@ -99,7 +99,9 @@ export const useMedicinesStore = defineStore('medicines', () => {
       medication: copy,
       ...scheduleFor(previous, copy),
     })
+    const { id } = medicines[0]
     trim()
+    return id
   }
 
   // "Fix what we read" (Schedule → Confirm): the corrected details replace that medicine in place. Same id, schedule and

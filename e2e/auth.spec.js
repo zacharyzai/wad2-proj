@@ -86,12 +86,11 @@ test.describe('logged out', () => {
     await page.getByTestId('signup-income').selectOption('upTo1500')
     const rules = page.getByTestId('signup-hint').locator('li')
     const met = () => rules.evaluateAll((li) => li.map((l) => `${l.dataset.rule}:${l.dataset.ok}`))
-    await expect(rules).toHaveText([/At least 8 characters/, /Letters and numbers/, /Not easy to guess/])
+    await expect(rules).toHaveText([/At least 8 characters/, /Letters and numbers/, /A special character/])
     for (const [typed, want] of [
-      ['abc', ['length:false', 'mix:false', 'guess:false']],
-      ['password123', ['length:true', 'mix:true', 'guess:false']], // well known
-      ['meiling1952', ['length:true', 'mix:true', 'guess:false']], // their own name
-      ['tehtarikmorning', ['length:true', 'mix:false', 'guess:true']], // no numbers
+      ['abc', ['length:false', 'mix:false', 'special:false']],
+      ['tehtarikmorning', ['length:true', 'mix:false', 'special:false']], // no numbers
+      ['tehtarik1952', ['length:true', 'mix:true', 'special:false']], // no special character
     ]) {
       await page.getByTestId('signup-password').fill(typed)
       await expect.poll(met, typed).toEqual(want)
@@ -100,11 +99,11 @@ test.describe('logged out', () => {
     await expect(page.getByTestId('signup-pw-warn')).toHaveText('This password is not safe enough. Please think of a new one that meets every rule below.')
     await expect(page.getByTestId('signup-password')).toHaveAttribute('aria-invalid', 'true')
     await expect(page.getByTestId('signup-password')).toBeFocused() // the only thing to fix
-    await expect(page.getByTestId('signup-password')).toHaveAccessibleDescription(/not safe enough.*Done: At least 8 characters Not yet: Letters and numbers/)
+    await expect(page.getByTestId('signup-password')).toHaveAccessibleDescription(/not safe enough.*Done: At least 8 characters Done: Letters and numbers Not yet: A special character/)
     expect(calls).toBe(0)
     // A new one that meets every rule: the warning goes, and the account is made.
     await page.getByTestId('signup-password').fill('teh-tarik-1952')
-    await expect.poll(met).toEqual(['length:true', 'mix:true', 'guess:true'])
+    await expect.poll(met).toEqual(['length:true', 'mix:true', 'special:true'])
     await expect(page.getByTestId('signup-pw-warn')).toHaveCount(0)
     await page.getByTestId('signup-submit').click()
     await expect.poll(() => calls).toBe(1)

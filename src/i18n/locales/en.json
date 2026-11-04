@@ -82,7 +82,7 @@
     "accept": "Accept and watch over {name}",
     "seniorAccount": "This is a senior account, so it cannot be a caregiver. To be a caregiver, create a second account and choose \"Caregiver\".",
     "goneTitle": "This invitation is no longer available",
-    "goneText": "It may have expired or already been used. Ask for a new link."
+    "goneText": "It may have expired, or a newer link replaced it. Ask for a new link."
   },
   "careCard": {
     "title": "Your caregivers",
@@ -97,7 +97,7 @@
     "inviteTitle": "Before you send the link",
     "inviteSee": "The caregiver will see: your name, your medicine times for today, and whether each dose is taken, missed or still to come.",
     "inviteNot": "They will not see: your scans, photos, bills or account details. You can remove them at any time.",
-    "inviteExpiry": "The link can be used once and stops working after 7 days.",
+    "inviteExpiry": "Anyone you send this link to can use it for 7 days, so send it only to people you trust.",
     "create": "Create link",
     "linkReady": "Your link is ready",
     "linkLabel": "Invitation link",
@@ -769,8 +769,6 @@
   "auth": {
     "email": "Email",
     "password": "Password",
-    "passwordHint": "At least 8 characters",
-    "passwordShort": "Your password needs at least 8 characters.",
     "login": "Log in",
     "signup": "Create account",
     "role": "I am a…",
@@ -852,7 +850,7 @@
       "title": "Your password needs:",
       "length": "At least 8 characters",
       "mix": "Letters and numbers",
-      "guess": "Not easy to guess (not “password123”, and not your name)",
+      "special": "A special character, like ! ? # or -",
       "warn": "This password is not safe enough. Please think of a new one that meets every rule below.",
       "met": "Done",
       "notMet": "Not yet"

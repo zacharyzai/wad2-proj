@@ -18,7 +18,7 @@ All answers use the usual envelope: `{ ok: true, data }` or `{ ok: false, error:
 | POST | `/api/auth/login` | `{ email, password, remember }` | `{ token, user }` · `401 WRONG_LOGIN` (same for unknown email and wrong password) |
 | GET | `/api/auth/me` | (token) | `{ user }`, plus a fresh `token` when the login is remembered · `401 NOT_LOGGED_IN` |
 | POST | `/api/auth/forgot` | `{ email, language? }` | `{ minutes: 30 }`, the same whether or not an account uses the email · `400` · `429 RATE_LIMITED` · `503 MAIL_UNAVAILABLE` |
-| POST | `/api/auth/reset` | `{ token, password, remember }` | `{ token, user }`, like login · `400 BAD_REQUEST` (password) · `400 RESET_LINK_INVALID` (expired, used or forged) |
+| POST | `/api/auth/reset` | `{ token, password, remember }` | `{ token, user }`, like login · `400 BAD_REQUEST` (password misses a rule in `src/rules/password.js`, the same as Sign up) · `400 RESET_LINK_INVALID` (expired, used or forged) |
 | PATCH | `/api/auth/me` | `{ name, dob, citizenship, citizenSince, income, language?, theme? }`, or `{ language }` / `{ theme }` alone | `{ user }` · `400` · `401` |
 
 - `user` = `{ name, email, role, dob, citizenship, citizenSince, income, language, theme }`. The password hash never leaves the server.
@@ -44,7 +44,7 @@ Code: `server/routes/auth.js` (`/forgot`, `/reset`), `server/services/auth.js` (
 
 1. **Log in → Forgot your password?** (`/forgot`, the typed email carried over in the history state, never the address). `POST /forgot` answers the same whether or not an account uses the email, so the form can't reveal who has an account. A real account gets an email in its language (or the one in use, if it hasn't chosen), sent before answering (Vercel may stop the function once it answers).
 2. **The email** links to `APP_URL/reset#token=…`. The token is after `#`, so browsers never send it to a server; the reset page reads it and removes it from the address.
-3. **`/reset`**: one new password (8 to 200 characters, show/hide). `POST /reset` saves it, sets `passwordChangedAt` (every other device logged out) and logs this device in.
+3. **`/reset`**: one new password (8 to 200 characters, letters and numbers, a special character; show/hide). `POST /reset` saves it, sets `passwordChangedAt` (every other device logged out) and logs this device in.
 
 - **Reset links** are signed like logins but for their own audience (`ah-ma-ah-gong-can:password-reset`), so neither is accepted as the other. Nothing is stored: a link carries a fingerprint of the password hash it was made for (HMAC with `JWT_SECRET`), so it stops working once the password changes. Each link works once, for 30 minutes; using one also ends any older unused link. The save only happens if the password is still the one the link was made for, so a link pressed twice changes it once.
 - **Limits:** 3 emails per address per hour (MongoDB, shared by all instances; stored as a SHA-256 of the address, never the address; rows delete themselves), 10 forgot requests per IP per hour (`FORGOT_RATE_LIMIT`) and 20 reset tries per IP per 15 minutes (`RESET_RATE_LIMIT`).

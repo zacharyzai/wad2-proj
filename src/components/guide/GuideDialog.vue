@@ -4,6 +4,8 @@
              so does Next (for anyone who can't find it, or uses a keyboard).
      look  - on the page just opened, points at one key button; Next moves on.
      Every step that leads on has the same Next button, in the same place, so there is one thing to press throughout.
+     Every step but the first has Back, which also returns to that step's page.
+     The page can't be scrolled while the guide is open, so a glow never drifts off its button (pinch-zoom still works).
      Skip / Esc end it any time (marked seen). Focus goes to each step's title; card steps keep focus inside. -->
 <script setup>
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
@@ -15,7 +17,7 @@ import GuideArt from './GuideArt.vue'
 import AppIcon from '../layout/AppIcon.vue'
 import Spinner from '../layout/Spinner.vue'
 const guide = useGuideStore()
-const { endGuide, nextStep, openGuide } = guide
+const { endGuide, nextStep, prevStep, openGuide } = guide
 const { speak: sayAloud, stopSpeaking } = useSpeechStore()
 
 const { t, locale } = useI18n()
@@ -58,6 +60,12 @@ function next() {
 function nextOrGo() {
   if (step.value.kind === 'tap') router.push(step.value.target)
   next()
+}
+function back() {
+  stopVoice()
+  prevStep()
+  const { page } = step.value
+  if (page && router.currentRoute.value.path !== page) router.push(page)
 }
 function end(kind) {
   stopVoice()
@@ -104,13 +112,27 @@ function place(r) {
   return roomBelow >= r.top ? { side: 'below', left, top: clamp(below, 12, vh - b.height - 12), arrow } : { side: 'above', left, top: clamp(above, 12, vh - b.height - 12), arrow }
 }
 
+// Look steps: the button and its bubble must both show. If they already fit, nothing moves. If not, the pair is centred; a short
+// page can't scroll that far, so it gets room below until the step ends (the dim covers it). Instant: the glow glides there anyway.
+function reveal(r) {
+  const vh = innerHeight
+  const b = panel.value?.offsetHeight ?? 300
+  const top = r.top - PAD
+  const bottom = r.bottom + PAD
+  const tabs = document.querySelector('.nav')?.getBoundingClientRect().top ?? vh // phones: the bottom tab bar covers the page
+  const floor = tabs > vh / 2 ? tabs : vh
+  if (top >= 12 && bottom <= floor && (bottom + GAP + b <= vh - 12 || top - GAP - b >= 12)) return
+  document.body.style.paddingBottom = `${vh}px`
+  window.scrollBy({ top: r.top - Math.max(12 + PAD, (vh - (bottom - top) - GAP - b) / 2 + PAD), behavior: 'instant' })
+}
+
 function track() {
   const found = findTarget()
-  // Bring the button on screen once: look steps centre it; tap steps only scroll if it is off screen (e.g. the phone top bar).
+  // Bring the button on screen once. Tap steps only scroll if it is off screen (e.g. the phone top bar).
   if (found && !scrolled) {
     scrolled = true
-    const off = found.r.top < 0 || found.r.bottom > innerHeight
-    if (step.value.kind === 'look' || off) found.el.scrollIntoView({ block: step.value.kind === 'look' ? 'center' : 'nearest', behavior: reduced() ? 'auto' : 'smooth' })
+    if (step.value.kind === 'look') reveal(found.r)
+    else if (found.r.top < 0 || found.r.bottom > innerHeight) found.el.scrollIntoView({ block: 'nearest', behavior: reduced() ? 'auto' : 'smooth' })
   }
   if (found) {
     const { r } = found
@@ -144,16 +166,25 @@ function onKey(e) {
 }
 
 // Card steps: the page behind can't be used. Pointing steps: it can (that's the point), except where it's dimmed.
+// It never scrolls while the guide is open: a page moving under the dim loses the button, and the dim then blocks everything.
 const shell = () => document.querySelector('.shell')
 function lockPage(lock) {
-  shell()?.toggleAttribute('inert', lock)
+  shell()?.toggleAttribute('inert', lock && isCard.value)
   document.body.style.overflow = lock ? 'hidden' : ''
+  document.body.style.paddingBottom = ''
 }
+// overflow: hidden alone doesn't stop touch scrolling on every phone. Pinch-zoom and the guide's own panel stay free.
+function stopScroll(e) {
+  if (e.ctrlKey || e.touches?.length > 1 || panel.value?.contains(e.target)) return
+  e.preventDefault()
+}
+const SCROLLS = ['touchmove', 'wheel']
+const watchScroll = (on) => SCROLLS.forEach((type) => (on ? document.addEventListener(type, stopScroll, { passive: false }) : document.removeEventListener(type, stopScroll)))
 
 async function enterStep() {
   stopVoice()
   cancelAnimationFrame(frame)
-  lockPage(isCard.value)
+  lockPage(true)
   if (!isCard.value) {
     // Keep the last glow and bubble where they are until the next button appears, so they glide there instead of blinking.
     lastFound = performance.now()
@@ -174,12 +205,14 @@ watch(
       returnFocus = document.activeElement
       document.addEventListener('click', onTapTarget, true)
       document.addEventListener('keydown', onKey)
+      watchScroll(true)
     }
     if (open) return enterStep()
     cancelAnimationFrame(frame)
     lockPage(false)
     document.removeEventListener('click', onTapTarget, true)
     document.removeEventListener('keydown', onKey)
+    watchScroll(false)
     if (wasOpen) (returnFocus?.isConnected ? returnFocus : document.querySelector('main h1'))?.focus?.({ preventScroll: true })
   },
   // immediate: on a first visit the guide is opened while the app starts, before this component exists.
@@ -221,6 +254,7 @@ onBeforeUnmount(() => {
   cancelAnimationFrame(frame)
   document.removeEventListener('click', onTapTarget, true)
   document.removeEventListener('keydown', onKey)
+  watchScroll(false)
 })
 </script>
 
@@ -248,6 +282,7 @@ onBeforeUnmount(() => {
       <div v-else class="d-flex flex-column gap-3">
         <button type="button" class="btn btn-primary" data-testid="guide-sample" @click="end('sample')"><AppIcon name="pill" />{{ t('guide.try') }}</button>
         <button type="button" class="btn btn-outline g-outline" data-testid="guide-start" @click="end('start')">{{ t('guide.start') }}</button>
+        <button type="button" class="btn btn-ghost" data-testid="guide-back" @click="back"><AppIcon name="left" />{{ t('nav.back') }}</button>
       </div>
     </div>
   </div>
@@ -270,7 +305,10 @@ onBeforeUnmount(() => {
         <h2 id="guide-title" ref="title" tabindex="-1">{{ say('t') }}</h2>
         <p id="guide-text">{{ say('b') }}</p>
         <p v-if="step.kind === 'tap'" class="tap-hint"><AppIcon name="sparkles" :size="20" />{{ t('guide.tapHint') }}</p>
-        <button type="button" class="btn btn-primary btn-sm g-next" data-testid="guide-next" @click="nextOrGo">{{ t('guide.next') }}<AppIcon name="right" :size="20" /></button>
+        <div class="g-nav">
+          <button type="button" class="btn btn-ghost btn-sm" data-testid="guide-back" @click="back"><AppIcon name="left" :size="20" />{{ t('nav.back') }}</button>
+          <button type="button" class="btn btn-primary btn-sm" data-testid="guide-next" @click="nextOrGo">{{ t('guide.next') }}<AppIcon name="right" :size="20" /></button>
+        </div>
       </div>
     </div>
   </div>
@@ -314,7 +352,7 @@ p { margin: 0; font-size: 18px; line-height: 1.55; text-wrap: pretty; }
 .ring { position: fixed; top: 0; left: 0; border-radius: 18px; box-shadow: 0 0 0 3px var(--color-accent), 0 0 24px 4px rgba(0, 184, 169, 0.55); animation: fade 240ms ease-out both; }
 .ring.ready { transition: transform 460ms var(--ease-out), width 460ms var(--ease-out), height 460ms var(--ease-out); }
 .ring.tap::after { content: ''; position: absolute; inset: -3px; border-radius: inherit; border: 3px solid var(--color-accent); animation: pulse 1.6s ease-out infinite; }
-.bubble { position: fixed; top: 0; left: 0; width: min(360px, calc(100vw - 24px)); padding: 18px 18px 16px; border-radius: var(--r-card); background: var(--color-card); color: var(--color-text); box-shadow: 0 18px 48px rgba(0, 0, 0, 0.3); pointer-events: auto; }
+.bubble { position: fixed; top: 0; left: 0; width: min(360px, calc(100vw - 24px)); max-height: calc(100dvh - 24px); overflow-y: auto; overscroll-behavior: contain; padding: 18px 18px 16px; border-radius: var(--r-card); background: var(--color-card); color: var(--color-text); box-shadow: 0 18px 48px rgba(0, 0, 0, 0.3); pointer-events: auto; }
 .bubble.ready { transition: transform 460ms var(--ease-out); }
 .bubble.centred { top: 50%; left: 50%; transform: translate(-50%, -50%); }
 .bubble-in { display: flex; flex-direction: column; gap: 10px; animation: pop 320ms var(--ease-settle) both; }
@@ -329,7 +367,8 @@ p { margin: 0; font-size: 18px; line-height: 1.55; text-wrap: pretty; }
 .side-below .arrow { top: 0; }
 .tap-hint { display: flex; align-items: center; gap: 8px; color: var(--color-tint-text); font-weight: 700; }
 .tap-hint .icon { flex: none; animation: bob 1.2s ease-in-out infinite; }
-.g-next { align-self: flex-end; min-height: var(--z52, 52px); }
+.g-nav { display: flex; justify-content: space-between; gap: 12px; }
+.g-nav .btn { min-height: var(--z52, 52px); }
 
 /* ---- closing message (fades after 3 seconds) ---- */
 .guide-toast { position: fixed; z-index: 45; left: 50%; bottom: calc(96px + env(safe-area-inset-bottom)); transform: translateX(-50%); width: min(560px, calc(100% - 32px)); display: flex; align-items: center; gap: 12px; padding: 14px 14px 14px 18px; border-radius: 18px; background: var(--color-text); color: var(--color-page); box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25); animation: toast 3s ease-in-out both; }
