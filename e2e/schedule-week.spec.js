@@ -5,6 +5,7 @@
 // Medicines go into this browser's storage; /api/doses is a small stand-in that keeps ticks by date. The clock is fixed on
 // Wednesday 28 October 2026 in Singapore, so the week always has earlier days.
 import { test, expect } from './fixtures.js'
+import { expectNoAxeViolationsDayAndNight, nextFrames } from './helpers/checks.js'
 
 const MON = '2026-10-26'
 const TUE = '2026-10-27'
@@ -79,7 +80,7 @@ test('an earlier day: a missed dose is a plain warning, never something to tick;
   await expect(page.getByTestId('other-m2-morning')).toHaveAttribute('data-state', 'not') // ...and this one, missed
   await expect(page.getByTestId('other-m2-morning')).toContainText('Missed')
   await expect(other.getByRole('button')).toHaveCount(0) // the day is over: nothing to tick
-  await page.waitForTimeout(300)
+  await nextFrames(page)
   expect(sent).toEqual([])
   // Back to today, with its ticks.
   await page.getByTestId('strip-today').click()
@@ -190,15 +191,19 @@ test('the pill box: every compartment and pill alike, but the day you are on, wh
   // How a day looks: its compartment's colour and its pill's colour.
   const look = (date) => page.getByTestId(`day-${date}`).evaluate((el) => [getComputedStyle(el).backgroundColor, getComputedStyle(el.querySelector('.half.top')).backgroundColor].join(' / '))
   await expect(page.getByTestId(`day-${WED}`)).toHaveAttribute('aria-pressed', 'true') // today, to begin with
-  await page.waitForTimeout(400) // the colours ease in
-  const rest = await Promise.all([SUN, MON, TUE, THU, SAT].map(look))
-  expect(new Set(rest).size).toBe(1) // every other day the same
-  expect(await look(WED)).not.toBe(rest[0]) // the one you are on, different
+  // The colours ease in, so each check retries until they have settled.
+  let rest
+  await expect(async () => {
+    rest = await Promise.all([SUN, MON, TUE, THU, SAT].map(look))
+    expect(new Set(rest).size).toBe(1) // every other day the same
+    expect(await look(WED)).not.toBe(rest[0]) // the one you are on, different
+  }).toPass()
   await page.getByTestId(`day-${TUE}`).click()
   await expect(page.getByTestId(`day-${TUE}`)).toHaveAttribute('aria-pressed', 'true')
-  await page.waitForTimeout(400)
-  expect(await look(WED)).toBe(rest[0]) // today now looks like the rest...
-  expect(await look(TUE)).not.toBe(rest[0]) // ...and Tuesday stands out
+  await expect(async () => {
+    expect(await look(WED)).toBe(rest[0]) // today now looks like the rest...
+    expect(await look(TUE)).not.toBe(rest[0]) // ...and Tuesday stands out
+  }).toPass()
 })
 
 test('Home: two medicines due together come one at a time, each with its own "I\'ve taken it"', async ({ page }) => {
@@ -211,4 +216,12 @@ test('Home: two medicines due together come one at a time, each with its own "I\
   await expect(page.getByTestId('home-today-due')).toContainText('Metformin 500 mg') // then the next one
   await expect.poll(() => sent).toEqual([`POST m2-morning ${WED}`])
   await expect(page.getByTestId('home-today-progress')).toHaveText('1 of 3 doses taken')
+})
+
+test('the pill box has no axe problems, day or night, with a missed day open @a11y', async ({ page }) => {
+  await setUp(page, { at: '19:00', ticks: { [TUE]: ['m1-morning'] } })
+  await page.goto('/schedule')
+  await page.getByTestId(`day-${TUE}`).click()
+  await expect(page.getByTestId('other-missed')).toBeVisible()
+  await expectNoAxeViolationsDayAndNight(page)
 })

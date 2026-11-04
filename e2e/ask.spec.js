@@ -2,6 +2,7 @@
 // Answers are mocked in the browser (no AI quota); red flags hit the real server because they never reach the AI.
 import { test, expect } from './fixtures.js'
 import { switchLanguage } from './helpers/auth.js'
+import { expectSeniorFriendly, expectVisibleFocus, tabTo } from './helpers/checks.js'
 
 async function checkSample(page) {
   await page.goto('/scan?type=medication')
@@ -291,4 +292,38 @@ test('a finished medicine is sent when the question names it; a follow-up stays 
   await askBox(page).press('Enter')
   await expect(page.getByTestId('ask-answer').last()).toContainText('The same at night.')
   expect(sentNames(sent[1])).toEqual(['Amlodipine'])
+})
+
+const TEN_MEDICINES = Array.from({ length: 10 }, (_, i) => ({ id: `m${i + 1}`, source: 'typed', medication: { name: `Medicine ${i + 1}` } }))
+async function openLongList(page) {
+  await page.addInitScript((list) => localStorage.setItem('medicines', JSON.stringify(list)), TEN_MEDICINES)
+  await page.goto('/ask')
+  await page.getByRole('button', { name: /^My medicines/ }).click()
+  await expect(page.getByTestId('meds-pages')).toContainText('Page 1 of 3')
+}
+
+test('Ask with a long list open: big targets and text, no sideways scroll @a11y', async ({ page }) => {
+  await openLongList(page)
+  await expectSeniorFriendly(page)
+})
+
+test('Previous and Next work by keyboard, and focus stays on the button @a11y', async ({ page }) => {
+  await openLongList(page)
+  const next = page.getByTestId('meds-next')
+  const prev = page.getByTestId('meds-prev')
+  const pages = page.getByTestId('meds-pages')
+  await tabTo(page, next)
+  await expectVisibleFocus(next)
+  await page.keyboard.press('Enter')
+  await expect(pages).toContainText('Page 2 of 3')
+  await expect(next).toBeFocused()
+  await page.keyboard.press('Enter')
+  await expect(pages).toContainText('Page 3 of 3')
+  await page.keyboard.press('Enter') // the last page: nothing further, and no crash
+  await expect(pages).toContainText('Page 3 of 3')
+  await expect(next).toBeFocused()
+  await prev.focus()
+  await page.keyboard.press('Enter')
+  await expect(pages).toContainText('Page 2 of 3')
+  await expect(prev).toBeFocused()
 })

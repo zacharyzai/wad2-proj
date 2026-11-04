@@ -1,6 +1,7 @@
 // Feature 9 (Isaac): caregiver role at signup, caregiver-only tab and pages, the invite link, and "Your caregivers" on a senior's Account page.
 // The /api/care calls are mocked, so these tests need no database.
 import { test, expect } from './fixtures.js'
+import { expectNoAxeViolationsDayAndNight, expectSeniorFriendly, expectVisibleFocus } from './helpers/checks.js'
 import { DEMO_USER, signIn } from './helpers/auth.js'
 
 const CAREGIVER = { ...DEMO_USER, name: 'Wei Ling', role: 'caregiver' }
@@ -16,6 +17,8 @@ const TODAY = {
     { doseId: 'm1-night', label: 'Metformin 500mg', time: '21:00', status: 'upcoming' },
   ],
 }
+const METFORMIN = { id: 'm1', purpose: 'diabetes', rawInstruction: 'Take 1 tablet 2 times a day', warnings: ['Do not skip meals'], entry: { label: 'Metformin 500mg', instruction: { count: 1, unit: 'tablet', food: 'after' }, doses: [{ id: 'm1-morning', time: '08:00' }, { id: 'm1-night', time: '21:00' }] } }
+const PANADOL = { id: 'm3', purpose: null, rawInstruction: 'Take when there is pain', warnings: [], entry: { label: 'Panadol', instruction: { count: null, unit: null, food: null }, doses: [] } }
 const ok = (data) => ({ json: { ok: true, data } })
 const fail = (status, code) => ({ status, json: { ok: false, error: { code, message: 'x' } } })
 
@@ -74,9 +77,7 @@ test.describe('caregiver-only tab', () => {
 
   test("tapping a dose turns its card over to the medicine's details, with nothing to change them", async ({ page }) => {
     await signIn(page, CAREGIVER)
-    const metformin = { id: 'm1', purpose: 'diabetes', rawInstruction: 'Take 1 tablet 2 times a day', warnings: ['Do not skip meals'], entry: { label: 'Metformin 500mg', instruction: { count: 1, unit: 'tablet', food: 'after' }, doses: [{ id: 'm1-morning', time: '08:00' }, { id: 'm1-night', time: '21:00' }] } }
-    const panadol = { id: 'm3', purpose: null, rawInstruction: 'Take when there is pain', warnings: [], entry: { label: 'Panadol', instruction: { count: null, unit: null, food: null }, doses: [] } }
-    await page.route('**/api/care/seniors/u2/today', (route) => route.fulfill(ok({ ...TODAY, medicines: [metformin, panadol] })))
+    await page.route('**/api/care/seniors/u2/today', (route) => route.fulfill(ok({ ...TODAY, medicines: [METFORMIN, PANADOL] })))
     await page.goto('/care/u2')
     // The front of the dose card: when, what it is for, and how it went.
     const dose = page.getByTestId('care-dose').first()
@@ -207,4 +208,80 @@ test.describe("senior's Account page", () => {
     await page.goto('/account')
     await expect(page.getByTestId('care-card')).toHaveCount(0)
   })
+})
+
+test.describe('usable for a caregiver', () => {
+  test.use({ loggedIn: false })
+
+  async function openSenior(page) {
+    await signIn(page, CAREGIVER)
+    await page.route('**/api/care/seniors', (route) => route.fulfill(ok(SENIORS)))
+    await page.route('**/api/care/seniors/u2/today', (route) => route.fulfill(ok({ ...TODAY, medicines: [METFORMIN, PANADOL] })))
+  }
+  const firstDose = (page) => page.getByTestId('care-dose').first()
+
+  test('My seniors has no axe problems, day or night @a11y', async ({ page }) => {
+    await openSenior(page)
+    await page.goto('/care')
+    await expect(page.getByTestId('care-senior')).toBeVisible()
+    await expectNoAxeViolationsDayAndNight(page)
+  })
+
+  test("a senior's page with a card turned over has no axe problems, day or night @a11y", async ({ page }) => {
+    await openSenior(page)
+    await page.goto('/care/u2')
+    await firstDose(page).getByTestId('care-medicine-open').click()
+    await expect(firstDose(page).getByTestId('care-medicine-close')).toBeFocused()
+    await expectNoAxeViolationsDayAndNight(page)
+  })
+
+  test('My seniors and a senior\'s page: big targets and text, no sideways scroll @a11y', async ({ page }) => {
+    await openSenior(page)
+    await page.goto('/care')
+    await expect(page.getByTestId('care-senior')).toBeVisible()
+    await expectSeniorFriendly(page)
+    await page.goto('/care/u2')
+    await expect(firstDose(page)).toBeVisible()
+    await expectSeniorFriendly(page)
+  })
+
+  test('a card turns over and back by keyboard, and focus goes with it @a11y', async ({ page }) => {
+    await openSenior(page)
+    await page.goto('/care/u2')
+    const open = firstDose(page).getByTestId('care-medicine-open')
+    await open.focus()
+    await expectVisibleFocus(open)
+    await page.keyboard.press('Enter')
+    const close = firstDose(page).getByTestId('care-medicine-close')
+    await expect(close).toBeFocused()
+    await expect(firstDose(page).getByTestId('care-medicine-details')).toContainText('Do not skip meals')
+    await page.keyboard.press('Enter')
+    await expect(open).toBeFocused()
+  })
+
+  test('reduced motion: the card changes at once, without spinning', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' })
+    await openSenior(page)
+    await page.goto('/care/u2')
+    await firstDose(page).getByTestId('care-medicine-open').click()
+    await expect(firstDose(page).getByTestId('care-medicine-details')).toContainText('Do not skip meals')
+    // Colours may still ease (motion.css); movement must not.
+    expect(await firstDose(page).locator('.flip-inner').evaluate((e) => getComputedStyle(e).transitionProperty)).not.toMatch(/transform|all/)
+  })
+
+  for (const [lang, script] of [['zh', /\p{Script=Han}/u], ['ms', /\S/], ['ta', /\p{Script=Tamil}/u]]) {
+    test(`${lang}: My seniors and a senior's page are fully translated @i18n`, async ({ page }) => {
+      const warnings = []
+      page.on('console', (m) => /\[intlify\] (Not found '|Fall back)/.test(m.text()) && warnings.push(m.text()))
+      await page.addInitScript((l) => localStorage.setItem('locale', l), lang)
+      await openSenior(page)
+      for (const path of ['/care', '/care/u2']) {
+        await page.goto(path)
+        await expect(page.locator('html')).toHaveAttribute('lang', lang)
+        await expect(page.getByRole('heading', { level: 1 }).first()).toHaveText(script)
+        await expect(page.locator('main')).not.toContainText(/\bcare\.[A-Za-z.]+/)
+      }
+      expect(warnings).toEqual([])
+    })
+  }
 })

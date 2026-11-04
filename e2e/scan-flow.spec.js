@@ -1,5 +1,6 @@
 // Feature 1: Scan → Confirm → Explain. Samples only; the photo upload is answered in the browser.
 import { test, expect } from './fixtures.js'
+import { expectNoAxeViolationsDayAndNight, expectSeniorFriendly } from './helpers/checks.js'
 import { readFileSync } from 'node:fs'
 import { mockImageScan } from './helpers/mockImageScan.js'
 import { switchLanguage } from './helpers/auth.js'
@@ -699,4 +700,25 @@ test('an unchecked scan is offered back as "Carry on", at the Confirm page', asy
   if (await leave.isVisible().catch(() => false)) await leave.getByRole('button', { name: /leave|throw/i }).first().click()
   await page.goto('/scan')
   await expect(page.getByTestId('scan-resume')).toContainText('Not checked yet.')
+})
+
+test('the scan error screen is as readable as the normal page: no axe problems, big targets @a11y', async ({ page }) => {
+  await page.route('**/api/scan', (route) => route.fulfill({ status: 503, json: { ok: false, error: { code: 'AI_UNAVAILABLE', message: 'down' } } }))
+  await openSample(page, 'Metformin label')
+  await expect(page.getByRole('alert')).toContainText('Scanning is not available right now.')
+  await expectNoAxeViolationsDayAndNight(page)
+  await expectSeniorFriendly(page)
+})
+
+test('Confirm with an unclear field showing has no axe problems, day or night @a11y', async ({ page }) => {
+  await page.route('**/api/scan', async (route) => {
+    const res = await route.fetch()
+    const body = await res.json()
+    body.data.unclear = ['medication.withFood']
+    body.data.medication.withFood = null
+    await route.fulfill({ response: res, json: body })
+  })
+  await openSample(page, 'Metformin label')
+  await expect(page.getByText('1 field needs checking')).toBeVisible()
+  await expectNoAxeViolationsDayAndNight(page)
 })

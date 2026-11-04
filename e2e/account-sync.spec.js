@@ -1,6 +1,7 @@
 // The medicine list belongs to the account, not the browser (src/stores/scheduleSync.js): loaded from GET /api/schedule,
 // saved with PUT after a change, and a checked scan goes to History. Both calls are answered here, so no database is needed.
 import { test, expect } from './fixtures.js'
+import { nextFrames } from './helpers/checks.js'
 
 const med = (id, name) => ({ id, source: 'label', sample: false, medication: { name, strength: '5 mg', doseAmount: 1, doseUnit: 'tablet', quantity: null,
   timesPerDay: 1, timing: ['morning'], withFood: null, frequencyType: 'daily', rawInstruction: null, warnings: [] }, schedule: { startDate: '2026-10-01', days: 365, times: {} } })
@@ -43,10 +44,12 @@ test("the account's list replaces whatever this browser had, and loading it send
     localStorage.setItem('medicinesOwner', 'someone-else@example.com')
   }, [med('other-1', 'Someone Else Pill')])
   const sent = await account(page, [med('acct-1', 'Amlodipine')])
+  await page.clock.install()
   await page.goto('/schedule?view=meds')
   await expect(page.getByText('Amlodipine').first()).toBeVisible()
   await expect(page.getByText('Someone Else Pill')).toHaveCount(0)
-  await page.waitForTimeout(2000) // past the 1.5 s wait before a save
+  await page.clock.runFor(2000) // past the 1.5 s wait before a save
+  await nextFrames(page, 5)
   expect(sent.schedule).toEqual([])
   expect(await page.evaluate(() => localStorage.getItem('medicinesOwner'))).toBe('demo@example.com')
 })

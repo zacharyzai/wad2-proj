@@ -3,6 +3,7 @@
 import { test, expect } from './fixtures.js'
 import AxeBuilder from '@axe-core/playwright'
 import { DEMO_USER, signIn, switchLanguage } from './helpers/auth.js'
+import { expectVisibleFocus, tabTo } from './helpers/checks.js'
 
 const BEDOK = 'Bedok: doctor visit and medicine' // bill-1
 const TAMPINES = 'Tampines: blood tests and MediSave' // bill-2
@@ -326,8 +327,9 @@ test.describe('layout and accessibility', () => {
   for (const theme of ['light', 'dark']) {
     test(`no WCAG A/AA violations, line open and a Pioneer senior's subsidies showing (${theme}) @a11y`, async ({ page }) => {
       await page.emulateMedia({ colorScheme: theme, reducedMotion: 'reduce' })
-      await as(page, '1945-08-12', 'birth')
+      await signIn(page, { ...DEMO_USER, dob: '1945-08-12', citizenship: 'birth', citizenSince: null, theme }) // night mode is the account's choice, not the device's
       await openSample(page, MARINE_PARADE)
+      await expect(page.locator('html')).toHaveAttribute('data-theme', theme)
       await openSubsidies(page)
       await line(page, 'Wound dressing').click()
       await page.waitForLoadState('networkidle')
@@ -348,4 +350,17 @@ test('each charge is behind a dropdown: closed at first, with the total, GST and
   await expect(page.locator('#bill-items')).toBeVisible()
   await toggle.click() // and it can be closed again
   await expect(page.locator('#bill-items')).toBeHidden()
+})
+
+test('the subsidies open and close by keyboard, with a visible focus ring @a11y', async ({ page }) => {
+  await openSample(page, BEDOK)
+  const details = page.getByTestId('subsidy-details')
+  const toggle = details.locator('summary')
+  await tabTo(page, toggle)
+  await expectVisibleFocus(toggle)
+  await page.keyboard.press('Enter')
+  await expect(details).toHaveAttribute('open', '')
+  await expect(page.getByTestId('estimate-notice')).toBeVisible()
+  await page.keyboard.press('Enter')
+  await expect(details).not.toHaveAttribute('open')
 })

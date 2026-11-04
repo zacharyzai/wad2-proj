@@ -3,6 +3,7 @@
 // /api/doses is answered by a small in-memory stand-in for the server (no database needed).
 import AxeBuilder from '@axe-core/playwright'
 import { test, expect } from './fixtures.js'
+import { expectNoAxeViolationsDayAndNight, expectSeniorFriendly, nextFrames } from './helpers/checks.js'
 import { useSampleLabel, switchLanguage } from './helpers/auth.js'
 
 const TODAY = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Singapore' }).format(new Date())
@@ -372,7 +373,8 @@ async function mockGoogle(page, { connected = true, failSyncs = [] } = {}) {
 }
 
 test('connected: the whole schedule goes to Google Calendar after an edit, once, and names what is still missing', async ({ page }) => {
-  await mockDoses(page)
+  await mockDoses(page, { at: null })
+  await page.clock.install({ time: sgAt('22:00') })
   const google = await mockGoogle(page)
   await seed(page, [PANADOL, METFORMIN])
   await page.goto('/schedule?view=meds') // the calendar card lives on My medicines
@@ -407,10 +409,11 @@ test('connected: the whole schedule goes to Google Calendar after an edit, once,
   // Remove then Undo straight away: nothing changed overall, so nothing is sent. Nor on a reload with the same schedule.
   await pick(page, 'Panadol', 'remove')
   await page.getByRole('button', { name: 'Undo' }).click()
-  await page.waitForTimeout(2000)
+  await page.clock.runFor(2000)
   await page.goto('/schedule?view=meds')
   await expect(calendar.getByTestId('calendar-connected')).toBeVisible()
-  await page.waitForTimeout(2000)
+  await page.clock.runFor(2000)
+  await nextFrames(page, 5)
   expect(google.syncs).toHaveLength(2)
 
   // Switching language sends the schedule again, so the events read in the new language.
@@ -436,7 +439,8 @@ test('access removed in Google: Reconnect, not an error page; back from Google i
 })
 
 test('not connected: a Connect button, and edits send nothing', async ({ page }) => {
-  await mockDoses(page)
+  await mockDoses(page, { at: null })
+  await page.clock.install({ time: sgAt('22:00') })
   const google = await mockGoogle(page, { connected: false })
   await seed(page, [SCHEDULED])
   await page.goto('/schedule?view=meds')
@@ -444,7 +448,8 @@ test('not connected: a Connect button, and edits send nothing', async ({ page })
   await pick(page, 'Metformin 500 mg', 'days')
   await page.getByLabel('Number of days', { exact: true }).fill('10')
   await page.getByTestId('schedule-save').click()
-  await page.waitForTimeout(2000)
+  await page.clock.runFor(2000)
+  await nextFrames(page, 5)
   expect(google.syncs).toHaveLength(0)
 })
 
@@ -815,3 +820,33 @@ test('stopping a medicine that only started today takes it off the list at once,
   expect(await savedSchedule(page)).toEqual({ startDate: TODAY, days: 30, times: {} })
 })
 
+test('Today and My medicines: big targets and text, no sideways scroll @a11y', async ({ page }) => {
+  await mockDoses(page)
+  await seed(page, [SCHEDULED])
+  await page.goto('/schedule')
+  await expect(tick(page, 'Metformin 500 mg', '8:00\\sAM')).toBeVisible()
+  const wholeCard = '.dose-btn' // its ::after stretches over the whole dose card, so the tap area is the card
+  await expectSeniorFriendly(page, 'main', wholeCard)
+  await toTab(page, 'meds')
+  await expect(page.getByTestId('stop-m1')).toBeVisible()
+  await expectSeniorFriendly(page, 'main', wholeCard)
+})
+
+test('the calendar card is readable in every state: Reconnect, connected and not connected @a11y', async ({ page }) => {
+  await mockDoses(page)
+  const google = await mockGoogle(page, { failSyncs: ['GOOGLE_DISCONNECTED'] })
+  await seed(page, [SCHEDULED])
+  const calendar = page.getByTestId('schedule-calendar')
+  const check = async (state) => {
+    await expect(calendar.getByTestId(state)).toBeVisible()
+    await expectNoAxeViolationsDayAndNight(page)
+    await expectSeniorFriendly(page, '[data-testid="schedule-calendar"]')
+  }
+  await page.goto('/schedule?view=meds')
+  await check('calendar-reconnect')
+  await page.reload()
+  await check('calendar-connected')
+  google.connected = false
+  await page.reload()
+  await check('calendar-connect')
+})

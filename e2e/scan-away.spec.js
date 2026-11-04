@@ -2,6 +2,7 @@
 // going, and it never pulls them to Confirm from another page. Coming back to Scan shows it still going.
 // The photo is "covered" by a fake (no reader download) and /api/scan answers only when the test lets it.
 import { test, expect } from './fixtures.js'
+import { nextFrames } from './helpers/checks.js'
 
 const TINY_PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', 'base64')
 
@@ -74,7 +75,7 @@ test('Cancel still stops a scan: nothing carries on, nothing is announced', asyn
   await page.getByRole('button', { name: 'Cancel' }).click()
   await tab(page, 'Schedule').click()
   scan.answer()
-  await page.waitForTimeout(500)
+  await nextFrames(page, 30)
   await expect(page.getByTestId('scan-away')).toHaveCount(0)
   await expect(page).toHaveURL(/\/schedule$/)
 })

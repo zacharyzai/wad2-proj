@@ -1,61 +1,41 @@
 # E2E report: Ah Ma Ah Gong Can
 
-3 Nov 2026, `zac` branch. Playwright 1.64, Chromium. Each test runs twice: desktop Chrome and iPhone 6 (375px).
+4 Nov 2026, `zac` branch. Playwright, Chromium. Each test runs twice: desktop Chrome and iPhone 6 (375px).
 AI, TTS, Google Calendar and the chatbot are mocked (`USE_MOCK_AI=true` and `page.route`). Most tests use a fake
-login (a signed test token plus a faked `/api/auth`) and need no database. The `*-api` specs use a throwaway in-memory MongoDB and never touch Atlas.
+login (a signed test token plus a faked `/api/auth`) and need no database. The `*-api` specs use a throwaway in-memory
+MongoDB. The test server has no `MONGODB_URI` and never reuses a running `pnpm server`, so tests cannot reach the real database.
 
 ## Results
 
-**578 test runs (289 tests × 2 viewports): 570 passed, 8 skipped by design, 0 failed.** Full suite: 4.4–4.8 min on 8 workers.
+**770 test runs (385 tests × 2 viewports): 751 passed, 15 skipped by design, 4 failed.** Full suite: 8.2 min on 4 workers.
+The 4 failures are the two app issues below, each on both viewports. `pnpm test`: 234 passed. `pnpm build`: passed.
 
-| Feature | Spec files | Tests | Passing | Notes |
-|---|---|---|---|---|
-| Landing page + Beginner's guide | landing, guide | 40 | 40 | Reduced motion, keyboard, axe, Tamil voice fallback. Hover-only tests skip on phones. |
-| Auth (signup, login, logout, forgot, reset) | auth, auth-api, forgot | 30 | 30 | Includes runs against a real in-memory database |
-| Account page | account (new), auth, theme | 19 | 19 | New: invalid year or empty name blocked, Cancel, failed save keeps the typing, reload, axe + sizes |
-| Scan + Gemini extraction | scan-flow, scan-cover, scan-camera, smoke | ~40 | all | Errors, wrong file types, PDFs, camera, covering private details |
-| Confirm / correction | scan-flow | ~16 | all | Unclear fields block Confirm; impossible doses are flagged |
-| Explain + understanding check | explain (new), scan-flow | 9 | 9 | New: a wrong answer and "Not sure" show the right dose; the bill check; keyboard |
-| Read-aloud / TTS | explain (new), ask-speech, guide, landing | 14 | 14 | New: play, replay, speed kept after reload, 中文 voice with digits kept, plain message when there is no audio at all |
-| Multilingual (EN / 中文 / BM / தமிழ்) | i18n (new), plus tests tagged `@i18n` | 15 | 15 | New: same keys in all 4 files; 9 pages × 4 languages with no missing keys and no sideways scroll |
-| Bill breakdown | bill, bill-gap | 20 | 20 | |
-| Subsidy checker | bill, auth | 8 | 8 | PG, MG, not eligible, PR, links to the official pages |
-| Medication schedule | schedule | 27 | 27 | |
-| Google Calendar reminders | schedule | 8 | 8 | Uses Google sign-in (OAuth) sync, not "add to calendar" links |
-| AI chatbot (Ask) | ask, ask-chat, ask-speech, ask-ux | 34 | 34 | |
-| History + share links | history, history-api, account-sync | 13 | 13 | |
-| Caregiver tracking | care, care-api | 15 | 15 | The tab is hidden from seniors; `/care` sends a senior Home |
-| App shell / 404 / a11y | shell (new), a11y | 12 | 12 | New: 404 logged in and out, keyboard focus ring, axe + sizes on Home, Scan, Confirm, History and 404 |
+Every feature has at least 5 tests, covering function and senior usability: Accounts, Forgot password, Scan, Photo checks
+and privacy, Confirm, Explain and quick check, Read-aloud, Languages, Bill breakdown, Subsidy checker, Schedule, Google
+Calendar, Ask, History, Account page, Caregiver, Home, Landing, Beginner's guide, App shell and theme.
 
-The "~" counts are approximate because `scan-flow.spec.js` covers Scan and Confirm together. Every feature has at least 5
-tests covering the happy path, errors, permissions, usability and persistence where each applies.
+## App issues found (app code not changed)
 
-## App bugs found (app code not changed)
+1. **Schedule > Today: text under 16px, and day buttons under 44px wide on phones.** Test: `schedule.spec.js` "Today and My medicines: big targets and text".
+   - [DayStrip.vue:101](../src/components/schedule/DayStrip.vue#L101): `.lid` weekday letters are 15px, and the `.badge-dot` mark is also under 16px.
+   - [TodayList.css:22](../src/styles/components/TodayList.css#L22): `.pc-stats small` ("Doses today", "Taken") is 15px.
+   - [DayCards.css:14](../src/styles/components/DayCards.css#L14): `.tag` (the dose time) is 14px.
+   - `.comp` day buttons are narrower than 44px at 375px, because seven share the row.
+2. **History: the delete question ignores Esc.** [HistoryItem.vue:64](../src/components/history/HistoryItem.vue#L64) has `role="alertdialog"` but no Esc handling, and focus does not move into it. Test: `history.spec.js` "the delete pop-up works by keyboard".
 
-1. **Scan picker captions are 15px on phones.** [ScanPicker.css:36](../src/styles/components/ScanPicker.css#L36) (Isaac).
-   - Repro: open `/scan` at 375px width. "Tablets, syrups, creams" and "What you pay, and subsidies" render at 15px.
-   - Fix: `.pick-text { font-size: clamp(16px, 3.6vw, 17px) }`, and line 38 also sets Tamil to 15px. Check that the Tamil cards still fit at 16px.
-   - Test: `shell.spec.js` "/scan: big targets and text" is marked `test.fail` on phones. Remove that line once fixed.
+## Test limits
 
-## Flakiness
-
-The suite ran 4 times in a row (570, 570, 569, 569 passed) and then once more after fixes (570). All 3 failures were **test bugs**, now fixed:
-
-- `scan-flow.spec.js` "explanation follows the language switch" opened Account before Explain had loaded, so Back went to Confirm. It now waits for the Explain address.
-- `landing.spec.js` "the reminder phone buzzes…": under load, scroll-snap pulled the page back while `click()` scrolled the switch into view. It now uses `dispatchEvent('click')`, as the next test in that file already does.
-- `landing.spec.js` "scrolling stops at each section": 12 separate wheel notches could each end and snap back to the hero on a busy machine. It now sends one wheel of 1440px.
-
-The new specs and the fixed tests then passed `--repeat-each=4/5` under full load. Nothing is quarantined.
-One existing test still uses `waitForTimeout(900)` (landing scroll-snap), because the test needs to prove the page *stays* put.
+- Tests with nothing to wait for ("nothing happens") use `page.clock` for timers, or `nextFrames` from `helpers/checks.js` to let the page draw. No `waitForTimeout` is left.
+- `expectSeniorFriendly` skips `.dose-btn` (its tap area is the whole card) and, on Landing, the decorative papers.
+- Logged-out pages are always day mode, so their "(dark)" axe tests repeat the day check. Night mode is checked on logged-in pages.
+- Under load, 3 tests failed once in a partial run, then passed 18 of 18 repeats and the full run.
 
 ## Not built, so not tested
 
 - Browser notifications / permission prompts (no Notification API or service worker)
-- Missed-dose alerts (+30 min), agreed but not built
-- Google Calendar "add to calendar" links (the app uses OAuth sync instead, which is tested)
 - RAG in the chatbot (it is grounded only on the user's own medicines)
 - Nearby-clinics map (stretch goal)
-- Not automated: real Gemini/TTS quality, how Tamil/Chinese fonts look, real screen readers, and the dev-only pages being absent from a production build (needs `vite build`)
+- Not automated in the browser: the 15-minute Calendar alert (covered by `server/test/doses.test.js` and `google.test.js`), real Gemini/TTS quality, how Tamil/Chinese fonts look, real screen readers
 
 ## Commands
 
@@ -71,10 +51,3 @@ pnpm test:e2e --project=chromium               # desktop only (half the time)
 pnpm test:e2e --last-failed                    # rerun failures
 pnpm exec playwright show-report               # HTML report (playwright-report/)
 ```
-
-## What changed (tests and config only)
-
-- New: `e2e/explain.spec.js`, `e2e/account.spec.js`, `e2e/i18n.spec.js`, `e2e/shell.spec.js`, `e2e/helpers/checks.js`
-  (axe, ≥44px targets / ≥16px text / no sideways scroll, visible focus).
-- Tags `@smoke`, `@a11y` and `@i18n` added to 25 existing test titles. Three existing tests were fixed for flakiness (above).
-- `playwright.config.js`: CI retries 2 → 1, `workers: '100%'`, `screenshot: 'only-on-failure'`.
