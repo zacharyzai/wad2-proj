@@ -17,6 +17,8 @@
 
 .med-grid, .rem-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 400px), 1fr)); gap: 20px; } /* cards in a row are the same height */
 .med-grid { list-style: none; margin: 0; padding: 0; }
+/* Side by side, each card keeps its own height: opening Change on one never stretches the card beside it. */
+@media (min-width: 992px) { .med-grid { align-items: start; } }
 
 /* Toasts: above the phone tab bar; bottom of the page area on desktop (same places as Account and Ask). */
 .toast-slot { position: fixed; left: 16px; right: 16px; bottom: calc(96px + env(safe-area-inset-bottom)); z-index: 30; display: flex; justify-content: center; pointer-events: none; }

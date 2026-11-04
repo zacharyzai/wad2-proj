@@ -1,8 +1,8 @@
 <!-- Owner: Zachary (built by Claude, declared in README.txt). Ask's "My medicines": one row that opens (like a chat's attached
-     context) to see the list, remove one (with Undo), add one by photo, or type one in. AskView opens the form with
+     context) to see the list, a few at a time, remove one (with Undo), add one by photo, or type one in. AskView opens the form with
      openForm() (defineExpose) and hears `added` when a typed medicine is saved. -->
 <script setup>
-import { nextTick, onBeforeUnmount, ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useMedicinesStore } from '../../stores/medicines'
 import AppIcon from '../layout/AppIcon.vue'
@@ -14,6 +14,14 @@ const { medicines, rememberMedicine, forgetMedicine, restoreMedicine } = useMedi
 const medName = (m) => [m.name, m.strength].filter(Boolean).join(' ')
 
 const open = ref(false)
+
+// A few at a time, so a long list stays short. Removing the last one on a page shows the page before.
+const PER_PAGE = 4
+const page = ref(1)
+const pages = computed(() => Math.max(1, Math.ceil(medicines.length / PER_PAGE)))
+const current = computed(() => Math.min(page.value, pages.value))
+const shown = computed(() => medicines.slice((current.value - 1) * PER_PAGE, current.value * PER_PAGE))
+const turn = (by) => (page.value = Math.min(Math.max(current.value + by, 1), pages.value))
 
 // "Type a medicine": name is required, the instructions are what the label says (optional but useful).
 const adding = ref(false)
@@ -39,6 +47,7 @@ function addTyped() {
   rememberMedicine({ name: newName.value.trim(), rawInstruction: newText.value.trim() || null }, 'typed')
   newName.value = newText.value = ''
   adding.value = false
+  page.value = 1 // the newest is first
   emit('added')
 }
 
@@ -76,7 +85,7 @@ onBeforeUnmount(() => clearTimeout(toastTimer))
     <div v-show="open" id="meds-body" class="meds-body">
       <p class="text-muted-a11y">{{ t(medicines.length ? 'ask.meds.note' : 'ask.meds.empty') }}</p>
       <ul v-if="medicines.length" class="meds">
-        <li v-for="m in medicines" :key="m.id" class="med">
+        <li v-for="m in shown" :key="m.id" class="med">
           <KindIcon kind="medication" size="var(--tile)" />
           <div class="med-info">
             <span class="med-name">{{ medName(m.medication) }}</span>
@@ -88,6 +97,12 @@ onBeforeUnmount(() => clearTimeout(toastTimer))
           </button>
         </li>
       </ul>
+      <!-- .disabled and aria-disabled, not disabled: keyboard focus stays on the button when it reaches the end. -->
+      <nav v-if="pages > 1" class="meds-pages" :aria-label="t('ask.meds.title')" data-testid="meds-pages">
+        <button type="button" class="btn btn-outline btn-sm" :class="{ disabled: current === 1 }" :aria-disabled="current === 1" data-testid="meds-prev" @click="turn(-1)"><AppIcon name="left" :size="20" />{{ t('ask.meds.prev') }}</button>
+        <span class="meds-page" role="status">{{ t('ask.meds.pageOf', { n: current, total: pages }) }}</span>
+        <button type="button" class="btn btn-outline btn-sm" :class="{ disabled: current === pages }" :aria-disabled="current === pages" data-testid="meds-next" @click="turn(1)">{{ t('ask.meds.next') }}<AppIcon name="right" :size="20" /></button>
+      </nav>
 
       <form v-if="adding" class="add-form" @submit.prevent="addTyped">
         <div class="field">

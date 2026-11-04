@@ -1,6 +1,8 @@
 <!-- Owner: Lokesh (built by Claude, declared in README.txt). Schedule, "My medicines": one medicine on the timetable, with
-     Change (Days and times, Fix what we read, Remove), "I don't need this any more" and Start again. Which panel is open is
-     the page's choice (one at a time across all cards), so it comes in as props; every button is an emit. -->
+     Change (the dose, pack and dates, then Days and times, Fix what we read, Remove), "I don't need this any more" and Start
+     again. A card shows only the name, what it is for and the times, so a long list stays short and every card has the same
+     shape. Which panel is open is the page's choice (one at a time across all cards), so it comes in as props; every button is
+     an emit. -->
 <script setup>
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -33,10 +35,8 @@ const status = computed(() => props.entry.endDate && dateStatus(props.entry, dos
       <span class="med-info">
         <span class="med-name">{{ entry.label }}</span>
         <span v-if="purposeOf(id)" class="text-muted-a11y fw-semibold" data-testid="med-purpose">{{ purposeOf(id) }}</span>
-        <span class="text-muted-a11y">{{ doseText(entry.instruction) }}</span>
         <span class="med-times"><AppIcon name="clock" :size="18" />{{ timesText(entry) }}</span>
-        <span v-if="supplyText(medicine.medication)" class="med-supply" data-testid="med-supply"><AppIcon name="pill" :size="18" />{{ supplyText(medicine.medication) }}</span>
-        <span v-if="status" class="badge align-self-start" :class="{ 'badge-teal': status.kind === 'now' }">{{ status.text }}</span>
+        <span v-if="status && status.kind !== 'now'" class="badge align-self-start">{{ status.text }}</span>
       </span>
       <button
         type="button"
@@ -72,6 +72,11 @@ const status = computed(() => props.entry.endDate && dateStatus(props.entry, dos
     </button>
 
     <div v-if="managing" :id="`manage-${id}`" class="manage" data-testid="schedule-manage">
+      <div class="med-details">
+        <span class="fw-semibold" data-testid="med-dose">{{ doseText(entry.instruction) }}</span>
+        <span v-if="supplyText(medicine.medication)" class="med-supply" data-testid="med-supply"><AppIcon name="pill" :size="18" />{{ supplyText(medicine.medication) }}</span>
+        <span v-if="status?.kind === 'now'" class="badge badge-teal align-self-start">{{ status.text }}</span>
+      </div>
       <button type="button" class="btn btn-outline btn-sm" :aria-label="t('schedule.meds.daysTimesOne', { name: entry.label })" @click="$emit('edit')"><AppIcon name="clock" :size="20" />{{ t('schedule.meds.daysTimes') }}</button>
       <button type="button" class="btn btn-outline btn-sm" :aria-label="t('schedule.fix.buttonOne', { name: entry.label })" @click="$emit('fix')"><AppIcon name="scan" :size="20" />{{ t('schedule.fix.button') }}</button>
       <button type="button" class="btn btn-outline btn-sm" :aria-label="t('schedule.meds.removeOne', { name: entry.label })" @click="$emit('remove')"><AppIcon name="xCircle" :size="20" />{{ t('schedule.meds.remove') }}</button>

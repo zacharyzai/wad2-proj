@@ -1,7 +1,7 @@
 <!-- Owner: Zachary (built by Claude, declared in README.txt). One reply in the Ask conversation, beside the capsule:
      waiting (in words), an error with Try again, an emergency (Call 995), "which medicine?", or the answer card.
-     Under the newest answer: "Explain more simply", "Say it in …" and the next questions. Every question goes back to
-     AskView through the `ask` event: ask(text, chip, message to re-ask, language). -->
+     Under the newest answer: "Explain more simply" and the next questions. Every question goes back to
+     AskView through the `ask` event: ask(text, chip, message to re-ask). -->
 <script setup>
 import { useI18n } from 'vue-i18n'
 import { useMedicinesStore } from '../../stores/medicines'
@@ -17,7 +17,7 @@ const props = defineProps({
   loading: Boolean, // a question is on its way: no new ones until it's back
   listening: Boolean, // the mic is on
 })
-const emit = defineEmits(['ask', 'add-medicine', 'feedback'])
+const emit = defineEmits(['ask', 'add-medicine'])
 
 // Fallback follow-ups under an answer, by the chip that was asked (typed questions use `typed`), when the AI suggested none.
 // Self-contained questions, so they make sense even without the earlier turns.
@@ -30,7 +30,6 @@ const FOLLOW_UPS = {
   pharm: ['when', 'food', 'side'],
   typed: ['when', 'missed', 'side'],
 }
-const LANG_NAMES = { en: 'EN', zh: '中文', ms: 'BM', ta: 'தமிழ்' } // each in its own script, as in the language switch
 
 const { t, te } = useI18n()
 const { medicines } = useMedicinesStore()
@@ -117,28 +116,16 @@ function mood() {
               {{ speaking === m.id ? (preparing ? t('player.preparing') : t('ask.read.stop')) : t('ask.read.play') }}
             </button>
             <span v-if="speakFailed === m.id" class="text-muted-a11y" role="status">{{ t('player.failed') }}</span>
-            <!-- Was this helpful? Two plain words; the choice stays marked. -->
-            <span class="helpful" role="group" :aria-label="t('ask.feedback.ask')">
-              <span class="helpful-q">{{ t('ask.feedback.ask') }}</span>
-              <button type="button" class="helpful-btn" :aria-pressed="m.feedback === 'yes'" data-testid="ask-helpful-yes" @click="emit('feedback', 'yes')"><AppIcon name="check" :size="18" />{{ t('ask.feedback.yes') }}</button>
-              <button type="button" class="helpful-btn" :aria-pressed="m.feedback === 'no'" data-testid="ask-helpful-no" @click="emit('feedback', 'no')"><AppIcon name="x" :size="18" />{{ t('ask.feedback.no') }}</button>
-            </span>
           </div>
-          <p v-if="m.feedback" class="helpful-note" role="status">{{ t(`ask.feedback.${m.feedback === 'yes' ? 'thanks' : 'sorry'}`) }}</p>
         </div>
         <p v-if="m.reply.sources?.length" class="from" data-testid="ask-from">{{ t('ask.from', { source: m.reply.sources.map(sourceText).join(', ') }) }}</p>
         <div v-if="m.reply.askPharmacist" class="alert pharm" data-testid="ask-pharmacist">
           <AppIcon name="users" />
           <span>{{ t('ask.pharmacist') }}</span>
         </div>
-        <!-- Under the newest answer, once it has appeared: "Explain more simply" and "Say it in …" (the same question,
-             answered in another language), then the next questions, one tap away. -->
+        <!-- Under the newest answer, once it has appeared: "Explain more simply", then the next questions, one tap away. -->
         <div v-if="latest && !revealing(m)" class="quick rise" data-testid="ask-quick">
           <button type="button" class="chip quick-chip" :disabled="loading" data-testid="ask-simpler" @click="emit('ask', t('ask.quick.simplerQ'))"><AppIcon name="sparkles" :size="18" />{{ t('ask.quick.simpler') }}</button>
-          <span class="say-in" role="group" :aria-label="t('ask.quick.sayIn')">
-            <span class="say-in-label">{{ t('ask.quick.sayIn') }}</span>
-            <button v-for="(label, code) in LANG_NAMES" v-show="code !== m.lang" :key="code" type="button" class="chip lang-chip" :lang="code" :disabled="loading" :data-testid="`ask-say-${code}`" @click="emit('ask', m.q, m.chip, null, code)">{{ label }}</button>
-          </span>
         </div>
         <div v-if="latest && !revealing(m)" class="follow rise" role="group" :aria-label="t('ask.followLabel')" data-testid="ask-follow">
           <span class="follow-label">{{ t('ask.followLabel') }}</span>

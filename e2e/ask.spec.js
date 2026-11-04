@@ -22,6 +22,28 @@ function mockChat(page, replies) {
 const answer = (text, askPharmacist = false) => ({ ok: true, data: { type: 'ANSWER', answer: text, askPharmacist } })
 const myMedicines = (page) => page.getByTestId('my-medicines')
 
+test('a long list shows four medicines at a time, with Previous and Next', async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem('medicines', JSON.stringify(Array.from({ length: 10 }, (_, i) => ({ id: `m${i + 1}`, source: 'typed', medication: { name: `Medicine ${i + 1}` } })))))
+  await page.goto('/ask')
+  await page.getByRole('button', { name: /^My medicines/ }).click()
+  const names = myMedicines(page).locator('.med-name')
+  const pages = page.getByTestId('meds-pages')
+  await expect(names).toHaveText(['Medicine 1', 'Medicine 2', 'Medicine 3', 'Medicine 4'])
+  await expect(pages).toContainText('Page 1 of 3')
+  await expect(page.getByTestId('meds-prev')).toHaveAttribute('aria-disabled', 'true')
+  await page.getByTestId('meds-next').click()
+  await page.getByTestId('meds-next').click()
+  await expect(names).toHaveText(['Medicine 9', 'Medicine 10'])
+  await expect(pages).toContainText('Page 3 of 3')
+  await expect(page.getByTestId('meds-next')).toHaveAttribute('aria-disabled', 'true')
+  await expect(page.getByTestId('meds-next')).toBeFocused() // keyboard users keep their place at the end
+  // Removing the last ones on a page falls back to the page before.
+  await page.getByRole('button', { name: 'Remove Medicine 9' }).click()
+  await page.getByRole('button', { name: 'Remove Medicine 10' }).click()
+  await expect(names).toHaveText(['Medicine 5', 'Medicine 6', 'Medicine 7', 'Medicine 8'])
+  await expect(pages).toContainText('Page 2 of 2')
+})
+
 test('Ask works without any medicines, with general answers @smoke', async ({ page }) => {
   const sent = mockChat(page, [answer('Keep them in a cool, dry place.', true)])
   await page.goto('/ask')

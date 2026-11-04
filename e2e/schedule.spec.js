@@ -312,12 +312,14 @@ test('fixing the dose keeps the same doses, so today\'s ticks stay; Cancel chang
   await page.getByRole('button', { name: 'Cancel' }).click()
   await page.getByTestId('confirm-discard-yes').click()
   await expect(page).toHaveURL(/\/schedule/)
-  await expect(page.getByTestId('med-m1')).toContainText('1 tablet · After food')
+  await page.getByRole('button', { name: 'Change Metformin 500 mg' }).click()
+  await expect(page.getByTestId('med-dose')).toHaveText('1 tablet · After food')
+  await page.getByRole('button', { name: 'Change Metformin 500 mg' }).click()
 
   await pick(page, 'Metformin 500 mg', 'fix')
   await page.getByLabel('Amount each time').fill('2')
   await page.getByRole('button', { name: 'Looks correct' }).click()
-  await expect(page.getByTestId('med-m1')).toContainText('2 tablets · After food')
+  await expect(page).toHaveURL(/\/schedule/)
   await toTab(page, 'today')
   await expect(page.getByTestId('dose-m1-morning')).toContainText('2 tablets · After food')
   await expect(morning).toHaveAttribute('aria-pressed', 'true') // same dose id, so the tick is still there
@@ -634,8 +636,10 @@ test('a label that says how many tablets goes on the timetable for as long as th
   await expect(page.getByTestId('schedule-need-days-link')).toHaveCount(0)
   await toTab(page, 'meds')
   const card = page.getByTestId('schedule-meds')
+  await page.getByRole('button', { name: 'Change Metformin 500 mg' }).click()
   await expect(card.getByTestId('med-supply')).toHaveText('From the label: 60 tablets, 2 tablets a day, so it lasts 30 days.')
   await expect(card.getByText(/ to /)).toBeVisible() // its end date, 30 days from today
+  await page.getByRole('button', { name: 'Change Metformin 500 mg' }).click()
   // Still the person's call: Days and times shows the same 30, and can be changed.
   await pick(page, 'Metformin 500 mg', 'days')
   await expect(page.getByLabel('Number of days', { exact: true })).toHaveValue('30')
@@ -752,6 +756,31 @@ test('connected: stopping a medicine sends the shorter course to Google Calendar
   await page.getByRole('button', { name: 'Stop reminders' }).click()
   await expect.poll(() => google.syncs.length, { timeout: 6000 }).toBe(2)
   expect(google.syncs[1].entries[0].endDate).toBe(ago(1)) // the last day is yesterday
+})
+
+test('My medicines: a card shows the name, what it is for and the times; Change opens the rest; every card lines up', async ({ page }) => {
+  await mockDoses(page)
+  await seed(page, [RUNNING, medicine('m2', { name: 'Amlodipine', strength: '5 mg', purpose: 'allergy' }, { startDate: TODAY, days: 30, times: {} })])
+  await page.goto('/schedule?view=meds')
+  const card = page.getByTestId('med-m1')
+  await expect(card).toContainText('Metformin 500 mg')
+  await expect(card.locator('.med-times')).toBeVisible()
+  await expect(page.getByTestId('stop-m1')).toBeVisible()
+  await expect(page.getByTestId('med-dose')).toHaveCount(0) // the rest is one tap away
+  await card.getByRole('button', { name: 'Change Metformin 500 mg' }).click()
+  await expect(card.getByTestId('med-dose')).toHaveText('1 tablet · After food')
+  await card.getByRole('button', { name: 'Change Metformin 500 mg' }).click()
+  // Side by side, with or without a one-line purpose, the Change buttons stay at the top and the stop buttons line up.
+  if (page.viewportSize().width >= 900) {
+    const y = (locator) => locator.boundingBox().then((b) => Math.round(b.y))
+    expect(await y(page.getByTestId('stop-m1'))).toBe(await y(page.getByTestId('stop-m2')))
+    expect(await y(card.getByRole('button', { name: /^Change/ }))).toBe(await y(page.getByTestId('med-m2').getByRole('button', { name: /^Change/ })))
+    // Opening Change on one card leaves the card beside it exactly as it was.
+    const before = await y(page.getByTestId('stop-m2'))
+    await card.getByRole('button', { name: 'Change Metformin 500 mg' }).click()
+    await expect(card.getByTestId('med-dose')).toBeVisible()
+    expect(await y(page.getByTestId('stop-m2'))).toBe(before)
+  }
 })
 
 test('finished courses sit at the bottom of My medicines, under the ones you are taking', async ({ page }) => {

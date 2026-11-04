@@ -4,8 +4,7 @@
      The chat feel: the app's capsule (CapsuleBuddy) is the bot's face and shows what it's doing (thinking, listening, reading
      aloud); while waiting it says what it's doing in words ("Checking your Metformin label…"); answers appear word by word
      on a card, the first sentence first and larger, with the medicine it's about; read aloud lights up each word as it's said;
-     under the newest answer: the next questions, "Explain more simply" and "Say it in …"; every answer asks "Was this
-     helpful?". The empty page greets the person by name, with questions about their own medicines.
+     under the newest answer: the next questions and "Explain more simply". The empty page greets the person by name, with questions about their own medicines.
      The pieces: components/ask/AskMedicines.vue (My medicines), AskReply.vue (one reply), AskComposer.vue (the question box),
      composables/useAnswer.js (word by word and read aloud). This page keeps the conversation and sends the questions. -->
 <script setup>
@@ -43,13 +42,12 @@ const medsPanel = ref(null)
 let nextId = messages.length
 
 // `msg` is set for "Try again" / "Ask again": the same bubble is re-asked, with the medicines the user has now.
-// `lang`: the language to answer in ("Say it in 中文" asks the same question again in another language).
-async function ask(text, chip = 'typed', msg = null, lang = locale.value) {
+async function ask(text, chip = 'typed', msg = null) {
   const q = text.trim()
   if (!q || loading.value) return
   stopReading()
   if (!msg) {
-    msg = reactive({ id: nextId++, q, chip, lang, qLang: locale.value, state: 'loading', reply: null, error: null, stage: 0, shown: undefined, feedback: null, fresh: false })
+    msg = reactive({ id: nextId++, q, chip, lang: locale.value, qLang: locale.value, state: 'loading', reply: null, error: null, stage: 0, shown: undefined, fresh: false })
     messages.push(msg)
     if (chip === 'typed') question.value = ''
   } else {
@@ -79,8 +77,6 @@ async function ask(text, chip = 'typed', msg = null, lang = locale.value) {
 function onAdded() {
   if (latest.value?.reply?.type === 'NEED_MEDICINE') ask(latest.value.q, latest.value.chip, latest.value)
 }
-// "Was this helpful?": noted on the answer (this device only), with a short reply. A second tap takes it back.
-const setFeedback = (m, value) => (m.feedback = m.feedback === value ? null : value)
 
 // New answer: show it from its first line. Instant when the user asked for less motion.
 async function scrollTo(msg, block) {
@@ -176,7 +172,7 @@ onBeforeUnmount(() => {
     <ol class="thread">
       <li v-for="m in messages" :key="m.id" class="turn">
         <div class="you rise" :lang="m.qLang ?? m.lang"><span class="visually-hidden">{{ t('ask.you') }}: </span>{{ m.q }}</div>
-        <AskReply :m="m" :latest="m === latest" :loading="loading" :listening="listening" @ask="ask" @add-medicine="medsPanel.openForm()" @feedback="setFeedback(m, $event)" />
+        <AskReply :m="m" :latest="m === latest" :loading="loading" :listening="listening" @ask="ask" @add-medicine="medsPanel.openForm()" />
       </li>
     </ol>
     </div>

@@ -1,5 +1,5 @@
 // Ask page, the chat feel: what it says while waiting, the answer card appearing word by word, words lighting up as they're
-// read aloud, "Say it in …", "Explain more simply", "Was this helpful?", the hello by name and "Latest answer".
+// read aloud, "Explain more simply", the hello by name and "Latest answer".
 // Answers are mocked in the browser (no AI quota).
 import { test, expect } from './fixtures.js'
 
@@ -68,16 +68,6 @@ test('reading aloud lights up the word being said', async ({ page }) => {
   await expect(card.locator('.w.said')).toHaveCount(0)
 })
 
-test('"Say it in 中文" asks the same question again, answered in Chinese @i18n', async ({ page }) => {
-  const sent = mockChat(page, [answer('Keep them dry.'), answer('放在干燥的地方。')])
-  await page.goto('/ask')
-  await page.getByRole('button', { name: 'How do I store medicines?' }).click()
-  await expect(page.getByTestId('ask-say-en')).toBeHidden() // not the language it is already in
-  await page.getByTestId('ask-say-zh').click()
-  await expect(page.getByTestId('ask-answer').nth(1)).toContainText('放在干燥的地方。')
-  expect(sent[1]).toMatchObject({ question: 'How do I store medicines?', lang: 'zh' })
-})
-
 test('"Explain more simply" asks again with the last answer as context', async ({ page }) => {
   const sent = mockChat(page, [answer('Store below 25 degrees, away from light and moisture.'), answer('Keep them somewhere cool and dry.')])
   await page.goto('/ask')
@@ -88,17 +78,13 @@ test('"Explain more simply" asks again with the last answer as context', async (
   expect(sent[1].history).toEqual([{ q: 'How do I store medicines?', a: 'Store below 25 degrees, away from light and moisture.' }])
 })
 
-test('"Was this helpful?" marks the choice and answers kindly', async ({ page }) => {
+test('an answer has no "Was this helpful?" or "Say it in" under it', async ({ page }) => {
   mockChat(page, [answer('Keep them dry.')])
   await page.goto('/ask')
   await page.getByRole('button', { name: 'How do I store medicines?' }).click()
-  const no = page.getByTestId('ask-helpful-no')
-  await no.click()
-  await expect(no).toHaveAttribute('aria-pressed', 'true')
-  await expect(page.getByTestId('ask-answer')).toContainText('Sorry about that. Try “Explain more simply”, or ask your pharmacist.')
-  await page.getByTestId('ask-helpful-yes').click()
-  await expect(no).toHaveAttribute('aria-pressed', 'false')
-  await expect(page.getByTestId('ask-answer')).toContainText('Thank you!')
+  await expect(page.getByTestId('ask-simpler')).toBeVisible()
+  await expect(page.getByText('Was this helpful?')).toHaveCount(0)
+  await expect(page.getByText('Say it in')).toHaveCount(0)
 })
 
 test('scrolled up in a long conversation, "Latest answer" brings the newest one back', async ({ page }) => {

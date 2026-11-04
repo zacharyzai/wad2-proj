@@ -621,6 +621,9 @@
       "BAD_REQUEST": "We couldn’t send that question. Please type it again."
     },
     "meds": {
+      "prev": "Previous",
+      "next": "Next",
+      "pageOf": "Page {n} of {total}",
       "title": "My medicines",
       "note": "Saved on this device only.",
       "empty": "Add one for answers about your own medicine.",
@@ -676,17 +679,9 @@
     "card": {
       "about": "About"
     },
-    "feedback": {
-      "ask": "Was this helpful?",
-      "yes": "Yes",
-      "no": "No",
-      "thanks": "Thank you!",
-      "sorry": "Sorry about that. Try “Explain more simply”, or ask your pharmacist."
-    },
     "quick": {
       "simpler": "Explain more simply",
-      "simplerQ": "Please explain your last answer again in simpler words.",
-      "sayIn": "Say it in"
+      "simplerQ": "Please explain your last answer again in simpler words."
     },
     "hello": "{greet}, {name}!",
     "personal": {

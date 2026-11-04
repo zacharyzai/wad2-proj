@@ -621,6 +621,9 @@
       "BAD_REQUEST": "Soalan itu tidak dapat dihantar. Sila taip semula."
     },
     "meds": {
+      "prev": "Sebelum",
+      "next": "Seterusnya",
+      "pageOf": "Halaman {n} daripada {total}",
       "title": "Ubat saya",
       "note": "Disimpan pada peranti ini sahaja.",
       "empty": "Tambah satu untuk jawapan tentang ubat anda sendiri.",
@@ -676,17 +679,9 @@
     "card": {
       "about": "Tentang"
     },
-    "feedback": {
-      "ask": "Adakah ini membantu?",
-      "yes": "Ya",
-      "no": "Tidak",
-      "thanks": "Terima kasih!",
-      "sorry": "Maaf. Cuba “Terangkan dengan lebih mudah”, atau tanya ahli farmasi anda."
-    },
     "quick": {
       "simpler": "Terangkan dengan lebih mudah",
-      "simplerQ": "Sila terangkan jawapan tadi sekali lagi dengan perkataan yang lebih mudah.",
-      "sayIn": "Dalam bahasa"
+      "simplerQ": "Sila terangkan jawapan tadi sekali lagi dengan perkataan yang lebih mudah."
     },
     "hello": "{greet}, {name}!",
     "personal": {
