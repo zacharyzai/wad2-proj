@@ -29,6 +29,16 @@ Code: `server/routes/google.js`, `server/services/google.js`, `server/models/Goo
 - Event text is in `lang` (en, zh, ms, ta), unit words and punctuation included ("1 粒，饭后。"); dose numbers stay digits and the medicine name stays as printed. The zh, ms and ta wording is to be checked by Asher.
 - Tested live on 25 Oct 2026 with a real Google account: create, no duplicates on re-sync, time change moves the same event, removed dose deletes its event, flagged medicine skipped, Chinese text, disconnect removes the events and revokes access.
 
+### The "Not ticked yet" alert (missed dose)
+
+Each synced dose also gets a second repeating event **15 minutes after** the dose time (`FOLLOW_UP_MIN`), titled "Not ticked yet: Metformin 500mg" (in `lang`), with its own popup alert. Calendar can't check ticks, so it is made in advance, and ticking cancels it:
+
+- `POST /api/doses` (tick) cancels that day's instance of the dose's follow-up event in the senior's calendar; `DELETE /api/doses` (untick) brings it back. Best effort with a 4 second limit: a Google problem never fails the tick (at worst one extra alert rings). Only for people who connected Calendar and only for doses with a stored follow-up.
+- Stored in `GoogleLink.events` as `${doseId}:late` → `{ eventId, hash, time }` (`time` = the dose's `HH:MM`, so a tick can find its day). A dose after 23:45 is followed up after midnight, so its series starts on the next day.
+- `created` / `updated` / `removed` in the sync answer and `events` in `/status` count **doses**, not Calendar events, so the Schedule page's "N doses are in your calendar" is unchanged.
+- Existing connections get the follow-up alerts on the next sync. The Schedule page sends `v: 2` in the sync body so each device syncs once more.
+- Not built yet: the caregiver's own copy in their calendar, and the "missed" label on the Today and Care pages at dose time + 15 minutes (they still use `timeStates`).
+
 ### ScheduleEntry (as in the build guide)
 
 ```jsonc

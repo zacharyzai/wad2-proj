@@ -32,7 +32,9 @@ const askRemove = ref(false)
 const skippedIds = ref([]) // medicines the last sync left out for having no number of days
 
 const today = todayInSingapore()
-const payload = computed(() => JSON.stringify({ entries: syncEntries(props.entries, today), lang: locale.value }))
+// `v` is bumped when the server starts making more events per dose (v2: the "Not ticked yet" alert), so devices that already synced
+// an unchanged schedule send it once more and pick them up. The server ignores it.
+const payload = computed(() => JSON.stringify({ v: 2, entries: syncEntries(props.entries, today), lang: locale.value }))
 // Only those still without a number of days: adding it hides the note at once, before the next sync answers.
 const missing = computed(() => props.entries.filter((e) => skippedIds.value.includes(e.medicineId) && !e.endDate).map((e) => e.label))
 

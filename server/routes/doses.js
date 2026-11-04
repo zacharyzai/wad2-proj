@@ -5,6 +5,8 @@ import mongoose from 'mongoose'
 import { sendError } from '../errors.js'
 import { withDb } from '../db.js'
 import { Dose } from '../models/Dose.js'
+import { GoogleLink } from '../models/GoogleLink.js'
+import { isConfigured, setFollowUpCancelled } from '../services/google.js'
 import { doseRateLimit } from '../middleware/rateLimit.js'
 
 // Same as the ids src/rules/schedule.js makes (`${medicineId}-${slot}`): letters, digits and hyphens.
@@ -30,6 +32,21 @@ function checkTick(body) {
   if (typeof doseId !== 'string' || !DOSE_ID.test(doseId)) return { error: 'doseId must be 1 to 80 letters, digits or hyphens' }
   const error = checkDate(date)
   return error ? { error } : { tick: { doseId, date } }
+}
+
+// A tick cancels that day's "Not ticked yet" Google Calendar alert, and an untick brings it back (only for people who connected
+// Calendar). The tick is already saved, so a slow or failing Google never fails it: at worst one extra alert rings.
+async function followUp(userId, { doseId, date }, taken) {
+  if (!isConfigured()) return
+  let timer
+  try {
+    const link = await GoogleLink.findOne({ userId })
+    if (link) await Promise.race([setFollowUpCancelled(link, doseId, date, taken), new Promise((resolve) => (timer = setTimeout(resolve, 4000)))])
+  } catch {
+    // see above
+  } finally {
+    clearTimeout(timer)
+  }
 }
 
 const router = Router()
@@ -67,6 +84,7 @@ router.post('/', (req, res) => {
         dose = await Dose.findOne(key).lean() // the same tick arrived twice at once: the other one won
       }
     }
+    await followUp(req.userId, tick, true)
     res.json({ ok: true, data: { doseId: dose.doseId, date: dose.date, takenAt: dose.takenAt } })
   })
 })
@@ -77,6 +95,7 @@ router.delete('/', (req, res) => {
   if (error) return sendError(res, 400, 'BAD_REQUEST', error)
   return withDb(res, async () => {
     await Dose.deleteOne({ userId: req.userId, ...tick })
+    await followUp(req.userId, tick, false)
     res.json({ ok: true, data: { ...tick, taken: false } })
   })
 })

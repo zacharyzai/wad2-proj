@@ -1222,7 +1222,7 @@
     },
     "calendar": {
       "title": "Reminders in Google Calendar",
-      "text": "Connect Google Calendar and each dose shows in your calendar with an alert, so your device reminds you even when this app is closed.",
+      "text": "Connect Google Calendar and each dose shows in your calendar with an alert, so your device reminds you even when this app is closed. If a dose is still not ticked 15 minutes later, you get a second alert.",
       "connect": "Connect Google Calendar",
       "reconnect": "Connect again",
       "connected": "Connected",

@@ -1222,7 +1222,7 @@
     },
     "calendar": {
       "title": "Peringatan dalam Google Calendar",
-      "text": "Sambungkan Google Calendar dan setiap dos dipaparkan dalam kalendar anda dengan amaran, supaya peranti anda mengingatkan anda walaupun aplikasi ini ditutup.",
+      "text": "Sambungkan Google Calendar dan setiap dos dipaparkan dalam kalendar anda dengan amaran, supaya peranti anda mengingatkan anda walaupun aplikasi ini ditutup. Jika dos masih belum ditanda selepas 15 minit, anda akan menerima amaran kedua.",
       "connect": "Sambungkan Google Calendar",
       "reconnect": "Sambung semula",
       "connected": "Disambungkan",

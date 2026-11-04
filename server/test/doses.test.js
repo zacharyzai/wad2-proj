@@ -110,6 +110,49 @@ test('GET returns only that date and only that user, and nobody can untick someo
   assert.deepEqual(await res.json(), { ok: true, data: { date: TODAY, taken: ['m1-bedtime', 'm1-morning'] } })
 })
 
+test('ticking cancels the "Not ticked yet" Calendar alert, unticking brings it back, and a Google failure never fails the tick', async () => {
+  const keys = { GOOGLE_CLIENT_ID: 'id', GOOGLE_CLIENT_SECRET: 'secret', GOOGLE_REDIRECT_URI: 'http://localhost/cb', GOOGLE_TOKEN_KEY: randomBytes(32).toString('base64') }
+  Object.assign(process.env, keys)
+  const { encrypt } = await import('../services/google.js')
+  const { GoogleLink } = await import('../models/GoogleLink.js')
+  const userId = new mongoose.Types.ObjectId()
+  await GoogleLink.create({ userId, refreshToken: encrypt('1//rt'), events: new Map([['m1-morning:late', { eventId: 'evL', hash: 'h', time: '08:00' }]]) })
+  const token = signToken(userId.toString(), true)
+
+  const realFetch = globalThis.fetch
+  const google = []
+  let tokenStatus = 200
+  globalThis.fetch = async (url, init) => {
+    if (String(url).startsWith('http://127.0.0.1')) return realFetch(url, init) // our own server
+    if (String(url).startsWith('https://oauth2.googleapis.com/token')) return new Response(JSON.stringify({ access_token: 'at' }), { status: tokenStatus })
+    google.push(`${init.method} ${decodeURIComponent(String(url).replace('https://www.googleapis.com/calendar/v3/calendars/primary/events', ''))}${init.body ? ' ' + init.body : ''}`)
+    return init.method === 'GET' ? Response.json({ items: [{ id: 'evL_x', status: 'confirmed' }] }) : Response.json({})
+  }
+  try {
+    assert.equal((await tick(token, 'm1-morning')).status, 200)
+    assert.deepEqual(google.map((c) => c.split('?')[0]), ['GET /evL/instances', 'PATCH /evL_x {"status":"cancelled"}'])
+    assert.ok(google[0].includes(`timeMin=${TODAY}T08:15:00+08:00`)) // today's alert only
+
+    google.length = 0
+    assert.equal((await untick(token, 'm1-morning')).status, 200)
+    // The stubbed alert always reads "confirmed", so unticking has nothing to restore: it only asks.
+    assert.deepEqual(google.map((c) => c.split('?')[0]), ['GET /evL/instances'])
+
+    google.length = 0
+    assert.equal((await tick(token, 'm1-night')).status, 200) // no follow-up stored for this dose: Google is not called
+    assert.deepEqual(google, [])
+
+    tokenStatus = 500 // Google is down: the tick is saved all the same
+    google.length = 0
+    assert.equal((await tick(token, 'm1-morning')).status, 200) // this dose does have an alert to cancel, so Google really is asked
+    assert.deepEqual(await taken(token), ['m1-morning', 'm1-night'])
+  } finally {
+    globalThis.fetch = realFetch
+    for (const key of Object.keys(keys)) delete process.env[key]
+    await GoogleLink.deleteOne({ userId })
+  }
+})
+
 test('bad dose ids and dates are 400', async () => {
   for (const doseId of ['', 'm1 morning', 'm1_morning', 'm1-<script>', 'a'.repeat(81), 12, null, undefined, { $gt: '' }, ['m1']]) {
     await error(await tick(alice, doseId), 400, 'BAD_REQUEST')

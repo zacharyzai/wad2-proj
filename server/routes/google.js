@@ -5,7 +5,7 @@ import { connectDb, withDb } from '../db.js'
 import { requireAuth } from '../middleware/requireAuth.js'
 import { GoogleLink } from '../models/GoogleLink.js'
 import {
-  GoogleError, LANGS, authUrl, checkEntries, encrypt, exchangeCode, isConfigured, readState, removeAllEvents, decrypt, revoke, signState, syncSchedule,
+  GoogleError, LANGS, authUrl, checkEntries, doseCount, encrypt, exchangeCode, isConfigured, readState, removeAllEvents, decrypt, revoke, signState, syncSchedule,
 } from '../services/google.js'
 
 const router = Router()
@@ -54,7 +54,7 @@ router.get('/callback', async (req, res) => {
 router.get('/status', requireAuth, (req, res) =>
   withDb(res, async () => {
     const link = await GoogleLink.findOne({ userId: req.userId }).catch(() => null)
-    res.json({ ok: true, data: { connected: Boolean(link), events: link?.events.size ?? 0 } })
+    res.json({ ok: true, data: { connected: Boolean(link), events: link ? doseCount(link) : 0 } })
   }),
 )
 

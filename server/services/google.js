@@ -1,5 +1,6 @@
 // Owner: Zachary (built by Claude, declared in README.txt). Google Calendar: OAuth, encrypted refresh tokens, and one repeating
-// event per dose with its own alert, so the phone rings at dose time even when our app is closed. Plain fetch, no googleapis package.
+// event per dose with its own alert, so the phone rings at dose time even when our app is closed, plus a second "Not ticked yet"
+// event FOLLOW_UP_MIN later that ticking the dose cancels. Plain fetch, no googleapis package.
 // Contract: docs/google-contract.md
 import { createCipheriv, createDecipheriv, createHash, createHmac, randomBytes, timingSafeEqual } from 'node:crypto'
 import { DOSE_UNITS, WITH_FOOD } from './normalizeScan.js'
@@ -13,6 +14,11 @@ const EVENTS_URL = 'https://www.googleapis.com/calendar/v3/calendars/primary/eve
 const SCOPE = 'https://www.googleapis.com/auth/calendar.events'
 const STATE_SECONDS = 10 * 60
 const TIME_ZONE = 'Asia/Singapore'
+// The missed-dose alert: a second event this many minutes after the dose time. Calendar cannot check ticks, so it is made in advance
+// and the dose tick cancels that day's copy (setFollowUpCancelled). Stored in GoogleLink.events as `${doseId}:late`.
+export const FOLLOW_UP_MIN = 15
+export const FOLLOW_UP = ':late'
+export const isFollowUp = (key) => key.endsWith(FOLLOW_UP)
 export const MAX_DAYS = 366 // a schedule longer than a year is almost certainly a typo
 
 export class GoogleError extends Error {
@@ -133,10 +139,10 @@ async function calendar(token, method, path = '', body) {
 // Event text in the user's language. Dose numbers stay digits; the medicine name stays as printed on the label.
 // Unit words: English has singular/plural; 'other' has no word (just the number). Translations to be checked by Asher.
 const TEXT = {
-  en: { take: (l) => `Take ${l}`, unit: { tablet: ['tablet', 'tablets'], capsule: ['capsule', 'capsules'], ml: ['ml', 'ml'], puff: ['puff', 'puffs'], drop: ['drop', 'drops'] }, comma: ', ', stop: '. ', food: { before: 'before food', after: 'after food', with: 'with food', any: 'with or without food' }, ask: 'Ask your pharmacist if unsure.' },
-  zh: { take: (l) => `服用 ${l}`, unit: { tablet: '粒', capsule: '颗胶囊', ml: '毫升', puff: '喷', drop: '滴' }, comma: '，', stop: '。', food: { before: '饭前', after: '饭后', with: '随餐', any: '饭前饭后都可以' }, ask: '如有疑问，请问药剂师。' },
-  ms: { take: (l) => `Ambil ${l}`, unit: { tablet: 'biji', capsule: 'kapsul', ml: 'ml', puff: 'sedutan', drop: 'titis' }, comma: ', ', stop: '. ', food: { before: 'sebelum makan', after: 'selepas makan', with: 'semasa makan', any: 'sebelum atau selepas makan' }, ask: 'Tanya ahli farmasi jika tidak pasti.' },
-  ta: { take: (l) => `${l} எடுக்கவும்`, unit: { tablet: 'மாத்திரை', capsule: 'கேப்ஸ்யூல்', ml: 'மி.லி.', puff: 'முறை உறிஞ்சவும்', drop: 'சொட்டு' }, comma: ', ', stop: '. ', food: { before: 'உணவுக்கு முன்', after: 'உணவுக்குப் பின்', with: 'உணவுடன்', any: 'உணவுடன் அல்லது இல்லாமல்' }, ask: 'சந்தேகம் இருந்தால் மருந்தாளரிடம் கேளுங்கள்.' },
+  en: { take: (l) => `Take ${l}`, unit: { tablet: ['tablet', 'tablets'], capsule: ['capsule', 'capsules'], ml: ['ml', 'ml'], puff: ['puff', 'puffs'], drop: ['drop', 'drops'] }, comma: ', ', stop: '. ', food: { before: 'before food', after: 'after food', with: 'with food', any: 'with or without food' }, ask: 'Ask your pharmacist if unsure.', late: (l) => `Not ticked yet: ${l}`, tick: 'If you have taken it, tick it in the app. Ask your pharmacist if unsure.' },
+  zh: { take: (l) => `服用 ${l}`, unit: { tablet: '粒', capsule: '颗胶囊', ml: '毫升', puff: '喷', drop: '滴' }, comma: '，', stop: '。', food: { before: '饭前', after: '饭后', with: '随餐', any: '饭前饭后都可以' }, ask: '如有疑问，请问药剂师。', late: (l) => `还没打勾：${l}`, tick: '如果已经服用，请在应用里打勾。如有疑问，请问药剂师。' },
+  ms: { take: (l) => `Ambil ${l}`, unit: { tablet: 'biji', capsule: 'kapsul', ml: 'ml', puff: 'sedutan', drop: 'titis' }, comma: ', ', stop: '. ', food: { before: 'sebelum makan', after: 'selepas makan', with: 'semasa makan', any: 'sebelum atau selepas makan' }, ask: 'Tanya ahli farmasi jika tidak pasti.', late: (l) => `Belum ditanda: ${l}`, tick: 'Jika sudah diambil, tandakan dalam aplikasi. Tanya ahli farmasi jika tidak pasti.' },
+  ta: { take: (l) => `${l} எடுக்கவும்`, unit: { tablet: 'மாத்திரை', capsule: 'கேப்ஸ்யூல்', ml: 'மி.லி.', puff: 'முறை உறிஞ்சவும்', drop: 'சொட்டு' }, comma: ', ', stop: '. ', food: { before: 'உணவுக்கு முன்', after: 'உணவுக்குப் பின்', with: 'உணவுடன்', any: 'உணவுடன் அல்லது இல்லாமல்' }, ask: 'சந்தேகம் இருந்தால் மருந்தாளரிடம் கேளுங்கள்.', late: (l) => `இன்னும் குறிக்கவில்லை: ${l}`, tick: 'எடுத்திருந்தால், செயலியில் குறிக்கவும். சந்தேகம் இருந்தால் மருந்தாளரிடம் கேளுங்கள்.' },
 }
 export const LANGS = Object.keys(TEXT)
 
@@ -203,9 +209,24 @@ export function buildEvent(entry, dose, lang = 'en') {
   }
 }
 
+// The "Not ticked yet" alert for one dose: FOLLOW_UP_MIN after the dose time, every day of the course. Past 23:45 it falls on the next
+// day, which is where the series starts; setFollowUpCancelled finds the right day the same way.
+export function buildFollowUpEvent(entry, dose, lang = 'en') {
+  const t = TEXT[lang] ?? TEXT.en
+  return {
+    summary: t.late(entry.label),
+    description: t.tick,
+    start: { dateTime: localPlus(entry.startDate, dose.time, FOLLOW_UP_MIN), timeZone: TIME_ZONE },
+    end: { dateTime: localPlus(entry.startDate, dose.time, FOLLOW_UP_MIN + 15), timeZone: TIME_ZONE },
+    recurrence: [`RRULE:FREQ=DAILY;COUNT=${days(entry.startDate, entry.endDate)}`],
+    reminders: { useDefault: false, overrides: [{ method: 'popup', minutes: 0 }] },
+  }
+}
+
 const fingerprint = (event) => createHash('sha256').update(JSON.stringify(event)).digest('base64url')
 
-// What to do in Google, from what the schedule wants and what we created before (`stored`: doseId → { eventId, hash }).
+// What to do in Google, from what the schedule wants and what we created before (`stored`: key → { eventId, hash, time }, where
+// the key is the doseId, or `${doseId}:late` for its follow-up alert, which also remembers the dose `time`).
 // Pure, so it is easy to test. Flagged medicines (when necessary, tapering, ...) and schedules with no end date are never synced.
 export function planSync(entries, stored, lang = 'en') {
   const plan = { insert: [], patch: [], remove: [], skipped: [] }
@@ -216,12 +237,13 @@ export function planSync(entries, stored, lang = 'en') {
       continue
     }
     for (const dose of entry.doses) {
-      wanted.add(dose.id)
-      const event = buildEvent(entry, dose, lang)
-      const hash = fingerprint(event)
-      const old = stored.get(dose.id)
-      if (!old) plan.insert.push({ doseId: dose.id, event, hash })
-      else if (old.hash !== hash) plan.patch.push({ doseId: dose.id, eventId: old.eventId, event, hash })
+      for (const [key, event, time] of [[dose.id, buildEvent(entry, dose, lang)], [dose.id + FOLLOW_UP, buildFollowUpEvent(entry, dose, lang), dose.time]]) {
+        wanted.add(key)
+        const hash = fingerprint(event)
+        const old = stored.get(key)
+        if (!old) plan.insert.push({ doseId: key, event, hash, time })
+        else if (old.hash !== hash) plan.patch.push({ doseId: key, eventId: old.eventId, event, hash, time })
+      }
     }
   }
   for (const [doseId, { eventId }] of stored) if (!wanted.has(doseId)) plan.remove.push({ doseId, eventId })
@@ -234,14 +256,14 @@ export async function syncSchedule(link, entries, lang) {
   const token = await accessToken(decrypt(link.refreshToken))
   const plan = planSync(entries, link.events, lang)
   try {
-    for (const { doseId, event, hash } of plan.insert) {
+    for (const { doseId, event, hash, time } of plan.insert) {
       const created = await calendar(token, 'POST', '', event)
-      link.events.set(doseId, { eventId: created.id, hash })
+      link.events.set(doseId, { eventId: created.id, hash, time })
     }
     for (const p of plan.patch) {
       // Deleted in their calendar since: create it again.
       const done = (await calendar(token, 'PATCH', `/${encodeURIComponent(p.eventId)}`, p.event)) ?? (await calendar(token, 'POST', '', p.event))
-      link.events.set(p.doseId, { eventId: done.id, hash: p.hash })
+      link.events.set(p.doseId, { eventId: done.id, hash: p.hash, time: p.time })
     }
     for (const { doseId, eventId } of plan.remove) {
       await calendar(token, 'DELETE', `/${encodeURIComponent(eventId)}`)
@@ -250,7 +272,31 @@ export async function syncSchedule(link, entries, lang) {
   } finally {
     await link.save()
   }
-  return { created: plan.insert.length, updated: plan.patch.length, removed: plan.remove.length, skipped: plan.skipped }
+  // Counts are of doses, not of Calendar events: the follow-up alerts are not counted, so the Schedule page's "N doses" stays right.
+  const doses = (list) => list.filter((p) => !isFollowUp(p.doseId)).length
+  return { created: doses(plan.insert), updated: doses(plan.patch), removed: doses(plan.remove), skipped: plan.skipped }
+}
+
+// How many doses are in the calendar (each also has a follow-up alert, which is not counted).
+export const doseCount = (link) => [...link.events.keys()].filter((key) => !isFollowUp(key)).length
+
+// A dose was ticked (cancelled = true) or unticked (false): cancel or bring back that day's "Not ticked yet" alert. Best effort
+// by design: the caller never lets a Google problem stop the tick. Returns whether an alert was found and set.
+// Singapore has no daylight saving: always +08:00.
+export async function setFollowUpCancelled(link, doseId, date, cancelled) {
+  const stored = link.events.get(doseId + FOLLOW_UP)
+  if (!stored?.time) return false
+  const token = await accessToken(decrypt(link.refreshToken))
+  const query = new URLSearchParams({
+    timeMin: `${localPlus(date, stored.time, FOLLOW_UP_MIN)}+08:00`,
+    timeMax: `${localPlus(date, stored.time, FOLLOW_UP_MIN + 1)}+08:00`,
+    showDeleted: 'true', // an alert cancelled earlier is still listed, so unticking can bring it back
+  })
+  const instance = (await calendar(token, 'GET', `/${encodeURIComponent(stored.eventId)}/instances?${query}`))?.items?.[0]
+  if (!instance) return false // that day is outside the course, or the event was deleted in their calendar
+  const status = cancelled ? 'cancelled' : 'confirmed'
+  if (instance.status !== status) await calendar(token, 'PATCH', `/${encodeURIComponent(instance.id)}`, { status })
+  return true
 }
 
 // Disconnect with "also remove the events from my calendar". Best effort per event: one failure doesn't stop the rest.
