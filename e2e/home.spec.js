@@ -1,6 +1,7 @@
 // Home, kept simple: one question, three big choices, and the last bill as one line (only when there is one).
 // Phones: the choices in one column; desktop: in one row.
 import { test, expect } from './fixtures.js'
+import { expectNoAxeViolationsDayAndNight, expectSeniorFriendly } from './helpers/checks.js'
 
 test('three big choices, each to its own place, and no bill line before any bill', async ({ page }) => {
   await page.goto('/')
@@ -235,4 +236,13 @@ test('the next medicine on Home says what it is for, in brackets beside its name
   await page.addInitScript((list) => localStorage.setItem('medicines', JSON.stringify(list)), [{ ...med('m1', 'Metformin', 'diabetes'), schedule: { startDate: today, days: 30, times: {} } }])
   await page.goto('/')
   await expect(page.getByTestId('home-today-purpose')).toHaveText('(diabetes · blood sugar)') // never brackets inside brackets
+})
+
+test('Home with a dose due: no axe problems day or night, big targets and text @a11y', async ({ page }) => {
+  await seed(page, [METFORMIN])
+  await mockDoses(page, { at: '08:10' })
+  await page.goto('/')
+  await expect(page.getByTestId('home-today-due')).toContainText('Time for Metformin 500 mg')
+  await expectNoAxeViolationsDayAndNight(page)
+  await expectSeniorFriendly(page)
 })

@@ -1,5 +1,6 @@
 // Ask (feature 6) usability checks from docs/heuristic-audit.md: loading state, friendly errors, form validation, axe.
 import { test, expect } from './fixtures.js'
+import { DEMO_USER, signIn } from './helpers/auth.js'
 import AxeBuilder from '@axe-core/playwright'
 
 const answer = (text) => ({ ok: true, data: { type: 'ANSWER', answer: text, askPharmacist: false } })
@@ -69,8 +70,10 @@ test('adding a medicine without a name says what is missing', async ({ page }) =
 for (const theme of ['light', 'dark']) {
   test(`Ask has no WCAG A/AA violations (${theme}) @a11y`, async ({ page }) => {
     await page.emulateMedia({ colorScheme: theme, reducedMotion: 'reduce' })
+    await signIn(page, { ...DEMO_USER, theme }) // night mode is the account's choice, not the device's
     await page.route('**/api/chat', (route) => route.fulfill({ json: answer('Keep them in a cool, dry place.') }))
     await page.goto('/ask')
+    await expect(page.locator('html')).toHaveAttribute('data-theme', theme)
     await expectNoA11yViolations(page) // empty page with starters
 
     await page.getByRole('button', { name: /^My medicines/ }).click()

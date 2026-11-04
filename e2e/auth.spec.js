@@ -1,6 +1,7 @@
 // Accounts: every page needs one. Login (with Remember me), signup with date of birth and citizenship, the Account page,
 // and the Bill page filling in its subsidy questions from the account. The auth API is mocked (see helpers/auth.js).
 import { test, expect } from './fixtures.js'
+import { expectSeniorFriendly } from './helpers/checks.js'
 import AxeBuilder from '@axe-core/playwright'
 import { DEMO_USER, mockAuth, mockWrongLogin, fillLogin, login, signIn } from './helpers/auth.js'
 
@@ -319,4 +320,16 @@ test('details from a different account give its own result', async ({ page }) =>
   await page.getByText('Press here to see more').click()
   await expect(page.getByTestId('bill-basis')).toContainText('born 1946, Singapore citizen since 1980')
   await expect(page.locator('[data-rule="pioneer"]')).toContainText('You may qualify') // born by 1949, citizen by 1986
+})
+
+test.describe('logged out, on a small screen', () => {
+  test.use({ loggedIn: false })
+
+  test('Log in and Create account: big targets and text, no sideways scroll @a11y', async ({ page }) => {
+    for (const path of ['/login', '/signup']) {
+      await page.goto(path)
+      await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
+      await expectSeniorFriendly(page)
+    }
+  })
 })

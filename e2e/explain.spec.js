@@ -1,7 +1,7 @@
 // Explain page: the quick check and the read-aloud player (replay, speed, other languages, no audio at all).
 import { test, expect } from './fixtures.js'
 import { switchLanguage } from './helpers/auth.js'
-import { expectNoAxeViolations, expectSeniorFriendly, expectVisibleFocus } from './helpers/checks.js'
+import { expectNoAxeViolations, expectSeniorFriendly, expectVisibleFocus, tabTo } from './helpers/checks.js'
 
 // Fake device voices (en, zh, ms, ta unless `voices` says otherwise). window.__spoken records each reading.
 function fakeSpeech(page, voices = ['en-SG', 'zh-CN', 'ms-MY', 'ta-IN']) {
@@ -103,4 +103,26 @@ test('usable: big targets and text, no axe problems, quick check works by keyboa
   await expectVisibleFocus(answer)
   await page.keyboard.press('Enter')
   await expect(page.getByRole('status').filter({ hasText: 'that’s right' })).toHaveText('Yes, that’s right. 1 tablet each time.')
+})
+
+test('read-aloud works by keyboard: speed, play and replay all show focus and open with Enter @a11y', async ({ page }) => {
+  await fakeSpeech(page)
+  await explainSample(page)
+  const player = page.getByRole('region', { name: 'Reading in English' })
+  const speed = player.getByRole('button', { name: '1.25×' })
+  await tabTo(page, speed)
+  await expectVisibleFocus(speed)
+  await page.keyboard.press('Enter')
+  await expect(speed).toHaveAttribute('aria-pressed', 'true')
+  const play = player.getByRole('button', { name: 'Read aloud' })
+  await tabTo(page, play)
+  await expectVisibleFocus(play)
+  await page.keyboard.press('Enter')
+  await expect(player.getByRole('button', { name: 'Pause' })).toBeVisible()
+  const replay = player.getByRole('button', { name: 'Replay' })
+  await tabTo(page, replay)
+  await expectVisibleFocus(replay)
+  await page.keyboard.press('Enter')
+  await expect.poll(async () => (await spoken(page)).length).toBe(2)
+  expect((await spoken(page))[0].rate).toBe(1.25)
 })

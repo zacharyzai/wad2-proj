@@ -2,8 +2,9 @@
 // Scan, Bill, Ask and Account, then a finish card. Shown once on the first Home or Scan visit; Skip/Esc any time; reopen any time.
 // Other specs start with the guide already seen (playwright.config.js); these start as someone who has never seen it.
 import { test, expect } from './fixtures.js'
+import { expectSeniorFriendly, nextFrames } from './helpers/checks.js'
 import AxeBuilder from '@axe-core/playwright'
-import { switchLanguage } from './helpers/auth.js'
+import { DEMO_USER, signIn, switchLanguage } from './helpers/auth.js'
 
 // Clear the "seen" flag once per test (not on every page load, so "it doesn't come back" can be tested).
 test.beforeEach(({ page }) =>
@@ -156,7 +157,7 @@ test('the page does not move under the guide, and it scrolls again afterwards', 
   await page.mouse.move(100, 200)
   await page.mouse.wheel(0, 400)
   await page.keyboard.press('PageDown')
-  await page.waitForTimeout(400)
+  await nextFrames(page)
   expect(await page.evaluate(() => scrollY)).toBe(y)
   await page.keyboard.press('Escape')
   await expect(page.getByTestId('guide-coach')).toHaveCount(0)
@@ -255,8 +256,10 @@ test('no Tamil voice on the device: the speaker plays Tamil audio from our serve
 for (const colorScheme of ['light', 'dark']) {
   test(`the guide has no WCAG A/AA violations: card, pointing step, finish (${colorScheme}) @a11y`, async ({ page }) => {
     await page.emulateMedia({ colorScheme, reducedMotion: 'reduce' })
+    await signIn(page, { ...DEMO_USER, theme: colorScheme }) // night mode is the account's choice, not the device's
     await page.goto('/')
     await page.waitForLoadState('networkidle')
+    await expect(page.locator('html')).toHaveAttribute('data-theme', colorScheme)
     const bad = []
     const check = async (where) => {
       const { violations } = await new AxeBuilder({ page }).include('[data-testid="guide"]').withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze()
@@ -272,3 +275,13 @@ for (const colorScheme of ['light', 'dark']) {
     expect(bad).toEqual([])
   })
 }
+
+test('the welcome card and a pointing step have big targets and text @a11y', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await page.goto('/')
+  await expect(title(page)).toBeVisible()
+  await expectSeniorFriendly(page, '[data-testid="guide"]')
+  await page.getByTestId('guide-next').click()
+  await stepText(page, 2)
+  await expectSeniorFriendly(page, '[data-testid="guide"]')
+})

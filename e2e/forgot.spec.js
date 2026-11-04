@@ -2,6 +2,7 @@
 // flow against a disposable MongoDB is in e2e/auth-api.spec.js.
 import AxeBuilder from '@axe-core/playwright'
 import { test, expect } from './fixtures.js'
+import { expectSeniorFriendly } from './helpers/checks.js'
 import { DEMO_USER, testToken } from './helpers/auth.js'
 
 test.use({ loggedIn: false })
@@ -123,3 +124,26 @@ for (const colorScheme of ['light', 'dark']) {
     expect(bad).toEqual([])
   })
 }
+
+test('Reset: a long password with no special character is refused, and the missing rule is named', async ({ page }) => {
+  let sent = false
+  await page.route('**/api/auth/reset', (route) => {
+    sent = true
+    return route.abort()
+  })
+  await page.goto('/reset#token=link.from.email')
+  await page.getByTestId('reset-password').fill('tehtarik1952')
+  await page.getByTestId('reset-submit').click()
+  await expect(page.getByTestId('reset-pw-warn')).toBeVisible()
+  await expect(page.getByTestId('reset-hint').locator('[data-rule="length"]')).toHaveAttribute('data-ok', 'true')
+  await expect(page.getByTestId('reset-hint').locator('[data-rule="special"]')).toHaveAttribute('data-ok', 'false')
+  expect(sent).toBe(false)
+})
+
+test('Forgot and Reset: big targets and text, no sideways scroll @a11y', async ({ page }) => {
+  for (const path of ['/forgot', '/reset#token=link.from.email']) {
+    await page.goto(path)
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
+    await expectSeniorFriendly(page)
+  }
+})

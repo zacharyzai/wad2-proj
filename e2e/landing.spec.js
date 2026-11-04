@@ -1,5 +1,6 @@
 // Welcome page (/welcome): shown once to first-time visitors. Cycling headline, scroll-tied falling items, read-aloud demo, axe.
 import { test, expect } from './fixtures.js'
+import { expectSeniorFriendly, nextFrames } from './helpers/checks.js'
 import AxeBuilder from '@axe-core/playwright'
 import { signIn, mockAuth, fillLogin, DEMO_USER } from './helpers/auth.js'
 
@@ -80,6 +81,7 @@ test('every "Try me out" goes to Create an account; there is no separate Log in 
 })
 
 test('the headline changes language on its own; tapping a language stops it and switches the page', async ({ page }) => {
+  await page.clock.install()
   await page.goto('/welcome')
   const first = await headline(page).innerText()
   await expect(headline(page)).not.toHaveText(first, { timeout: 5000 })
@@ -87,7 +89,7 @@ test('the headline changes language on its own; tapping a language stops it and 
   await page.getByRole('group', { name: 'Language', exact: true }).getByRole('button', { name: '中文' }).click()
   await expect(headline(page)).toHaveText('看懂您的医药账单')
   await expect(page.getByRole('heading', { level: 1 })).toHaveAccessibleName('看懂您的医药账单')
-  await page.waitForTimeout(3600)
+  await page.clock.runFor(3600)
   await expect(headline(page)).toHaveText('看懂您的医药账单')
 })
 
@@ -110,13 +112,14 @@ test('items fall in with scroll and go back up when scrolling back', async ({ pa
 
 test('with reduced motion everything is shown landed and the headline stays in the page language', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' })
+  await page.clock.install()
   await page.addInitScript(() => localStorage.setItem('locale', 'ms'))
   await page.goto('/welcome')
   await expect(headline(page)).toHaveText('Fahami bil perubatan anda')
   await expect(billCard(page)).toHaveCSS('transform', 'none')
   await expect(billCard(page)).toHaveCSS('visibility', 'visible')
   await expect(page.locator('#ask .big-face')).toHaveCSS('opacity', '1')
-  await page.waitForTimeout(3600)
+  await page.clock.runFor(3600)
   await expect(headline(page)).toHaveText('Fahami bil perubatan anda')
 })
 
@@ -304,7 +307,7 @@ test('the hero and tunnel scroll freely; from Scan on, one wheel gesture moves a
     await expect.poll(scrollTop, { timeout: 8000 }).toBeLessThan(y + 4)
   }
   const gesture = async (dy) => {
-    await page.waitForTimeout(300) // the last gesture has ended
+    await nextFrames(page) // the last gesture has ended
     await page.mouse.wheel(0, dy)
   }
 
@@ -317,7 +320,7 @@ test('the hero and tunnel scroll freely; from Scan on, one wheel gesture moves a
     await page.mouse.move(100, 400)
     // The hero and tunnel: a scroll stays where it was left.
     await page.mouse.wheel(0, 600)
-    await page.waitForTimeout(900)
+    await nextFrames(page, 55)
     expect(Math.abs((await scrollTop()) - 600)).toBeLessThan(40)
 
     // Near the end of the tunnel, a small scroll pulls Scan in whole, then each gesture moves one feature.
@@ -335,7 +338,7 @@ test('the hero and tunnel scroll freely; from Scan on, one wheel gesture moves a
     await gesture(40)
     await at(await top('ask'))
     await gesture(40)
-    await page.waitForTimeout(600)
+    await nextFrames(page, 36)
     await at(await top('ask'))
     await gesture(-40)
     await at(doses)
@@ -345,7 +348,7 @@ test('the hero and tunnel scroll freely; from Scan on, one wheel gesture moves a
     await gesture(-40)
     await at(scan)
     await gesture(-300)
-    await page.waitForTimeout(900)
+    await nextFrames(page, 55)
     expect(await scrollTop()).toBeLessThan(scan - 200)
   }
 
@@ -449,4 +452,13 @@ test('with reduced motion the line only fades in (no sweeping)', async ({ page, 
   await expect.poll(() => l.evaluate((el) => getComputedStyle(el).opacity), { timeout: 2000 }).toBe('1')
   // No sweep: only opacity is allowed to change over time.
   expect(await l.evaluate((el) => getComputedStyle(el).transitionProperty)).not.toContain('clip-path')
+})
+
+test('on a phone the welcome page has big targets and text, and no sideways scroll @a11y', async ({ page, isMobile }) => {
+  test.skip(!isMobile, 'phones only: the desktop page is for caregivers')
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await page.goto('/welcome')
+  await expect(headline(page)).toBeVisible()
+  // The flying papers are pictures of real small print, hidden from screen readers; the page's own words still count.
+  await expectSeniorFriendly(page, 'main', '[aria-hidden="true"], [aria-hidden="true"] *')
 })

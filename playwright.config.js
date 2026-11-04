@@ -5,11 +5,12 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
-  workers: '100%',
+  // More workers overload the dev server, and pages then time out for no real reason.
+  workers: 4,
   reporter: 'html',
   use: {
     baseURL: 'http://localhost:5173',
-    trace: 'on-first-retry',
+    trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
     // Every test starts as a returning visitor who has seen the welcome page and the Beginner's guide; landing.spec.js and guide.spec.js clear this.
     storageState: { cookies: [], origins: [{ origin: 'http://localhost:5173', localStorage: [{ name: 'seenWelcome', value: '1' }, { name: 'amag.tour', value: 'seen' }] }] },
@@ -25,8 +26,9 @@ export default defineConfig({
       command: 'node server/index.js',
       url: 'http://localhost:3000/api/health',
       // JWT_SECRET matches e2e/helpers/auth.js, so tests can sign a login token without a database.
-      env: { USE_MOCK_AI: 'true', PORT: '3000', JWT_SECRET: 'e2e-only-secret-for-auth-checks-at-least-32-bytes' },
-      reuseExistingServer: !process.env.CI,
+      // No database here (MONGODB_URI is blanked). Never reuse a running `pnpm server`: it loads .env, so it would be the real database.
+      env: { USE_MOCK_AI: 'true', PORT: '3000', JWT_SECRET: 'e2e-only-secret-for-auth-checks-at-least-32-bytes', MONGODB_URI: '' },
+      reuseExistingServer: false,
     },
     {
       command: 'pnpm dev',
