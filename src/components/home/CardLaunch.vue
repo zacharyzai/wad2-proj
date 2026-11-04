@@ -1,9 +1,11 @@
-<!-- Owner: Asher. The short picture each Home card plays before its page opens (composables/useCardLaunch.js). It grows
-     out of the card that was tapped and settles in the middle of the screen, over a soft wash of the card's colour:
+<!-- Owner: Asher. The short picture played before something opens (composables/useCardLaunch.js): Home's cards, Scan's
+     two cards, so every one feels the same. It grows out of what was tapped and
+     settles in the middle of the screen, over a soft wash of its colour:
        med       a capsule; camera corners close in around it and a scan line sweeps across
        bill      a receipt prints downwards, line by line, and a green dollar stamps onto it
        ask       chat bubbles pop up one after another, the last one typing
        schedule  a calendar with a clock; the hand goes round once and a big tick draws over it
+     On the same page (Scan's cards), it fades away once the scan page is drawn under it (leaving).
      About a second (LAUNCH_MS). Decoration (aria-hidden): the page that opens says where you are. Covers the screen, so a
      second tap can't land on another card. Never shown with reduced motion (the link just opens). -->
 <script setup>
@@ -15,7 +17,7 @@ const from = computed(() => ({ '--x': `${cardLaunch.x}px`, '--y': `${cardLaunch.
 
 <template>
   <Teleport to="body">
-    <div v-if="cardLaunch.kind" class="launch" :class="`launch-${cardLaunch.kind}`" :style="from" aria-hidden="true" data-testid="card-launch" :data-kind="cardLaunch.kind">
+    <div v-if="cardLaunch.kind" class="launch" :class="[`launch-${cardLaunch.kind}`, { leaving: cardLaunch.leaving }]" :style="from" aria-hidden="true" data-testid="card-launch" :data-kind="cardLaunch.kind">
       <div class="wash"></div>
       <div class="art">
         <svg v-if="cardLaunch.kind === 'med'" viewBox="0 0 200 200">
@@ -64,6 +66,9 @@ const from = computed(() => ({ '--x': `${cardLaunch.x}px`, '--y': `${cardLaunch.
 .launch-bill { --hue: #e6effa; }
 .launch-ask { --hue: #ece5f8; }
 .launch-schedule { --hue: #fff1d6; }
+/* Same page: once the new tab is drawn under it, the picture fades away. */
+.launch.leaving { pointer-events: none; animation: launch-out 320ms ease-in forwards; }
+@keyframes launch-out { to { opacity: 0; } }
 @keyframes wash { from { opacity: 0; } to { opacity: 0.94; } }
 
 /* The picture grows out of the card that was tapped and settles in the middle. */

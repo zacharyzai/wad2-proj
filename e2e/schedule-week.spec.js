@@ -168,11 +168,40 @@ test('ticking a dose: a success sweep crosses the plan card, then the ring count
   await expect(plan.locator('.pc-sweep-tick')).toHaveCount(0) // no tick of its own
   await expect(plan.locator('.pc-stats')).toHaveText(/Taken\s*3/)
   await expect(plan.locator('.ring-num')).toHaveText('100%') // ...then the ring counts up to it
-  // Unticking: the ring goes back, no new sweep.
-  const sweeps = await page.getByTestId('schedule-progress-sweep').count()
+  await expect(plan.locator('.pc-done')).toHaveClass(/open/) // the last dose: "Well done!" slides in
+  await expect(page.getByTestId('schedule-progress-sweep')).toHaveCount(0) // the glow goes once it has faded
+  // Unticking: the ring goes back, with no glow and no "+1".
   await page.getByRole('button', { name: /^Taken: Metformin 500 mg, 6:00\sPM$/i }).click()
   await expect(plan.locator('.ring-num')).toHaveText('67%')
-  expect(await page.getByTestId('schedule-progress-sweep').count()).toBe(sweeps)
+  await expect(plan.locator('.pc-stats')).toHaveText(/Taken\s*2/)
+  await expect(page.getByTestId('schedule-progress-sweep')).toHaveCount(0)
+  await expect(page.getByTestId('schedule-progress-plus')).toHaveCount(1) // still only the one from the tick
+  await expect(plan.locator('.pc-done')).not.toHaveClass(/open/)
+})
+
+test('ticking the dose that is due: its box folds away smoothly, and a tick the account refuses cancels the celebration', async ({ page }) => {
+  await setUp(page, { at: '19:00', ticks: { [WED]: ['m1-morning', 'm2-morning'] } })
+  await page.goto('/schedule')
+  const due = page.getByTestId('schedule-due')
+  await expect(due).toBeVisible()
+  const plan = page.getByTestId('schedule-progress')
+  await page.getByTestId('schedule-due-take').click()
+  await expect(due).toHaveClass(/due-out-leave-active/) // folding away, not just vanishing
+  await expect(due).toHaveCount(0)
+  await expect(plan.locator('.ring-num')).toHaveText('100%')
+
+  // Untick it, then tick it again with the account refusing: it goes back, and nothing is celebrated.
+  const tick = page.getByRole('button', { name: /^Taken: Metformin 500 mg, 6:00\sPM$/i })
+  await tick.click()
+  await expect(plan.locator('.ring-num')).toHaveText('67%')
+  await page.route('**/api/doses**', (route) => (route.request().method() === 'POST' ? route.fulfill({ status: 503, json: { ok: false, error: { code: 'SERVER_ERROR', message: 'x' } } }) : route.fallback()))
+  await tick.click()
+  await page.getByRole('button', { name: 'Yes, I took it' }).click()
+  await expect(page.getByTestId('schedule-toast')).toHaveText('That tick was not saved. Please try again.')
+  await page.waitForTimeout(1200) // longer than the glow would take to reach the ring
+  await expect(plan.locator('.ring-num')).toHaveText('67%')
+  await expect(plan).not.toHaveClass(/logged/)
+  await expect(plan.locator('.pc-stats')).toHaveText(/Taken\s*2/)
 })
 
 test('reduced motion: no sweep, the ring changes at once', async ({ page }) => {

@@ -1,4 +1,6 @@
 <!-- Owner: Isaac. Caregivers only. One senior's doses today (taken, not ticked or still to come), and their medicines' details.
+     At the top, their card (components/care/CareHero.vue, by Asher): name, how today is going, the counts, the next dose,
+     and Updated / Refresh.
      Tapping a dose turns its card over to the medicine's details. Refreshes every minute. Read-only: nothing here changes anything, and no scans, photos, bills or account details ever
      reach this page. API: docs/care-contract.md. -->
 <script setup>
@@ -13,6 +15,7 @@ import EmptyState from '../components/layout/EmptyState.vue'
 import ErrorBanner from '../components/layout/ErrorBanner.vue'
 import AppIcon from '../components/layout/AppIcon.vue'
 import KindIcon from '../components/layout/KindIcon.vue'
+import CareHero from '../components/care/CareHero.vue'
 
 const { t, locale } = useI18n()
 const route = useRoute()
@@ -77,7 +80,8 @@ onBeforeUnmount(() => clearInterval(timer))
 
 <template>
   <div class="page">
-    <PageHeader :title="senior ? t('care.todayFor', { name: senior.name }) : t('pages.careSenior')" :back="{ name: 'care' }" />
+    <CareHero v-if="senior && !gone" :name="senior.name" :shared="shared" :doses="doses" :medicines="medicines.length" :updated="updatedText" @refresh="load()" />
+    <PageHeader v-else :title="t('pages.careSenior')" :back="{ name: 'care' }" />
 
     <LoadingState v-if="loading" />
     <EmptyState v-else-if="gone" :title="t('care.goneTitle')" :text="t('care.goneText')" icon="users">
@@ -98,7 +102,6 @@ onBeforeUnmount(() => clearInterval(timer))
       </div>
 
       <EmptyState v-if="!cards.length" :title="t('care.noDoses')" :text="t('care.noDosesText', { name: senior.name })" icon="calendar" />
-      <p v-if="cards.length" class="text-body-secondary m-0">{{ t('care.medsNote', { name: senior.name }) }}</p>
       <!-- Each card turns over to its medicine's details, to read only: the way back is the only button there. -->
       <ul v-if="cards.length" class="flip-grid list-unstyled m-0" data-testid="care-doses">
         <li v-for="c in cards" :key="c.key" class="flip" :data-status="c.status" :data-testid="c.status ? 'care-dose' : 'care-other'">
@@ -126,10 +129,6 @@ onBeforeUnmount(() => clearInterval(timer))
         </li>
       </ul>
 
-      <p class="text-body-secondary m-0 d-flex flex-wrap align-items-center gap-3">
-        <span v-if="updatedText" data-testid="care-updated">{{ t('care.updated', { time: updatedText }) }}</span>
-        <button type="button" class="btn btn-outline btn-sm" data-testid="care-refresh" @click="load()"><AppIcon name="replay" :size="20" />{{ t('care.refresh') }}</button>
-      </p>
     </template>
   </div>
 </template>

@@ -48,21 +48,34 @@ const doneCount = computed(() => todayDoses.value.filter((d) => taken.value.has(
 const RING = 2 * Math.PI * 30 // the progress ring's circumference (r = 30)
 const percent = computed(() => (todayDoses.value.length ? Math.round((doneCount.value / todayDoses.value.length) * 100) : 0))
 // The % counts up to its new value (and the ring fills with it), from 0 when the page opens. Reduced motion: at once.
-// After a tick of their own, a soft glow sweeps the whole card, left edge to right, quickly and at one steady speed
-// (BAND_MS). The moment its front edge reaches the ring, it is logged for all to see: the ring glows and ripples, the
-// card's edge flashes, "+1" floats up from Taken, and the % counts up by what it gained. Where the ring is, is measured
-// each time, so this happens as the glow reaches it on any screen. Ticks arriving with the page, or an untick, don't sweep.
+// After a tick of their own, one calm sequence, in this order and never overlapping:
+//   1. a soft glow sweeps the card from left to right at one steady speed (BAND_MS);
+//   2. the moment its front edge reaches the ring (worked out from where the ring is), it is logged: Taken goes up with a
+//      little bump and "+1", two rings ripple out of the progress ring (drawn inside it, so always centred on it), the
+//      card's edge flashes, the % counts up, and on the last dose "Well done!" slides in;
+//   3. the glow fades.
+// Until step 2, the card still shows the day before the tick, so nothing jumps ahead of the glow. A tick the account
+// doesn't save (it goes back) cancels whatever is still to come. Ticks arriving with the page, or an untick: no sweep,
+// the numbers just change.
 const BAND_MS = 700
 const COUNT_MS = 900
 const planEl = ref(null)
 const ringEl = ref(null)
-const landing = ref(null) // { x, y } of the ring's middle, in the card, and when the glow gets there (arrive, ms)
-const landed = ref(false) // the ring glows, and the card's edge flashes, as the glow reaches it
-const shown = ref(0)
-const sweep = ref(0) // a new value plays the sweep again (its key)
+const shown = ref(0) // the % on the ring
+const shownDone = ref(0) // the Taken number, and whether "Well done!" shows: changes when the glow reaches the ring
+const sweep = ref(0) // a new value plays the glow again (its key)
+const sweeping = ref(false) // the glow is on the card
+const hit = ref(0) // a new value plays the ripples and "+1" (the glow has reached the ring)
+const landed = ref(false) // the ring glows and the card's edge flashes, for a moment
+const popping = ref(false) // Taken bumps, for a moment
 let celebrate = false // the next rise in the % comes from their own tick
 let frame = 0
-let sweepTimer = 0
+const timers = []
+const later = (fn, ms) => timers.push(setTimeout(fn, ms))
+const stopAll = () => {
+  cancelAnimationFrame(frame)
+  timers.splice(0).forEach(clearTimeout)
+}
 function countTo(to) {
   cancelAnimationFrame(frame)
   const from = shown.value
@@ -74,38 +87,45 @@ function countTo(to) {
   }
   frame = requestAnimationFrame(step)
 }
+// Everything shows the day as it is now, at once: no glow, no ripples.
+function settle(to) {
+  stopAll()
+  sweeping.value = landed.value = popping.value = false
+  shownDone.value = doneCount.value
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) shown.value = to
+  else countTo(to)
+}
 watch(
   percent,
   (to, before) => {
-    cancelAnimationFrame(frame)
-    clearTimeout(sweepTimer)
     const grew = celebrate && before !== undefined && to > before
     celebrate = false
-    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return void (shown.value = to)
-    if (!grew) return countTo(to)
-    // Measured once the card has redrawn: the tick can change it (all taken adds "Well done!"), which moves the ring.
-    nextTick(() => {
-      const card = planEl.value?.getBoundingClientRect()
-      const ring = ringEl.value?.getBoundingClientRect()
-      if (!card || !ring) return countTo(to)
-      const x = ring.left - card.left + ring.width / 2
-      const arrive = Math.round((BAND_MS * x) / card.width) // the glow's front edge moves at one speed
-      landing.value = { x, y: ring.top - card.top + ring.height / 2, arrive }
-      landed.value = false
-      sweep.value++
-      sweepTimer = setTimeout(() => {
-        landed.value = true // the glow is at the ring: logged, and the % counts up
-        countTo(to)
-        sweepTimer = setTimeout(() => (landed.value = false), COUNT_MS)
-      }, arrive)
-    })
+    if (!grew || matchMedia('(prefers-reduced-motion: reduce)').matches) return settle(to)
+    stopAll()
+    landed.value = popping.value = false
+    const card = planEl.value?.getBoundingClientRect()
+    const ring = ringEl.value?.getBoundingClientRect()
+    if (!card || !ring) return settle(to)
+    // The glow's front edge moves at one speed, so it reaches the ring's middle this many ms in.
+    const arrive = Math.round((BAND_MS * (ring.left - card.left + ring.width / 2)) / card.width)
+    sweep.value++
+    sweeping.value = true
+    later(() => {
+      shownDone.value = doneCount.value
+      hit.value++
+      landed.value = popping.value = true
+      countTo(to)
+    }, arrive)
+    later(() => (popping.value = false), arrive + 520)
+    later(() => (landed.value = false), arrive + COUNT_MS)
+    later(() => (sweeping.value = false), BAND_MS + 520) // after the glow has faded
   },
   { immediate: true },
 )
-onBeforeUnmount(() => {
-  cancelAnimationFrame(frame)
-  clearTimeout(sweepTimer)
-})
+onBeforeUnmount(stopAll)
+
+// The "Time for…" box folds away smoothly once its doses are taken, so the cards under it glide up instead of jumping.
+const holdHeight = (el) => (el.style.maxHeight = `${el.offsetHeight}px`)
 
 // What the band's label says. Taken is taken, whatever the time; a missed one says "Not ticked yet", never "take it now".
 function bandStatus(g) {
@@ -162,6 +182,7 @@ const onBackdrop = (event) => event.target === askBox.value && answer(false)
     </p>
     <template v-else>
       <!-- What's due now: the one thing to do, with "I've taken it" for each dose of that time. Never for a missed dose. -->
+      <Transition name="due-out" @before-leave="holdHeight">
       <section v-if="dueGroup" class="due" :class="`slot-${dueGroup.slot ?? 'other'}`" aria-labelledby="due-title" data-testid="schedule-due">
         <div class="d-flex align-items-start gap-3">
           <span class="slot-tile lg" aria-hidden="true"><AppIcon :name="SLOT_ICONS[dueGroup.slot] ?? 'clock'" :size="26" /></span>
@@ -180,30 +201,36 @@ const onBackdrop = (event) => event.target === askBox.value && answer(false)
         </ul>
         <button v-else type="button" class="btn btn-primary" data-testid="schedule-due-take" @click="toggle(dueGroup.doses[0], true)"><AppIcon name="check" />{{ t('schedule.due.take') }}</button>
       </section>
+      </Transition>
 
       <!-- The day's progress: the words say it; the numbers and the ring only show it. -->
-      <div ref="planEl" class="progress-card" :class="{ logged: landed }" :style="landing && { '--rx': `${landing.x}px`, '--ry': `${landing.y}px`, '--arrive': `${landing.arrive}ms` }" data-testid="schedule-progress">
-        <!-- Success, after a dose is ticked (decoration): a glow sweeps the card from left to right, and rings ripple out of
-             the progress ring as the glow reaches it. -->
-        <span v-if="sweep && landing" :key="sweep" class="pc-sweep" aria-hidden="true" data-testid="schedule-progress-sweep">
-          <span class="pc-trail"></span>
-          <span class="pc-ripple"></span><span class="pc-ripple late"></span>
-        </span>
+      <div ref="planEl" class="progress-card" :class="{ logged: landed }" data-testid="schedule-progress">
+        <!-- Success, after a dose is ticked (decoration): a glow sweeps the card from left to right. -->
+        <span v-if="sweeping" :key="sweep" class="pc-sweep" aria-hidden="true" data-testid="schedule-progress-sweep"><span class="pc-trail"></span></span>
         <div class="pc-words">
           <span class="pc-title">{{ t('schedule.plan.title') }}</span>
           <div class="pc-stats" aria-hidden="true">
             <span><small>{{ t('schedule.plan.total') }}</small><b>{{ todayDoses.length }}</b></span>
-            <span class="pc-taken"><small>{{ t('schedule.plan.taken') }}</small><b :key="doneCount" :class="{ bump: sweep }">{{ doneCount }}</b><span v-if="sweep" :key="sweep" class="pc-plus" data-testid="schedule-progress-plus">+1</span></span>
+            <span class="pc-taken"><small>{{ t('schedule.plan.taken') }}</small><b :class="{ bump: popping }">{{ shownDone }}</b><span v-if="hit" :key="hit" class="pc-plus" data-testid="schedule-progress-plus">+1</span></span>
           </div>
-          <strong class="progress-words" :class="{ 'visually-hidden': doneCount !== todayDoses.length }" data-testid="schedule-progress-words">{{ doneCount === todayDoses.length ? t('schedule.allDone') : t('schedule.progress', { done: doneCount, total: todayDoses.length }) }}</strong>
+          <!-- "Well done!" slides in (its words are always there for screen readers, saying how many are taken). -->
+          <div class="pc-done" :class="{ open: shownDone === todayDoses.length }">
+            <div class="pc-done-inner">
+              <strong class="progress-words" :class="{ 'visually-hidden': shownDone !== todayDoses.length }" data-testid="schedule-progress-words">{{ shownDone === todayDoses.length ? t('schedule.allDone') : t('schedule.progress', { done: shownDone, total: todayDoses.length }) }}</strong>
+            </div>
+          </div>
           <span v-if="nextDose" class="pc-next">{{ t('schedule.next', { name: nextDose.label, time: timeText(nextDose.time) }) }}</span>
         </div>
-        <svg ref="ringEl" class="ring" :class="{ landed }" viewBox="0 0 72 72" aria-hidden="true">
-          <circle cx="36" cy="36" r="30" class="ring-track" />
-          <circle cx="36" cy="36" r="30" class="ring-fill" :class="{ full: doneCount === todayDoses.length }" :stroke-dasharray="RING" :stroke-dashoffset="RING * (1 - shown / 100)" />
-          <text x="36" y="33" class="ring-num" text-anchor="middle" dominant-baseline="central">{{ shown }}%</text>
-          <text x="36" y="47" class="ring-sub" text-anchor="middle" dominant-baseline="central">{{ t('schedule.plan.done') }}</text>
-        </svg>
+        <span class="ring-wrap">
+          <!-- Logged: two rings ripple out of the progress ring (decoration). -->
+          <template v-if="hit"><span :key="`a${hit}`" class="pc-ripple" aria-hidden="true"></span><span :key="`b${hit}`" class="pc-ripple late" aria-hidden="true"></span></template>
+          <svg ref="ringEl" class="ring" :class="{ landed }" viewBox="0 0 72 72" aria-hidden="true">
+            <circle cx="36" cy="36" r="30" class="ring-track" />
+            <circle cx="36" cy="36" r="30" class="ring-fill" :class="{ full: shownDone === todayDoses.length }" :stroke-dasharray="RING" :stroke-dashoffset="RING * (1 - shown / 100)" />
+            <text x="36" y="33" class="ring-num" text-anchor="middle" dominant-baseline="central">{{ shown }}%</text>
+            <text x="36" y="47" class="ring-sub" text-anchor="middle" dominant-baseline="central">{{ t('schedule.plan.done') }}</text>
+          </svg>
+        </span>
       </div>
 
       <!-- One group per time of day, coloured like a pill-box compartment (the word and icon always beside the colour),

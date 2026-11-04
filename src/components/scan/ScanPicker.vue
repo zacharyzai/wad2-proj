@@ -3,16 +3,16 @@
      a tag at the top and a round arrow tucked into its corner, then the name, one line on what it tells you, and tags.
      At rest, the things in each picture breathe and drift. With a mouse, both pictures rest in the app's teal; the one
      under the mouse stops still and comes to life in full colour, tilts gently towards it, and its arrow turns coral; the
-     other steps back a little. Phones and tablets show both in colour. Picking one plays a short picture of its own
-     (ScanLaunch.vue: medicines, or bills and money) before its scan page opens. Above the cards: the last scan to carry
+     other steps back a little. Phones and tablets show both in colour. Picking one plays the same short picture as Home's
+     cards (CardLaunch.vue, drawn by ScanView: a capsule scanned, or a bill printing) before its scan page opens. Above the cards: the last scan to carry
      on with, or a photo picked on Home waiting to be told what it is. -->
 <script setup>
-import { computed, onBeforeUnmount, ref } from 'vue'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useScanStore } from '../../stores/scan'
 import AppIcon from '../layout/AppIcon.vue'
 import KindIcon from '../layout/KindIcon.vue'
-import ScanLaunch from './ScanLaunch.vue'
+import { launch } from '../../composables/useCardLaunch'
 
 const props = defineProps({
   pending: { type: Object, default: null }, // a photo picked on Home: { file, url }
@@ -33,20 +33,9 @@ const resume = computed(() => {
   return { kind: s.type, name, checked: scanStore.confirmed, to: { name: scanStore.confirmed ? 'explain' : 'confirm' } }
 })
 
-// Picking a card: its short picture plays first (about 1.7 seconds), then its scan page opens. Reduced motion: at once.
-// SLOW stretches every part of the picture (ScanLaunch.vue) and this wait by the same amount: 1 is the original second, 2 is twice as slow.
-const SLOW = 1.6
-const LAUNCH_MS = 1050 * SLOW
-const launching = ref(null) // { kind, x, y, k } while the picture plays
-let launchTimer = 0
-function choose(event, kind) {
-  if (launching.value) return // already on its way: a second tap does nothing
-  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return emit('pick', kind)
-  const box = event.currentTarget.getBoundingClientRect()
-  launching.value = { kind, x: box.left + box.width / 2, y: box.top + box.height / 2, k: SLOW }
-  launchTimer = setTimeout(() => emit('pick', kind), LAUNCH_MS)
-}
-onBeforeUnmount(() => clearTimeout(launchTimer))
+// Picking a card: Home's picture for it plays first (about a second), then its scan page opens. Reduced motion: at once.
+const PICTURE = { medication: 'med', bill: 'bill' }
+const choose = (event, kind) => launch(event, PICTURE[kind], () => emit('pick', kind), { inPage: true })
 
 // The card leans a little towards the mouse, and a soft light follows it (CSS reads --mx, --my: 0 to 1 across the card).
 function lean(e) {
@@ -123,7 +112,6 @@ function unlean(e) {
         </span>
       </button>
     </div>
-    <ScanLaunch v-if="launching" v-bind="launching" />
     <button v-if="pending" type="button" class="btn btn-ghost" @click="emit('drop')"><AppIcon name="x" />{{ t('scan.dz.change') }}</button>
   </div>
 </template>

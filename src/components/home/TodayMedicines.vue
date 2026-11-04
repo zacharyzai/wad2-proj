@@ -4,7 +4,10 @@
      (so one not taken is never ticked with another). Nothing due yet: what is next, and when. All taken: well done.
      Under it, how many are taken today, and a gentle line for any earlier dose not ticked yet. The same size as the greeting
      beside it on computers. Doses, ticks and words come from Schedule (src/rules/schedule.js, stores/doses.js,
-     schedule.*), so Home and Schedule always agree. A new reminder turns the card over (CSS 3D); still with reduced motion. -->
+     schedule.*), so Home and Schedule always agree. A new reminder turns the card over (CSS 3D); still with reduced motion.
+     No medicines yet: the same dark card at the same size, never bare: the bell in its corner (ringing with the capsule,
+     opening Schedule), a little pill box with a capsule floating over it, one line on how to get reminders, and one big
+     way to scan a first label. -->
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
@@ -114,8 +117,31 @@ onBeforeUnmount(() => {
       </RouterLink>
     </div>
 
-    <!-- No medicines at all: how to get reminders. -->
-    <p v-if="!medicines.length" class="today-empty">{{ t('home.today.noMeds') }}</p>
+    <!-- No medicines at all: how to get reminders, in a card as full as a reminder. -->
+    <div v-if="!medicines.length" class="focus empty-box" data-testid="home-today-empty">
+      <!-- The bell in the same corner as a reminder's, with what it would say: nothing yet. -->
+      <div class="fchips">
+        <RouterLink v-slot="{ href, navigate }" :to="{ name: 'schedule' }" custom>
+          <a :href="href" class="bell" :class="{ ringing }" :aria-label="`${t('home.today.emptyTitle')}. ${t('home.today.open')}`" data-testid="home-today-bell" @click="launch($event, 'schedule', navigate)">
+            <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true" focusable="false">
+              <path class="bell-body" d="M6 9a6 6 0 0 1 12 0c0 6.5 2.5 8.5 2.5 8.5h-17S6 15.5 6 9" />
+              <path class="bell-clapper" d="M10.3 20.5a1.94 1.94 0 0 0 3.4 0" />
+            </svg>
+          </a>
+        </RouterLink>
+        <span class="fchip" data-testid="home-today-empty-title">{{ t('home.today.emptyTitle') }}</span>
+      </div>
+      <svg class="empty-art" viewBox="0 0 220 104" aria-hidden="true" focusable="false">
+        <rect class="box" x="8" y="50" width="204" height="48" rx="14" />
+        <rect v-for="i in 7" :key="i" class="comp" :class="{ lit: i === 4 }" :x="15 + (i - 1) * 28.4" y="57" width="23" height="34" rx="7" />
+        <g class="float"><g transform="rotate(-28 110 24)"><rect class="cap-a" x="90" y="14" width="40" height="20" rx="10" /><path class="cap-b" d="M110 14h10a10 10 0 0 1 0 20h-10z" /></g></g>
+        <circle class="spark s1" cx="56" cy="22" r="4" /><circle class="spark s2" cx="168" cy="16" r="3" /><circle class="spark s3" cx="34" cy="38" r="2.5" /><circle class="spark s2" cx="190" cy="36" r="2.5" />
+      </svg>
+      <p class="empty-text">{{ t('home.today.noMeds') }}</p>
+      <RouterLink v-slot="{ href, navigate }" :to="{ name: 'scan', query: { type: 'medication' } }" custom>
+        <a :href="href" class="take-btn empty-go" data-testid="home-today-scan" @click="launch($event, 'med', navigate)"><AppIcon name="scan" :size="22" />{{ t('home.today.emptyGo') }}</a>
+      </RouterLink>
+    </div>
     <p v-else-if="!doses.length" class="today-empty">{{ t('schedule.noneToday') }}</p>
     <p v-else-if="failed" class="today-empty" role="alert">{{ t('home.today.loadFailed') }}</p>
 
@@ -178,6 +204,24 @@ onBeforeUnmount(() => {
 .today-open { display: inline-flex; align-items: center; gap: 4px; min-height: var(--hit); padding: 0 4px; font-size: 17px; font-weight: 700; color: var(--color-link); text-decoration: none; }
 .today-open:hover { text-decoration: underline; }
 .today-empty { margin: 0; font-size: 18px; line-height: 1.5; color: var(--color-text-muted); }
+
+/* No medicines yet: the dark reminder card at its usual size, with the bell, a picture, a line and one button. */
+.empty-box { justify-content: space-between; gap: 10px; }
+.empty-art { display: block; flex: 0 1 auto; width: min(100%, 240px); max-height: 104px; margin: 0 auto; overflow: visible; }
+.empty-art * { transform-box: fill-box; transform-origin: center; }
+.empty-art .box { fill: rgba(255, 255, 255, 0.08); stroke: rgba(255, 255, 255, 0.22); stroke-width: 2; }
+.empty-art .comp { fill: rgba(255, 255, 255, 0.1); }
+.empty-art .comp.lit { fill: rgba(143, 240, 230, 0.32); stroke: #8ff0e6; stroke-width: 2; animation: comp-glow 3.2s ease-in-out infinite; }
+.empty-art .cap-a { fill: #8ff0e6; } .empty-art .cap-b { fill: #f3d27a; }
+.empty-art .float { animation: cap-float 3.2s ease-in-out infinite; }
+.empty-art .spark { fill: #f3d27a; animation: twinkle 2.6s ease-in-out infinite; }
+.empty-art .s2 { fill: #8ff0e6; animation-delay: -0.9s; } .empty-art .s3 { animation-delay: -1.7s; }
+@keyframes cap-float { 0%, 100% { translate: 0 0; rotate: 0deg; } 50% { translate: 0 -7px; rotate: 6deg; } }
+@keyframes comp-glow { 50% { fill: rgba(143, 240, 230, 0.5); } }
+@keyframes twinkle { 0%, 100% { opacity: 0.35; scale: 0.8; } 50% { opacity: 1; scale: 1.15; } }
+.empty-text { margin: 0; font-size: 17px; line-height: 1.5; color: rgba(242, 251, 250, 0.88); }
+.empty-go { text-decoration: none; }
+@media (prefers-reduced-motion: reduce) { .empty-art * { animation: none !important; } }
 
 /* The dark reminder card. Turns over on its horizontal axis to the next reminder, like a pill-box lid. */
 .turn-box { flex: 1; display: flex; flex-direction: column; perspective: 900px; }
