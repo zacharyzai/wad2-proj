@@ -44,7 +44,7 @@
     "start": "Get started"
   },
   "care": {
-    "medsTitle": "{name}'s medicines",
+    "medSee": "See details",
     "medsNote": "You can read these. Only {name} can change them.",
     "lead": "The people who invited you. Tap a name to see today's medicines.",
     "emptyTitle": "No one linked yet",

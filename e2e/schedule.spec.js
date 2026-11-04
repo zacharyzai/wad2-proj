@@ -775,6 +775,9 @@ test('My medicines: a card shows the name, what it is for and the times; Change 
     const y = (locator) => locator.boundingBox().then((b) => Math.round(b.y))
     expect(await y(page.getByTestId('stop-m1'))).toBe(await y(page.getByTestId('stop-m2')))
     expect(await y(card.getByRole('button', { name: /^Change/ }))).toBe(await y(page.getByTestId('med-m2').getByRole('button', { name: /^Change/ })))
+    // The same size, even when one purpose wraps onto a second line.
+    const height = (id) => page.getByTestId(id).boundingBox().then((b) => Math.round(b.height))
+    expect(await height('med-m1')).toBe(await height('med-m2'))
     // Opening Change on one card leaves the card beside it exactly as it was.
     const before = await y(page.getByTestId('stop-m2'))
     await card.getByRole('button', { name: 'Change Metformin 500 mg' }).click()
