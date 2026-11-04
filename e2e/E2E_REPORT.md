@@ -1,5 +1,7 @@
 # E2E report: Ah Ma Ah Gong Can
 
+> **Rerun before submission.** These numbers are from 3 Nov. Since then: caregiver medicine details (flip cards), scan sharing removed, "Not ticked yet" alerts. Run `pnpm test:e2e` on a laptop and update the Results line.
+
 3 Nov 2026, `zac` branch. Playwright 1.64, Chromium. Each test runs twice: desktop Chrome and iPhone 6 (375px).
 AI, TTS, Google Calendar and the chatbot are mocked (`USE_MOCK_AI=true` and `page.route`). Most tests use a fake
 login (a signed test token plus a faked `/api/auth`) and need no database. The `*-api` specs use a throwaway in-memory MongoDB and never touch Atlas.
@@ -23,7 +25,7 @@ login (a signed test token plus a faked `/api/auth`) and need no database. The `
 | Medication schedule | schedule | 27 | 27 | |
 | Google Calendar reminders | schedule | 8 | 8 | Uses Google sign-in (OAuth) sync, not "add to calendar" links |
 | AI chatbot (Ask) | ask, ask-chat, ask-speech, ask-ux | 34 | 34 | |
-| History + share links | history, history-api, account-sync | 13 | 13 | |
+| History + caregiver invite links | history, history-api, account-sync | 13 | 13 | |
 | Caregiver tracking | care, care-api | 15 | 15 | The tab is hidden from seniors; `/care` sends a senior Home |
 | App shell / 404 / a11y | shell (new), a11y | 12 | 12 | New: 404 logged in and out, keyboard focus ring, axe + sizes on Home, Scan, Confirm, History and 404 |
 
@@ -32,10 +34,7 @@ tests covering the happy path, errors, permissions, usability and persistence wh
 
 ## App bugs found (app code not changed)
 
-1. **Scan picker captions are 15px on phones.** [ScanPicker.css:36](../src/styles/components/ScanPicker.css#L36) (Isaac).
-   - Repro: open `/scan` at 375px width. "Tablets, syrups, creams" and "What you pay, and subsidies" render at 15px.
-   - Fix: `.pick-text { font-size: clamp(16px, 3.6vw, 17px) }`, and line 38 also sets Tamil to 15px. Check that the Tamil cards still fit at 16px.
-   - Test: `shell.spec.js` "/scan: big targets and text" is marked `test.fail` on phones. Remove that line once fixed.
+1. ~~Scan picker captions are 15px on phones.~~ Fixed: `.pick-text` is now `clamp(16px, 3.8vw, 18px)` and the `test.fail` line was removed.
 
 ## Flakiness
 
@@ -51,7 +50,7 @@ One existing test still uses `waitForTimeout(900)` (landing scroll-snap), becaus
 ## Not built, so not tested
 
 - Browser notifications / permission prompts (no Notification API or service worker)
-- Missed-dose alerts (+30 min), agreed but not built
+- Missed-dose alert to the caregiver (the senior's own "Not ticked yet" Calendar alert, 15 min after a dose, was added 4 Nov and needs an e2e rerun)
 - Google Calendar "add to calendar" links (the app uses OAuth sync instead, which is tested)
 - RAG in the chatbot (it is grounded only on the user's own medicines)
 - Nearby-clinics map (stretch goal)

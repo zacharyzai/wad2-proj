@@ -46,7 +46,7 @@ Try your own label too: **Take a photo of the label**, or **Browse photos** (PNG
 Tap **Schedule**. The labels you checked become a daily timetable, built by our own rules (never AI):
 
 - **Today:** each dose by time of day. Tick it when you've taken it; ticks are saved to your account. Ticking a 9 pm dose at 8 am asks first.
-- **This week**, **My medicines** (change days and times, or stop a medicine, with Undo) and **Reminders** (connect Google Calendar for an alert at each dose).
+- **This week**, **My medicines** (change days and times, or stop a medicine, with Undo) and **Reminders** (connect Google Calendar for an alert at each dose, plus a "Not ticked yet" alert 15 minutes later; ticking the dose cancels it).
 - "When necessary", weekly and tapering medicines are listed for your pharmacist instead of being scheduled.
 
 ### 4. Understand a bill
@@ -106,9 +106,10 @@ The person this app is for is usually on a phone and not comfortable with techno
 | Forgot your password? (reset link by email; logs out every other device) | ✅ Needs an email provider on the live site (`MAIL_PROVIDER`); locally the email prints in the server terminal |
 | Medicine schedule with dose ticks | ✅ Ticks saved to your account; "when necessary", weekly and tapering medicines go to your pharmacist, never scheduled |
 | Google Calendar reminders | ✅ Connect, Disconnect and automatic sync on Schedule → Reminders |
+| "Not ticked yet" alert, 15 minutes after an unticked dose | ✅ Through Google Calendar; ticking cancels it, unticking brings it back |
 | Scan history, Listen again | ✅ |
 | Caregiver linking and read-only view of today's doses | ✅ |
-| Missed-dose alerts for the senior and caregiver (30 minutes after an unticked dose) | Coming |
+| Missed-dose alert sent to the caregiver | Not built (the caregiver sees missed doses on My seniors instead) |
 | Nearby clinics map | Stretch goal |
 
 ## Your privacy and safety
@@ -200,6 +201,7 @@ docs/history-contract.md   saved scans and ownership
 docs/care-contract.md      caregiver invitations, linking and the read-only view
 docs/google-contract.md    Google Calendar: endpoints, sync, the Connect button steps
 docs/heuristic-audit.md    Nielsen's 10 heuristics: findings and fixes, 3 rounds
+docs/final-checklist.md    final phase: submission, slides, video, demo script (due Fri 6 Nov, 9am)
 server/                    Express API: app.js, routes/, services/, models/, middleware/, fixtures/
 src/                       Vue app: views/ (one per page), components/<feature>/, stores/ (Pinia), rules/, i18n/, api/client.js
 e2e/                       Playwright specs, one per feature
