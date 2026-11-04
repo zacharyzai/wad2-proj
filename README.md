@@ -6,7 +6,7 @@ Made for elderly Singaporeans and the family members who help them. It supports 
 
 **Try it:** https://ahma-ahgong-can.vercel.app
 
-IS216 Web Application Development II · G7 T8 · Vue 3 · Express · MongoDB · Gemini
+IS216 Web Application Development II · G7 T8 · Vue 3 · Pinia · Bootstrap 5 · Express · MongoDB · Gemini
 
 ---
 
@@ -14,7 +14,7 @@ IS216 Web Application Development II · G7 T8 · Vue 3 · Express · MongoDB · 
 
 ### 1. Log in with a demo account
 
-Every page needs an account. Use one of these fake people (password for all: **`Demo1234!`**). Each one gets a different subsidy result on bills, because the app reads their date of birth, citizenship and household income from the account.
+Use one of these fake people (password for all: **`Demo1234!`**). Each one gets a different subsidy result on bills, because the app reads their date of birth, citizenship and household income from the account.
 
 | Email | Person | Born | Citizenship | Income per person | Bills show |
 |---|---|---|---|---|---|
@@ -28,43 +28,68 @@ Every page needs an account. Use one of these fake people (password for all: **`
 | `unsure.demo@example.com` | Gopal s/o Ramasamy | 1952 | Citizen by birth | Not sure | Merdeka Generation; CHAS applies, card colour unknown |
 | `foreigner.demo@example.com` | Kenji Watanabe | 1960 | Neither citizen nor PR | (not asked) | No subsidy estimates; schemes listed with their official links |
 
-**Caregiver account:** `caregiver.demo@example.com` (Tan Wei Jie, same password) is already linked to **Tan Ah Kow** (`pioneer.demo`) and **Siti Aminah** (`merdeka.demo`). It opens on **Care**: each senior's doses today, taken, missed or still to come. A senior shows "Not shared yet" until they have used Schedule while logged in. To see it update, log in as `pioneer.demo` on a second device or browser, scan the **Metformin label** sample, tap **Looks correct** and tick a dose; the caregiver's page refreshes every minute.
+There is also a **caregiver** demo account (step 6).
 
-Or create your own account: it asks for your name, date of birth, citizenship and (for citizens) household income, and the language you're using becomes your account's language.
+Or create your own account. It asks for your name, date of birth, citizenship and (for citizens) household income, whether you are a senior or a caregiver, and then whether you'd like day or night mode. The language you're using becomes your account's language. Everything except the welcome page, Log in, Sign up and share links needs an account.
 
 ### 2. Read a medicine label
 
-1. Tap **Scan**, then a sample such as **Metformin label** (no photo needed).
+1. On Home, tap **Scan a medicine label**, then **Try an example** and pick **Metformin label** (no photo needed).
 2. **Check what we read:** every field is shown next to the label. Fix anything that's wrong; anything we couldn't read is marked **Please check** and must be filled in before you continue. The app won't accept impossible doses (0 tablets, 20 times a day).
 3. **Looks correct** → the explanation: how much, how often, before or after food, and warnings, in big text.
 4. Tap **Read aloud**, change the speed, and answer the quick check question ("How many tablets in the morning?").
 
-Try it with your own label too: **Take photo**, or upload one with **Browse photos**. Before anything is sent, your name, NRIC, address and phone number are blacked out **on your phone**, and you can watch it happen.
+Try your own label too: **Take a photo of the label**, or **Browse photos** (PNG, JPG, HEIC or PDF). Before anything is sent, your name, NRIC, address and phone number are blacked out **on your phone**, and you can watch it happen.
 
-### 3. Understand a bill
+### 3. See your medicine schedule
 
-1. Tap **Bill**, then a sample bill:
+Tap **Schedule**. The labels you checked become a daily timetable, built by our own rules (never AI):
+
+- **Today:** each dose by time of day. Tick it when you've taken it; ticks are saved to your account. Ticking a 9 pm dose at 8 am asks first.
+- **This week**, **My medicines** (change days and times, or stop a medicine, with Undo) and **Reminders** (connect Google Calendar for an alert at each dose).
+- "When necessary", weekly and tapering medicines are listed for your pharmacist instead of being scheduled.
+
+### 4. Understand a bill
+
+1. On Home, tap **Scan a medical bill**, then **Try an example** → **Medical bill**. After **Looks correct**, the bill page offers more samples:
    - **Bedok:** a doctor visit and medicine, with the polyclinic subsidy.
    - **Tampines:** blood tests and MediSave.
    - **Marine Parade:** wound dressing, with the Merdeka Generation subsidy.
    - **Hospital stay:** ward charges, GST and a MediShield Life claim.
 2. Tap any line to hear what it means.
-3. Open **What this means for you** to see the subsidies already on the bill, and the ones you **may also qualify for**, each with its official MOH or CHAS page. Log in as a different demo person to see the result change.
-4. Scan a real bill from any clinic, hospital, dental clinic or pharmacy. If a bill lists Gross / Subsidy / **Net** for each line, the net amounts are used. If you scan a bill on the medicine page (or the reverse), the app asks: *"Was this meant for a medical bill?"*
+3. Open **What this means for you** to see the subsidies already on the bill, and **You may also qualify for…**, each with its official MOH or CHAS page and the date we last checked it. Log in as a different demo person to see the result change.
+4. Scan a real bill from any clinic, hospital, dental clinic or pharmacy, **page by page** (up to 4 pages) or as a PDF. If a bill lists Gross / Subsidy / **Net** for each line, the net amounts are used. If you scan a bill as a medicine label (or the reverse), the app asks: *"Was this meant for a medical bill?"*
 
-### 4. Ask about your medicine
+### 5. Ask, look back and share
 
-Tap **Ask** and type or say a question ("Can I take it with food?"). Answers come from the labels you checked, or from general medicine information, and suggest next questions to tap. Emergencies ("chest pain", "can't breathe") get a **Call 995** card straight away. **New conversation** starts over, with Undo.
+- **Ask:** type or say a question ("Can I take it with food?"). Answers come from the labels you checked, or from general medicine information, and suggest next questions to tap. Emergencies ("chest pain", "can't breathe") get a **Call 995** card straight away. **New conversation** starts over, with Undo.
+- **History:** every scan you confirmed with **Looks correct**, newest first, grouped by medicine and by month for bills. **Listen again**, or **Share** a read-only link (also by WhatsApp) that works for 30 days and shows only what was read from the label or bill, never your account details.
 
-### 5. Make it yours
+### 6. Caregivers
+
+`caregiver.demo@example.com` (Tan Wei Jie, same password) is already linked to **Tan Ah Kow** (`pioneer.demo`) and **Siti Aminah** (`merdeka.demo`). It opens on **My seniors**: each senior's doses today, taken, missed or still to come, read-only. A senior shows "Not shared yet" until they have used Schedule while logged in.
+
+To see it update, log in as `pioneer.demo` in a second browser, scan the **Metformin label** sample, tap **Looks correct** and tick a dose; the caregiver's page refreshes every minute.
+
+A senior links their own caregiver from **Account → Invite a caregiver**: the link works once, for 7 days, and the caregiver never sees scans, photos, bills or account details.
+
+### 7. Make it yours
 
 - **Language:** switch at the top (or in the sidebar). The whole app, the read-aloud and the bill explanations change. It's saved to your account, so it follows you to other devices.
-- **Night mode:** the moon button. The app always starts in day mode.
-- **How to use the app:** a short guide that points at each button. It opens on your first visit, and again any time from the sidebar or Account.
-- **Account:** see and edit your details (these drive the bill subsidies), change language (you'll see "Settings saved"), and log out.
-- **Forgot your password?** On Log in, type your email and tap **Forgot your password?**, then **Send me a link**. Running locally, the email is printed in the terminal running `pnpm server`: open its link, choose a new password, and you're logged in (any other device that was logged in is logged out). Each link works once, for 30 minutes.
+- **Day or night mode:** asked once after you sign up; change it any time on **Account** (Day, Night or Same as my device).
+- **How to use the app:** a short guide that walks through the real buttons. It opens the first time you use the app **in this browser** (a second account in the same browser won't see it again), and any time from the sidebar or Account.
+- **Account:** see and edit your details (these drive the bill subsidies), change language (you'll see "Settings saved"), invite a caregiver, and log out. Logging out also clears the Ask conversation and any scan in progress, so the next person on a shared device sees nothing.
+- **Forgot your password?** On Log in, tap **Forgot your password?**, then **Send me a link**. Running locally, the email is printed in the terminal running `pnpm server`: open its link, choose a new password, and you're logged in (any other device that was logged in is logged out). Each link works once, for 30 minutes.
 
 ---
+
+## Designed for the senior's phone
+
+The person this app is for is usually on a phone and not comfortable with technology; the family member helping them is often on a computer. So the two get slightly different apps:
+
+- **Phones:** full-size text and buttons (buttons 64px tall, every tap target at least 48px), pages change instantly, and nothing moves behind the words.
+- **Laptops and desktops:** about 25% more compact (text never below 16px), with page transitions and gentle background motion.
+- **Everyone:** turning on "reduce motion" on the device stops the animations. Accessibility checks (axe) run in our end-to-end tests.
 
 ## What's built, and what's coming
 
@@ -72,30 +97,34 @@ Tap **Ask** and type or say a question ("Can I take it with food?"). Answers com
 |---|---|
 | Scan → Check → Explain, read aloud, quick check | ✅ |
 | 4 languages for the whole app | ✅ (translations being checked by native speakers) |
+| Read aloud in every language | ✅ The device's own voice first; our server voice where a device has none (often Tamil and Malay) |
 | Bills from any medical place, with subsidies from your account | ✅ Estimates only where official figures exist (polyclinic, CHAS GP and dental); other places list the schemes with links, never a made-up amount |
+| Multi-page bills and PDFs | ✅ Up to 4 pages |
 | On-phone covering of personal details | ✅ |
 | Ask chatbot | ✅ |
-| Accounts, Remember me, language on the account | ✅ |
+| Accounts, Remember me, language and day/night on the account | ✅ |
 | Forgot your password? (reset link by email; logs out every other device) | ✅ Needs an email provider on the live site (`MAIL_PROVIDER`); locally the email prints in the server terminal |
-| Google Calendar reminders | ✅ Connect, Disconnect and automatic sync on the Schedule page |
 | Medicine schedule with dose ticks | ✅ Ticks saved to your account; "when necessary", weekly and tapering medicines go to your pharmacist, never scheduled |
-| Caregiver view (a family member sees whether today's doses were taken, with the senior's approval) | Coming |
-| Scan history and WhatsApp share links | Coming |
+| Google Calendar reminders | ✅ Connect, Disconnect and automatic sync on Schedule → Reminders |
+| Scan history, Listen again, read-only share links (WhatsApp too) | ✅ |
+| Caregiver linking and read-only view of today's doses | ✅ |
+| Missed-dose alerts for the senior and caregiver (30 minutes after an unticked dose) | Coming |
+| Nearby clinics map | Stretch goal |
 
 ## Your privacy and safety
 
 - **Photos are never stored.** Personal details are covered on your phone first; only the covered photo is sent, to read the text, and then it's discarded. We keep extracted text only.
 - **You always check** what was read before anything uses it. Unclear fields are flagged, never guessed.
-- **Explanations come from human-checked templates**, not free AI text. The medicine schedule uses our own rules, not AI.
+- **Explanations come from human-checked templates**, not free AI text. The medicine schedule and the subsidy rules are our own rules, not AI.
 - **Not medical advice.** The app never tells you to change a dose. "When necessary" and tapering medicines are sent to your pharmacist, not scheduled.
-- **Passwords are hashed**; your login stays on your device.
+- **Share links are read-only** and show only what was read from the label or bill. A caregiver sees only today's doses.
+- **Passwords are hashed** (Argon2id); your login stays on your device.
 
 ## Tips
 
 - **Photos:** good light, the whole label or bill inside the frame, held steady. A clear photo of the wrong document gets its own message (not "retake in good light").
-- **Read aloud in Tamil or Malay** needs a voice for that language on your device. Some devices don't have one yet.
-- **Google's "unverified app" screen** (when Calendar connecting arrives): it's a student project, so press **Advanced → Go to Ah Ma Ah Gong Can**.
-- **Free AI limits:** real photo scans use a free AI quota. If you see "Too many tries right now", wait a few minutes or use a sample.
+- **Google's "unverified app" screen** when connecting Calendar: it's a student project, so press **Advanced → Go to Ah Ma Ah Gong Can**.
+- **Free AI limits:** real photo scans, questions and the server voice share a free daily quota. If you see "Too many tries right now", wait a few minutes or try an example.
 
 ---
 
@@ -121,15 +150,13 @@ pnpm dev      # app on http://localhost:5173 (sends /api to the API)
 | Variable | What for |
 |---|---|
 | `USE_MOCK_AI` | `true`: fixed answers, no AI quota (tests and local work). Anything else, or unset: real AI |
-| `GEMINI_API_KEY`, `GEMINI_MODEL`, `GEMINI_FALLBACK_MODELS`, `GROQ_API_KEY`, `GROQ_MODELS` | Reading photos and the chatbot. Gemini first, Groq as the backup. Overloaded models rest for 2 minutes |
+| `GEMINI_API_KEY`, `GEMINI_MODEL`, `GEMINI_FALLBACK_MODELS`, `GROQ_API_KEY`, `GROQ_MODELS` | Reading photos, the chatbot and the server voice. Gemini first, Groq as the backup. Overloaded models rest for 2 minutes |
 | `MONGODB_URI`, `JWT_SECRET` | Accounts. `JWT_SECRET` must be at least 32 bytes |
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI`, `GOOGLE_TOKEN_KEY` | Google Calendar. See [docs/google-contract.md](docs/google-contract.md) |
+| `MAIL_PROVIDER` | Password-reset emails: `brevo` or `resend` sends them (with that provider's key); unset or `console` prints them in the server terminal |
+| `AI_DAILY_CAP`, `AI_CHAT_DAILY_CAP`, `AI_TTS_DAILY_CAP` | App-wide daily limits for scans, questions and the server voice (defaults 200, 500, 300) |
 
 ### Database
-
-Confirmed scan history backend: `POST/GET /api/history` and `GET/DELETE /api/history/:id`. See [docs/history-contract.md](docs/history-contract.md) for the payload, ownership rules and share links. Tapping **Looks correct** on Confirm saves the scan to History when logged in.
-
-Caregiver invite/account linking: see [docs/care-contract.md](docs/care-contract.md). Seniors can invite one caregiver; caregivers can link multiple seniors. This backend handles invitation expiry, acceptance and revocation, and the caregiver's read-only view of a linked senior's doses today (from the timetable the senior's app saves with `PUT /api/schedule`).
 
 Follow [docs/atlas.md](docs/atlas.md) for team access. `pnpm atlas:configure` writes your `.env`; `pnpm db:check` checks the connection. `pnpm server:local` uses a throwaway local database instead.
 
@@ -142,12 +169,13 @@ node --env-file=.env server/scripts/seed-demo-accounts.js
 ### Test
 
 ```bash
-pnpm test:api                          # backend (node:test): scan, chat, auth, subsidies, Calendar
-node --test src/utils/sensitive.test.js # on-phone covering of personal details
-pnpm test:e2e                          # Playwright, phone and desktop; starts both servers; AI, logins and Google mocked
+pnpm test        # Vitest: everything below except e2e
+pnpm test:unit   # src: rules, stores, on-phone covering, component tests (jsdom)
+pnpm test:api    # server: scan, chat, auth, subsidies, history, care, Calendar
+pnpm test:e2e    # Playwright, phone and desktop; starts both servers; AI, logins and Google mocked
 ```
 
-Stop your own `pnpm server` before `pnpm test:e2e`: Playwright reuses a server already on port 3000, and yours signs logins with your real `JWT_SECRET`, so the tests' logins would be refused.
+Stop your own `pnpm server` before `pnpm test:e2e`: Playwright reuses a server already on port 3000, and yours signs logins with your real `JWT_SECRET`, so the tests' logins are refused ("Please log in again").
 
 ### Try the real AI
 
@@ -155,7 +183,7 @@ Stop your own `pnpm server` before `pnpm test:e2e`: Playwright reuses a server a
 pnpm try:scan medication path/to/label.jpg   # prints the scan JSON
 ```
 
-Set `USE_MOCK_AI=false` to use it in the app. Every real scan uses free quota (Gemini's free tier allows about 20 scans a day per model).
+Leave `USE_MOCK_AI` unset (or anything but `true`) to use it in the app. Every real scan uses free quota (Gemini's free tier allows about 20 scans a day per model).
 
 ### Deploy
 
@@ -167,10 +195,13 @@ Vercel: every push to `main` deploys. `api/index.js` runs the Express app as one
 docs/scan-contract.md      the scan data shape every feature builds on (read this first)
 docs/auth-contract.md      accounts: endpoints, tokens, Remember me, language
 docs/chat-contract.md      the Ask chatbot and its safety layers
+docs/doses-contract.md     dose ticks
+docs/history-contract.md   saved scans, ownership and share links
+docs/care-contract.md      caregiver invitations, linking and the read-only view
 docs/google-contract.md    Google Calendar: endpoints, sync, the Connect button steps
 docs/heuristic-audit.md    Nielsen's 10 heuristics: findings and fixes, 3 rounds
 server/                    Express API: app.js, routes/, services/, models/, middleware/, fixtures/
-src/                       Vue app: views/ (one per page), components/<feature>/, rules/, i18n/, api/client.js
+src/                       Vue app: views/ (one per page), components/<feature>/, stores/ (Pinia), rules/, i18n/, api/client.js
 e2e/                       Playwright specs, one per feature
 public/samples/            sample label and bill images
 ```
@@ -182,7 +213,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for branches, pull requests and who owns 
 | Who | Owns |
 |---|---|
 | Zachary (lead) | Scan API and AI reading, on-phone covering, Ask chatbot, Google Calendar, welcome page |
-| Sheen Hern | Database, accounts, history, sharing, cloud read-aloud, deploy |
+| Sheen Hern | Database, accounts, history, sharing, caregivers, cloud read-aloud, deploy |
 | Asher | Scan, Check and Explain pages, translations, read-aloud |
 | Lokesh | Schedule and Bill pages, subsidy rules, samples |
 | Isaac | Design system, app shell, Home, Login, Account, History and Share pages |
