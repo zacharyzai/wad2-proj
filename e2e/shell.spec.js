@@ -43,3 +43,11 @@ for (const path of ['/', '/scan', '/scan?sample=med-1', '/history', '/no-such-pa
     await expectNoAxeViolations(page)
   })
 }
+
+test('the background drawings stay still on phones and drift on desktop', async ({ page, isMobile }) => {
+  await page.goto('/')
+  const bit = page.getByTestId('page-backdrop').locator('.bit').first()
+  await expect(bit).toBeAttached()
+  // Phones are the senior's device: nothing moves behind the words. Desktop keeps the slow drift.
+  expect(await bit.evaluate((el) => getComputedStyle(el).animationName)).toEqual(isMobile ? 'none' : expect.stringMatching(/^drift/))
+})

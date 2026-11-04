@@ -32,17 +32,13 @@ test('a new page opens at the top with its heading focused @a11y', async ({ page
   await expect(page.getByRole('heading', { level: 1, name: 'Check what we read' })).toBeFocused()
 })
 
-test('a page change starts the new page at the top straight away (no fade-in scrolled down, then a jump)', async ({ page, isMobile }) => {
+test('a page change on a phone is instant: the new page starts at the top and only fades up quickly', async ({ page, isMobile }) => {
   test.skip(!isMobile, 'the phone tab bar')
-  // Record where the page is scrolled at the moment the page-change animation captures the new page.
+  // Phones skip the page transition (it held every tap for about half a second on a slower phone).
   await page.addInitScript(() => {
+    window.__transitions = 0
     const start = document.startViewTransition?.bind(document)
-    if (!start) return
-    document.startViewTransition = (update) => {
-      const transition = start(update)
-      transition.ready.then(() => (window.__scrollAtCapture = scrollY), () => {})
-      return transition
-    }
+    if (start) document.startViewTransition = (update) => (window.__transitions++, start(update))
   })
   await page.goto('/')
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
@@ -50,9 +46,9 @@ test('a page change starts the new page at the top straight away (no fade-in scr
   await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(100)
   await page.locator('.nav').getByRole('link', { name: 'Scan', exact: true }).click()
   await expect(page).toHaveURL(/\/scan$/)
-  // The new page was captured already at the top, so it fades in in place (not scrolled down, then jumping up).
-  await expect.poll(() => page.evaluate(() => window.__scrollAtCapture)).toBe(0)
-  await expect(page.locator('.nav')).toHaveCSS('view-transition-name', 'tabs') // the tab bar stays on top of the page change
+  expect(await page.evaluate(() => scrollY)).toBe(0) // at the top straight away, no jump
+  expect(await page.evaluate(() => window.__transitions)).toBe(0)
+  await expect.poll(() => page.locator('#main').evaluate((el) => getComputedStyle(el).opacity)).toBe('1')
   await page.goBack()
   await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(100) // Back returns to where Home was
 })

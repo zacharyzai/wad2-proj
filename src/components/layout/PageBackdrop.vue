@@ -3,7 +3,7 @@
      coins), the day (a calendar, a clock), health (a heartbeat), and the people it is for: an older couple, a walking stick,
      and caring hands holding a heart. The set repeats down a long page (one set per TILE px), so it never thins out.
      Behind everything (the cards and their words are always on top), never clickable, hidden from screen readers.
-     Reduced motion: they stay where they are. -->
+     Reduced motion, and on phones: they stay where they are. -->
 <script setup>
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 
@@ -78,5 +78,7 @@ svg .fill { fill: currentColor; opacity: 0.35; stroke: none; }
 /* A slow drift: up, across and back, with a slight turn, over about half a minute; never the same moment for two drawings
    (each starts at its own point). Slow enough to notice only when you look. */
 @keyframes drift { 0%, 100% { transform: translate(0, 0) rotate(0deg); } 25% { transform: translate(12px, -16px) rotate(6deg); } 50% { transform: translate(-4px, -22px) rotate(-2deg); } 75% { transform: translate(-14px, -8px) rotate(-7deg); } }
-@media (prefers-reduced-motion: reduce) { .bit { animation: none; } }
+/* Phones (the senior's device, same 992px line as tokens.css) keep the drawings but still: nothing moves behind the words,
+   and the phone isn't kept busy animating 26-39 drawings on every page. Desktop (the caregiver's) keeps the drift. */
+@media (prefers-reduced-motion: reduce), (max-width: 991.98px) { .bit { animation: none; } }
 </style>

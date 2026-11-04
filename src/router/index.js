@@ -107,11 +107,16 @@ router.beforeEach(async (to) => {
 // Page changes slide and fade (and the scanned photo moves into place on Confirm) where the browser supports it.
 // beforeResolve runs once the next page's code has loaded, so the transition only waits for the DOM swap. Styles: motion.css.
 let finishTransition = null
+// Phones (the senior's device) don't wait for a page transition: on a slower phone it held every tap for about half a
+// second (measured 580 ms per tap, 131 ms without). The new page is shown at once and fades in quickly (below).
+// Desktop (the caregiver's) keeps the transition. Same 992px line as the compact tokens (tokens.css).
+const phone = matchMedia('(max-width: 991.98px)')
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)')
 router.beforeResolve((to, from) => {
   // Skipped while the Beginner's guide is open: the guide moves its own glow and bubble between pages.
   // Start, Log in and Create account are pages of their own: the top bar stays put and the teal band reshapes (motion.css).
   // Also skipped inside a whole-screen fade (arriving after logging in, leaving after logging out): that fade covers it.
-  if (!from.name || to.path === from.path || useGuideStore().open || screenFading() || !document.startViewTransition || matchMedia('(prefers-reduced-motion: reduce)').matches) return
+  if (!from.name || to.path === from.path || phone.matches || useGuideStore().open || screenFading() || !document.startViewTransition || reduceMotion.matches) return
   return new Promise((resolve) => {
     const transition = document.startViewTransition(() => new Promise((done) => ((finishTransition = done), resolve())))
     // Skipped transitions (window resized, tab hidden) still swap the page; they only reject these promises.
@@ -125,5 +130,12 @@ function finishTransitionNow() {
 }
 // Normally scrollBehavior finishes it (after scrolling). This is the fallback if it doesn't run.
 router.afterEach(() => nextTick(() => setTimeout(finishTransitionNow, 50)))
+
+// Phones: the new page is already in place and usable; it only fades up from 35% over 120 ms, so the change still reads
+// as a change. Opacity only (no layout), and it never delays a tap.
+router.afterEach((to, from, failure) => {
+  if (failure || !from.name || to.path === from.path || !phone.matches || reduceMotion.matches || screenFading()) return
+  nextTick(() => document.getElementById('main')?.animate([{ opacity: 0.35 }, { opacity: 1 }], { duration: 120, easing: 'cubic-bezier(0.23, 1, 0.32, 1)' }))
+})
 
 export default router
