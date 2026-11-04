@@ -5,7 +5,7 @@
                   the person's own medicines.
        Bills      one short row per visit under its month ("This month", "October 2026"), chips to jump to a month, and
                   what was paid at each clinic this year.
-     A row opens that medicine or bill (?open=), where Listen again, Share and Delete live (HistoryItem.vue): the list stays
+     A row opens that medicine or bill (?open=), where Listen again and Delete live (HistoryItem.vue): the list stays
      short and nothing is deleted by a stray tap. The list and the open item are in the address, so Back works.
      API: docs/history-contract.md. -->
 <script setup>
@@ -103,7 +103,7 @@ function jumpTo(m) {
 const shortDate = (ymd) => new Date(`${ymd}T00:00:00Z`).toLocaleDateString(locale.value, { timeZone: 'UTC', day: 'numeric', month: 'short', ...(ymd.startsWith(thisYear) ? {} : { year: 'numeric' }) })
 const savedDay = (iso) => shortDate(todayInSingapore(new Date(iso)))
 
-// --- One medicine or bill opened (?open=): its scans, each with Listen again, Share and Delete. --------------------------
+// --- One medicine or bill opened (?open=): its scans, each with Listen again and Delete. ---------------------------------
 const opened = computed(() => {
   const key = route.query.open
   if (!key) return null
@@ -146,10 +146,10 @@ async function removed(id) {
 </script>
 
 <template>
-  <!-- One medicine or bill: its scans, each with Listen again, Share and Delete. -->
+  <!-- One medicine or bill: its scans, each with Listen again and Delete. -->
   <div v-if="opened" class="page">
-    <button type="button" class="back align-self-start" :aria-label="t('history.back')" data-testid="history-back" @click="close"></button>
     <div class="detail-head">
+      <button type="button" class="back" :aria-label="t('history.back')" data-testid="history-back" @click="close"></button>
       <KindIcon :kind="opened.kind" :size="64" />
       <div class="d-flex flex-column gap-1 min-w-0">
         <h1 class="m-0 detail-title">{{ opened.title }}</h1>
@@ -160,7 +160,7 @@ async function removed(id) {
     <ErrorBanner v-if="errorCode" :code="errorCode" />
     <h2 v-if="opened.scans.length > 1" class="section-label">{{ t('history.allScans') }}</h2>
     <ul class="list-unstyled d-flex flex-column gap-3 m-0" data-testid="history-scans">
-      <HistoryItem v-for="item in opened.scans" :key="item.id" :item="item" @replay="replay" @deleted="removed" @changed="(patch) => Object.assign(item, patch)" />
+      <HistoryItem v-for="item in opened.scans" :key="item.id" :item="item" @replay="replay" @deleted="removed" />
     </ul>
   </div>
 

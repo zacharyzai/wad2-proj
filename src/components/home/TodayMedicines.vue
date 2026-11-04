@@ -59,6 +59,12 @@ const timeText = (hhmm) => {
 // "1 tablet", and "After food", each on its own line on the card.
 const amountOf = ({ count, unit }) => (count != null ? `${count} ${t(`unit.${unit ?? 'other'}`, count)}` : '')
 const foodOf = ({ food }) => (food ? t(`food.${food}`) : '')
+// What it is for, beside the name: seniors know "for diabetes", not "Metformin". The words' own brackets become a dot, so there are
+// never brackets inside brackets.
+function purposeOf(dose) {
+  const purpose = medicines.find((m) => m.id === dose.medicineId)?.medication?.purpose
+  return purpose ? t(`purpose.${purpose}`).replace(/\s*[(（](.+?)[)）]/, ' · $1') : ''
+}
 
 // "I've taken it" ticks the pill that is due. (Due means within the hour, so it is never "too early".) Shown at once;
 // if the account doesn't save it, the tick goes back and a short message says so.
@@ -135,7 +141,7 @@ onBeforeUnmount(() => {
             <div class="fdose-row">
               <span class="amount"><KindIcon kind="medication" :size="40" /><span v-if="amountOf(shown.instruction)">{{ amountOf(shown.instruction) }}</span></span>
               <span class="fdose-words">
-                <strong class="fdose-name">{{ shown.label }}</strong>
+                <strong class="fdose-name">{{ shown.label }} <span v-if="purposeOf(shown)" class="fdose-purpose" data-testid="home-today-purpose">({{ purposeOf(shown) }})</span></strong>
                 <span v-if="foodOf(shown.instruction)" class="fdose-food"><AppIcon name="food" :size="18" />{{ foodOf(shown.instruction) }}</span>
               </span>
             </div>
@@ -196,6 +202,7 @@ onBeforeUnmount(() => {
 .amount { flex: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-width: 76px; padding: 10px 8px; border-radius: 18px; background: rgba(255, 255, 255, 0.1); font-size: 16px; font-weight: 600; text-align: center; }
 .fdose-words { min-width: 0; display: flex; flex-direction: column; gap: 4px; }
 .fdose-name { font-size: var(--t22, 22px); font-weight: 800; line-height: 1.25; overflow-wrap: anywhere; }
+.fdose-purpose { font-size: 16px; font-weight: 600; }
 .fdose-food { display: inline-flex; align-items: center; gap: 6px; font-size: 17px; color: #bfe3df; }
 /* One big button, full width: easy to see, easy to press. */
 .take-btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; width: 100%; min-height: 56px; padding: 10px 18px; border: 0; border-radius: var(--r-pill); background: #f2fbfa; color: #163a3a; font: inherit; font-size: 19px; font-weight: 800; box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.12); cursor: pointer; transition: transform 120ms var(--ease-out), background-color var(--dur) var(--ease-out); }

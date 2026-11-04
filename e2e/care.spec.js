@@ -72,6 +72,22 @@ test.describe('caregiver-only tab', () => {
     await expect(page.getByRole('heading', { name: 'No one linked yet' })).toBeVisible()
   })
 
+  test("a caregiver reads a senior's medicine details, with nothing to change them", async ({ page }) => {
+    await signIn(page, CAREGIVER)
+    const entry = { label: 'Metformin 500mg', instruction: { count: 1, unit: 'tablet', food: 'after' }, doses: [{ id: 'm1-morning', time: '08:00' }, { id: 'm1-night', time: '21:00' }] }
+    await page.route('**/api/care/seniors/u2/today', (route) => route.fulfill(ok({ ...TODAY, medicines: [{ id: 'm1', entry, purpose: 'diabetes', rawInstruction: 'Take 1 tablet 2 times a day', warnings: ['Do not skip meals'] }] })))
+    await page.goto('/care/u2')
+    const card = page.getByTestId('care-medicine')
+    await expect(card).toContainText('Metformin 500mg')
+    await expect(card).toContainText('Usually used for diabetes (blood sugar)')
+    await expect(card).toContainText('1 tablet · After food')
+    await expect(card).toContainText('8:00')
+    await expect(card).toContainText('Do not skip meals')
+    await expect(page.getByTestId('care-medicines')).toContainText('Only Mei Ling Tan can change them.')
+    await expect(page.getByTestId('care-medicines').getByRole('button')).toHaveCount(0) // read-only
+    await expect(page.getByTestId('care-medicines').locator('input, select, textarea')).toHaveCount(0)
+  })
+
   test("a senior's doses show taken, not ticked and to come, with words, and flag what was not ticked", async ({ page }) => {
     await signIn(page, CAREGIVER)
     await page.route('**/api/care/seniors/u2/today', (route) => route.fulfill(ok(TODAY)))

@@ -226,3 +226,13 @@ test('desktop: Today\'s medicines is the same size as the greeting beside it', a
   const today = await page.getByTestId('home-today').boundingBox()
   expect(Math.abs(today.height - greet.height)).toBeLessThan(2)
 })
+
+test('the next medicine on Home says what it is for, in brackets beside its name', async ({ page }) => {
+  const med = (id, name, purpose) => ({ id, source: 'label', sample: false, schedule: { startDate: '2026-01-01', days: 366, times: {} }, medication: { name, strength: null, purpose, doseAmount: 1, doseUnit: 'tablet', timesPerDay: 1, timing: ['bedtime'], withFood: null, frequencyType: 'daily', rawInstruction: 'x', warnings: [] } })
+  const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Singapore' }).format(new Date())
+  await page.clock.setFixedTime(new Date(`${today}T08:00:00+08:00`))
+  await page.route('**/api/doses**', (route) => route.fulfill({ json: { ok: true, data: { date: today, taken: [] } } }))
+  await page.addInitScript((list) => localStorage.setItem('medicines', JSON.stringify(list)), [{ ...med('m1', 'Metformin', 'diabetes'), schedule: { startDate: today, days: 30, times: {} } }])
+  await page.goto('/')
+  await expect(page.getByTestId('home-today-purpose')).toHaveText('(diabetes · blood sugar)') // never brackets inside brackets
+})

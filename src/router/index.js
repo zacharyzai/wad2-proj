@@ -22,7 +22,7 @@ const routes = [
   { path: '/bill', name: 'bill', component: () => import('../views/BillView.vue') },
   // Old link: bills are scanned on the Scan page, under the medicine label.
   { path: '/bill/scan', name: 'bill-scan', redirect: (to) => ({ name: 'scan', query: to.query, hash: '#bill' }) },
-  // Isaac (+ auth API). Everything needs an account except pages marked public: welcome, start, login, signup, share links, 404.
+  // Isaac (+ auth API). Everything needs an account except pages marked public: welcome, start, login, signup, caregiver invite links, 404.
   // Start: the first page for anyone not logged in, with "Join for free" (Create account) and "Log in".
   { path: '/start', name: 'start', component: () => import('../views/StartView.vue'), meta: { public: true, guestOnly: true, bare: true } },
   { path: '/login', name: 'login', component: () => import('../views/LoginView.vue'), meta: { public: true, guestOnly: true, bare: true } },
@@ -33,14 +33,12 @@ const routes = [
   { path: '/reset', name: 'reset', component: () => import('../views/ResetView.vue'), meta: { public: true, bare: true } },
   { path: '/history', name: 'history', component: () => import('../views/HistoryView.vue') },
   { path: '/account', name: 'account', component: () => import('../views/AccountView.vue') },
-  // Share links stay open: they are for family on WhatsApp, who have no account.
+  // Invite links stay open: the caregiver may have no account yet.
   // Caregiver tracking: caregivers only (the guard below sends everyone else Home).
   { path: '/care', name: 'care', component: () => import('../views/CareView.vue'), meta: { caregiverOnly: true } },
   { path: '/care/:seniorId', name: 'care-senior', component: () => import('../views/CareSeniorView.vue'), meta: { caregiverOnly: true } },
   // A senior's invite link, opened by the caregiver. Open to everyone; accepting needs a caregiver login.
   { path: '/shared/:token', name: 'shared', component: () => import('../views/SharedView.vue'), meta: { public: true } },
-  // One medicine label or bill shared read-only (History > Share).
-  { path: '/shared/scan/:token', name: 'shared-scan', component: () => import('../views/ScanShareView.vue'), meta: { public: true } },
   // Zachary: dev-only test bench for photo redaction; not in production builds.
   ...(import.meta.env.DEV ? [{ path: '/dev/redact', name: 'redact-lab', component: () => import('../views/dev/RedactLab.vue') }] : []),
   ...(import.meta.env.DEV ? [{ path: '/dev/badges', name: 'badge-demo', component: () => import('../views/dev/BadgeDemo.vue') }] : []),

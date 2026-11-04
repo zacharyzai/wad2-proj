@@ -22,6 +22,8 @@
     "nightMode": "夜间模式"
   },
   "care": {
+    "medsTitle": "{name} 的药物",
+    "medsNote": "您可以查看这些内容，只有 {name} 可以更改。",
     "lead": "邀请您的人。点选姓名查看今天的药物。",
     "emptyTitle": "还没有关联的人",
     "emptyText": "请您的父母或亲人在应用里打开“账户”，点“邀请照护者”，然后用 WhatsApp 把链接发给您。",
@@ -72,7 +74,7 @@
     "keep": "保留",
     "invite": "邀请照护者",
     "inviteTitle": "发送链接之前",
-    "inviteSee": "照护者会看到：您的姓名、今天的服药时间，以及每次服药是已服、漏服还是待服。",
+    "inviteSee": "照护者会看到：您的姓名、您的药物和服用方法，以及今天每次服药是已服、漏服还是待服。",
     "inviteNot": "他们不会看到：您的扫描、照片、账单或账户资料。您可以随时移除他们。",
     "inviteExpiry": "收到这个链接的人，7天内都可以使用。请只发给您信任的人。",
     "create": "创建链接",
@@ -98,7 +100,6 @@
     "shared": "照护者邀请",
     "care": "我的长辈",
     "careSenior": "今天的药物",
-    "sharedScan": "分享的摘要",
     "forgot": "忘记密码了吗？",
     "reset": "设定新密码",
     "start": "开始使用"
@@ -721,24 +722,12 @@
     "noBills": "还没有保存账单。",
     "saved": "保存于 {date}",
     "youPaid": "您支付了 {amount}",
-    "sharing": "已开启分享链接",
     "replay": "再听一遍",
-    "share": "分享",
     "delete": "删除",
-    "shareTitle": "要分享这份扫描吗？",
-    "shareMed": "拿到链接的人会看到：药名、剂量规格、服用量、服用时间和注意事项。",
-    "shareBill": "拿到链接的人会看到：您支付的总额和各项收费。",
-    "shareNever": "他们看不到您的姓名、电子邮件、出生日期或照片。",
-    "shareExpiry": "链接30天后失效。您随时可以停止分享。",
-    "shareCreate": "创建链接",
-    "linkReady": "链接已准备好",
-    "linkLabel": "分享链接",
     "expires": "有效期至 {date}",
     "whatsapp": "用 WhatsApp 发送",
     "copy": "复制链接",
     "copied": "已复制",
-    "unshare": "停止分享",
-    "shareMessage": "来自 Ah Ma Ah Gong Can 的摘要：",
     "deleteTitle": "要删除这份扫描吗？",
     "deleteText": "它会从您的记录中移除。您为它创建的链接也会失效。",
     "deleteYes": "是，删除",
@@ -748,10 +737,6 @@
     "emptyText": "扫描后核对并点击“没有问题”，就会保存在这里，最新的在最上面。需要先登录。"
   },
   "shared": {
-    "lead": "有人与您分享了这份内容，您只能阅读。",
-    "goneTitle": "此链接已失效",
-    "goneText": "它可能已过期，或分享的人已停止分享。",
-    "note": "这是标签或账单内容的摘要。请务必向医生或药剂师确认。",
     "open": "打开 Ah Ma Ah Gong Can"
   },
   "notFound": {

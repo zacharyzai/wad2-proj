@@ -92,7 +92,7 @@ Isaac: replace Coming soon with loading/empty/error states, paginated summaries,
 
 Every read/delete query filters by the authenticated `userId`; client owner filters are rejected. Only confirmed extracted contract fields are saved in `scans`. No photos or dedicated patient-name/NRIC/address/phone fields are stored. Free-text fields remain user-supplied: users must not enter identifying information into medicine instructions or bill descriptions. The backend does not automatically detect all personal text in otherwise valid fields.
 
-Scope: scan history covers confirmed medication labels and bills. It is separate from saved schedules/dose logs and chat history. Read-only share links (`POST /api/share { scanId }` → `{ token, expiresAt }`, 30 days; `DELETE /api/share/:token`; public `GET /api/share/:token` → `{ scan }` with contract fields only, rate limited) replace the earlier "no anonymous links" decision, per the proposal's WhatsApp sharing. The later caregiver work will invite someone to sign up or log in and use backend-managed access; it is not implemented by this API.
+Scope: scan history covers confirmed medication labels and bills. It is separate from saved schedules/dose logs and chat history. The later caregiver work will invite someone to sign up or log in and use backend-managed access; it is not implemented by this API.
 
 ## Verification
 

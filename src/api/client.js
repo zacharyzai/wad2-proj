@@ -58,15 +58,12 @@ export const googleDisconnect = (removeEvents) => api('/google/disconnect', { me
 export const readAloudAudio = (text, lang) => api('/tts', { method: 'POST', body: { text, lang } })
 
 
-// History and share links (Isaac's pages). Assumed contract until Sheen Hern's API lands: docs/history-contract.md
+// History (Isaac's pages). Assumed contract until Sheen Hern's API lands: docs/history-contract.md
 // Every saved scan's summary at once (the newest 500), for the History page to group and search: docs/history-contract.md
 export const listAllScans = () => api('/history/all')
 export const getScan = (id) => api(`/history/${encodeURIComponent(id)}`)
 export const saveScan = (scan) => api('/history', { method: 'POST', body: { scan } })
 export const deleteScan = (id) => api(`/history/${encodeURIComponent(id)}`, { method: 'DELETE' })
-export const createShare = (scanId) => api('/share', { method: 'POST', body: { scanId } })
-export const revokeShare = (token) => api(`/share/${encodeURIComponent(token)}`, { method: 'DELETE' })
-export const getShared = (token) => api(`/share/${encodeURIComponent(token)}`)
 
 
 // Caregiver tracking (Isaac's pages). Assumed contract until Sheen Hern's /api/care exists: docs/care-contract.md

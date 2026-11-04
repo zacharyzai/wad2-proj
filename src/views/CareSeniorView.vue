@@ -1,10 +1,12 @@
-<!-- Owner: Isaac. Caregivers only. One senior's doses today: taken, not ticked or still to come. Refreshes every minute.
-     Read-only: no scans, photos, bills or account details ever reach this page. API: docs/care-contract.md (assumed). -->
+<!-- Owner: Isaac. Caregivers only. One senior's doses today (taken, not ticked or still to come), and their medicines' details.
+     Refreshes every minute. Read-only: nothing here changes anything, and no scans, photos, bills or account details ever
+     reach this page. API: docs/care-contract.md. -->
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { careToday } from '../api/client'
+import { useScheduleText } from '../composables/useScheduleText'
 import PageHeader from '../components/layout/PageHeader.vue'
 import LoadingState from '../components/layout/LoadingState.vue'
 import EmptyState from '../components/layout/EmptyState.vue'
@@ -13,9 +15,11 @@ import AppIcon from '../components/layout/AppIcon.vue'
 
 const { t, locale } = useI18n()
 const route = useRoute()
+const { doseText, timesText } = useScheduleText()
 
 const senior = ref(null)
 const doses = ref([])
+const medicines = ref([]) // { id, entry, purpose, rawInstruction, warnings }
 const shared = ref(true) // false: the senior's app has never saved a timetable to their account
 const loading = ref(true)
 const errorCode = ref(null)
@@ -42,6 +46,7 @@ async function load(quiet = false) {
     errorCode.value = null
     senior.value = res.data.senior
     doses.value = res.data.doses
+    medicines.value = res.data.medicines ?? []
     shared.value = res.data.shared !== false
     updated.value = new Date()
   } else if (!quiet || res.error.code === 'NOT_FOUND') errorCode.value = res.error.code
@@ -86,6 +91,26 @@ onBeforeUnmount(() => clearInterval(timer))
         </li>
       </ul>
 
+      <!-- What each medicine is and how to take it, to read only: there is nothing here to press. -->
+      <section v-if="medicines.length" class="d-flex flex-column gap-3" aria-labelledby="care-meds-title" data-testid="care-medicines">
+        <div>
+          <h2 id="care-meds-title" class="section-label m-0">{{ t('care.medsTitle', { name: senior.name }) }}</h2>
+          <p class="text-body-secondary m-0">{{ t('care.medsNote', { name: senior.name }) }}</p>
+        </div>
+        <ul class="list-unstyled d-flex flex-column gap-3 m-0">
+          <li v-for="m in medicines" :key="m.id" class="card med-detail" data-testid="care-medicine">
+            <span class="dose-label">{{ m.entry.label }}</span>
+            <span v-if="m.purpose" class="fw-semibold">{{ t('purpose.lead') }} {{ t(`purpose.${m.purpose}`) }}</span>
+            <span v-if="doseText(m.entry.instruction)">{{ doseText(m.entry.instruction) }}</span>
+            <span v-if="m.entry.doses.length" class="d-flex align-items-center gap-2"><AppIcon name="clock" :size="18" />{{ timesText(m.entry) }}</span>
+            <span v-if="m.rawInstruction" class="text-body-secondary" lang="en">“{{ m.rawInstruction }}”</span>
+            <ul v-if="m.warnings.length" class="m-0 ps-4" lang="en">
+              <li v-for="w in m.warnings" :key="w">{{ w }}</li>
+            </ul>
+          </li>
+        </ul>
+      </section>
+
       <p class="text-body-secondary m-0 d-flex flex-wrap align-items-center gap-3">
         <span v-if="updatedText" data-testid="care-updated">{{ t('care.updated', { time: updatedText }) }}</span>
         <button type="button" class="btn btn-outline btn-sm" data-testid="care-refresh" @click="load()"><AppIcon name="replay" :size="20" />{{ t('care.refresh') }}</button>
@@ -98,4 +123,5 @@ onBeforeUnmount(() => clearInterval(timer))
 .dose-row { display: flex; align-items: center; gap: var(--s-4); flex-wrap: wrap; }
 .dose-time { font-size: var(--fs-h2); font-weight: 800; min-width: 4.5ch; }
 .dose-label { font-size: var(--fs-h3); font-weight: 600; overflow-wrap: anywhere; }
+.med-detail { display: flex; flex-direction: column; gap: var(--s-2); }
 </style>

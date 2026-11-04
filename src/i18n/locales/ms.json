@@ -22,6 +22,8 @@
     "nightMode": "Mod malam"
   },
   "care": {
+    "medsTitle": "Ubat {name}",
+    "medsNote": "Anda boleh membaca ini. Hanya {name} boleh mengubahnya.",
     "lead": "Orang yang menjemput anda. Ketik nama untuk lihat ubat hari ini.",
     "emptyTitle": "Belum ada sesiapa dipautkan",
     "emptyText": "Minta ibu bapa atau saudara anda buka Akaun dalam aplikasi dan ketik \"Jemput penjaga\". Mereka boleh hantar pautan melalui WhatsApp.",
@@ -72,7 +74,7 @@
     "keep": "Simpan",
     "invite": "Jemput penjaga",
     "inviteTitle": "Sebelum anda hantar pautan",
-    "inviteSee": "Penjaga akan nampak: nama anda, masa ubat anda hari ini, dan sama ada setiap dos sudah diambil, terlepas atau akan datang.",
+    "inviteSee": "Penjaga akan nampak: nama anda, ubat anda dan cara mengambilnya, dan sama ada setiap dos hari ini sudah diambil, terlepas atau akan datang.",
     "inviteNot": "Mereka tidak akan nampak: imbasan, gambar, bil atau butiran akaun anda. Anda boleh membuang mereka pada bila-bila masa.",
     "inviteExpiry": "Sesiapa yang menerima pautan ini boleh menggunakannya selama 7 hari, jadi hantar hanya kepada orang yang anda percayai.",
     "create": "Buat pautan",
@@ -98,7 +100,6 @@
     "shared": "Jemputan penjaga",
     "care": "Warga emas saya",
     "careSenior": "Ubat hari ini",
-    "sharedScan": "Ringkasan dikongsi",
     "forgot": "Lupa kata laluan?",
     "reset": "Pilih kata laluan baharu",
     "start": "Mula"
@@ -721,24 +722,12 @@
     "noBills": "Belum ada bil disimpan.",
     "saved": "Disimpan {date}",
     "youPaid": "Anda membayar {amount}",
-    "sharing": "Pautan dihidupkan",
     "replay": "Dengar semula",
-    "share": "Kongsi",
     "delete": "Padam",
-    "shareTitle": "Kongsi imbasan ini?",
-    "shareMed": "Orang yang ada pautan akan nampak: nama ubat, kekuatan, dos, masa dan sebarang amaran.",
-    "shareBill": "Orang yang ada pautan akan nampak: jumlah yang anda bayar dan caj.",
-    "shareNever": "Mereka tidak akan nampak nama, e-mel, tarikh lahir atau gambar anda.",
-    "shareExpiry": "Pautan tamat selepas 30 hari. Anda boleh berhenti berkongsi pada bila-bila masa.",
-    "shareCreate": "Buat pautan",
-    "linkReady": "Pautan anda sudah sedia",
-    "linkLabel": "Pautan kongsi",
     "expires": "Sah sehingga {date}",
     "whatsapp": "Hantar di WhatsApp",
     "copy": "Salin pautan",
     "copied": "Disalin",
-    "unshare": "Berhenti berkongsi",
-    "shareMessage": "Ringkasan daripada Ah Ma Ah Gong Can:",
     "deleteTitle": "Padam imbasan ini?",
     "deleteText": "Ia akan dibuang daripada sejarah anda. Pautan yang anda buat untuknya akan berhenti berfungsi.",
     "deleteYes": "Ya, padam",
@@ -748,10 +737,6 @@
     "emptyText": "Selepas anda menyemak imbasan dan menekan \"Semuanya betul\", ia disimpan di sini, yang terbaru di atas. Anda perlu log masuk."
   },
   "shared": {
-    "lead": "Seseorang berkongsi ini dengan anda. Anda hanya boleh membacanya.",
-    "goneTitle": "Pautan ini tidak lagi tersedia",
-    "goneText": "Mungkin ia sudah tamat tempoh, atau orang yang berkongsi telah berhenti berkongsi.",
-    "note": "Ini ringkasan apa yang tertulis pada label atau bil. Sentiasa sahkan dengan doktor atau ahli farmasi anda.",
     "open": "Buka Ah Ma Ah Gong Can"
   },
   "notFound": {

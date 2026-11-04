@@ -21,7 +21,7 @@ test.describe('logged out', () => {
     await expect(page).toHaveURL(/\/history$/)
   })
 
-  test('share links stay open for family without an account', async ({ page }) => {
+  test('caregiver invite links stay open for someone without an account', async ({ page }) => {
     await page.goto('/shared/abc123')
     await expect(page).toHaveURL(/\/shared\/abc123$/)
   })

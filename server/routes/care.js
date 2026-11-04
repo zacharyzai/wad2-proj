@@ -12,7 +12,7 @@ import { CareInviteQuota } from '../models/CareInviteQuota.js'
 import { User } from '../models/User.js'
 import { Dose } from '../models/Dose.js'
 import { Schedule } from '../models/Schedule.js'
-import { dosesOn, timeInSingapore, timeStates, todayInSingapore } from '../../src/rules/schedule.js'
+import { buildSchedule, dosesOn, timeInSingapore, timeStates, todayInSingapore } from '../../src/rules/schedule.js'
 
 const router = Router()
 const WEEK = 7 * 24 * 3600_000
@@ -191,6 +191,19 @@ async function dosesToday(seniorId) {
   const passed = new Set(times.filter((t, i) => states[i] === 'earlier'))
   return doses.map((d) => ({ doseId: d.id, time: d.time, label: d.label, status: taken.has(d.id) ? 'taken' : passed.has(d.time) ? 'missed' : 'upcoming' }))
 }
+// A linked senior's medicines, for the caregiver to read: as Schedule words them, plus what the label says. Courses that have
+// finished or been stopped are left out. Read-only: no caregiver route changes a medicine.
+async function medicinesOf(seniorId) {
+  const saved = await Schedule.findOne({ userId: seniorId }).select('medicines').lean()
+  const today = todayInSingapore()
+  return (saved?.medicines ?? []).flatMap((m) => {
+    const entry = buildSchedule(m, m.schedule ?? {})
+    if (entry.endDate && entry.endDate < today) return []
+    const { purpose = null, rawInstruction = null, warnings = [] } = m.medication
+    return [{ id: m.id, entry, purpose, rawInstruction, warnings }]
+  })
+}
+
 const counts = (doses) => doses && ['taken', 'missed', 'upcoming'].reduce((c, s) => ({ ...c, [s]: doses.filter((d) => d.status === s).length }), {})
 
 router.get('/seniors', ...caregiver, (req, res) => database(res, async () => {
@@ -210,7 +223,7 @@ router.get('/seniors/:seniorId/today', ...caregiver, (req, res) => {
     const owner = await User.findById(req.params.seniorId).select('name role').lean()
     if (!owner || roleOf(owner) !== 'senior') return gone(res)
     const doses = await dosesToday(owner._id)
-    res.json({ ok: true, data: { senior: { id: String(owner._id), name: owner.name ?? '' }, shared: doses !== null, doses: doses ?? [] } })
+    res.json({ ok: true, data: { senior: { id: String(owner._id), name: owner.name ?? '' }, shared: doses !== null, doses: doses ?? [], medicines: await medicinesOf(owner._id) } })
   })
 })
 

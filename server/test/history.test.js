@@ -128,8 +128,7 @@ test('history pages contain only summaries, newest first, with deterministic tim
     assert.equal(data.pages, 3)
     assert.equal(data.items.length, page < 3 ? 10 : page === 3 ? 3 : 0)
     for (const item of data.items) {
-      assert.deepEqual(Object.keys(item).sort(), ['createdAt', 'id', 'purpose', 'shareExpiresAt', 'shareToken', 'source', 'title', 'totalPayableCents', 'type'])
-      assert.equal(item.shareToken, null)
+      assert.deepEqual(Object.keys(item).sort(), ['createdAt', 'id', 'purpose', 'source', 'title', 'totalPayableCents', 'type'])
       assert.match(item.title, /^Medicine \d+ 500 mg$/)
     }
     pages.push(...data.items.map((i) => i.id))
@@ -150,7 +149,7 @@ test('/all gives every summary at once, newest first, with each bill\'s visit da
   assert.equal(data.total, 13)
   assert.equal(data.capped, false)
   assert.deepEqual(data.items.map((i) => i.id), [...docs].sort((a, b) => b.createdAt - a.createdAt).map((d) => d.id)) // more than one page's worth
-  assert.deepEqual(Object.keys(data.items[0]).sort(), ['createdAt', 'id', 'purpose', 'shareExpiresAt', 'shareToken', 'source', 'title', 'totalPayableCents', 'type', 'visitDate'])
+  assert.deepEqual(Object.keys(data.items[0]).sort(), ['createdAt', 'id', 'purpose', 'source', 'title', 'totalPayableCents', 'type', 'visitDate'])
   assert.equal(data.items[0].visitDate, '2026-10-15')
   assert.equal(data.items[1].visitDate, null) // medicines have none
   await error(await request('/all?page=2'), 400, 'BAD_REQUEST')
@@ -228,37 +227,6 @@ test('tokens for missing/deleted accounts cannot read or create history', async 
   }
   await User.deleteOne({ _id: bob.id })
   await error(await request('', { token: bobToken }), 401, 'NOT_LOGGED_IN')
-})
-
-test('share links: only the owner makes or stops one; anyone with it sees the scan fields only, until it expires', async () => {
-  const share = (path = '', options = {}) => fetch(`${base.replace('/history', '/share')}${path}`, {
-    method: options.method ?? 'GET', headers: { 'content-type': 'application/json', ...(options.token ? { authorization: `Bearer ${options.token}` } : {}) },
-    ...(options.body ? { body: JSON.stringify(options.body) } : {}),
-  })
-  const carol = await User.create({ name: 'Carol', dob: '1960-01-01', citizenship: 'birth', income: 'unsure', passwordHash: 'not-used', email: 'carol@example.com' })
-  const carolToken = signToken(carol.id, false)
-  const scanId = (await (await save(med)).json()).data.id
-  assert.equal((await share('', { method: 'POST', body: { scanId } })).status, 401)
-  await error(await share('', { method: 'POST', token: carolToken, body: { scanId } }), 404, 'NOT_FOUND')
-  const made = await share('', { method: 'POST', token: aliceToken, body: { scanId } })
-  assert.equal(made.status, 201)
-  const { token, expiresAt } = (await made.json()).data
-  assert.match(token, /^[a-f0-9]{32}$/)
-  assert.ok(new Date(expiresAt) > new Date())
-
-  const opened = (await (await share(`/${token}`)).json()).data.scan
-  assert.deepEqual(Object.keys(opened).sort(), ['medication', 'source', 'type', 'unclear'])
-  assert.equal(opened.medication.name, med.medication.name)
-  const [listed] = (await (await request()).json()).data.items.filter((i) => i.id === scanId)
-  assert.equal(listed.shareToken, token)
-
-  await error(await share(`/${token}`, { method: 'DELETE', token: carolToken }), 404, 'NOT_FOUND')
-  assert.equal((await share(`/${token}`, { method: 'DELETE', token: aliceToken })).status, 200)
-  await error(await share(`/${token}`), 404, 'NOT_FOUND')
-  await error(await share('/not-a-token'), 404, 'NOT_FOUND')
-  const again = (await (await share('', { method: 'POST', token: aliceToken, body: { scanId } })).json()).data.token
-  await Scan.updateOne({ _id: scanId }, { $set: { shareExpiresAt: new Date(Date.now() - 1) } })
-  await error(await share(`/${again}`), 404, 'NOT_FOUND')
 })
 
 test('database unavailable returns sanitized 503 and recovers on a later request', async () => {

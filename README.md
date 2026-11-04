@@ -60,18 +60,18 @@ Tap **Schedule**. The labels you checked become a daily timetable, built by our 
 3. Open **What this means for you** to see the subsidies already on the bill, and **You may also qualify for…**, each with its official MOH or CHAS page and the date we last checked it. Log in as a different demo person to see the result change.
 4. Scan a real bill from any clinic, hospital, dental clinic or pharmacy, **page by page** (up to 4 pages) or as a PDF. If a bill lists Gross / Subsidy / **Net** for each line, the net amounts are used. If you scan a bill as a medicine label (or the reverse), the app asks: *"Was this meant for a medical bill?"*
 
-### 5. Ask, look back and share
+### 5. Ask and look back
 
 - **Ask:** type or say a question ("Can I take it with food?"). Answers come from the labels you checked, or from general medicine information, and suggest next questions to tap. Emergencies ("chest pain", "can't breathe") get a **Call 995** card straight away. **New conversation** starts over, with Undo.
-- **History:** every scan you confirmed with **Looks correct**, newest first, grouped by medicine and by month for bills. **Listen again**, or **Share** a read-only link (also by WhatsApp) that works for 30 days and shows only what was read from the label or bill, never your account details.
+- **History:** every scan you confirmed with **Looks correct**, newest first, grouped by medicine and by month for bills. **Listen again**, or delete one.
 
 ### 6. Caregivers
 
-`caregiver.demo@example.com` (Tan Wei Jie, same password) is already linked to **Tan Ah Kow** (`pioneer.demo`) and **Siti Aminah** (`merdeka.demo`). It opens on **My seniors**: each senior's doses today, taken, missed or still to come, read-only. A senior shows "Not shared yet" until they have used Schedule while logged in.
+`caregiver.demo@example.com` (Tan Wei Jie, same password) is already linked to **Tan Ah Kow** (`pioneer.demo`) and **Siti Aminah** (`merdeka.demo`). It opens on **My seniors**: each senior's doses today, taken, missed or still to come, and the details of their medicines, to read only. A senior shows "Not shared yet" until they have used Schedule while logged in.
 
 To see it update, log in as `pioneer.demo` in a second browser, scan the **Metformin label** sample, tap **Looks correct** and tick a dose; the caregiver's page refreshes every minute.
 
-A senior links their own caregiver from **Account → Invite a caregiver**: the link works for 7 days for anyone it is sent to, and the caregiver never sees scans, photos, bills or account details.
+A senior links their own caregiver from **Account → Invite a caregiver**: the link works for 7 days for anyone it is sent to, and the caregiver sees their medicines and today's doses, never scans, photos, bills or account details.
 
 ### 7. Make it yours
 
@@ -106,7 +106,7 @@ The person this app is for is usually on a phone and not comfortable with techno
 | Forgot your password? (reset link by email; logs out every other device) | ✅ Needs an email provider on the live site (`MAIL_PROVIDER`); locally the email prints in the server terminal |
 | Medicine schedule with dose ticks | ✅ Ticks saved to your account; "when necessary", weekly and tapering medicines go to your pharmacist, never scheduled |
 | Google Calendar reminders | ✅ Connect, Disconnect and automatic sync on Schedule → Reminders |
-| Scan history, Listen again, read-only share links (WhatsApp too) | ✅ |
+| Scan history, Listen again | ✅ |
 | Caregiver linking and read-only view of today's doses | ✅ |
 | Missed-dose alerts for the senior and caregiver (30 minutes after an unticked dose) | Coming |
 | Nearby clinics map | Stretch goal |
@@ -117,7 +117,7 @@ The person this app is for is usually on a phone and not comfortable with techno
 - **You always check** what was read before anything uses it. Unclear fields are flagged, never guessed.
 - **Explanations come from human-checked templates**, not free AI text. The medicine schedule and the subsidy rules are our own rules, not AI.
 - **Not medical advice.** The app never tells you to change a dose. "When necessary" and tapering medicines are sent to your pharmacist, not scheduled.
-- **Share links are read-only** and show only what was read from the label or bill. A caregiver sees only today's doses.
+- **A caregiver can only read:** today's doses and the senior's medicine details, never scans, photos, bills or account details, and nothing they can change.
 - **Passwords are hashed** (Argon2id); your login stays on your device.
 
 ## Tips
@@ -196,7 +196,7 @@ docs/scan-contract.md      the scan data shape every feature builds on (read thi
 docs/auth-contract.md      accounts: endpoints, tokens, Remember me, language
 docs/chat-contract.md      the Ask chatbot and its safety layers
 docs/doses-contract.md     dose ticks
-docs/history-contract.md   saved scans, ownership and share links
+docs/history-contract.md   saved scans and ownership
 docs/care-contract.md      caregiver invitations, linking and the read-only view
 docs/google-contract.md    Google Calendar: endpoints, sync, the Connect button steps
 docs/heuristic-audit.md    Nielsen's 10 heuristics: findings and fixes, 3 rounds
@@ -213,9 +213,9 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for branches, pull requests and who owns 
 | Who | Owns |
 |---|---|
 | Zachary (lead) | Scan API and AI reading, on-phone covering, Ask chatbot, Google Calendar, welcome page |
-| Sheen Hern | Database, accounts, history, sharing, caregivers, cloud read-aloud, deploy |
+| Sheen Hern | Database, accounts, history, caregivers, cloud read-aloud, deploy |
 | Asher | Scan, Check and Explain pages, translations, read-aloud |
 | Lokesh | Schedule and Bill pages, subsidy rules, samples |
-| Isaac | Design system, app shell, Home, Login, Account, History and Share pages |
+| Isaac | Design system, app shell, Home, Login, Account and History pages |
 
 The graded `README.txt` (setup, live URL, dummy login, AI-use declaration) is written separately for submission.

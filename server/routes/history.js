@@ -13,7 +13,7 @@ const PAGE_SIZE = 10
 // GET /all: every scan's summary at once (newest first), so the History page can group, search and sort without paging.
 // A generous cap keeps one response small (each summary is about 300 bytes).
 const ALL_LIMIT = 500
-const SUMMARY_FIELDS = 'type source createdAt medication.name medication.strength medication.purpose bill.clinic bill.totalPayableCents shareToken shareExpiresAt'
+const SUMMARY_FIELDS = 'type source createdAt medication.name medication.strength medication.purpose bill.clinic bill.totalPayableCents'
 const missing = (res) => sendError(res, 404, 'NOT_FOUND', 'Saved scan not found')
 const record = (doc) => ({ id: String(doc._id), createdAt: doc.createdAt, scan: { type: doc.type, source: doc.source, unclear: [], [doc.type]: doc[doc.type] } })
 
@@ -45,14 +45,12 @@ router.post('/', (req, res) => {
   })
 })
 
-// What the History page shows per row: the amount paid for a bill, and the share link while it still works.
-function summary(d, now) {
-  const sharing = d.shareToken && d.shareExpiresAt > now
+// What the History page shows per row: the amount paid for a bill.
+function summary(d) {
   return { id: String(d._id), type: d.type, source: d.source, createdAt: d.createdAt,
     title: d.type === 'medication' ? [d.medication.name, d.medication.strength].filter(Boolean).join(' ') : d.bill.clinic ?? null,
     purpose: d.type === 'medication' ? d.medication.purpose ?? null : null,
-    totalPayableCents: d.type === 'bill' ? d.bill.totalPayableCents : null,
-    shareToken: sharing ? d.shareToken : null, shareExpiresAt: sharing ? d.shareExpiresAt : null }
+    totalPayableCents: d.type === 'bill' ? d.bill.totalPayableCents : null }
 }
 
 router.get('/', (req, res) => {

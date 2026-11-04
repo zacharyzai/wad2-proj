@@ -1,13 +1,13 @@
 // History, tidied: a medicine is one row however often it was scanned, the ones taken now come first, the rest fold away;
 // a find box and one-tap chips; bills under their month, with chips to jump and what was paid at each clinic this year;
-// a row opens that medicine or bill, where Listen again, Share and Delete are. Everything loads at once (no "show older").
+// a row opens that medicine or bill, where Listen again and Delete are. Everything loads at once (no "show older").
 // /api/history/all is mocked with a year of scans; the medicines on the timetable go in this browser's storage.
 // The clock is fixed on Tuesday 3 November 2026 in Singapore, so "this month" and "this year" never drift.
 import { test, expect } from './fixtures.js'
 
 let n = 0
-const med = (title, createdAt, purpose = null) => ({ id: `m${++n}`, type: 'medication', source: 'ai', title, purpose, createdAt, visitDate: null, totalPayableCents: null, shareToken: null, shareExpiresAt: null })
-const bill = (title, visitDate, cents) => ({ id: `b${++n}`, type: 'bill', source: 'ai', title, purpose: null, createdAt: `${visitDate}T04:00:00Z`, visitDate, totalPayableCents: cents, shareToken: null, shareExpiresAt: null })
+const med = (title, createdAt, purpose = null) => ({ id: `m${++n}`, type: 'medication', source: 'ai', title, purpose, createdAt, visitDate: null, totalPayableCents: null })
+const bill = (title, visitDate, cents) => ({ id: `b${++n}`, type: 'bill', source: 'ai', title, purpose: null, createdAt: `${visitDate}T04:00:00Z`, visitDate, totalPayableCents: cents })
 
 const ITEMS = [
   med('Metformin 500 mg', '2026-11-01T02:00:00Z', 'diabetes'),
@@ -90,7 +90,7 @@ test('find a medicine by what it is for: "diabetes", an everyday word, or anothe
   await expect(row).toContainText('Metformin 500 mg')
 })
 
-test('a medicine opens to every scan of it, each with Listen again, Share and Delete; Back returns to the list', async ({ page }) => {
+test('a medicine opens to every scan of it, each with Listen again and Delete; Back returns to the list', async ({ page }) => {
   await setUp(page)
   await page.goto('/history')
   await rows(page, 'history-taking').first().click()

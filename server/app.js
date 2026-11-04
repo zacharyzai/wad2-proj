@@ -3,7 +3,6 @@ import scanRouter from './routes/scan.js'
 import chatRouter from './routes/chat.js'
 import authRouter from './routes/auth.js'
 import historyRouter from './routes/history.js'
-import shareRouter from './routes/share.js'
 import ttsRouter from './routes/tts.js'
 import { sendError } from './errors.js'
 import { requireAuth } from './middleware/requireAuth.js'
@@ -26,7 +25,6 @@ app.use('/api/scan', requireAuth, scanRouter)
 app.use('/api/chat', requireAuth, chatRouter)
 app.use('/api/auth', authRouter)
 app.use('/api/history', historyRouter)
-app.use('/api/share', shareRouter)
 app.use('/api/tts', ttsRouter)
 app.use('/api/google', googleRouter)
 app.use('/api/doses', requireAuth, dosesRouter)

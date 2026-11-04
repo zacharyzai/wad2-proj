@@ -276,7 +276,7 @@ test('deleted senior invites cannot be previewed/accepted; today is only readabl
   const [listed] = (await (await care('/seniors', { token: cg.token })).json()).data.seniors
   assert.deepEqual(listed, { id: owner.id, name: 'Test User', today: null })
   const today = (await (await care(`/seniors/${owner.id}/today`, { token: cg.token })).json()).data
-  assert.deepEqual(today, { senior: { id: owner.id, name: 'Test User' }, shared: false, doses: [] })
+  assert.deepEqual(today, { senior: { id: owner.id, name: 'Test User' }, shared: false, doses: [], medicines: [] })
   const missing = await user(), t = await issued(missing)
   await User.deleteOne({ _id: missing.id })
   await error(await preview(t.token), 404, 'NOT_FOUND')
@@ -343,6 +343,11 @@ test("the medicine list belongs to the account: any device loads it, and the car
   // Only today's course, with the time the senior changed; the ended, "when needed" and typed ones are left out.
   assert.deepEqual(body.doses.map((d) => [d.doseId, d.time, d.label]), [['m1-morning', '08:00', 'Medicine m1 500 mg'], ['m1-bedtime', '21:30', 'Medicine m1 500 mg']])
   assert.equal(body.doses[0].status, 'taken')
+  // The details to read: what the label says, for the medicines still being taken. The finished course is left out, nothing else comes along.
+  assert.deepEqual(body.medicines.map((m) => m.entry.label).filter((l) => l.startsWith('Medicine m1') || l === 'Panadol').sort(), ['Medicine m1 500 mg', 'Panadol'])
+  const panadol = body.medicines.find((m) => m.id === 'typed-1')
+  assert.equal(panadol.rawInstruction, 'when there is pain')
+  assert.deepEqual(Object.keys(panadol).sort(), ['entry', 'id', 'purpose', 'rawInstruction', 'warnings'])
   assert.ok(['missed', 'upcoming'].includes(body.doses[1].status))
   const [listed] = (await (await care('/seniors', { token: cg.token })).json()).data.seniors
   assert.deepEqual(listed.today, { taken: 1, missed: Number(body.doses[1].status === 'missed'), upcoming: Number(body.doses[1].status === 'upcoming') })
