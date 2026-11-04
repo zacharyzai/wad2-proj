@@ -84,6 +84,30 @@ function toggleManage(id) {
   managing.value = managing.value === id ? null : id
   editing.value = null
 }
+// Desktop: the open card (Change, its form, or the stop question) comes forward on its own over a dimmed page, and a dashed outline keeps its place in the grid, so the
+// other cards never change size. Phones open it in place, as before.
+const wide = ref(false)
+const wideQuery = typeof matchMedia === 'function' ? matchMedia('(min-width: 992px)') : null
+const onWide = () => (wide.value = !!wideQuery?.matches)
+onMounted(() => {
+  onWide()
+  wideQuery?.addEventListener('change', onWide)
+})
+onBeforeUnmount(() => wideQuery?.removeEventListener('change', onWide))
+const spot = computed(() => {
+  const id = wide.value ? (managing.value ?? editing.value ?? stopAsk.value) : null
+  return timetable.value.some((r) => r.medicine.id === id) ? id : null // the pharmacist list keeps its own panel
+})
+function closeSpot() {
+  const id = spot.value
+  const from = stopAsk.value ? 'data-stop' : 'data-change' // back to the button that opened it
+  managing.value = null
+  editing.value = null
+  stopAsk.value = null
+  focusAfterUpdate(`[${from}="${id}"]`)
+}
+// Esc puts the card back, unless it is answering the stop question (which has its own Esc).
+const onEsc = (e) => spot.value && !e.target.closest('[role="alertdialog"]') && closeSpot()
 function openEdit(id) {
   managing.value = null
   editing.value = id // the form puts focus in its first field
@@ -223,10 +247,11 @@ onBeforeUnmount(() => {
     <div v-else-if="view === 'meds'" class="d-flex flex-column gap-4">
       <section v-if="timetable.length" aria-labelledby="meds-title" data-testid="schedule-meds">
         <h2 id="meds-title" class="visually-hidden">{{ t('schedule.meds.title') }}</h2>
-        <ul class="med-grid">
+        <ul class="med-grid" @keydown.esc="onEsc">
+          <template v-for="r in timetable" :key="r.medicine.id">
+          <li v-if="spot === r.medicine.id" class="med-ghost" aria-hidden="true" data-testid="med-ghost"></li>
           <MedicineCard
-            v-for="r in timetable"
-            :key="r.medicine.id"
+            :class="{ 'is-spot': spot === r.medicine.id }"
             :medicine="r.medicine"
             :entry="r.entry"
             :managing="managing === r.medicine.id"
@@ -243,7 +268,9 @@ onBeforeUnmount(() => {
             @save="save(r.medicine.id, $event)"
             @cancel-edit="closeEdit(r.medicine.id)"
           />
+          </template>
         </ul>
+        <div v-if="spot" class="med-scrim" aria-hidden="true" data-testid="med-scrim" @click="closeSpot"></div>
       </section>
       <PharmacistList v-if="flagged.length" :rows="flagged" :managing="managing" @manage="toggleManage" @fix="fix" @remove="remove" />
     </div>
