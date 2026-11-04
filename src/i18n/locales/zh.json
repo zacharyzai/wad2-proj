@@ -22,7 +22,7 @@
     "nightMode": "夜间模式"
   },
   "care": {
-    "medsTitle": "{name} 的药物",
+    "medSee": "查看详情",
     "medsNote": "您可以查看这些内容，只有 {name} 可以更改。",
     "lead": "邀请您的人。点选姓名查看今天的药物。",
     "emptyTitle": "还没有关联的人",

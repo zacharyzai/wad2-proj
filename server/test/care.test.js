@@ -345,6 +345,8 @@ test("the medicine list belongs to the account: any device loads it, and the car
   assert.equal(body.doses[0].status, 'taken')
   // The details to read: what the label says, for the medicines still being taken. The finished course is left out, nothing else comes along.
   assert.deepEqual(body.medicines.map((m) => m.entry.label).filter((l) => l.startsWith('Medicine m1') || l === 'Panadol').sort(), ['Medicine m1 500 mg', 'Panadol'])
+  // Every dose today finds its medicine by id: that is how a dose card turns over to its details.
+  for (const dose of body.doses) assert.ok(body.medicines.some((m) => m.entry.doses.some((d) => d.id === dose.doseId)), dose.doseId)
   const panadol = body.medicines.find((m) => m.id === 'typed-1')
   assert.equal(panadol.rawInstruction, 'when there is pain')
   assert.deepEqual(Object.keys(panadol).sort(), ['entry', 'id', 'purpose', 'rawInstruction', 'warnings'])

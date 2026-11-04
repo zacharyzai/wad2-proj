@@ -22,7 +22,7 @@
     "nightMode": "Mod malam"
   },
   "care": {
-    "medsTitle": "Ubat {name}",
+    "medSee": "Lihat butiran",
     "medsNote": "Anda boleh membaca ini. Hanya {name} boleh mengubahnya.",
     "lead": "Orang yang menjemput anda. Ketik nama untuk lihat ubat hari ini.",
     "emptyTitle": "Belum ada sesiapa dipautkan",

@@ -35,7 +35,7 @@ const status = computed(() => props.entry.endDate && dateStatus(props.entry, dos
       <span class="med-info">
         <span class="med-name">{{ entry.label }}</span>
         <span v-if="purposeOf(id)" class="text-muted-a11y fw-semibold" data-testid="med-purpose">{{ purposeOf(id) }}</span>
-        <span class="med-times"><AppIcon name="clock" :size="18" />{{ timesText(entry) }}</span>
+        <span v-if="status?.kind !== 'ended'" class="med-times"><AppIcon name="clock" :size="18" />{{ timesText(entry) }}</span>
         <span v-if="status && status.kind !== 'now'" class="badge align-self-start">{{ status.text }}</span>
       </span>
       <button

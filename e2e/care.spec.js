@@ -72,20 +72,36 @@ test.describe('caregiver-only tab', () => {
     await expect(page.getByRole('heading', { name: 'No one linked yet' })).toBeVisible()
   })
 
-  test("a caregiver reads a senior's medicine details, with nothing to change them", async ({ page }) => {
+  test("tapping a dose turns its card over to the medicine's details, with nothing to change them", async ({ page }) => {
     await signIn(page, CAREGIVER)
-    const entry = { label: 'Metformin 500mg', instruction: { count: 1, unit: 'tablet', food: 'after' }, doses: [{ id: 'm1-morning', time: '08:00' }, { id: 'm1-night', time: '21:00' }] }
-    await page.route('**/api/care/seniors/u2/today', (route) => route.fulfill(ok({ ...TODAY, medicines: [{ id: 'm1', entry, purpose: 'diabetes', rawInstruction: 'Take 1 tablet 2 times a day', warnings: ['Do not skip meals'] }] })))
+    const metformin = { id: 'm1', purpose: 'diabetes', rawInstruction: 'Take 1 tablet 2 times a day', warnings: ['Do not skip meals'], entry: { label: 'Metformin 500mg', instruction: { count: 1, unit: 'tablet', food: 'after' }, doses: [{ id: 'm1-morning', time: '08:00' }, { id: 'm1-night', time: '21:00' }] } }
+    const panadol = { id: 'm3', purpose: null, rawInstruction: 'Take when there is pain', warnings: [], entry: { label: 'Panadol', instruction: { count: null, unit: null, food: null }, doses: [] } }
+    await page.route('**/api/care/seniors/u2/today', (route) => route.fulfill(ok({ ...TODAY, medicines: [metformin, panadol] })))
     await page.goto('/care/u2')
-    const card = page.getByTestId('care-medicine')
-    await expect(card).toContainText('Metformin 500mg')
-    await expect(card).toContainText('Usually used for diabetes (blood sugar)')
-    await expect(card).toContainText('1 tablet · After food')
-    await expect(card).toContainText('8:00')
-    await expect(card).toContainText('Do not skip meals')
-    await expect(page.getByTestId('care-medicines')).toContainText('Only Mei Ling Tan can change them.')
-    await expect(page.getByTestId('care-medicines').getByRole('button')).toHaveCount(0) // read-only
-    await expect(page.getByTestId('care-medicines').locator('input, select, textarea')).toHaveCount(0)
+    // The front of the dose card: when, what it is for, and how it went.
+    const dose = page.getByTestId('care-dose').first()
+    const open = dose.getByTestId('care-medicine-open')
+    await expect(open).toContainText('08:00')
+    await expect(open).toContainText('Metformin 500mg')
+    await expect(open).toContainText('Usually used for diabetes (blood sugar)')
+    await expect(open).toContainText('Not ticked')
+    await expect(page.getByText('Only Mei Ling Tan can change them.')).toBeVisible()
+    const back = dose.getByTestId('care-medicine-details')
+    await expect(back).toHaveAttribute('inert', '') // the side turned away can't be reached
+    // Tap it: this card turns over, and focus goes with it.
+    await open.click()
+    await expect(back).not.toHaveAttribute('inert', '')
+    await expect(back).toContainText('1 tablet · After food')
+    await expect(back).toContainText('Do not skip meals')
+    const close = dose.getByTestId('care-medicine-close')
+    await expect(close).toBeFocused()
+    await expect(back.getByRole('button')).toHaveCount(1) // only the way back
+    await expect(page.getByTestId('care-doses').locator('input, select, textarea')).toHaveCount(0)
+    await close.click()
+    await expect(open).toBeFocused()
+    // A medicine with no dose today ("when necessary") still has its card, with no time.
+    await expect(page.getByTestId('care-other')).toContainText('Panadol')
+    await expect(page.getByTestId('care-doses').locator('li.flip')).toHaveCount(4)
   })
 
   test("a senior's doses show taken, not ticked and to come, with words, and flag what was not ticked", async ({ page }) => {
