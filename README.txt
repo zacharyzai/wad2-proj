@@ -119,8 +119,6 @@ Claude wrote the first implementation of these and we reviewed and adjusted it.
 Backend (not frontend): Gemini model fallback and thinking settings
 (server/services/gemini.js) were written by Claude on Zachary's request.
 
-TODO: each member to replace the TODO lines with what they actually asked Claude
-and what they did themselves, and to remove anything that is not accurate.
 
 4C. Not AI-generated
 The rule-based schedule, subsidy and bill-check logic, and the explanation
