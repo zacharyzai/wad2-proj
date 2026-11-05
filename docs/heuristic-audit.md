@@ -204,3 +204,14 @@ Each round 1 finding was checked again against today's code. Fixes are by Claude
 Also fixed: after a stopped page change (Confirm's question), focus stays where it is instead of jumping to the page heading (`App.vue`, Isaac).
 
 **Not auditable yet (not built):** Schedule (Lokesh), History and Share (Sheen Hern, Isaac), caregiver tracking, the Google Calendar button (Isaac). Audit them once built, with the round 1 checklist above.
+
+## Schedule > Today: sizes (5 Nov 2026)
+
+Checked against the README's rules: text at least 16px, anything tappable at least 48px. Fixes are by Claude, in Asher's files (listed for the AI declarations). Each has a Playwright test.
+
+| Where (owner) | Heuristic | Sev | Problem | Status |
+|---|---|---|---|---|
+| Progress ring (Lokesh) | H8 | 2 | An 8px "done" under the percentage. | **Fixed** (Zachary): removed; the words beside the ring say it. |
+| "Today" button above the week strip (Asher) | H5 | 2 | 44px tall. | **Fixed:** 48px. |
+| "Tap when taken" / "Taken" on each dose card (Asher) | H5 | 1 | 40px tall. The whole card is the real target, but the pill looks like a button, so it is where people aim. | **Fixed:** 48px. |
+| The 7 day buttons in the week strip, phones (Asher) | H5 | 1 | 44px wide on a 375px phone, not 48. Seven 48px buttons and their gaps need about 380px. | **By design:** each is about 100px tall, and well over the 24px minimum (WCAG 2.5.8). Reaching 48px would mean dropping the pill box, or scrolling sideways to find a day. |
