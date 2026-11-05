@@ -27,7 +27,8 @@ export function useAnswer() {
     if (cache.has(key)) return cache.get(key)
     let list
     if (typeof Intl.Segmenter === 'function') {
-      segmenters[m.lang] ??= new Intl.Segmenter(m.lang, { granularity: 'word' })
+      if (!segmenters[m.lang])
+        segmenters[m.lang] = new Intl.Segmenter(m.lang, { granularity: 'word' })
       list = [...segmenters[m.lang].segment(text)].map((x) => ({ text: x.segment, start: x.index }))
     } else {
       list = [...text.matchAll(/\S+|\s+/g)].map((x) => ({ text: x[0], start: x.index }))

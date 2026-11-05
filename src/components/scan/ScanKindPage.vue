@@ -1,16 +1,22 @@
 <!-- Scan start page for one kind of document: take a photo, upload, or try a sample. -->
 <script setup>
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AppIcon from '../layout/AppIcon.vue'
 import UploadDropzone from './UploadDropzone.vue'
 
-defineProps({
+const props = defineProps({
   type: { type: String, required: true }, // 'medication' | 'bill'
   cameraBlocked: Boolean,
   examples: { type: Array, required: true }, // the samples for this kind
+  examplesOpen: { type: Boolean, default: false }, // the examples list is open (v-model:examples-open)
 })
-const examplesOpen = defineModel('examplesOpen', { type: Boolean, default: false })
-const emit = defineEmits(['take', 'files', 'sample'])
+const emit = defineEmits(['update:examplesOpen', 'take', 'files', 'sample'])
+// Read and assign `examplesOpen` like a local value; assigning it tells the parent through the `update:` event.
+const examplesOpen = computed({
+  get: () => props.examplesOpen,
+  set: (value) => emit('update:examplesOpen', value),
+})
 
 // Tips for the kind chosen: good light for both, then what matters for that paper.
 const TIPS_FOR = {

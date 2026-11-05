@@ -62,25 +62,27 @@ export const useAuthStore = defineStore('auth', () => {
       checked.value = true
       return Promise.resolve()
     }
-    pending ??= api('/auth/me').then((res) => {
-      if (res.ok) {
-        user.value = res.data.user
-        useAccountLanguage(res.data.user)
-        useAccountTheme(res.data.user)
-        // Remembered logins get a fresh 30 days from today; either way the saved copy is updated.
-        save(
-          res.data.token ?? readToken(),
-          Boolean(res.data.token) || isRemembered(),
-          res.data.user,
-        )
-      } else if (res.error.code === 'NOT_LOGGED_IN') {
-        // Only a bad token logs you out, not a network blip (then the saved copy keeps working).
-        save(null)
-        user.value = null
-        resetTheme()
-      }
-      checked.value = true
-    })
+    // Only the first call asks the server; every later call gets the same request back (`pending`).
+    if (!pending)
+      pending = api('/auth/me').then((res) => {
+        if (res.ok) {
+          user.value = res.data.user
+          useAccountLanguage(res.data.user)
+          useAccountTheme(res.data.user)
+          // Remembered logins get a fresh 30 days from today; either way the saved copy is updated.
+          save(
+            res.data.token ?? readToken(),
+            Boolean(res.data.token) || isRemembered(),
+            res.data.user,
+          )
+        } else if (res.error.code === 'NOT_LOGGED_IN') {
+          // Only a bad token logs you out, not a network blip (then the saved copy keeps working).
+          save(null)
+          user.value = null
+          resetTheme()
+        }
+        checked.value = true
+      })
     return pending
   }
 

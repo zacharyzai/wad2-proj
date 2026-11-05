@@ -38,9 +38,11 @@ const hasMessages = (code) => i18n.global.availableLocales.includes(code)
 // Loads a language's translations the first time it is needed, so unused languages are never downloaded.
 function loadMessages(code) {
   if (hasMessages(code) || !LOADERS[code]) return Promise.resolve()
-  loading[code] ??= LOADERS[code]()
-    .then((module) => i18n.global.setLocaleMessage(code, module.default))
-    .catch(() => delete loading[code]) // try again next time
+  // Only the first call downloads the language; later calls reuse the same request.
+  if (!loading[code])
+    loading[code] = LOADERS[code]()
+      .then((module) => i18n.global.setLocaleMessage(code, module.default))
+      .catch(() => delete loading[code]) // try again next time
   return loading[code]
 }
 export const localeReady = loadMessages(i18n.global.locale.value)

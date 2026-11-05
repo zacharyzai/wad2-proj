@@ -1,13 +1,25 @@
 <!-- Ask page input: the question box, microphone and the "Type a medicine" button. -->
 <script setup>
-import { onBeforeUnmount, ref } from 'vue'
+import { computed, onBeforeUnmount, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AppIcon from '../layout/AppIcon.vue'
 
-const question = defineModel({ type: String, required: true })
-const listening = defineModel('listening', { type: Boolean, default: false })
-defineProps({ loading: Boolean })
-const emit = defineEmits(['send', 'add-medicine'])
+// Two v-models from the parent: `v-model` (the question) and `v-model:listening` (the mic is on). Each is a prop plus an
+// `update:` event; the computed below lets this component read and assign them like local values.
+const props = defineProps({
+  modelValue: { type: String, required: true },
+  listening: { type: Boolean, default: false },
+  loading: Boolean,
+})
+const emit = defineEmits(['update:modelValue', 'update:listening', 'send', 'add-medicine'])
+const question = computed({
+  get: () => props.modelValue,
+  set: (value) => emit('update:modelValue', value),
+})
+const listening = computed({
+  get: () => props.listening,
+  set: (value) => emit('update:listening', value),
+})
 
 const MAX = 300 // same limit as the server (MAX_QUESTION)
 const { t, locale } = useI18n()
