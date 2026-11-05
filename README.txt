@@ -10,10 +10,20 @@ https://ahma-ahgong-can.vercel.app     (TODO: confirm it is the final deployment
 
 2. DUMMY LOGINS (password for all: Demo1234!)
 ---------------------------------------------
-pioneer.demo@example.com       senior (Pioneer Generation, CHAS Blue)
-merdeka.demo@example.com       senior (Merdeka Generation, CHAS Orange)
-caregiver.demo@example.com     caregiver, linked to the two seniors above
-(7 more demo seniors are created by the seed script below.)
+Created by the seed script in section 3 (node --env-file=.env server/scripts/seed-demo-accounts.js).
+
+Email                            Role       Born        Citizenship          Income       Shows
+pioneer.demo@example.com         senior     1945-08-12  born citizen         up to $1,500  Pioneer Generation, CHAS Blue
+merdeka.demo@example.com         senior     1955-03-21  born citizen         $1,501-2,300  Merdeka Generation, CHAS Orange
+late.citizen.demo@example.com    senior     1946-11-02  citizen since 1990   above $2,300  Missed Pioneer (citizen after 1986); Merdeka instead
+chas.demo@example.com            senior     1975-06-15  born citizen         up to $1,500  CHAS Blue only
+pr.demo@example.com              senior     1958-01-30  permanent resident   not set       Polyclinic PR rates only
+chas.orange.demo@example.com     senior     1968-09-04  born citizen         $1,501-2,300  CHAS Orange only
+chas.green.demo@example.com      senior     1972-04-18  born citizen         above $2,300  CHAS Green only
+unsure.demo@example.com          senior     1952-12-01  born citizen         unsure        Merdeka; CHAS card colour not known
+foreigner.demo@example.com       senior     1960-07-07  neither citizen/PR   not set       No estimates, schemes with official links only
+caregiver.demo@example.com       caregiver  1978-05-10  born citizen         above $2,300  Linked to pioneer.demo and merdeka.demo
+
 Scanning the built-in samples needs no login:
 Home > Scan a medicine label > Try an example > Metformin label.
 
@@ -58,33 +68,54 @@ Tool used: Claude Code (Anthropic).
   file owner tags), and added short comments saying what each function and each
   source file is for. Comments only, no logic changed.
 
-4B. Where Claude went beyond the lower-order tasks
-The app was not built entirely by Claude. The features, user flows and task split
-were defined by the team in our proposal, and the team reviewed, integrated, tested
-and debugged the code. Claude's larger contributions fall into two groups.
+4B. Frontend: where Claude went beyond the lower-order tasks
+The frontend was not built entirely by Claude. The features, user flows and task
+split were defined by the team in our proposal. Each member used Claude to guide
+them through implementing their own area, and Claude provided the skeleton
+structure of the code (file layout, views, components). We then built on it,
+reviewed, integrated, tested and debugged the result. Per member:
 
-(i) Skeleton and structure (starter code, not finished logic)
-- The initial file and folder hierarchy for the frontend (src/) and backend (server/).
-- Skeleton code for the main views and components (Scan, Confirm and Explain views,
-  read-aloud and confirm-field components, shell/Home styling), which the owners
-  (Asher, Isaac) then built on and adapted.
-- From 2 Nov 2026: restructuring the frontend to the lecture tools (Pinia stores,
-  Axios through src/api/client.js, Vitest) and splitting large views into
-  components. This touched files owned by every member.
+Asher (Scan/upload, Confirm, Explain, language switcher, read-aloud)
+- Asked Claude for: TODO (e.g. how to structure the Scan > Confirm > Explain flow)
+- Claude provided the skeleton structure of the code (views, components, file layout)
+  for the Scan, Confirm and Explain views, the read-aloud component and the
+  confirm-field component, and guided us on how to implement them.
+- Our part: TODO (e.g. filled in and adapted the skeleton, translations, wiring to
+  the API)
 
-(ii) Complex logic beyond what we have been taught in class
-Claude wrote the first implementation of the following, and we then reviewed,
-tested and adjusted it:
-- Gemini model fallback and thinking settings (server/services/gemini.js) and
-  related backend code.
-- Day/night mode (Account, theme prompt).
-- The bill "doesn't add up" notes (Confirm, Bill).
-- The Schedule redesign (ScheduleView, WeekView).
-- Bug fixes found in review, e.g. dose-card and History delete dialog focus
-  handling, caregiver invite link, "Not ticked yet" calendar alert.
+Isaac (design system, app shell, routing, login/signup, history, shared views)
+- Asked Claude for: TODO (e.g. layout and styling approach for senior-friendly UI)
+- Claude provided the skeleton structure for the app shell and Home styling, and
+  guided us on layout and styling.
+- Our part: TODO (e.g. built out routing, login/signup and history pages from that
+  structure)
 
-TODO: each owner to confirm, correct or remove the lines above before submission,
-and list any further feature Claude wrote that is not named here.
+Lokesh (medication schedule, bill breakdown, subsidy questionnaire)
+- Asked Claude for: TODO (e.g. how to build the weekly schedule view)
+- Claude provided the skeleton structure for the Schedule redesign (ScheduleView,
+  WeekView) and the bill "doesn't add up" notes (Confirm, Bill), and guided us
+  through implementing them.
+- Our part: TODO (e.g. adjusted the code, subsidy questionnaire, bill breakdown UI)
+
+Zachary (team lead, integration and fixes)
+- Asked Claude for: day/night mode (Account, theme prompt), and the frontend
+  restructuring from 2 Nov 2026 (Pinia stores, Axios through src/api/client.js,
+  Vitest, splitting large views into components). The restructuring touched files
+  owned by every member.
+- Claude gave: the first implementation of the above, which we then reviewed,
+  tested and adjusted.
+- Bug fixes found in review: dose-card and History delete dialog focus handling,
+  caregiver invite link, "Not ticked yet" calendar alert.
+
+Complex logic beyond what we have been taught in class: the Schedule redesign,
+day/night mode, bill "doesn't add up" notes, and the Pinia/Axios restructuring.
+Claude wrote the first implementation of these and we reviewed and adjusted it.
+
+Backend (not frontend): Gemini model fallback and thinking settings
+(server/services/gemini.js) were written by Claude on Zachary's request.
+
+TODO: each member to replace the TODO lines with what they actually asked Claude
+and what they did themselves, and to remove anything that is not accurate.
 
 4C. Not AI-generated
 The rule-based schedule, subsidy and bill-check logic, and the explanation
