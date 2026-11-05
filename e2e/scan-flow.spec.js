@@ -860,9 +860,7 @@ test('a full list makes room by dropping a finished course, not the oldest medic
   await answerWith(page, {})
   await openSample(page, 'Metformin label')
   await page.getByRole('button', { name: 'Looks correct' }).click()
-  await expect(
-    page.getByTestId('explain-purpose').or(page.getByRole('heading', { level: 1 })),
-  ).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
   const names = await page.evaluate(() =>
     JSON.parse(localStorage.getItem('medicines')).map((m) => m.medication.name),
   )

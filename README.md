@@ -80,11 +80,16 @@ node --env-file=.env server/scripts/seed-demo-accounts.js
 | `pioneer.demo@example.com` | Senior (Pioneer Generation, CHAS Blue) | `Demo1234!` |
 | `merdeka.demo@example.com` | Senior (Merdeka Generation, CHAS Orange) | `Demo1234!` |
 | `caregiver.demo@example.com` | Caregiver, linked to the two seniors above | `Demo1234!` |
-
-The same script creates seven more demo seniors (other CHAS tiers, PR, foreigner); their emails are in `server/scripts/seed-demo-accounts.js`.
+| `late.citizen.demo@example.com` | Senior (citizen since 1990, missed Pioneer, Merdeka instead) | `Demo1234!` |
+| `chas.demo@example.com` | Senior (CHAS Blue only) | `Demo1234!` |
+| `chas.orange.demo@example.com` | Senior (CHAS Orange only) | `Demo1234!` |
+| `chas.green.demo@example.com` | Senior (CHAS Green only) | `Demo1234!` |
+| `pr.demo@example.com` | Senior (permanent resident, polyclinic PR rates only) | `Demo1234!` |
+| `unsure.demo@example.com` | Senior (Merdeka, CHAS card colour not known) | `Demo1234!` |
+| `foreigner.demo@example.com` | Senior (neither citizen nor PR, schemes with official links only) | `Demo1234!` |
 
 It also fills every senior with fake data (`server/scripts/demo-data.js`): medicines on their Schedule, saved scans in History (the sample labels and bills), and a week of dose ticks. Pioneer and Merdeka, the two seniors the caregiver follows, have the fullest schedules, so `caregiver.demo@example.com` shows their doses today. Pioneer has one dose left unticked after about midday, to show the "Not ticked yet" flag. Re-running the script resets those accounts' data and refreshes the ticks to today.
-Quick try: Home, Scan a medicine label, Try an example, Metformin label.
+Quick try (no login needed): Home, Scan a medicine label, Try an example, Metformin label.
 
 ### Tests
 
@@ -121,6 +126,31 @@ src/                Vue app
 vercel.json         Routing for the deployed app
 CONTRIBUTING.md     Branching, pull requests, file ownership
 ```
+
+## Where AI was used
+
+The features, user flows and task split were defined by the team in our proposal. Each member used Claude Code to guide them through their own area, then built on, reviewed, integrated, tested and debugged the result.
+
+| Where | How | AI Used | Name |
+| --- | --- | --- | --- |
+| Scan, Confirm, Explain views | Skeleton code (views, components, file layout) for Scan, Confirm and Explain, the read-aloud component and the confirm-field component, with guidance on implementing them | Claude Code | Asher |
+| App shell and Home styling | Skeleton structure for the app shell and Home styling, with guidance on layout and styling | Claude Code | Isaac |
+| Schedule redesign | Skeleton code for ScheduleView and WeekView, with guidance on implementing them | Claude Code | Lokesh |
+| Bill "doesn't add up" notes | Skeleton code for the notes in Confirm and Bill | Claude Code | Lokesh |
+| Day/night mode | First implementation (Account page, theme prompt), then reviewed and adjusted | Claude Code | Zachary |
+| Frontend restructuring (2 Nov 2026) | First implementation of Pinia stores, Axios through `src/api/client.js`, Vitest, and splitting large views into components. Touched files owned by every member | Claude Code | Zachary |
+| Bug fixes | Dose-card and History delete dialog focus handling, caregiver invite link, "Not ticked yet" calendar alert | Claude Code | Zachary |
+| Gemini fallback | Model fallback and thinking settings in `server/services/gemini.js` | Claude Code | Zachary |
+| Tests | Vitest unit and API tests, k6 load test (`load/`), mock AI responses (`server/fixtures/`), sample label and bill images (`public/samples/`) | Claude Code | Zachary |
+| E2E tests | "E2E complex" (`e2e/`, AI mocked, includes axe and senior-friendly checks) was written by Claude. "E2E simple" (`e2e-simple/`) was written by our team, not by Claude | Claude Code | Zachary |
+| Demo data | Seeded medicines, saved scans and dose ticks for the demo accounts (`server/scripts/demo-data.js`, `seed-demo-accounts.js`) | Claude Code | Zachary |
+| UI/UX and accessibility | Layout and theme ideas, axe checks with small fixes such as font sizes and focus rings | Claude Code | Zachary |
+| Documentation and formatting | README.md, `docs/` data contracts, E2E_REPORT.md, Prettier formatting, code comment cleanup (Nov 2026, comments only) | Claude Code | Zachary |
+| Research and debugging | Library and API documentation, free-tier limits, error-message meanings, debugging hints, boilerplate | Claude Code | All |
+
+Not AI-generated: the rule-based schedule, subsidy and bill-check logic, and the explanation templates are our own rules. At runtime the app calls Gemini (and Groq as backup) only to read text from photos and to answer Ask chatbot questions; explanations shown to users come from human-checked templates.
+
+TODO: team to confirm which members wrote which of these rules.
 
 ## Team
 
