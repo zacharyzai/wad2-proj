@@ -150,11 +150,11 @@ test('a later day: what is coming, to tick on the day', async ({ page }) => {
   await expect(page.getByTestId('schedule-other-day').getByRole('button')).toHaveCount(0)
 })
 
-test('today: an 8 am dose not ticked by 2 pm still says "Take now", and old This week links open the pill box', async ({
+test('today: an 8 am dose not ticked by 11 am still says "Take now" (missed only 4 hours after its time), and old This week links open the pill box', async ({
   page,
 }) => {
   await setUp(page, {
-    at: '14:00',
+    at: '11:00',
     ticks: {
       [MON]: ['m1-morning', 'm2-morning', 'm1-evening'],
       [TUE]: ['m1-morning', 'm2-morning', 'm1-evening'],
@@ -248,7 +248,9 @@ test('ticking a dose: a success sweep crosses the plan card, then the ring count
   await expect(plan.locator('.pc-done')).not.toHaveClass(/open/)
 })
 
-test('ticking the dose that is due: its box folds away smoothly, and a tick the account refuses cancels the celebration', async ({ page }) => {
+test('ticking the dose that is due: its box folds away smoothly, and a tick the account refuses cancels the celebration', async ({
+  page,
+}) => {
   await setUp(page, { at: '19:00', ticks: { [WED]: ['m1-morning', 'm2-morning'] } })
   await page.goto('/schedule')
   const due = page.getByTestId('schedule-due')
@@ -263,10 +265,19 @@ test('ticking the dose that is due: its box folds away smoothly, and a tick the 
   const tick = page.getByRole('button', { name: /^Taken: Metformin 500 mg, 6:00\sPM$/i })
   await tick.click()
   await expect(plan.locator('.ring-num')).toHaveText('67%')
-  await page.route('**/api/doses**', (route) => (route.request().method() === 'POST' ? route.fulfill({ status: 503, json: { ok: false, error: { code: 'SERVER_ERROR', message: 'x' } } }) : route.fallback()))
+  await page.route('**/api/doses**', (route) =>
+    route.request().method() === 'POST'
+      ? route.fulfill({
+          status: 503,
+          json: { ok: false, error: { code: 'SERVER_ERROR', message: 'x' } },
+        })
+      : route.fallback(),
+  )
   await tick.click()
   await page.getByRole('button', { name: 'Yes, I took it' }).click()
-  await expect(page.getByTestId('schedule-toast')).toHaveText('That tick was not saved. Please try again.')
+  await expect(page.getByTestId('schedule-toast')).toHaveText(
+    'That tick was not saved. Please try again.',
+  )
   await page.waitForTimeout(1200) // longer than the glow would take to reach the ring
   await expect(plan.locator('.ring-num')).toHaveText('67%')
   await expect(plan).not.toHaveClass(/logged/)

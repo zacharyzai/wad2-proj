@@ -1018,7 +1018,9 @@ test('My medicines: a card shows the name, what it is for and the times; Change 
   await card.getByRole('button', { name: 'Change Metformin 500 mg' }).click()
   // Side by side, with or without a one-line purpose, the Change buttons stay at the top and the stop buttons line up.
   if (page.viewportSize().width >= 900) {
-    await page.waitForFunction(() => !document.getAnimations().some((a) => a.animationName === 'tab-rise')) // measured once the tab has risen into place
+    await page.waitForFunction(
+      () => !document.getAnimations().some((a) => a.animationName === 'tab-rise'),
+    ) // measured once the tab has risen into place
     const y = (locator) => locator.boundingBox().then((b) => Math.round(b.y))
     expect(await y(page.getByTestId('stop-m1'))).toBe(await y(page.getByTestId('stop-m2')))
     expect(await y(card.getByRole('button', { name: /^Change/ }))).toBe(

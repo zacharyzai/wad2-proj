@@ -15,5 +15,10 @@ export function dayState(today) {
 export function dayParts(today) {
   const total = today.taken + today.missed + today.upcoming
   const pct = (n) => (total ? (n / total) * 100 : 0)
-  return { total, taken: pct(today.taken), missed: pct(today.missed), upcoming: pct(today.upcoming) }
+  return {
+    total,
+    taken: pct(today.taken),
+    missed: pct(today.missed),
+    upcoming: pct(today.upcoming),
+  }
 }
