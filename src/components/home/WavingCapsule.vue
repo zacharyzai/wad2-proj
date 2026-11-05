@@ -24,10 +24,12 @@ const action = ref('')
 // Each new action redraws its moving parts (a new key), so the same animation can run again from the start.
 const take = ref(0)
 
+// True when the user prefers reduced motion.
 const still = () => matchMedia('(prefers-reduced-motion: reduce)').matches
 let timer = 0
 let last = ''
 
+// Plays one capsule animation for `ms` milliseconds, then returns to idle.
 function play(name, ms) {
   clearTimeout(timer)
   action.value = name

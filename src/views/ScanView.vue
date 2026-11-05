@@ -83,10 +83,12 @@ const examples = computed(() => SAMPLES.filter((x) => x.type === type.value))
 
 // A photo picked on Home: it waits on the question until they say what it is (Home doesn't guess). { file, url }
 const pending = ref(null)
+// Discards the photo picked on Home that is waiting to be told what it is.
 function dropPending() {
   if (pending.value) URL.revokeObjectURL(pending.value.url)
   pending.value = null
 }
+// Scans the waiting photo once the user has said whether it is a label or a bill.
 function scanPending() {
   const { file } = pending.value
   dropPending()
@@ -99,6 +101,7 @@ const REVEAL_MS = 1100 // matches the cover-wipe animation in ScanBusy.css
 // stops at 16 s, plus 4 s a page, server/services/gemini.js). Past it, a TIMEOUT error with Try again instead of waiting on.
 const SCAN_LIMIT_MS = 30_000
 const PAGE_LIMIT_MS = 10_000 // each page after the first: covered on this phone, then read
+// How long a scan may take before it is called a timeout: longer for more pages.
 const scanLimit = (pages) => SCAN_LIMIT_MS + PAGE_LIMIT_MS * (Math.max(1, pages) - 1)
 const COVER_LIMIT_MS = 12_000
 const camera = ref(null)
@@ -130,6 +133,7 @@ onBeforeUnmount(stopChecking)
 // Too dark, blurry or glary? 'dark' | 'blurry' | 'glare' | null. Tests that fake covering skip this check too.
 const photoCheck = (page) =>
   (window.__photoCheckForTests ?? (window.__redactForTests ? async () => null : checkPhoto))(page)
+// Clears everything left over from the previous scan.
 function freshPages() {
   pdfPages.value = null
   fromPdf.value = new Set()
@@ -139,6 +143,7 @@ function freshPages() {
 // Live camera (LiveCamera.vue shows it). No camera API (e.g. plain http on a phone): the native camera via the file input.
 const stream = ref(null)
 const cameraBlocked = ref(false)
+// Opens the camera, or the phone's camera app when live video is not available.
 async function startCamera() {
   cameraBlocked.value = false
   if (!navigator.mediaDevices?.getUserMedia) return camera.value.click()
@@ -151,6 +156,7 @@ async function startCamera() {
     cameraBlocked.value = true // permission denied or no camera
   }
 }
+// Turns the camera off.
 function stopCamera() {
   stream.value?.getTracks().forEach((track) => track.stop())
   stream.value = null
@@ -163,6 +169,7 @@ function capture(frame) {
   photos.value = [frame]
   coverAndSend(type.value)
 }
+// Closes the camera without taking a photo.
 function cancelCamera() {
   stopCamera()
   retakeAt.value = null
@@ -184,6 +191,7 @@ async function onCameraFile(event) {
     URL.revokeObjectURL(url)
   }
 }
+// Goes back to the camera to retake the photo.
 async function retake() {
   state.value = 'idle'
   startCamera()
@@ -204,8 +212,10 @@ const cameraNote = computed(() => {
     ? t('scan.pages.retaking', { n: retakeAt.value + 1 })
     : t('scan.pages.taking', { n: shots.value.length + 1 })
 })
+// Moves focus to the page list once the camera has closed.
 const focusPages = () => setTimeout(() => pagesView.value?.focusTitle()) // once the camera has closed and the pages are back
 
+// Adds a photo to the pages (or replaces the one being retaken) and checks if it is clear enough.
 async function addShot(src) {
   const shot = { id: ++shotId, src, problem: 'checking', anyway: false }
   if (retakeAt.value === null) shots.value.push(shot)
@@ -217,15 +227,18 @@ async function addShot(src) {
   const live = shots.value.find((s) => s.id === shot.id)
   if (live) live.problem = problem
 }
+// Opens the camera for a new page, or to retake page i.
 function shootPage(i = null) {
   retakeAt.value = i
   askThrow.value = false
   startCamera()
 }
+// Removes one page.
 function removeShot(i) {
   shots.value.splice(i, 1)
   if (shots.value.length) focusPages()
 }
+// Sends all the pages taken for reading.
 function readShots() {
   freshPages()
   photos.value = shots.value.map((s) => s.src)
@@ -234,15 +247,18 @@ function readShots() {
   coverAndSend('bill')
 }
 let leaveTo = null
+// Cancels the pages; asks first when there are two or more.
 function cancelShots() {
   if (shots.value.length >= 2) return (askThrow.value = true)
   throwShots()
 }
+// Keeps the pages after all (answers "No" to throwing them away).
 function keepShots() {
   leaveTo = null
   askThrow.value = false
   focusPages()
 }
+// Throws the pages away.
 function throwShots() {
   shots.value = []
   retakeAt.value = null
@@ -293,12 +309,14 @@ async function send(docType, request, limit = scanLimit(photos.value.length)) {
   state.value = 'idle' // after the page has gone, so the picker never flashes up first
 }
 
+// Handles files chosen from the device.
 function onFile(event) {
   const files = [...event.target.files]
   event.target.value = '' // lets the same file be picked again
   if (files.length) useFiles(files)
 }
 
+// Prepares chosen files (shrinks photos, splits PDFs into pages) and sends them for reading.
 async function useFiles(files, k = type.value) {
   type.value = k
   // Shrinking a big photo takes about a second on old phones; show that we're working, so nobody taps again.
@@ -389,6 +407,7 @@ async function coverAndSend(docType, skipCheck = false) {
   send(docType, (ms) => scanImage(docType, photos.value, ms), deadline - Date.now())
 }
 
+// Runs a built-in sample instead of a photo.
 function trySample(sample) {
   freshPages()
   // The sample's picture goes to Confirm too, so there is something to check the fields against.
@@ -397,6 +416,7 @@ function trySample(sample) {
   send(sample.type, (ms) => scanSample(sample.id, ms))
 }
 
+// Tries the last scan again.
 function retry() {
   if (errorCode.value === 'COVER_FAILED' || !lastRequest.value)
     return coverAndSend(coverDocType.value)
@@ -410,6 +430,7 @@ function showExamples() {
   if (!chosen.value) router.replace({ name: 'scan', query: { type: type.value } }) // e.g. a photo from Home: its kind's page
 }
 
+// Cancels the scan in progress.
 function cancel() {
   run.value++
   covering.value = false

@@ -36,6 +36,7 @@ const MIC_ERRORS = {
 }
 let recognition = null
 
+// Starts or stops speech-to-text for the question box.
 function toggleMic() {
   if (listening.value) return recognition.stop()
   micError.value = null
@@ -68,6 +69,7 @@ function toggleMic() {
 // Without microphone access for it (or with reduced motion) the ring just glows; the speech input works either way.
 const level = ref(0)
 let stopLevel = null
+// Reads the microphone level so the mic button can pulse with the voice (skipped for reduced motion).
 async function followLevel() {
   if (
     matchMedia('(prefers-reduced-motion: reduce)').matches ||
@@ -88,6 +90,7 @@ async function followLevel() {
   ctx.createMediaStreamSource(stream).connect(analyser)
   const data = new Uint8Array(analyser.fftSize)
   let frame = 0
+  // Measures the current loudness once per frame.
   const tick = () => {
     analyser.getByteTimeDomainData(data)
     let sum = 0

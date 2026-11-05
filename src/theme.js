@@ -11,6 +11,7 @@ const STORAGE_KEY = 'theme'
 export const THEMES = ['light', 'dark', 'system']
 export const THEME_ICONS = { light: 'sun', dark: 'moon', system: 'smartphone' }
 
+// The saved day/night choice; guests always get day.
 function saved() {
   if (!readToken()) return 'light'
   try {
@@ -31,6 +32,7 @@ export const shownTheme = ref('light') // what is showing: always 'light' or 'da
 // What shows is always 'light' or 'dark' (tokens.css): 'system' becomes whichever the device is using now.
 const resolve = () =>
   themeChoice.value === 'system' ? (deviceDark?.matches ? 'dark' : 'light') : themeChoice.value
+// Puts the current theme on the page.
 function apply() {
   shownTheme.value = resolve()
   document.documentElement.dataset.theme = shownTheme.value

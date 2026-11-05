@@ -30,10 +30,12 @@ const canAdd = computed(
   () => chosen.value.length < MAX_PAGES && !chosen.value.some((c) => isPdf(c.file)),
 )
 
+// Frees the memory held by preview images.
 function forget(list) {
   for (const c of list) if (c.url?.startsWith('blob:')) URL.revokeObjectURL(c.url)
 }
 
+// Accepts the picked files if they are photos or PDFs, otherwise shows an error.
 function choose(picked) {
   if (!picked.length) return
   // Some browsers give HEIC (and some PDF) files no type, so the name decides.
@@ -69,16 +71,19 @@ function previewPdf(entry) {
     .catch(() => {})
 }
 
+// Opens the file picker, to replace the pages or add to them.
 function pick(add) {
   adding = add
   input.value.click()
 }
 
+// Handles files chosen in the file picker.
 function onInput(event) {
   choose([...event.target.files])
   event.target.value = '' // lets the same file be picked again
 }
 
+// Handles files dropped onto the box.
 function onDrop(event) {
   dragging.value = false
   adding = false

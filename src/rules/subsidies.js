@@ -43,6 +43,7 @@ export function normalizeAnswers(raw = {}, thisYear = new Date().getFullYear()) 
   return { birthYear, residency, citizenYear, income }
 }
 
+// Pioneer Generation check from year of birth and citizenship; UNKNOWN until both are answered.
 const isPioneer = (a) => {
   if (a.residency === null) return UNKNOWN
   if (a.residency !== 'citizen') return false
@@ -52,6 +53,7 @@ const isPioneer = (a) => {
   return a.citizenYear <= 1986
 }
 
+// Merdeka Generation check from year of birth and citizenship; UNKNOWN until both are answered.
 const isMerdeka = (a) => {
   if (a.residency === null) return UNKNOWN
   if (a.residency !== 'citizen') return false
@@ -64,6 +66,7 @@ const isMerdeka = (a) => {
   return a.birthYear >= 1950 || a.citizenYear > 1986
 }
 
+// Residency checks used by the rules below; UNKNOWN until the question is answered.
 const isCitizen = (a) => (a.residency === null ? UNKNOWN : a.residency === 'citizen')
 const isResident = (a) =>
   a.residency === null ? UNKNOWN : a.residency === 'citizen' || a.residency === 'pr'
@@ -171,6 +174,7 @@ export function discountCents(bill, percent) {
 export function compareWithBill(bill, raw, thisYear) {
   const place = billPlace(bill)
   const checks = checkRules(raw, thisYear)
+  // The eligibility result for one scheme, if it has been checked.
   const resultFor = (scheme) => checks.find(({ rule }) => rule.scheme === scheme)
   const schemesOnBill = new Set(bill.subsidies.map((s) => s.scheme))
 

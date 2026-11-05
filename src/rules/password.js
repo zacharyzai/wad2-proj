@@ -15,4 +15,5 @@ export function passwordChecks(password) {
   }
 }
 
+// True when every password rule is met.
 export const passwordOk = (password) => Object.values(passwordChecks(password)).every(Boolean)

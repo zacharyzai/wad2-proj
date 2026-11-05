@@ -9,6 +9,7 @@ import { defineStore } from 'pinia'
 import { useAuthStore } from './auth'
 
 const KEY = 'amag.tour' // 'seen' | 'deferred'
+// Reads the saved "guide seen" flag; storage may be blocked.
 const read = () => {
   try {
     return localStorage.getItem(KEY)
@@ -16,6 +17,7 @@ const read = () => {
     return 'seen' // storage blocked (private mode): never nag on every page
   }
 }
+// Saves the "guide seen" flag; ignored if storage is blocked.
 const write = (value) => {
   try {
     localStorage.setItem(KEY, value)
@@ -44,21 +46,24 @@ export const useGuideStore = defineStore('guide', () => {
   const step = ref(1)
   const ended = ref(null)
   const askTheme = ref(false)
-  // getter
+  // The step object the guide is currently showing
   const currentStep = computed(() => STEPS[step.value - 1])
 
-  // actions
+  // Moves the guide between steps
   function nextStep() {
     if (step.value < STEPS.length) step.value++
   }
+  // Goes back one step (not past the first).
   function prevStep() {
     if (step.value > 1) step.value--
   }
+  // Starts the guide again from step 1.
   function openGuide() {
     open.value = true
     step.value = 1
     ended.value = null
   }
+  // Closes the guide and remembers it was seen. `kind` records how it ended.
   function endGuide(kind) {
     write('seen')
     open.value = false

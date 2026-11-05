@@ -22,6 +22,7 @@ if (!scan) router.replace({ name: scanStore.current ? 'confirm' : 'scan' })
 const byValue = (a, b) => a - b
 const TIME_ICONS = { morning: 'sunrise', afternoon: 'sun', evening: 'sunset', bedtime: 'bed' }
 
+// Fills the pre-written medicine explanation templates from the confirmed label.
 function medication(m) {
   const unit = (n) => t(`unit.${m.doseUnit ?? 'other'}`, n)
   const dose = { amount: m.doseAmount, unit: unit(m.doseAmount) }
@@ -92,6 +93,7 @@ function medication(m) {
   }
 }
 
+// Fills the pre-written bill explanation templates from the confirmed bill, and builds the understanding-check question.
 function bill(b) {
   const charges = sumCents(b.items)
   const pay = b.totalPayableCents

@@ -46,6 +46,7 @@ const groups = computed(() => {
   )
   return list.map((g, i) => ({ ...g, state: states[i] }))
 })
+// True when every dose in a time group is ticked.
 const allTaken = (g) => g.doses.every((d) => taken.value.has(d.id))
 // The time that's due and not yet ticked: shown at the top with "I've taken it" for each of its doses.
 const dueGroup = computed(() =>
@@ -79,10 +80,12 @@ const sweep = ref(0) // a new value plays the sweep again (its key)
 let celebrate = false // the next rise in the % comes from their own tick
 let frame = 0
 let sweepTimer = 0
+// Animates the "taken" counter up or down to its new number.
 function countTo(to) {
   cancelAnimationFrame(frame)
   const from = shown.value
   const start = performance.now()
+  // One frame of the counter animation.
   const step = (now) => {
     const k = Math.min(1, (now - start) / COUNT_MS)
     shown.value = Math.round(
@@ -131,7 +134,8 @@ function bandStatus(g) {
   return { kind: g.state, text: t(`schedule.slot.${g.state}`) }
 }
 
-const listEl = ref(null) // template ref (Week 4): look only inside this page, never the whole document
+const listEl = ref(null) // look only inside this page, never the whole document
+// After the list redraws, moves focus to the element matching the selector.
 const focusAfterUpdate = async (selector) => {
   await nextTick()
   listEl.value?.querySelector(selector)?.focus()
@@ -150,6 +154,7 @@ async function toggle(dose, sure = false) {
 // goes back to the dose. Tapping one already ticked unticks it at once. A native <dialog>: focus stays inside while open.
 const asking = ref(null) // { dose, early } while the pop-up is open
 const askBox = ref(null)
+// Tapping an unticked dose asks first; tapping a ticked one unticks it.
 function tap(dose) {
   if (taken.value.has(dose.id)) return toggle(dose)
   asking.value = { dose, early: tooEarly(dose.time, timeInSingapore()) }
@@ -159,6 +164,7 @@ watch(asking, async (open) => {
   if (open && !askBox.value?.open) askBox.value?.showModal()
   else if (!open && askBox.value?.open) askBox.value.close()
 })
+// Handles "Yes, I took it" or "No" from the question.
 function answer(tookIt) {
   if (!asking.value) return
   const { dose } = asking.value
@@ -166,6 +172,7 @@ function answer(tookIt) {
   if (tookIt) toggle(dose, true)
   focusAfterUpdate(`[data-tick="${dose.id}"]`)
 }
+// A tap on the dark area counts as "No".
 const onBackdrop = (event) => event.target === askBox.value && answer(false)
 </script>
 

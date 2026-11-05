@@ -64,6 +64,7 @@ const playing = ref(!intro)
 // With a mouse, the picture leans a little towards it (the paper less, the phone more, the light the most).
 const band = ref(null)
 let frame = 0
+// Moves the header art a little with the pointer (fine pointers, motion allowed).
 function lean(event) {
   if (reduceMq.matches || !finePointer.matches || frame) return
   frame = requestAnimationFrame(() => {
@@ -80,6 +81,7 @@ function lean(event) {
     )
   })
 }
+// Returns the header art to rest.
 function unlean() {
   cancelAnimationFrame(frame)
   frame = 0

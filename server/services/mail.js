@@ -8,6 +8,7 @@ const MAX_KEPT = 20
 // The last emails console mode "sent", newest last, so tests can read the link. Never used by a real provider.
 export const sentMail = []
 
+// True on the deployed site (Vercel or production), where a missing APP_URL or MAIL_PROVIDER is a setup mistake, not a local default.
 const live = () => Boolean(process.env.VERCEL) || process.env.NODE_ENV === 'production'
 
 // Where reset links point: APP_URL (the site's own address), never the request's Host header, which anyone can fake to

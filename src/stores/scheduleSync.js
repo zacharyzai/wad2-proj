@@ -9,6 +9,7 @@ import { useAuthStore } from './auth'
 import { useMedicinesStore } from './medicines'
 
 const OWNER_KEY = 'medicinesOwner' // whose list the browser's cache is
+// The account the locally saved medicines belong to.
 function owner() {
   try {
     return localStorage.getItem(OWNER_KEY)
@@ -16,6 +17,7 @@ function owner() {
     return null
   }
 }
+// Records which account the locally saved medicines belong to.
 function setOwner(email) {
   try {
     email ? localStorage.setItem(OWNER_KEY, email) : localStorage.removeItem(OWNER_KEY)
@@ -23,10 +25,13 @@ function setOwner(email) {
     /* cache only */
   }
 }
+// Keeps the medicine list on this device and in the account in step: loads on login, saves a moment after each change.
 export function syncMedicinesWithAccount() {
   const authStore = useAuthStore()
   const { medicines } = useMedicinesStore()
+  // Swaps the whole list in place, so everything watching it updates.
   const replaceAll = (list) => medicines.splice(0, medicines.length, ...list)
+  // The list as text, to tell whether it changed.
   const snapshot = () => JSON.stringify(medicines)
 
   let ready = false // the account's list has arrived; nothing is saved before, so an old cached copy never overwrites it
@@ -60,6 +65,7 @@ export function syncMedicinesWithAccount() {
   }
 
   let saving = null // the save on its way, so a reload waits for it
+  // Sends the list to the account unless it is unchanged.
   async function save() {
     timer = null
     const now = snapshot()
@@ -70,6 +76,7 @@ export function syncMedicinesWithAccount() {
     saving = null
     if (!res.ok) sent = '' // retried with the next change or page load
   }
+  // Schedules a save shortly after a change, so quick edits go as one request.
   function push() {
     if (!ready) return void (authStore.user && !loading && load(authStore.user.email)) // the last load failed: try again
     clearTimeout(timer)

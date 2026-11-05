@@ -18,6 +18,7 @@ const result = computed(() => compareWithBill(props.bill, props.answers))
 const open = ref(false)
 const chasCard = computed(() => chasTier(props.answers)) // 'blue' | 'orange' | 'green' | null
 const answered = computed(() => Object.values(props.answers).some((value) => value !== null))
+// A "last checked" date in the current language.
 const checkedOn = (iso) =>
   new Date(`${iso}T00:00`).toLocaleDateString(locale.value, {
     day: 'numeric',

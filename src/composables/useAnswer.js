@@ -1,5 +1,5 @@
 // Ask's answers: split into words, shown word by word, and read aloud with the word being said lit up.
-// A composable (Week 11). The state below sits outside the function, so AskView and every AskReply share it:
+// The answer to the question being asked. The state below sits outside the function, so AskView and every AskReply share it:
 // only one answer reveals or reads aloud at a time.
 import { markRaw, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -14,9 +14,11 @@ const preparing = ref(false) // getting the audio for it
 const speakFailed = ref(null) // id of the message whose audio couldn't be played
 const wordAt = ref(-1) // where in the text the voice is
 
+// Shared logic for showing and reading aloud an Ask answer: words appear one by one, and the word being read is highlighted.
 export function useAnswer() {
   const { t } = useI18n()
   const { speak, stopSpeaking } = useSpeechStore()
+  // The words of an answer, or the "no answer" message when there is none.
   const answerText = (m) => m.reply.answer ?? t('ask.noAnswer')
 
   // Words come from Intl.Segmenter, so Chinese (no spaces) splits into words too. Each word knows where it sits in the
@@ -66,12 +68,15 @@ export function useAnswer() {
       if (m.shown >= total) clearInterval(revealTimer)
     }, every)
   }
+  // True while an answer is still appearing word by word.
   const revealing = (m) => m.shown !== undefined && m.shown < words(m).all.length
+  // Skips the word-by-word reveal and shows the full answer now.
   function showAll(m) {
     if (!revealing(m)) return
     clearInterval(revealTimer)
     m.shown = words(m).all.length
   }
+  // Stops the word-by-word reveal timer.
   const stopRevealing = () => clearInterval(revealTimer)
 
   // Read-aloud on every answer, in the answer's language, at the shared speed: the device's voice, or our server's audio
@@ -91,6 +96,7 @@ export function useAnswer() {
     preparing.value = false
     if (result === 'failed') speakFailed.value = m.id
   }
+  // Stops read-aloud and clears the highlighted word.
   function stopReading() {
     wordAt.value = -1
     speaking.value = null

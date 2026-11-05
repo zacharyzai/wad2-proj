@@ -4,6 +4,7 @@
 const PAGE_WIDTH = 1600 // pixels per page: two money columns of small print stay readable
 export const MAX_PAGES = 4 // same as the server (server/routes/scan.js); a bill's total is often on the last page
 
+// True when a chosen file is a PDF, by type or file name.
 export const isPdf = (file) => file.type === 'application/pdf' || /\.pdf$/i.test(file.name)
 
 // Each page is its own picture: the AI gives every image the same detail, so one tall strip of pages would make each

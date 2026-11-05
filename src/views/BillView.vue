@@ -52,6 +52,7 @@ const loading = ref(false)
 const errorCode = ref(null)
 let lastSample = null
 
+// Loads one of the built-in sample bills.
 async function openSample(id) {
   lastSample = id
   loading.value = true
@@ -69,6 +70,7 @@ async function openSample(id) {
 // Back: a sample opened on this page closes again (back to the list of bills); otherwise return to the page before
 // (usually Explain, via See full breakdown), or Home when this page was opened directly.
 const openedHere = ref(false)
+// Leaves the bill: back to the sample picker, or to where the user came from.
 function goBack() {
   if (openedHere.value) {
     openedHere.value = false
@@ -79,6 +81,7 @@ function goBack() {
   if (window.history.state?.back) router.back()
   else router.push({ name: 'home' })
 }
+// Scrolls to the top (instantly for reduced motion).
 function toTop() {
   window.scrollTo({
     top: 0,
@@ -92,6 +95,7 @@ function toTop() {
 // One line open at a time, so there is only ever one read-aloud player.
 const openId = ref(null)
 watch(bill, () => (openId.value = null))
+// Opens a bill line's explanation, closing any other.
 const toggle = (id) => (openId.value = openId.value === id ? null : id)
 
 const date = computed(
@@ -149,6 +153,7 @@ const groups = computed(() => {
 const biggest = computed(() => (grouped.value ? groups.value.slice(0, 3) : []))
 const openGroups = ref([])
 watch(bill, () => (openGroups.value = []))
+// Opens or closes one category of bill lines.
 const toggleGroup = (category) =>
   (openGroups.value = openGroups.value.includes(category)
     ? openGroups.value.filter((c) => c !== category)
@@ -170,6 +175,7 @@ watch(summaryCard, (card) => {
 })
 onBeforeUnmount(() => summaryWatch?.disconnect())
 const payBar = computed(() => showItems.value && summaryPassed.value)
+// Scrolls to the payable summary card.
 function toSummary() {
   summaryCard.value?.scrollIntoView({
     block: 'start',
@@ -236,6 +242,7 @@ watch(
     if (to == null) return
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) return (shownPay.value = to)
     const start = performance.now()
+    // One frame of the "payable" number count-up.
     const step = (now) => {
       const p = Math.min(1, (now - start) / 700)
       shownPay.value = Math.round(to * (1 - (1 - p) ** 3))

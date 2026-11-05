@@ -50,6 +50,7 @@ const sentence = computed(() => {
   if (n) return t('schedule.strip.notTicked', { n }, n)
   return t(week.value.anyPassed ? 'schedule.week.allTicked' : 'schedule.week.nothingYet')
 })
+// A full date for screen readers, e.g. "Monday, 3 November".
 const dayName = (date) => dateText(date, { weekday: 'long', day: 'numeric', month: 'long' })
 </script>
 

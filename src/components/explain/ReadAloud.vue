@@ -27,6 +27,7 @@ const failed = ref(false)
 
 let run = 0
 
+// Reads the explanation aloud. A newer press cancels an older one still loading.
 async function speak() {
   const id = ++run
   failed.value = false
@@ -40,6 +41,7 @@ async function speak() {
   failed.value = result === 'failed'
 }
 
+// Pauses what is playing, or resumes it, or starts again.
 function toggle() {
   if (status.value === 'playing') {
     pauseSpeaking()
@@ -54,6 +56,7 @@ function toggle() {
   }
 }
 
+// Stops playback and returns to the start.
 function stop() {
   run++
   stopSpeaking()

@@ -17,8 +17,11 @@ const pinned = ref(false) // opened by a click, tap or key
 const hovering = ref(false) // a mouse is over it (never set by touch, where hover would fire on the same tap)
 const open = computed(() => pinned.value || hovering.value)
 
+// Shows the tip on mouse hover only (touch uses tap).
 const onEnter = (e) => (hovering.value = e.pointerType === 'mouse')
+// Hides the hover tip.
 const onLeave = () => (hovering.value = false)
+// A tap outside the tip closes a pinned tip.
 const closeOutside = (e) => {
   if (!root.value?.contains(e.target)) pinned.value = false
 }

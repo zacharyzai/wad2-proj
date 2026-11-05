@@ -26,6 +26,7 @@ const panel = ref(null)
 // RATE_LIMITED here means "this email has had 3 links this hour": its own words, not the scan-quota message.
 const errorText = (code) => (code === 'RATE_LIMITED' ? t('auth.forgot.tooMany') : null)
 
+// Asks for a reset email (also used for "send again"). The page says the same thing whether or not the address has an account.
 async function send(resend = false) {
   if (busy.value) return
   const address = (resend ? sentTo.value : email.value).trim()

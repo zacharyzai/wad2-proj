@@ -1,6 +1,8 @@
 // Household income bands (the values the server and src/rules/subsidies.js use) and their i18n label keys (bill.q.incomes.*).
 export const INCOMES = { upTo1500: 'low', '1501to2300': 'mid', above2300: 'high', unsure: 'unsure' }
+// True for Singapore citizens (by birth or later).
 export const isCitizen = (citizenship) => citizenship === 'birth' || citizenship === 'became'
+// The account's income tier in words, or a dash when not set.
 export const incomeText = (t, user) =>
   user?.income ? t(`bill.q.incomes.${INCOMES[user.income]}`) : '—'
 

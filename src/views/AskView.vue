@@ -35,6 +35,7 @@ const question = ref('')
 const listening = ref(false) // the mic is on (AskComposer says so)
 const loading = computed(() => messages.some((m) => m.state === 'loading'))
 const latest = computed(() => messages.at(-1))
+// True for a finished reply that answers the question (not a refusal or a red-flag notice).
 const isAnswer = (m) => m?.state === 'done' && m.reply.type === 'ANSWER'
 
 const thread = ref(null)
@@ -111,6 +112,7 @@ async function scrollTo(msg, block) {
 const cleared = ref(null)
 const undoClearButton = ref(null)
 let clearTimer = null
+// Clears the conversation, keeping it for a moment so Undo can bring it back.
 async function newChat() {
   stopReading()
   stopRevealing()
@@ -120,6 +122,7 @@ async function newChat() {
   await nextTick()
   undoClearButton.value?.focus()
 }
+// Brings back the conversation that was just cleared.
 function undoClear() {
   clearTimeout(clearTimer)
   messages.push(...cleared.value)
@@ -134,6 +137,7 @@ const hello = computed(() =>
     ? t('ask.hello', { greet: t(`home.greet.${greet}`), name: authStore.user.name })
     : t(`home.greet.${greet}`),
 )
+// A medicine's name.
 const nameOf = (e) => e.medication.name
 const starters = computed(() => {
   const mine = medicines.slice(0, 2)

@@ -16,6 +16,7 @@ const props = defineProps({
 const emit = defineEmits(['retake', 'anyway', 'remove', 'add', 'done', 'cancel', 'keep', 'throw'])
 const { t, locale } = useI18n()
 
+// True when a page has a photo problem the user has not accepted.
 const shotBad = (s) => s.problem !== null && s.problem !== 'checking' && !s.anyway
 const badPages = computed(() => props.shots.flatMap((s, i) => (shotBad(s) ? [i + 1] : [])))
 const checking = computed(() => props.shots.some((s) => s.problem === 'checking'))

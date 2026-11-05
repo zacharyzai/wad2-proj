@@ -8,6 +8,7 @@ import { nextTick } from 'vue'
 const reduceMotion =
   typeof matchMedia === 'function' ? matchMedia('(prefers-reduced-motion: reduce)') : null
 
+// True when the browser supports view transitions and the user has not asked for reduced motion.
 export const canFade = () =>
   Boolean(document.startViewTransition) && !reduceMotion?.matches && !document.hidden
 // A screen fade is running: the router then leaves its own page transition out (src/router/index.js).

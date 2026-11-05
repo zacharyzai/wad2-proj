@@ -35,6 +35,7 @@ const groups = computed(() => {
     slot: list.every((d) => d.slot === list[0].slot) ? list[0].slot : null,
   }))
 })
+// How a dose looks on this day: later (not yet), ticked, or not ticked.
 const stateOf = (d) => (!earlier.value ? 'later' : ticks.value?.has(d.id) ? 'ok' : 'not')
 const notTicked = computed(() =>
   earlier.value && ticks.value ? dayDoses.value.filter((d) => !ticks.value.has(d.id)).length : 0,

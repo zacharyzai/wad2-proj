@@ -136,7 +136,7 @@ router.beforeEach((to) => {
 
 // Every page needs an account. Logged-out visitors go to Login, then back to the page they wanted;
 // logged-in people who open Login or Signup go Home instead.
-// Navigation guard (Week 11): the stores are used inside the guard, after Pinia is installed (main.js).
+// Navigation guard: the stores are used inside the guard, after Pinia is installed (main.js).
 router.beforeEach(async (to) => {
   const authStore = useAuthStore()
   if (authStore.user) {
@@ -197,6 +197,7 @@ router.beforeResolve((to, from) => {
     transition.finished.catch(() => {})
   })
 })
+// Ends a running page transition at once, so a new navigation never waits for the old animation.
 function finishTransitionNow() {
   finishTransition?.()
   finishTransition = null

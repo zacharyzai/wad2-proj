@@ -57,6 +57,8 @@ export const BILL_PLACES = [
   'other',
 ]
 
+// Trimmed non-empty string, else null (unclear fields are null, never guessed).
+// num, posInt and oneOf below do the same for numbers, whole numbers and enum values.
 const str = (v) => (typeof v === 'string' && v.trim() ? v.trim() : null)
 const num = (v) => (typeof v === 'number' && Number.isFinite(v) && v >= 0 ? v : null)
 const posInt = (v) => (Number.isInteger(v) && v > 0 ? v : null)
@@ -72,9 +74,12 @@ function signedDollars(v) {
   if (!m) return null
   return (m[1] || m[2] ? -1 : 1) * Number(m[3])
 }
+// Dollars as the AI read them to the integer cents the scan contract stores.
 const dollarsToCents = (v) => (v === null ? null : Math.round(v * 100))
+// A YYYY-MM-DD date, else null.
 const isoDate = (v) => (typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : null)
 
+// Cleans the AI's reading of a medicine label into the contract shape; anything out of range becomes null and is flagged unclear.
 export function normalizeMedication(raw = {}) {
   const timing = Array.isArray(raw.timing)
     ? [...new Set(raw.timing.filter((t) => TIMINGS.includes(t)))]
@@ -112,6 +117,7 @@ const MEDISAVE = /medi\s*save/i
 // Totals the model listed as a charge: never added in.
 const TOTAL_LINE =
   /^(sub\s*-?\s*total|grand\s*total|total|balance|amount\s*(due|payable)|nett?\s*(payable|amount|total))\b/i
+// Guesses which kind of bill deduction a line is (paid, insurance, subsidy…) from its description.
 const schemeFor = (d) =>
   /deposit|prepaid|amount\s*paid|payments?\b/i.test(d)
     ? 'paid'
@@ -130,6 +136,7 @@ const schemeFor = (d) =>
 // A row that only continues the description above it: starts with a dosage form or a strength.
 const CONTINUATION =
   /^\(?\s*(tablets?|tabs?|capsules?|caps?|syrup|cream|ointment|drops?|\d+(\.\d+)?\s?(mg|mcg|ml|g|iu)\b)/i
+// Cleans the AI's reading of a bill into the contract shape: lines, subsidies, MediSave and totals in cents.
 export function normalizeBill(raw = {}) {
   const unclear = []
   const list = (v) => (Array.isArray(v) ? v : [])
@@ -140,6 +147,7 @@ export function normalizeBill(raw = {}) {
   // Printed subtotals under each group of charges ("Medications ... Subtotal $83.76"): they show which group a misread
   // amount is in (src/rules/billCheck.js). A subtotal the model put among the charges counts too.
   const subtotals = []
+  // Records a section subtotal if it has a name and a non-negative amount.
   const addSubtotal = (section, amount) => {
     const dollars = signedDollars(amount)
     if (str(section) && dollars !== null && dollars >= 0)

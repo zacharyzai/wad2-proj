@@ -20,6 +20,7 @@ const video = ref(null)
 // Until the first frame arrives the video is 0×0, and capturing would send an empty image.
 const ready = ref(false)
 onMounted(() => (video.value.srcObject = props.stream))
+// Takes the current camera frame as a photo.
 const capture = () =>
   emit('capture', toJpeg(video.value, video.value.videoWidth, video.value.videoHeight))
 </script>

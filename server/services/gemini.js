@@ -41,7 +41,9 @@ const LAST_TRY_RESERVE_MS = 5_000
 // to one that is working instead of waiting for it to fail again. Per server instance; it forgets on a cold start.
 const REST_MS = 2 * 60_000
 const restingUntil = new Map()
+// True while a model that just failed is being skipped.
 const resting = (attempt) => (restingUntil.get(attempt.name) ?? 0) > Date.now()
+// Clears the skip list (used by tests).
 export const forgetResting = () => restingUntil.clear() // tests
 // Another model may succeed after these: overloaded/server error, per-model quota, retired model.
 // 400/403 mean our request or key is wrong, which no other model fixes.
@@ -50,7 +52,9 @@ const TRY_NEXT = new Set([404, 429, 500, 503])
 // Gemini responseSchema (OpenAPI subset). Nullable everywhere so the model can say "unreadable" instead of guessing.
 const S = { type: 'STRING', nullable: true }
 const N = { type: 'NUMBER', nullable: true }
+// Schema helper: a nullable string limited to the given values, so the AI can only answer with contract enums or null.
 const E = (values) => ({ type: 'STRING', enum: values, nullable: true })
+// Schema helper: an object whose every field must be present (null when unclear).
 const obj = (properties) => ({ type: 'OBJECT', properties, required: Object.keys(properties) })
 
 const SCHEMAS = {
@@ -161,6 +165,7 @@ Extract the bill.
 ${RULES}`,
 }
 
+// Splits a comma-separated env value into a clean list.
 export const list = (value) =>
   (value ?? '')
     .split(',')
@@ -172,11 +177,13 @@ export const list = (value) =>
 // The main key, then any add-on keys (GEMINI_EXTRA_KEYS / GROQ_EXTRA_KEYS, comma separated) from other accounts for their own quota.
 export const geminiKeys = () =>
   [process.env.GEMINI_API_KEY, ...list(process.env.GEMINI_EXTRA_KEYS)].filter(Boolean)
+// Every configured Groq key; more keys means more free-tier quota.
 const groqKeys = () =>
   [process.env.GROQ_API_KEY, ...list(process.env.GROQ_EXTRA_KEYS)].filter(Boolean)
 // Same model on a different key is a different attempt, so one key running out doesn't rest the others.
 export const keyed = (model, i) => (i ? `${model}#${i + 1}` : model)
 
+// One try at a scan with Gemini (a model + key pair), in the shape firstReply() runs.
 function geminiAttempt(model, body, key = process.env.GEMINI_API_KEY, i = 0) {
   return {
     name: keyed(model, i),
@@ -191,6 +198,7 @@ function geminiAttempt(model, body, key = process.env.GEMINI_API_KEY, i = 0) {
   }
 }
 
+// One try at a scan with Groq, in the same shape as geminiAttempt.
 function groqAttempt(model, body, key, i) {
   return {
     name: `groq:${keyed(model, i)}`,
@@ -329,6 +337,7 @@ async function readOnce(type, pages, basePrompt, timeoutMs) {
     const [, mimeType, data] = url.match(/^data:(image\/[a-z]+);base64,(.+)$/)
     return { inline_data: { mime_type: mimeType, data } }
   })
+  // Labels each page of a multi-page bill for the AI so it keeps the pages in order.
   const label = (i) => (pages.length > 1 ? [{ text: `Page ${i + 1} of ${pages.length}:` }] : [])
   const text = await firstReply(
     attempts({

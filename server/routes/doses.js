@@ -15,6 +15,7 @@ const DOSE_ID = /^[A-Za-z0-9-]{1,80}$/
 export const MAX_PER_DAY = 120
 const DAY_MS = 86_400_000
 
+// Converts a timestamp to its Singapore calendar day (YYYY-MM-DD); doses are ticked per Singapore day.
 const singaporeDay = (ms) => new Date(ms + 8 * 3_600_000).toISOString().slice(0, 10) // Singapore has no daylight saving: always UTC+8
 
 // Tomorrow is allowed (a device clock slightly ahead); anything older than a year is not a schedule day.
@@ -33,6 +34,7 @@ export function checkDate(date, now = Date.now()) {
   return null
 }
 
+// Validates a tick request body ({ doseId, date }). Returns { error } or the cleaned values.
 function checkTick(body) {
   const { doseId, date } = body ?? {}
   if (typeof doseId !== 'string' || !DOSE_ID.test(doseId))

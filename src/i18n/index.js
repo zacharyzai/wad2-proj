@@ -6,6 +6,7 @@ import en from './locales/en.json'
 export const LOCALES = { en: 'English', zh: '中文', ms: 'Bahasa Melayu', ta: 'தமிழ்' }
 const STORAGE_KEY = 'locale'
 
+// The language chosen last time, or the default when none is saved.
 function savedLocale() {
   try {
     const saved = localStorage.getItem(STORAGE_KEY)
@@ -32,7 +33,9 @@ const LOADERS = {
   ta: () => import('./locales/ta.json'),
 }
 const loading = {}
+// True once a language's translations have been loaded.
 const hasMessages = (code) => i18n.global.availableLocales.includes(code)
+// Loads a language's translations the first time it is needed, so unused languages are never downloaded.
 function loadMessages(code) {
   if (hasMessages(code) || !LOADERS[code]) return Promise.resolve()
   loading[code] ??= LOADERS[code]()
@@ -42,6 +45,7 @@ function loadMessages(code) {
 }
 export const localeReady = loadMessages(i18n.global.locale.value)
 
+// Switches the app (and the saved choice) to another language once its translations are ready.
 export async function setLocale(code) {
   await loadMessages(code)
   if (!hasMessages(code)) return // could not be fetched: stay in the language that is showing

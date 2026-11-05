@@ -14,6 +14,7 @@ const seniors = ref([])
 const loading = ref(true)
 const errorCode = ref(null)
 
+// Loads the seniors this caregiver looks after.
 async function load() {
   loading.value = true
   errorCode.value = null

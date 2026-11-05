@@ -1,10 +1,11 @@
-// The scan currently being confirmed/explained, shared by Scan → Confirm → Explain → Schedule/Bill (a Pinia store, Week 11).
+// The scan currently being confirmed/explained, shared by Scan → Confirm → Explain → Schedule/Bill.
 // Holds the contract's `data` object (docs/scan-contract.md). The extracted text (never the photo) is also kept for this tab,
 // so a refresh, or a visit to Ask, doesn't lose it: the Scan page offers it back. Cleared on log out. Saved scans live in History.
 import { ref, watch } from 'vue'
 import { defineStore } from 'pinia'
 
 const KEY = 'lastScan'
+// Brings back the scan being confirmed after a page reload.
 function restore() {
   try {
     const saved = JSON.parse(sessionStorage.getItem(KEY))
@@ -16,7 +17,7 @@ function restore() {
 
 export const useScanStore = defineStore('scan', () => {
   const saved = restore()
-  // state
+  // The scan being confirmed, kept across a page reload
   const current = ref(saved?.current ?? null)
   // Covered data URLs of the user's photo, or of each page of a long bill, shown beside the fields on Confirm. [] when there
   // is none. Never sent anywhere but /api/scan.

@@ -8,6 +8,7 @@ import { baselineAt, planRedaction } from './sensitive.js'
 import { loadImage } from './images.js'
 
 let worker = null
+// The shared OCR worker, started on first use.
 function getWorker() {
   // A failed start (e.g. offline) is forgotten, so the next photo tries again.
   worker ??= createWorker('eng').catch((err) => {
@@ -29,6 +30,7 @@ const READ_SIDE = 2400
 const NORMAL = 'grayscale(1) contrast(1.5)'
 // Light text on a dark box (a "Balance Due" bar, a coloured header) is invisible to the reader; inverted, it is dark on light.
 const INVERTED = 'grayscale(1) invert(1)' // no contrast boost: it washes a mid-dark box (purple, teal) out to blank
+// Draws the photo to a canvas at a size the OCR can read, with an optional contrast filter.
 function forReading(img, filter = NORMAL) {
   const scale = Math.min(2, Math.max(1, READ_SIDE / Math.max(img.naturalWidth, img.naturalHeight)))
   const canvas = document.createElement('canvas')

@@ -26,6 +26,8 @@ const MED_KEYS = [
   'warnings',
 ]
 
+// Rejects the list with the name of the field that was wrong.
+// plain, text, number and choice below check one kind of value each.
 const fail = (field) => {
   throw new Error(`Invalid medicine: ${field}`)
 }
@@ -65,6 +67,7 @@ const number = (value, field, max, integer = false) => {
 const choice = (value, values, field) =>
   value == null ? null : values.includes(value) ? value : fail(field)
 
+// Validates one saved medicine: its id, label fields and schedule.
 function checkMedicine(raw) {
   plain(raw, ['id', 'source', 'sample', 'medication', 'schedule'], 'fields')
   if (typeof raw.id !== 'string' || !/^[A-Za-z0-9-]{1,40}$/.test(raw.id)) fail('id')
@@ -110,6 +113,7 @@ function checkMedicine(raw) {
   return medicine
 }
 
+// Validates the account's whole medicine list before it replaces the saved one.
 export function checkMedicines(raw) {
   try {
     if (!Array.isArray(raw) || raw.length > MAX_MEDICINES)

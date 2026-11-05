@@ -33,6 +33,7 @@ const draft = reactive(scan ? structuredClone(toRaw(scan)) : {})
 // The covered photo, or each page of a long bill; the first stands for them all where there is room for one.
 const photos = scanStore.photos
 const photo = photos[0] ?? null
+// Alt text for a photo, numbered when the bill has several pages.
 const pageAlt = (i) =>
   photos.length > 1
     ? t('confirm.pageAlt', { n: i + 1, total: photos.length })
@@ -42,6 +43,8 @@ const showPhoto = ref(false)
 // goes back to Schedule, keeping its days, ticks and calendar reminders. `savedId` lives on the scan, so a new scan clears it.
 const fixing = Boolean(scan?.savedId)
 
+// Cents as a dollar amount for a form field.
+// toCents is the way back; get reads a value by dotted path and isEmpty tells whether a field is blank.
 const dollars = (cents) => (cents == null ? '' : (cents / 100).toFixed(2))
 const toCents = (value) => (value === '' ? null : Math.round(Number(value) * 100))
 const get = (path) => path.split('.').reduce((obj, key) => obj?.[key], draft)
@@ -73,6 +76,7 @@ const gap = computed(() =>
   draft.type === 'bill' && !needs('bill.totalPayableCents') ? billGap(draft.bill) : null,
 )
 const offSections = computed(() => (gap.value ? sectionsOff(draft.bill) : []))
+// True when a bill line sits under a printed subtotal that the lines do not add up to.
 const offLine = (item) =>
   offSections.value.some(
     (s) => s.section.toLowerCase() === (item.section ?? '').trim().toLowerCase(),
@@ -103,6 +107,7 @@ const flagged = computed(() => {
   for (const path of Object.keys(invalid.value)) if (!empty.includes(path)) empty.push(path)
   return empty
 })
+// True when the scan flagged this field as unclear or missing.
 const needs = (path) => flagged.value.includes(path)
 
 // A long bill (more than FOLD_AT items, often 30+ over several pages): only the lines that need checking are open, i.e.
@@ -111,6 +116,7 @@ const needs = (path) => flagged.value.includes(path)
 // subtotal to point at: every line opens, since the misread amount could be any of them.
 const FOLD_AT = 6
 const billItems = draft.type === 'bill' ? draft.bill.items : []
+// True when a bill line is hard to read or does not add up with its subtotal.
 const lineNeeds = (i) =>
   needs(`bill.items.${i}.description`) ||
   needs(`bill.items.${i}.amountCents`) ||
@@ -125,6 +131,7 @@ const blindGap = computed(
 )
 const allLines = ref(billItems.length <= FOLD_AT || blindGap.value)
 watch(blindGap, (blind) => blind && (allLines.value = true)) // a gap that appears while typing: open them all, never fold
+// Whether a bill line is open: needs checking, or the user opened them all.
 const lineShown = (i) => allLines.value || checkAtStart.has(i) || lineNeeds(i)
 const fineLines = computed(
   () => billItems.filter((_, i) => !checkAtStart.has(i) && !lineNeeds(i)).length,
@@ -166,6 +173,7 @@ showPhoto.value = flagged.value.length > 0
 
 // H3/H5: leaving with corrections (Back, Retake, a tab, the browser's Back) asks first instead of silently losing them.
 const original = JSON.stringify(scan ?? {})
+// True when the user has edited anything since the page opened.
 const changed = () => JSON.stringify(toRaw(draft)) !== original
 const askDiscard = ref(false)
 let leaveTo = null
@@ -179,6 +187,7 @@ onBeforeRouteLeave((to) => {
 // The guard lets `leaveTo` through now that it's set.
 const discard = () => router.push(leaveTo)
 const discardBox = ref(null)
+// Scrolls a box into the middle of the screen once it appears.
 async function showBox(box) {
   await nextTick()
   box.value?.scrollIntoView({
@@ -192,11 +201,13 @@ watch(askDiscard, (open) => open && showBox(discardBox))
 const duplicate = ref(null)
 const duplicateBox = ref(null)
 watch(duplicate, (entry) => entry && showBox(duplicateBox))
+// Cancels leaving the page, so the user can carry on checking.
 function keepChecking() {
   leaveTo = null
   askDiscard.value = false
 }
 
+// Adds or removes one time of day (morning, noon…) from the medicine's timing.
 function toggleTiming(key) {
   const current = draft.medication.timing ?? []
   draft.medication.timing = TIMINGS.filter((k) =>
@@ -213,6 +224,8 @@ const warnings = computed({
       .filter(Boolean)),
 })
 
+// Confirms the checked scan: adds the medicine to the user's list (or updates it on a re-check, asking first about a duplicate),
+// saves the scan to History when logged in, then goes on to Explain.
 function confirm(sure = false) {
   if (draft.type === 'medication') {
     // Number inputs give '' when cleared; the contract uses null.

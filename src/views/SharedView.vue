@@ -32,6 +32,7 @@ const gone = computed(() => ['NOT_FOUND', 'EXPIRED', 'GONE'].includes(errorCode.
 // After logging in or signing up, come straight back to this page.
 const back = computed(() => ({ next: route.fullPath }))
 
+// Looks up the invite from the link.
 async function load() {
   loading.value = true
   errorCode.value = null
@@ -42,6 +43,7 @@ async function load() {
 }
 onMounted(load)
 
+// Accepts the invite so this caregiver can see the senior's doses.
 async function accept() {
   if (accepting.value) return
   accepting.value = true

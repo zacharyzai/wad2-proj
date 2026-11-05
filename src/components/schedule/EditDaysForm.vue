@@ -33,7 +33,7 @@ const form = reactive({
   startDate: props.medicine.schedule?.startDate ?? useDosesStore().today,
   times: Object.fromEntries(props.entry.doses.map((d) => [d.id.slice(id.length + 1), d.time])),
 })
-const formEl = ref(null) // template refs (Week 4): no document.getElement… lookups
+const formEl = ref(null) // no document.getElement… lookups
 const daysInput = ref(null)
 const tried = ref(false) // errors show after the first Save, not while the person is still typing
 const slots = doseSlots(props.medicine.medication) ?? []
@@ -45,8 +45,10 @@ const problems = computed(() => {
   for (const slot of slots) if (!validTime(form.times[slot])) p[slot] = t('schedule.form.bad.time')
   return p
 })
+// A field's problem, shown only after the first save attempt.
 const shown = (key) => (tried.value ? problems.value[key] : null)
 
+// Saves the changed days and times, or focuses the first problem.
 async function save() {
   tried.value = true
   if (Object.keys(problems.value).length) {

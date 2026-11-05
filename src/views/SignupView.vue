@@ -37,7 +37,7 @@ const remember = ref(true)
 const showPw = ref(false)
 const busy = ref(false)
 const errorCode = ref(null)
-const formEl = ref(null) // template ref (Week 4), for focusing the first field to fix
+const formEl = ref(null) // for focusing the first field to fix
 const tried = ref(false) // show problems only after the first press of Create account
 
 // The password's rules (src/rules/password.js, checked again by the server), ticked off as they type.
@@ -61,13 +61,16 @@ const problems = computed(() => {
   if (isCitizen(form.citizenship) && !form.income) p.income = t('auth.need.citizenship')
   return p
 })
+// A field's problem, shown only after the first submit.
 const show = (field) => tried.value && problems.value[field]
 
+// Where to go after signing up: the page asked for, if it is inside the app, else Home.
 function destination() {
   const next = route.query.next
   return typeof next === 'string' && next.startsWith('/') && !next.startsWith('//') ? next : '/'
 }
 
+// Creates the account, or focuses the first problem.
 async function submit() {
   if (busy.value) return
   tried.value = true

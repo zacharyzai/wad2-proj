@@ -44,6 +44,7 @@ const SLOW = 1.6
 const LAUNCH_MS = 1050 * SLOW
 const launching = ref(null) // { kind, x, y, k } while the picture plays
 let launchTimer = 0
+// Picks Label or Bill; the card grows towards the screen before the page changes.
 function choose(event, kind) {
   if (launching.value) return // already on its way: a second tap does nothing
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) return emit('pick', kind)
@@ -60,6 +61,7 @@ function lean(e) {
   e.currentTarget.style.setProperty('--mx', ((e.clientX - box.left) / box.width).toFixed(3))
   e.currentTarget.style.setProperty('--my', ((e.clientY - box.top) / box.height).toFixed(3))
 }
+// Resets the card's lean towards the pointer.
 function unlean(e) {
   e.currentTarget.style.removeProperty('--mx')
   e.currentTarget.style.removeProperty('--my')

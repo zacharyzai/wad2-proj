@@ -86,6 +86,7 @@ const lastBillAbout = computed(() => {
 // Press in where touched, and lean a little towards the mouse: the card tilts by --rx/--ry and sinks while data-pressed.
 // (A data attribute, not a class: RouterLink owns the class list.)
 const still = () => matchMedia('(prefers-reduced-motion: reduce)').matches
+// Tilts a tile a few degrees towards the pointer.
 function lean(event, degrees) {
   const el = event.currentTarget
   const box = el.getBoundingClientRect()
@@ -94,20 +95,24 @@ function lean(event, degrees) {
   el.style.setProperty('--rx', `${(-y * 2 * degrees).toFixed(2)}deg`)
   el.style.setProperty('--ry', `${(x * 2 * degrees).toFixed(2)}deg`)
 }
+// Tilts a tile gently as the mouse moves over it.
 function onMove(event) {
   if (event.pointerType === 'mouse' && !still() && !('pressed' in event.currentTarget.dataset))
     lean(event, 4)
 }
+// Tilts a tile more when pressed.
 function onDown(event) {
   if (still()) return
   event.currentTarget.dataset.pressed = ''
   lean(event, 7)
 }
+// Returns a tile to hover or rest when released.
 function onUp(event) {
   delete event.currentTarget.dataset.pressed
   if (event.pointerType === 'mouse') onMove(event)
   else rest(event)
 }
+// Puts a tile back flat.
 function rest(event) {
   const el = event.currentTarget
   delete el.dataset.pressed

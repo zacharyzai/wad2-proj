@@ -6,7 +6,9 @@
 // a medicine is also found by what it is for ("diabetes", "sugar", "darah tinggi", "高血压": medicineMatches).
 import { todayInSingapore } from './schedule.js'
 
+// Lower-cases and collapses spaces so the same medicine written two ways matches.
 const norm = (text) => (text ?? '').toLowerCase().replace(/\s+/g, ' ').trim()
+// Sort order for saved scans: newest at the top.
 const newestFirst = (a, b) => String(b.createdAt).localeCompare(String(a.createdAt))
 
 // The key a medicine is known by, here and on the person's list: "metformin 500 mg".

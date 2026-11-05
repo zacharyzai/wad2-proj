@@ -93,8 +93,10 @@ const RED_FLAGS = [
   'இரத்த வாந்தி',
 ]
 
+// Normalises a question (case, quotes, spaces) so red-flag phrases match however it is typed.
 const clean = (text) =>
   text.normalize('NFC').toLowerCase().replace(/[’‘]/g, "'").replace(/\s+/g, ' ')
+// True when the question mentions an emergency symptom; those get a "call 995 / see a doctor" reply, never AI text.
 export const isRedFlag = (question) => RED_FLAGS.some((flag) => clean(question).includes(flag))
 
 // The user's medicines come from labels they checked ("label") or that they typed in ("typed").
@@ -137,6 +139,7 @@ const SCHEMA = {
 
 // The user part keeps the question (and earlier turns, as JSON) inside delimiters they can't close.
 const fence = (text) => `"""${text.replaceAll('"""', '"')}"""`
+// The user message sent to the AI: their medicines, recent history and question, with the free text fenced off from our instructions.
 const userPart = (medicines, question, history = []) =>
   `MEDICINES:\n${JSON.stringify(medicines)}\n\nHISTORY:\n${fence(JSON.stringify(history))}\n\nQUESTION:\n${fence(question)}`
 

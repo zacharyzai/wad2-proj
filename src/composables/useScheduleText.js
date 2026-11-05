@@ -1,5 +1,5 @@
 // Words for the Schedule page and its components, in the page language: dates, times, doses, how long a pack lasts.
-// A composable (Week 11) so every Schedule component words things the same way.
+// Wording helpers, so every Schedule component words things the same way.
 import { useI18n } from 'vue-i18n'
 import { useMedicinesStore } from '../stores/medicines'
 import { doseSlots, labelLimitDays, packDays, supplyDays } from '../rules/schedule'
@@ -15,6 +15,7 @@ export const SLOT_ICONS = {
 export const nameOf = (medication) =>
   [medication.name, medication.strength].filter(Boolean).join(' ')
 
+// Wording helpers for the Schedule components, so every tab says times, amounts and purposes the same way.
 export function useScheduleText() {
   const { t, locale } = useI18n()
   const { medicines } = useMedicinesStore()
@@ -36,7 +37,9 @@ export function useScheduleText() {
     [count != null && `${count} ${t(`unit.${unit ?? 'other'}`, count)}`, food && t(`food.${food}`)]
       .filter(Boolean)
       .join(' · ')
+  // A medicine's dose times as a readable list ("8:00 am, 8:00 pm").
   const timesText = (entry) => entry.doses.map((d) => timeText(d.time)).join(', ')
+  // An amount with its unit, pluralised for the language ("2 tablets").
   const amountText = (n, unit) => `${n} ${t(`unit.${unit ?? 'other'}`, n)}`
 
   // "Usually used for high blood pressure": from the medicine on the account, in our own words; nothing when it wasn't known.

@@ -9,6 +9,7 @@ const MAX_SIDE = 1600 // same as ScanView, so results match what the app would s
 const results = reactive([])
 const busy = ref(false)
 
+// Loads an image and re-encodes it as JPEG, like a real upload.
 async function toJpeg(src) {
   const img = await new Promise((resolve, reject) => {
     const i = new Image()
@@ -24,6 +25,7 @@ async function toJpeg(src) {
   return canvas.toDataURL('image/jpeg', 0.8)
 }
 
+// Runs the redaction on one image and records the result row.
 async function run(name, src) {
   const row = reactive({
     name,
@@ -51,6 +53,7 @@ async function run(name, src) {
   }
 }
 
+// Runs the redaction on chosen photos.
 async function onFiles(event) {
   busy.value = true
   for (const file of event.target.files) {
@@ -62,6 +65,7 @@ async function onFiles(event) {
   busy.value = false
 }
 
+// Runs the redaction on the built-in samples.
 async function runSamples() {
   busy.value = true
   for (const id of ['med-1', 'med-2', 'med-3', 'bill-1', 'dev-personal'])

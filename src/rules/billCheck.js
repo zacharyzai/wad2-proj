@@ -4,6 +4,7 @@
 
 // Adds up bill lines' amountCents; a missing amount counts as 0. The one copy: the Bill page, Explain and the subsidy rules use it too.
 export const sumCents = (lines) => lines.reduce((total, line) => total + (line.amountCents ?? 0), 0)
+// Case- and space-insensitive text comparison.
 const same = (a, b) => (a ?? '').trim().toLowerCase() === (b ?? '').trim().toLowerCase()
 
 // Charges − subsidies not already in the lines − MediSave, in cents. null while the total itself can't be read.

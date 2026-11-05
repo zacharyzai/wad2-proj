@@ -32,6 +32,7 @@ const compact = ({ medication }) => {
   }
 }
 
+// Picks the medicines a question is about (or the previous question's, for a follow-up) and returns only their label facts for the AI.
 export function factsFor(list, question, { previousQuestion = '', finished = () => false } = {}) {
   const asked = namedIn(list, question)
   const about = asked.length ? asked : namedIn(list, previousQuestion) // a follow-up is about what was just discussed
