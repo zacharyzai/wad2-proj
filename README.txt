@@ -41,29 +41,50 @@ Tool used: Claude Code (Anthropic).
   services, error-message meanings.
 - Explaining coding errors and giving debugging hints.
 - Boilerplate: starter code and code snippets.
-- Unit tests, sample inputs and mock data: Vitest unit and API tests, Playwright
-  end-to-end specs (e2e/, e2e-simple/), the k6 load test (load/), mock AI responses
-  (server/fixtures/), sample label and bill images (public/samples/).
+- Unit tests, sample inputs and mock data: Vitest unit and API tests, the k6 load
+  test (load/), mock AI responses (server/fixtures/), sample label and bill images
+  (public/samples/).
+- End-to-end tests (Playwright). There are two sets:
+  * "E2E complex" (e2e/, run with pnpm test:e2e): created by Claude. Large set of
+    specs with the AI mocked, including accessibility (axe) and senior-friendly checks.
+  * "E2E simple" (e2e-simple/, run with pnpm test:e2e:simple): made by our team, not
+    by Claude. Short specs, 5 per feature, against the real server and a throwaway
+    database.
 - Layout, theme and UI/UX ideas, and accessibility checks (axe) with small fixes
   such as font sizes and focus rings.
 - Documentation: README.md, the docs/ data contracts, E2E_REPORT.md.
 - Formatting the codebase with Prettier.
+- Code comment cleanup (Nov 2026): removed irrelevant comments (lecture-week tags,
+  file owner tags), and added short comments saying what each function and each
+  source file is for. Comments only, no logic changed.
 
-4B. Parts where Claude wrote implementation code (higher-order; declared in full)
-TODO: each owner to confirm, correct or remove the lines below before submission.
-- Early versions of the Scan, Confirm and Explain views, the read-aloud component and
-  the confirm-field component (owner: Asher), and shell/Home styling (owner: Isaac).
-- Backend (server/): Gemini model fallback and thinking settings in
-  server/services/gemini.js, and other backend code written on Zachary's request.
-- Day/night mode (Account, theme prompt), the bill "doesn't add up" notes
-  (Confirm, Bill) and the Schedule redesign (ScheduleView, WeekView), written on
-  Zachary's request.
-- From 2 Nov 2026: refactoring the frontend to the lecture tools (Pinia stores,
-  Axios through src/api/client.js, Vitest), splitting large views into components,
-  removing dead code. This touched files owned by every member.
-- Bug fixes made with Claude after review (e.g. dose-card and History delete
-  dialog focus handling, caregiver invite link, "Not ticked yet" calendar alert).
-  TODO: list any further feature Claude wrote that is not named above.
+4B. Where Claude went beyond the lower-order tasks
+The app was not built entirely by Claude. The features, user flows and task split
+were defined by the team in our proposal, and the team reviewed, integrated, tested
+and debugged the code. Claude's larger contributions fall into two groups.
+
+(i) Skeleton and structure (starter code, not finished logic)
+- The initial file and folder hierarchy for the frontend (src/) and backend (server/).
+- Skeleton code for the main views and components (Scan, Confirm and Explain views,
+  read-aloud and confirm-field components, shell/Home styling), which the owners
+  (Asher, Isaac) then built on and adapted.
+- From 2 Nov 2026: restructuring the frontend to the lecture tools (Pinia stores,
+  Axios through src/api/client.js, Vitest) and splitting large views into
+  components. This touched files owned by every member.
+
+(ii) Complex logic beyond what we have been taught in class
+Claude wrote the first implementation of the following, and we then reviewed,
+tested and adjusted it:
+- Gemini model fallback and thinking settings (server/services/gemini.js) and
+  related backend code.
+- Day/night mode (Account, theme prompt).
+- The bill "doesn't add up" notes (Confirm, Bill).
+- The Schedule redesign (ScheduleView, WeekView).
+- Bug fixes found in review, e.g. dose-card and History delete dialog focus
+  handling, caregiver invite link, "Not ticked yet" calendar alert.
+
+TODO: each owner to confirm, correct or remove the lines above before submission,
+and list any further feature Claude wrote that is not named here.
 
 4C. Not AI-generated
 The rule-based schedule, subsidy and bill-check logic, and the explanation
