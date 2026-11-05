@@ -75,18 +75,22 @@ const minutes = (hhmm) => Number(hhmm.slice(0, 2)) * 60 + Number(hhmm.slice(3, 5
 
 // Today's list highlights where the person is in their day, so a later dose isn't taken by mistake.
 // For the day's dose times (sorted), each is 'earlier', 'now' or 'later' at time `now`. A time is "now" from NOW_LEAD_MIN
-// before it until the next time's "now" starts (the last one: until midnight), and always includes its own time, so two
-// close times can both be "now". Times are 'HH:MM'.
+// before it until the next time's "now" starts, or NOW_LAST_MIN after it if that comes first (so a lone morning dose is
+// missed by noon, not at midnight), never past midnight. It always includes its own time, so two close times can both be
+// "now". Times are 'HH:MM'.
 const NOW_LEAD_MIN = 60
+const NOW_LAST_MIN = 240
 // Marks each dose time earlier, now or later than the current time.
 export function timeStates(times, now) {
   const at = minutes(now)
   return times.map((time, i) => {
     const start = minutes(time) - NOW_LEAD_MIN
-    const end =
-      i + 1 < times.length
-        ? Math.max(minutes(times[i + 1]) - NOW_LEAD_MIN, minutes(time) + 1)
-        : 24 * 60
+    const nextStart = i + 1 < times.length ? minutes(times[i + 1]) - NOW_LEAD_MIN : 24 * 60
+    const end = Math.min(
+      Math.max(nextStart, minutes(time) + 1),
+      minutes(time) + NOW_LAST_MIN,
+      24 * 60,
+    )
     return at < start ? 'later' : at >= end ? 'earlier' : 'now'
   })
 }
@@ -210,7 +214,7 @@ export function weekOf(date) {
 // dose never hides behind another one taken at the same time. A cell per day says how that one dose went:
 // 'ok' ticked, 'not' its time has passed with no tick, 'now' today's dose that is due ("Take now"), 'later' not due yet,
 // 'none' not on the timetable that day. Today uses Today's own times (timeStates): a dose is 'now' from an hour before
-// its time until the next time's hour before (the day's last: until midnight), then 'not', when Today says "Not ticked yet".
+// its time until the next time's hour before or 4 hours after its own time, whichever is first, then 'not', when Today says "Not ticked yet".
 // takenOn(date) gives that day's ticked dose ids (a Set), or null while unknown.
 // notTicked lists each 'not' dose, oldest first; anyPassed says whether any dose's time has come yet this week.
 export function weekSummary(entries, today, now, takenOn) {
