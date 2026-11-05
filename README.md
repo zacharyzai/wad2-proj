@@ -30,7 +30,7 @@ Use one of these fake people (password for all: **`Demo1234!`**). Each one gets 
 
 There is also a **caregiver** demo account (step 6).
 
-Or create your own account. It asks for your name, date of birth, citizenship and (for citizens) household income, whether you are a senior or a caregiver, and then whether you'd like day or night mode. The language you're using becomes your account's language. Everything except the welcome page, Log in, Sign up and share links needs an account.
+Or create your own account. It asks for your name, date of birth, citizenship and (for citizens) household income, whether you are a senior or a caregiver, and then whether you'd like day or night mode. The language you're using becomes your account's language. Everything except the welcome page, Log in, Sign up, Forgot password and caregiver invite links needs an account.
 
 ### 2. Read a medicine label
 
@@ -45,8 +45,8 @@ Try your own label too: **Take a photo of the label**, or **Browse photos** (PNG
 
 Tap **Schedule**. The labels you checked become a daily timetable, built by our own rules (never AI):
 
-- **Today:** each dose by time of day. Tick it when you've taken it; ticks are saved to your account. Ticking a 9 pm dose at 8 am asks first.
-- **This week**, **My medicines** (change days and times, or stop a medicine, with Undo) and **Reminders** (connect Google Calendar for an alert at each dose).
+- **Today:** the week as a row of days at the top (tap one to see what was taken or is coming), and today's doses by time of day below. Tick a dose when you've taken it; ticks are saved to your account. Ticking a 9 pm dose at 8 am asks first.
+- **My medicines:** one card per medicine (its name, what it is for and its times); **Change** opens the rest: days and times, fix what we read, stop or remove it, with Undo. **Reminders** sit at the bottom: connect Google Calendar for an alert at each dose, and a "Not ticked yet" alert 15 minutes later if it isn't ticked.
 - "When necessary", weekly and tapering medicines are listed for your pharmacist instead of being scheduled.
 
 ### 4. Understand a bill
@@ -105,10 +105,10 @@ The person this app is for is usually on a phone and not comfortable with techno
 | Accounts, Remember me, language and day/night on the account | ✅ |
 | Forgot your password? (reset link by email; logs out every other device) | ✅ Needs an email provider on the live site (`MAIL_PROVIDER`); locally the email prints in the server terminal |
 | Medicine schedule with dose ticks | ✅ Ticks saved to your account; "when necessary", weekly and tapering medicines go to your pharmacist, never scheduled |
-| Google Calendar reminders | ✅ Connect, Disconnect and automatic sync on Schedule → Reminders |
+| Google Calendar reminders | ✅ Connect, Disconnect and automatic sync on Schedule → My medicines |
 | Scan history, Listen again | ✅ |
 | Caregiver linking and read-only view of today's doses | ✅ |
-| Missed-dose alerts for the senior and caregiver (30 minutes after an unticked dose) | Coming |
+| Missed-dose alerts | ✅ for the senior: a "Not ticked yet" Google Calendar alert 15 minutes after each dose, cancelled when it is ticked. The caregiver's own alert is not built |
 | Nearby clinics map | Stretch goal |
 
 ## Your privacy and safety
@@ -172,10 +172,19 @@ node --env-file=.env server/scripts/seed-demo-accounts.js
 pnpm test        # Vitest: everything below except e2e
 pnpm test:unit   # src: rules, stores, on-phone covering, component tests (jsdom)
 pnpm test:api    # server: scan, chat, auth, subsidies, history, care, Calendar
-pnpm test:e2e    # Playwright, phone and desktop; starts both servers; AI, logins and Google mocked
+pnpm test:e2e    # Playwright, phone and desktop; starts its own API (no database, mock AI); logins and Google mocked
+pnpm test:e2e:simple   # 50 simple end-to-end tests against a real server and a throwaway database
 ```
 
-Stop your own `pnpm server` before `pnpm test:e2e`: Playwright reuses a server already on port 3000, and yours signs logins with your real `JWT_SECRET`, so the tests' logins are refused ("Please log in again").
+Stop your own `pnpm server` before `pnpm test:e2e`: the tests start their own API on port 3000 (so they can never reach the real database), and the run stops straight away if the port is busy. The full suite takes about 8 minutes; [e2e/E2E_REPORT.md](e2e/E2E_REPORT.md) has the latest results and one-feature commands.
+
+Load test (20 seniors at once, needs [k6](https://k6.io)): `node load/server.js` in one terminal, `k6 run load/senior-day.js` in another.
+
+### Code style
+
+```bash
+pnpm format      # Prettier: indentation and line breaks the same everywhere (run before every commit)
+```
 
 ### Try the real AI
 
@@ -202,7 +211,9 @@ docs/google-contract.md    Google Calendar: endpoints, sync, the Connect button 
 docs/heuristic-audit.md    Nielsen's 10 heuristics: findings and fixes, 3 rounds
 server/                    Express API: app.js, routes/, services/, models/, middleware/, fixtures/
 src/                       Vue app: views/ (one per page), components/<feature>/, stores/ (Pinia), rules/, i18n/, api/client.js
-e2e/                       Playwright specs, one per feature
+e2e/                       Playwright specs, one per feature; E2E_REPORT.md has the latest results
+e2e-simple/                50 simple end-to-end tests (real server, throwaway database)
+load/                      k6 load test and its throwaway server
 public/samples/            sample label and bill images
 ```
 

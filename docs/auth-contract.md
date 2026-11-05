@@ -1,6 +1,6 @@
 # Auth contract
 
-Owner: **Sheen Hern** (first version built by Claude, declared in README.txt). Every feature needs an account; only the welcome, login, signup, share-link and 404 pages are open.
+Owner: **Sheen Hern** (first version built by Claude, declared in README.txt). Every feature needs an account; only the welcome, start, login, signup, forgot/reset password, caregiver invite (`/shared/<token>`) and 404 pages are open.
 
 Code: `server/routes/auth.js`, `server/models/User.js`, `server/services/auth.js` (hashing + tokens), `server/middleware/requireAuth.js`. Client: `src/stores/auth.js`.
 

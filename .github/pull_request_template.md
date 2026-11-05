@@ -8,6 +8,6 @@
 - [ ] Playwright spec added/updated in `e2e/` (uses samples, not real AI)
 - [ ] All UI text uses `t('...')`, and keys were added to **all 4** locale files
 - [ ] Checked at iPhone 6 width and desktop in Chrome DevTools
-- [ ] `pnpm test:api` and `pnpm test:e2e` pass
+- [ ] `pnpm format` run; `pnpm test` and `pnpm test:e2e` pass
 - [ ] No secrets, real patient data or photos committed
 - [ ] If `docs/scan-contract.md` or `server/fixtures/` changed: Zachary is a reviewer
