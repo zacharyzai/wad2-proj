@@ -11,7 +11,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:unit": "vitest run src",
+    "test:unit": "vitest run tests",
     "test:api": "vitest run server",
     "test:e2e": "playwright test",
     "test:e2e:simple": "playwright test -c playwright.simple.config.js",

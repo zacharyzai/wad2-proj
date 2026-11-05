@@ -1,6 +1,6 @@
 // Run: pnpm vitest run src/utils/photoCheck.test.js
 import { describe, it, expect } from 'vitest'
-import { photoProblem } from './photoCheck.js'
+import { photoProblem } from '../src/utils/photoCheck.js'
 
 const W = 120
 const H = 120

@@ -1,6 +1,6 @@
 // Run: pnpm vitest run src/utils/sensitive.test.js
 import { describe, it, expect } from 'vitest'
-import { findSensitive, planRedaction } from './sensitive.js'
+import { findSensitive, planRedaction } from '../src/utils/sensitive.js'
 
 // Builds Tesseract-shaped lines from plain strings; each word gets a dummy box.
 const lines = (...rows) =>

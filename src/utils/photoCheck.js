@@ -1,4 +1,4 @@
-// Run: node --test src/utils/photoCheck.test.js
+// Run: node --test tests/photoCheck.test.js
 // Looks at a photo on this device before it is covered and sent, so the person is told WHY it won't read (too dark,
 // blurry, glare) instead of a general "try again". Nothing here is sent anywhere.
 // shortcut: thresholds are a first guess, not tuned on real label photos; the error screen has "Scan it anyway" so a wrong
