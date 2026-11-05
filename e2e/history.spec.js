@@ -19,30 +19,12 @@ const BILL = {
   subtitle: null,
   totalPayableCents: 1400,
 }
-const SCAN = {
-  type: 'medication',
-  source: 'sample',
-  unclear: [],
-  medication: {
-    name: 'Metformin',
-    strength: '500 mg',
-    doseAmount: 1,
-    doseUnit: 'tablet',
-    timesPerDay: 2,
-    timing: ['morning', 'evening'],
-    withFood: 'after',
-    frequencyType: 'daily',
-    rawInstruction: 'Take 1 tablet twice a day after food',
-    warnings: [],
-  },
-}
-
 async function mockHistory(page, items = [MED, BILL]) {
   await page.route(/\/api\/history\/all$/, (route) =>
     route.fulfill({ json: { ok: true, data: { items, total: items.length, capped: false } } }),
   )
 }
-// Listen again and Delete live on the medicine or bill's own view: open its row first.
+// See more and Delete live on the medicine or bill's own view: open its row first.
 const openFirst = (page) => page.getByTestId('history-row').first().click()
 
 test.describe('history list', () => {
@@ -75,16 +57,16 @@ test.describe('history list', () => {
     await expect(page.getByRole('button', { name: 'Try again' })).toBeVisible()
   })
 
-  test('Listen again opens the explanation for that scan', async ({ page }) => {
+  test('a medicine has Delete but no See more; a bill has See more', async ({ page }) => {
     await mockHistory(page)
-    await page.route(/\/api\/history\/h1$/, (route) =>
-      route.fulfill({ json: { ok: true, data: { scan: SCAN } } }),
-    )
     await page.goto('/history')
     await openFirst(page)
-    await page.getByTestId('history-replay').first().click()
-    await expect(page).toHaveURL(/\/scan\/explain$/)
-    await expect(page.getByText('Metformin').first()).toBeVisible()
+    await expect(page.getByTestId('history-delete').first()).toBeVisible()
+    await expect(page.getByTestId('history-replay')).toHaveCount(0)
+    await page.getByTestId('history-back').click()
+    await page.getByTestId('history-tab-bill').click()
+    await openFirst(page)
+    await expect(page.getByTestId('history-replay').first()).toBeVisible()
   })
 })
 
@@ -135,7 +117,6 @@ test('a saved scan can no longer be shared', async ({ page }) => {
   await mockHistory(page)
   await page.goto('/history')
   await openFirst(page)
-  await expect(page.getByTestId('history-replay').first()).toBeVisible()
   await expect(page.getByRole('button', { name: 'Share' })).toHaveCount(0)
 })
 

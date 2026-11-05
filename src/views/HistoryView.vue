@@ -148,7 +148,7 @@ const shortDate = (ymd) =>
 // The day a scan was saved, in the Singapore calendar.
 const savedDay = (iso) => shortDate(todayInSingapore(new Date(iso)))
 
-// --- One medicine or bill opened (?open=): its scans, each with Listen again and Delete. ---------------------------------
+// --- One medicine or bill opened (?open=): its scans, each with Delete (bills also See more). ---------------------------------
 const opened = computed(() => {
   const key = route.query.open
   if (!key) return null
@@ -186,7 +186,7 @@ function close() {
 
 // Replay: fetch the whole saved scan, hand it to the Explain page the same way a fresh scan arrives.
 const opening = ref(null)
-// Opens a saved scan again to listen to its explanation.
+// Opens a saved scan again to see its explanation.
 async function replay(item) {
   if (opening.value) return
   opening.value = item.id
@@ -195,7 +195,7 @@ async function replay(item) {
   opening.value = null
   if (!res.ok) return void (errorCode.value = res.error.code)
   Object.assign(scanStore, { current: res.data.scan, photos: [], pdfPages: null, confirmed: true }) // saved scans have no photo
-  router.push({ name: 'explain' })
+  router.push({ name: 'bill' }) // only bills have See more: it opens the breakdown
 }
 
 // Deleting the last scan of what is open goes back to the list, which says so.
@@ -211,7 +211,7 @@ async function removed(id) {
 </script>
 
 <template>
-  <!-- One medicine or bill: its scans, each with Listen again and Delete. -->
+  <!-- One medicine or bill: its scans, each with Delete (bills also See more). -->
   <div v-if="opened" class="page">
     <div class="detail-head">
       <button

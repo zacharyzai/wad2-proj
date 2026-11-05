@@ -28,15 +28,21 @@ test('a checked bill is saved under Bills', async ({ page }) => {
   await page.goto('/history')
   await page.getByTestId('history-tab-bill').click()
   await expect(page.getByTestId('history-row').first()).toContainText('Bedok')
+  await page.getByTestId('history-row').first().click()
+  await page.getByRole('button', { name: 'See more' }).click() // a bill opens its breakdown
+  await expect(page).toHaveURL(/\/bill$/)
+  await expect(page.getByTestId('bill-total')).toBeVisible()
+  await page.getByTestId('bill-back').click() // the back arrow returns to History, not to Scan
+  await expect(page).toHaveURL(/\/history/)
 })
 
-test('Listen again opens the explanation', async ({ page }) => {
+test('a medicine has no See more button', async ({ page }) => {
   await signUp(page)
   await checkSample(page, 'Metformin label')
   await page.goto('/history')
   await page.getByTestId('history-row').first().click()
-  await page.getByTestId('history-replay').first().click()
-  await expect(page).toHaveURL(/\/scan\/explain$/)
+  await expect(page.getByTestId('history-delete').first()).toBeVisible()
+  await expect(page.getByTestId('history-replay')).toHaveCount(0)
 })
 
 test('delete asks first', async ({ page }) => {

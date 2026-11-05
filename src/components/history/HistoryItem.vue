@@ -1,4 +1,4 @@
-<!-- One saved scan in History, with Listen again and Delete. -->
+<!-- One saved scan in History, with See more and Delete. -->
 <script setup>
 import { computed, nextTick, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -90,12 +90,13 @@ const remove = () =>
 
     <div class="d-flex flex-wrap gap-2 mt-3">
       <button
+        v-if="!isMed"
         type="button"
         class="btn btn-primary btn-sm"
         data-testid="history-replay"
         @click="emit('replay', item)"
       >
-        <AppIcon name="volume" :size="20" />{{ t('history.replay') }}
+        <AppIcon name="receipt" :size="20" />{{ t('history.seeMore') }}
       </button>
       <button
         ref="deleteButton"

@@ -1,6 +1,6 @@
 // History, tidied: a medicine is one row however often it was scanned, the ones taken now come first, the rest fold away;
 // a find box and one-tap chips; bills under their month, with chips to jump and what was paid at each clinic this year;
-// a row opens that medicine or bill, where Listen again and Delete are. Everything loads at once (no "show older").
+// a row opens that medicine or bill, where Delete (and See more, for a bill) are. Everything loads at once (no "show older").
 // /api/history/all is mocked with a year of scans; the medicines on the timetable go in this browser's storage.
 // The clock is fixed on Tuesday 3 November 2026 in Singapore, so "this month" and "this year" never drift.
 import { test, expect } from './fixtures.js'
@@ -170,7 +170,7 @@ test('"No longer taking" slides open and closed', async ({ page }) => {
   await expect(list).toBeHidden() // closed: hidden from everyone, not just squeezed
 })
 
-test('a medicine opens to every scan of it, each with Listen again and Delete; Back returns to the list', async ({
+test('a medicine opens to every scan of it, each with Delete; Back returns to the list', async ({
   page,
 }) => {
   await setUp(page)
@@ -180,7 +180,7 @@ test('a medicine opens to every scan of it, each with Listen again and Delete; B
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Metformin 500 mg')
   await expect(page.getByText('Scanned 4 times')).toBeVisible()
   await expect(page.getByTestId('history-item')).toHaveCount(4)
-  await expect(page.getByTestId('history-replay')).toHaveCount(4)
+  await expect(page.getByTestId('history-delete')).toHaveCount(4)
   await expect(page.getByTestId('history-back')).toHaveAccessibleName('Back to History') // an arrow on screen, its words for screen readers
   await expect(page.getByTestId('history-back')).toHaveText('')
   await page.getByTestId('history-back').click()
