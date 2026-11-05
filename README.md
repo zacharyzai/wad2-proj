@@ -82,6 +82,8 @@ node --env-file=.env server/scripts/seed-demo-accounts.js
 | `caregiver.demo@example.com` | Caregiver, linked to the two seniors above | `Demo1234!` |
 
 The same script creates seven more demo seniors (other CHAS tiers, PR, foreigner); their emails are in `server/scripts/seed-demo-accounts.js`.
+
+It also fills every senior with fake data (`server/scripts/demo-data.js`): medicines on their Schedule, saved scans in History (the sample labels and bills), and a week of dose ticks. Pioneer and Merdeka, the two seniors the caregiver follows, have the fullest schedules, so `caregiver.demo@example.com` shows their doses today. Pioneer has one dose left unticked after about midday, to show the "Not ticked yet" flag. Re-running the script resets those accounts' data and refreshes the ticks to today.
 Quick try: Home, Scan a medicine label, Try an example, Metformin label.
 
 ### Tests

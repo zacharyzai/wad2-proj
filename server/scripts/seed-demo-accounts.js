@@ -1,7 +1,20 @@
 import mongoose from 'mongoose'
 import { User } from '../models/User.js'
 import { CareLink } from '../models/CareLink.js'
+import { Dose } from '../models/Dose.js'
+import { Scan } from '../models/Scan.js'
+import { Schedule } from '../models/Schedule.js'
 import { hashPassword } from '../services/auth.js'
+import {
+  addDays,
+  buildSchedule,
+  dosesOn,
+  supplyDays,
+  syncEntries,
+  timeInSingapore,
+  todayInSingapore,
+} from '../../src/rules/schedule.js'
+import { DEMO_DATA, scanFor } from './demo-data.js'
 
 const DEMO_PASSWORD = 'Demo1234!'
 const DEMO_ACCOUNTS = [
@@ -116,5 +129,54 @@ for (const email of LINKED_SENIORS) {
     { upsert: true },
   )
   console.log(`linked: ${CAREGIVER.email} → ${email}`)
+}
+
+// Fake medicines, saved scans and dose ticks for each demo senior (the data is in demo-data.js). Safe to re-run: it replaces what
+// these accounts had, so anything a tester saved on a demo account is reset. Run it again to refresh the ticks to "today".
+const today = todayInSingapore()
+const now = timeInSingapore()
+for (const [email, data] of Object.entries(DEMO_DATA)) {
+  const user = await User.findOne({ email }).select('_id').lean()
+  const userId = user._id
+  // The Schedule, built exactly as PUT /api/schedule builds it, so Schedule and the caregiver's view agree.
+  const medicines = data.medicines.map(({ from, ...medicine }) => ({
+    ...medicine,
+    schedule: {
+      startDate: addDays(today, -from),
+      days: supplyDays(medicine.medication) ?? 30,
+      times: {},
+    },
+  }))
+  const entries = syncEntries(
+    medicines.map((m) => buildSchedule(m, m.schedule)),
+    today,
+  )
+  await Schedule.updateOne({ userId }, { $set: { medicines, entries } }, { upsert: true })
+
+  // History: saved scans, newest first.
+  await Scan.deleteMany({ userId })
+  for (const { fixture, daysAgo } of data.scans) {
+    const createdAt = new Date(Date.now() - daysAgo * 86_400_000)
+    await Scan.create({ userId, ...scanFor(fixture, addDays(today, -daysAgo)), createdAt })
+  }
+
+  // Ticks: every dose on earlier days, and today's whose time has come. With `missOne`, today's earliest passed dose stays
+  // unticked so "Not ticked yet" shows. (Early in the day there may be nothing to miss yet.)
+  await Dose.deleteMany({ userId })
+  const ticks = []
+  for (let back = 6; back >= 0; back--) {
+    const date = addDays(today, -back)
+    const doses = dosesOn(entries, date)
+    const past = back > 0 ? doses : doses.filter((d) => d.time <= now)
+    const skip = data.missOne && back === 0 ? past.find((d) => d.time <= '12:00')?.id : null
+    for (const d of past) {
+      if (d.id === skip) continue
+      ticks.push({ userId, doseId: d.id, date, takenAt: new Date(`${date}T${d.time}:00+08:00`) })
+    }
+  }
+  if (ticks.length) await Dose.insertMany(ticks)
+  console.log(
+    `data: ${email} - ${medicines.length} medicines, ${data.scans.length} saved scans, ${ticks.length} ticks`,
+  )
 }
 await mongoose.disconnect()

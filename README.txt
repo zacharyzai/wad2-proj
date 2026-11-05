@@ -24,6 +24,9 @@ unsure.demo@example.com          senior     1952-12-01  born citizen         uns
 foreigner.demo@example.com       senior     1960-07-07  neither citizen/PR   not set       No estimates, schemes with official links only
 caregiver.demo@example.com       caregiver  1978-05-10  born citizen         above $2,300  Linked to pioneer.demo and merdeka.demo
 
+The seed script also fills each senior with fake medicines (on Schedule), saved scans and bills
+(in History) and a week of dose ticks. pioneer.demo and merdeka.demo have the fullest schedules;
+caregiver.demo sees both seniors' doses today. Re-run the script to refresh the ticks to today.
 Scanning the built-in samples needs no login:
 Home > Scan a medicine label > Try an example > Metformin label.
 
@@ -64,6 +67,8 @@ Tool used: Claude Code (Anthropic).
   such as font sizes and focus rings.
 - Documentation: README.md, the docs/ data contracts, E2E_REPORT.md.
 - Formatting the codebase with Prettier.
+- Demo data: the seeded medicines, saved scans and dose ticks for the demo accounts
+  (server/scripts/demo-data.js, seed-demo-accounts.js).
 - Code comment cleanup (Nov 2026): removed irrelevant comments (lecture-week tags,
   file owner tags), and added short comments saying what each function and each
   source file is for. Comments only, no logic changed.
