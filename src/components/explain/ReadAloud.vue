@@ -1,4 +1,4 @@
-<!-- Owner: Asher. Read-aloud player card from the Claude Design Explain screen: the device's voice, or audio from /api/tts
+<!-- Read-aloud player card from the Claude Design Explain screen: the device's voice, or audio from /api/tts
      (Gemini) when the device has none for the language (stores/speech.js). -->
 <script setup>
 import { onBeforeUnmount, ref, watch } from 'vue'

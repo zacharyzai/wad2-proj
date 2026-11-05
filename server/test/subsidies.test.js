@@ -1,4 +1,4 @@
-// Owner: Lokesh. Subsidy rules for the bill questionnaire (src/rules/subsidies.js). Sources and figures: see each rule's sourceUrl.
+// Subsidy rules for the bill questionnaire (src/rules/subsidies.js). Sources and figures: see each rule's sourceUrl.
 import { test } from 'vitest'
 import assert from 'node:assert/strict'
 import {

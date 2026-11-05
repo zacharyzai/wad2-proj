@@ -1,4 +1,4 @@
-<!-- Owner: Isaac. Caregivers only. One senior's doses today (taken, not ticked or still to come), and their medicines' details.
+<!-- Caregivers only. One senior's doses today (taken, not ticked or still to come), and their medicines' details.
      Tapping a dose turns its card over to the medicine's details. Refreshes every minute. Read-only: nothing here changes anything, and no scans, photos, bills or account details ever
      reach this page. API: docs/care-contract.md. -->
 <script setup>

@@ -1,4 +1,4 @@
-<!-- Owner: Asher. The background of every page in the app (App.vue puts it behind the page): faint line drawings of what the
+<!-- The background of every page in the app (App.vue puts it behind the page): faint line drawings of what the
      app is about, scattered behind the cards and drifting slowly. Medicine (capsules, a tablet, a bottle), bills (a receipt,
      coins), the day (a calendar, a clock), health (a heartbeat), and the people it is for: an older couple, a walking stick,
      and caring hands holding a heart. The set repeats down a long page (one set per TILE px), so it never thins out.

@@ -1,4 +1,4 @@
-<!-- Owner: Zachary. "Ask about my medicine" (feature 6): open any time. Answers use the user's own medicines (checked labels
+<!-- "Ask about my medicine" (feature 6): open any time. Answers use the user's own medicines (checked labels
      or typed in); if a question is about a medicine we don't know, the reply asks for its label or its name and instructions.
      Contract: docs/chat-contract.md
      The chat feel: the app's capsule (CapsuleBuddy) is the bot's face and shows what it's doing (thinking, listening, reading

@@ -1,4 +1,4 @@
-<!-- Owner: Isaac. Frame for Log in, Create account, Forgot and Reset (no app sidebar: nothing else works before you log in).
+<!-- Frame for Log in, Create account, Forgot and Reset (no app sidebar: nothing else works before you log in).
      The same top bar as Start (name, languages), a short teal band with a big Back button and the greeting, then the
      form on a card. One plain line to the other choice: "New here? Create account" under Log in's short form, and
      "Already have an account? Log in" in the band right under the greeting on Create account, so nobody has to scroll

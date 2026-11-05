@@ -1,4 +1,4 @@
-// Owner: Lokesh (updated by Claude for the tabbed redesign; two tabs by Asher). Schedule page: Today (the week's day strip and a
+// Schedule page: Today (the week's day strip and a
 // tick for each dose) and My medicines (Edit number of days and times, Remove + Undo, the pharmacist list, Google Calendar). Medicines go into this browser's storage before the page loads;
 // /api/doses is answered by a small in-memory stand-in for the server (no database needed).
 import AxeBuilder from '@axe-core/playwright'

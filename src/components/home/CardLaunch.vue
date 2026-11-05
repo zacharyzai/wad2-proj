@@ -1,4 +1,4 @@
-<!-- Owner: Asher. The short picture each Home card plays before its page opens (composables/useCardLaunch.js). It grows
+<!-- The short picture each Home card plays before its page opens (composables/useCardLaunch.js). It grows
      out of the card that was tapped and settles in the middle of the screen, over a soft wash of the card's colour:
        med       a capsule; camera corners close in around it and a scan line sweeps across
        bill      a receipt prints downwards, line by line, and a green dollar stamps onto it

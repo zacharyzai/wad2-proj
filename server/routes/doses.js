@@ -1,4 +1,4 @@
-// Owner: Lokesh. Dose ticks for the Schedule page: which doses the user took on a day. Contract: docs/doses-contract.md
+// Dose ticks for the Schedule page: which doses the user took on a day. Contract: docs/doses-contract.md
 // Mounted behind requireAuth, and every query includes req.userId, so nobody can read or change another user's ticks.
 import { Router } from 'express'
 import mongoose from 'mongoose'

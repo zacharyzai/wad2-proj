@@ -1,4 +1,4 @@
-<!-- Owner: Isaac. Page title with an optional round Back button and a lead sentence (same look as ScanView). -->
+<!-- Page title with an optional round Back button and a lead sentence (same look as ScanView). -->
 <script setup>
 import { useI18n } from 'vue-i18n'
 

@@ -1,4 +1,4 @@
-// Owner: Isaac. History: 5 E2E tests, written the Week 10 way (set up, act, assert).
+// History: 5 E2E tests, written the Week 10 way (set up, act, assert).
 import { test, expect } from '@playwright/test'
 import { signUp, openSample } from './helpers.js'
 

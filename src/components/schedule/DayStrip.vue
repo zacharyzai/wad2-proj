@@ -1,4 +1,4 @@
-<!-- Owner: Asher. Schedule's week at a glance, drawn as a weekly pill box (Sunday to Saturday): seven compartments, each its
+<!-- Schedule's week at a glance, drawn as a weekly pill box (Sunday to Saturday): seven compartments, each its
      day's letter on its lid, and in each a capsule with the date. Every compartment and capsule looks the same but the day you
      are on: a teal compartment, and a capsule that lifts out, teal and cream like the app's own. Today has a thin ring, so
      it is easy to find from another day. How the day went is a badge on the capsule, in words for screen readers too: all taken (a tick),

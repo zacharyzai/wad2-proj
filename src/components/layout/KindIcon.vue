@@ -1,4 +1,4 @@
-<!-- Owner: Asher. The two kinds of paper as small coloured pictures, so they are told apart at a glance: a medicine label is a
+<!-- The two kinds of paper as small coloured pictures, so they are told apart at a glance: a medicine label is a
      red-and-cream capsule, a bill is a white receipt (blue header, lines, a torn edge) with a green dollar. Each sits on a
      soft tile of its own colour, the same in day and night mode. For tiles that stand for the kind (Home, Scan, Explain, History, My medicines...); small
      icons inside a line of text stay plain line icons (AppIcon). Decoration (aria-hidden): the words beside it say what it is.

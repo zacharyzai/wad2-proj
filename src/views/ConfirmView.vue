@@ -1,4 +1,4 @@
-<!-- Owner: Asher. From the Claude Design Confirm screen: the user checks and corrects what was read before anything uses it. -->
+<!-- From the Claude Design Confirm screen: the user checks and corrects what was read before anything uses it. -->
 <script setup>
 import { computed, nextTick, reactive, ref, toRaw, watch } from 'vue'
 import { onBeforeRouteLeave, useRouter } from 'vue-router'

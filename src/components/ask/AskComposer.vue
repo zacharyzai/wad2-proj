@@ -1,4 +1,4 @@
-<!-- Owner: Zachary (built by Claude, declared in README.txt). Ask's composer: the question box (Enter sends), "Type a medicine",
+<!-- Ask's composer: the question box (Enter sends), "Type a medicine",
      the mic (fills the box only; the user checks it and presses Send) with a ring that grows with the voice, and the letters
      left. Two-way bindings (defineModel): v-model is the question, v-model:listening says the mic is on. Anything put inside
      <AskComposer> (the starter questions) shows under it. -->

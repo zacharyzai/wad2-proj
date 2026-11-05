@@ -1,4 +1,4 @@
-// Owner: Zachary. Does a bill add up? Used by the server (a bill that doesn't is read once more), and by Confirm and the
+// Does a bill add up? Used by the server (a bill that doesn't is read once more), and by Confirm and the
 // Bill page, which then say so plainly instead of making the person check every line. Contract: docs/scan-contract.md.
 // The printed total payable is kept either way: it is the number that matters, and usually the clearest on the page.
 

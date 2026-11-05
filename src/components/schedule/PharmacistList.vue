@@ -1,4 +1,4 @@
-<!-- Owner: Lokesh (built by Claude, declared in README.txt). Schedule, "My medicines": the ones never scheduled (when necessary,
+<!-- Schedule, "My medicines": the ones never scheduled (when necessary,
      weekly, tapering, or a label we couldn't turn into daily times), to ask a pharmacist about. Each has Change with Fix and
      Remove (no Days and times: there is nothing to schedule). -->
 <script setup>

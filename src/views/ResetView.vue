@@ -1,4 +1,4 @@
-<!-- Owner: Isaac. Choose a new password from the emailed link (POST /api/auth/reset, docs/auth-contract.md).
+<!-- Choose a new password from the emailed link (POST /api/auth/reset, docs/auth-contract.md).
      The link's token is after # (never sent to any server); it is read once, then taken out of the address so it doesn't
      stay in the browser's history. Saving logs this device in and every other device out. -->
 <script setup>

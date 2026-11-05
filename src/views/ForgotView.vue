@@ -1,4 +1,4 @@
-<!-- Owner: Isaac. "Forgot your password?": asks for the email and sends a reset link (POST /api/auth/forgot,
+<!-- "Forgot your password?": asks for the email and sends a reset link (POST /api/auth/forgot,
      docs/auth-contract.md). The answer is the same whether or not an account uses the email, so the page always says
      "if an account uses it". People without email keep the old advice: ask the family member who set it up. -->
 <script setup>

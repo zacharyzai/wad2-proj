@@ -1,4 +1,4 @@
-<!-- Owner: Asher (built by Claude, declared in README.txt). Pick or drop photos, check them, then Scan.
+<!-- Pick or drop photos, check them, then Scan.
      A long bill can be several photos (one per page, up to 4) or one PDF. Emits the chosen Files as 'select'; ScanView
      compresses, covers and sends them as the pages of one scan. -->
 <script setup>

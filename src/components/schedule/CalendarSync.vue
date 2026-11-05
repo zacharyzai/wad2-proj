@@ -1,4 +1,4 @@
-<!-- Owner: Lokesh. Google Calendar on the Schedule page: Connect, Disconnect, and keeping the calendar in step with the schedule.
+<!-- Google Calendar on the Schedule page: Connect, Disconnect, and keeping the calendar in step with the schedule.
      Every dose becomes a repeating event with an alert, so the phone rings even when the app is closed. Contract: docs/google-contract.md
      Any change to the schedule (Edit, Remove, Undo, a re-scanned label, the language) sends the WHOLE schedule once, 1.5 seconds
      after the last change. One sync at a time. Hidden when the server has no Google set up (503 GOOGLE_UNAVAILABLE). -->

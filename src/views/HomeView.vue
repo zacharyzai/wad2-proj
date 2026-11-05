@@ -1,4 +1,4 @@
-<!-- Owner: Isaac. Home, kept simple for seniors: a greeting with the app's capsule (the one that waves goodbye on log out), one
+<!-- Home, kept simple for seniors: a greeting with the app's capsule (the one that waves goodbye on log out), one
      question, and three big choices that each go somewhere different: scan a medicine label, scan a bill, Ask. "Today's
      medicines" (components/home/TodayMedicines.vue) shows what is due. The last bill checked, when there is one, is one
      quiet line back to it. Phones: one column, Today's medicines under the greeting. Desktop (≥992px): the greeting and

@@ -1,4 +1,4 @@
-<!-- Owner: Asher. From the Claude Design Scan screens. One page, six screens (components/scan/):
+<!-- From the Claude Design Scan screens. One page, six screens (components/scan/):
        ScanPicker    "What would you like to scan today?" (no kind in the address yet, or a photo from Home waiting)
        ScanKindPage  that kind's page: camera, upload, tips, samples (?type=medication | bill, so Back returns to the question)
        LiveCamera    the live camera

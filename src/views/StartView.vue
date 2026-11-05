@@ -1,4 +1,4 @@
-<!-- Owner: Isaac. The first page for anyone not logged in: what the app does in one sentence, "Join for free" (Create
+<!-- The first page for anyone not logged in: what the app does in one sentence, "Join for free" (Create
      account) and "Log in", and a picture of it working: a real sample label behind a phone showing what the app makes of it.
      Two choices only, both big and in words. The welcome page (/welcome) tells the longer story.
      Motion: on the first visit in this tab the words rise in one after another; the picture then tells its story once

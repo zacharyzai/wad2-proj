@@ -1,4 +1,4 @@
-<!-- Owner: Isaac. Caregivers only. The seniors who invited you, each with today's doses at a glance. API: docs/care-contract.md (assumed). -->
+<!-- Caregivers only. The seniors who invited you, each with today's doses at a glance. API: docs/care-contract.md (assumed). -->
 <script setup>
 import { onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'

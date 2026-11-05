@@ -1,4 +1,4 @@
-// Owner: Zachary (built by Claude, declared in README.txt). Google Calendar connection. Contract: docs/google-contract.md
+// Google Calendar connection. Contract: docs/google-contract.md
 import { Router } from 'express'
 import { sendError } from '../errors.js'
 import { connectDb, withDb } from '../db.js'

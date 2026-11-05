@@ -1,4 +1,4 @@
-<!-- Owner: Asher. The short picture after a card is picked on Scan's question (ScanPicker.vue), so the scan page doesn't
+<!-- The short picture after a card is picked on Scan's question (ScanPicker.vue), so the scan page doesn't
      just appear. From the card that was tapped, a soft wash of its colour spreads over the screen while things of its kind
      burst out and settle around the middle, then drift gently up as the scan page opens:
        medication  capsules, tablets, a blister pack, a syrup bottle and a cream tube, round a big medicine bottle

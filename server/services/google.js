@@ -1,4 +1,4 @@
-// Owner: Zachary (built by Claude, declared in README.txt). Google Calendar: OAuth, encrypted refresh tokens, and one repeating
+// Google Calendar: OAuth, encrypted refresh tokens, and one repeating
 // event per dose with its own alert, so the phone rings at dose time even when our app is closed, plus a second "Not ticked yet"
 // event FOLLOW_UP_MIN later that ticking the dose cancels. Plain fetch, no googleapis package.
 // Contract: docs/google-contract.md

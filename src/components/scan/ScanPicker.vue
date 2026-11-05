@@ -1,4 +1,4 @@
-<!-- Owner: Asher (built by Claude, declared in README.txt). Scan, the question: "What would you like to scan today?" with two
+<!-- Scan, the question: "What would you like to scan today?" with two
      big picture cards (Medicine label / Medical bill). Each is a dark card: a picture of its sample paper with what to do on
      a tag at the top and a round arrow tucked into its corner, then the name, one line on what it tells you, and tags.
      At rest, the things in each picture breathe and drift. With a mouse, both pictures rest in the app's teal; the one

@@ -1,4 +1,4 @@
-// Owner: Lokesh. Subsidy rules behind the bill questionnaire. Pure functions with no Vue, so server/test/subsidies.test.js can test them.
+// Subsidy rules behind the bill questionnaire. Pure functions with no Vue, so server/test/subsidies.test.js can test them.
 // Every figure must be on the official page in `sourceUrl` on the date in `checkedOn`. If a figure is unclear, `discount` stays null
 // and the page only links to the source. Never invent a percentage or amount.
 //

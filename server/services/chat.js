@@ -1,4 +1,4 @@
-// Owner: Zachary. "Ask about my medicine": answers one question, from the user's own medicines when it is about one of them.
+// "Ask about my medicine": answers one question, from the user's own medicines when it is about one of them.
 // Safety lives in our code first (red flags, input limits, reply checks); the prompt rules are the second layer.
 import { attempts, firstReply, list, parseJson } from './gemini.js'
 

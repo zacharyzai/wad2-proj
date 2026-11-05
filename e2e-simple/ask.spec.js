@@ -1,4 +1,4 @@
-// Owner: Zachary. Ask about my medicine: 5 E2E tests, written the Week 10 way (set up, act, assert).
+// Ask about my medicine: 5 E2E tests, written the Week 10 way (set up, act, assert).
 // The test server uses mock AI, so answers are free and always the same.
 import { test, expect } from '@playwright/test'
 import { signUp, openSample } from './helpers.js'

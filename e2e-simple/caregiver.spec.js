@@ -1,4 +1,4 @@
-// Owner: Sheen Hern. Caregiver: 5 E2E tests, written the Week 10 way (set up, act, assert).
+// Caregiver: 5 E2E tests, written the Week 10 way (set up, act, assert).
 import { test, expect } from '@playwright/test'
 import { signUp } from './helpers.js'
 

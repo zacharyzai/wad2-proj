@@ -1,4 +1,4 @@
-<!-- Owner: Isaac (tidied by Asher: grouped, searchable, two lists). Saved scans, arranged so a medicine or bill is found
+<!-- Saved scans, arranged so a medicine or bill is found
      without scrolling (our own rules: src/rules/history.js), all loaded at once (GET /api/history/all):
        Medicines  one short row per medicine with all its scans inside, so monthly refills don't pile up. "Taking now"
                   (still on the timetable) first; "No longer taking" folded away. A search box, and one-tap chips with

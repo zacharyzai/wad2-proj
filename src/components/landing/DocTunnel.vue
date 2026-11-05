@@ -1,4 +1,4 @@
-<!-- Owner: Asher. Welcome page: real labels and bills fly towards you through a 3D tunnel as you scroll, with the plain
+<!-- Welcome page: real labels and bills fly towards you through a 3D tunnel as you scroll, with the plain
      words the app turns them into, in all four languages. Between the hero and "Snap a photo".
      Driven by the page's own scrolling (the section stays pinned while the papers fly), so touch, keyboard and scrollbars
      all work and scrolling is never taken over. Desktop: the papers lean towards the mouse. Phones: fewer papers, a shorter

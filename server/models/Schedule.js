@@ -1,4 +1,4 @@
-// Owner: Sheen Hern's models folder (built by Claude, declared in README.txt). A user's medicine list, kept on the account so
+// A user's medicine list, kept on the account so
 // every device shows the same Schedule (src/stores/scheduleSync.js), and the timetable worked out from it on the server with
 // src/rules/schedule.js, which a linked caregiver reads (server/routes/care.js). Extracted label text only, never a photo.
 import mongoose from 'mongoose'

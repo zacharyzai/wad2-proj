@@ -1,4 +1,4 @@
-<!-- Owner: Isaac. The "empty" state: a spot illustration around the icon, what is missing, and what to do next. Put the action button in the slot.
+<!-- The "empty" state: a spot illustration around the icon, what is missing, and what to do next. Put the action button in the slot.
      One drawing for every empty page (two paper sheets on a soft blob), so they all look like one set. -->
 <script setup>
 import AppIcon from './AppIcon.vue'

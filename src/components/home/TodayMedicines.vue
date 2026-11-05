@@ -1,4 +1,4 @@
-<!-- Owner: Asher. Home's "Today's medicines": a reminder for the one pill to take next, on a dark teal card. A bell
+<!-- Home's "Today's medicines": a reminder for the one pill to take next, on a dark teal card. A bell
      that rings whenever the greeting's capsule moves (and opens Schedule when tapped), its time, the pill and how much, its name and food, and one big
      "I've taken it" when it is due. When several are due together, one shows at a time: tick it and the next one comes
      (so one not taken is never ticked with another). Nothing due yet: what is next, and when. All taken: well done.

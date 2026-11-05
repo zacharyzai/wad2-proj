@@ -1,4 +1,4 @@
-// Owner: Lokesh. Schedule rules for the Schedule page and Google sync (src/rules/schedule.js). Entry shape: docs/google-contract.md.
+// Schedule rules for the Schedule page and Google sync (src/rules/schedule.js). Entry shape: docs/google-contract.md.
 import { test } from 'vitest'
 import assert from 'node:assert/strict'
 import {

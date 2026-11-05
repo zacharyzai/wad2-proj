@@ -1,4 +1,4 @@
-// Owner: Lokesh. Dose ticks (server/routes/doses.js) against an in-memory MongoDB. Never reads the shared Atlas database.
+// Dose ticks (server/routes/doses.js) against an in-memory MongoDB. Never reads the shared Atlas database.
 import { test, beforeAll, afterAll } from 'vitest'
 import assert from 'node:assert/strict'
 import { once } from 'node:events'

@@ -1,4 +1,4 @@
-<!-- Owner: Lokesh. Subsidy results: what is already on the bill, and what the user may also qualify for. Estimates only; every scheme links its official page. -->
+<!-- Subsidy results: what is already on the bill, and what the user may also qualify for. Estimates only; every scheme links its official page. -->
 <script setup>
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'

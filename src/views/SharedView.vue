@@ -1,4 +1,4 @@
-<!-- Owner: Isaac. A senior sends this link on WhatsApp ("Invite a caregiver" on their Account page). The caregiver opens it, logs in
+<!-- A senior sends this link on WhatsApp ("Invite a caregiver" on their Account page). The caregiver opens it, logs in
      as a caregiver and taps Accept. Opening the link needs no login; accepting does. API: docs/care-contract.md (assumed until Sheen Hern's /api/care exists). -->
 <script setup>
 import { computed, onMounted, ref } from 'vue'

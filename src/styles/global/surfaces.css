@@ -1,4 +1,4 @@
-/* Owner: Isaac. Cards, hero, icon tiles and photo frames. Depth comes from soft shadows, not outlines. */
+/* Cards, hero, icon tiles and photo frames. Depth comes from soft shadows, not outlines. */
 .card {
   --bs-card-bg: var(--color-card);
   --bs-card-border-color: var(--color-border);

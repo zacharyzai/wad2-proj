@@ -1,4 +1,4 @@
-<!-- Owner: Asher. The language switch, the same everywhere: the top bar before logging in (PublicHeader.vue) and, in the
+<!-- The language switch, the same everywhere: the top bar before logging in (PublicHeader.vue) and, in the
      app, the sidebar on computers and a row under the header on phones (App.vue), so a language is one tap from any page.
      Short labels (EN · 中文 · BM · தமிழ்) so all four fit a phone; screen readers hear each language's full name too (the
      visible label stays at the start of it). Logged in, the auth store saves the choice to the account

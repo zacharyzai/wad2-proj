@@ -1,4 +1,4 @@
-// Owner: Zachary. Calls Gemini (Groq as last fallback) with model fallback; extractScan turns the photo (or the pages of one
+// Calls Gemini (Groq as last fallback) with model fallback; extractScan turns the photo (or the pages of one
 // bill or label, each its own image) into a contract-shaped Scan. The images only live in memory for this request; they are
 // never written anywhere.
 import {

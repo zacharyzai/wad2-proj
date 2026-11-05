@@ -1,4 +1,4 @@
-<!-- Owner: Zachary. Dev-only test bench (/dev/redact, not in production builds) for src/utils/redact.js:
+<!-- Dev-only test bench (/dev/redact, not in production builds) for src/utils/redact.js:
      drop in real label and bill photos and check what gets blacked out before anything would be sent to the AI.
      Nothing here leaves the browser. English only on purpose: it is a developer tool, not part of the app. -->
 <script setup>

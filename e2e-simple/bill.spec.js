@@ -1,4 +1,4 @@
-// Owner: Lokesh. Bill and subsidies: 5 E2E tests, written the Week 10 way (set up, act, assert).
+// Bill and subsidies: 5 E2E tests, written the Week 10 way (set up, act, assert).
 import { test, expect } from '@playwright/test'
 import { signUp } from './helpers.js'
 

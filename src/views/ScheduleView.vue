@@ -1,5 +1,4 @@
-<!-- Owner: Lokesh (redesigned by Claude from the Claude Design "Schedule" screens, declared in README.txt; Today and This week
-     made one view, Reminders folded into My medicines, by Asher). Medicine schedule in two tabs (?view=meds), so Back works:
+<!-- Medicine schedule in two tabs (?view=meds), so Back works:
        Today        the week as a strip of days (DayStrip.vue); today below it: what's due, the day's progress and a card
                     for every dose (TodayList.vue); another day: what was taken or is coming (DayOther.vue)
        My medicines one card per medicine (MedicineCard.vue, EditDaysForm.vue), the pharmacist list (PharmacistList.vue),

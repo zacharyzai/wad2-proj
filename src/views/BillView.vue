@@ -1,4 +1,4 @@
-<!-- Owner: Lokesh. Bill breakdown: every line of a medical bill (polyclinic, GP, dental, specialist, hospital, pharmacy...) with its category, and a tap-to-open plain explanation.
+<!-- Bill breakdown: every line of a medical bill (polyclinic, GP, dental, specialist, hospital, pharmacy...) with its category, and a tap-to-open plain explanation.
      Subsidies are checked from the account's date of birth and citizenship (no questions on this page); Back returns to where you came from. -->
 <script setup>
 import { computed, onBeforeUnmount, ref, watch } from 'vue'

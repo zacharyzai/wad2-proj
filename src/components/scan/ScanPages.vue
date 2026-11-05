@@ -1,4 +1,4 @@
-<!-- Owner: Asher (moved here from ScanView when merging into the split Scan screens, declared in README.txt). Scan, a bill
+<!-- Scan, a bill
      photographed page by page: the pages so far, each with its own check, and one question: "Does this bill have another
      page?". ScanView keeps the pages and does the work; every button is an emit. -->
 <script setup>

@@ -1,4 +1,4 @@
-// Owner: Sheen Hern. Invite/account linking, and (built by Claude, declared in README.txt) a caregiver's read-only view of a
+// Invite/account linking, and a caregiver's read-only view of a
 // linked senior's doses today.
 import { Router } from 'express'
 import { createHash, randomBytes } from 'node:crypto'

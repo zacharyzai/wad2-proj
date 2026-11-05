@@ -1,4 +1,4 @@
-<!-- Owner: Lokesh (built by Claude, declared in README.txt; restyled as day cards by Asher). Schedule, today: what's due now,
+<!-- Schedule, today: what's due now,
      the day's progress (a ring that fills and a % that counts up), and a card for every dose, grouped by time of day
      ("Morning · 2 medicines"), with its state on the right: tap anywhere on the card when it is taken, and a pop-up asks
      "Did you take it?" (Yes, I took it / Not yet) before anything is recorded; tapping a ticked one unticks it at once.

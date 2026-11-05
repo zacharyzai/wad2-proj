@@ -1,4 +1,4 @@
-<!-- Owner: Asher (built by Claude, declared in README.txt). Scan, once a kind is picked: one camera button and one upload box
+<!-- Scan, once a kind is picked: one camera button and one upload box
      named for it, the privacy line, tips for that kind of paper, and samples behind "Try an example".
      v-model:examplesOpen, because the error screen's "Use a sample instead" opens the samples from outside. -->
 <script setup>

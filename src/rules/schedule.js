@@ -1,4 +1,4 @@
-// Owner: Lokesh. Schedule rules: a saved medicine becomes the dose times shown on the Schedule page and sent to Google Calendar.
+// Schedule rules: a saved medicine becomes the dose times shown on the Schedule page and sent to Google Calendar.
 // Pure functions with no Vue, so server/test/schedule.test.js can test them. Our own rules, never AI.
 // Only "daily" medicines are scheduled. Anything else (when necessary, weekly, tapering, other, unknown) is flagged for the
 // pharmacist and gets no times: we never guess a timetable the label doesn't give.
