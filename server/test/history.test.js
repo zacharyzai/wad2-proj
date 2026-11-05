@@ -235,6 +235,64 @@ test("/all gives every summary at once, newest first, with each bill's visit dat
   assert.equal((await request('/all', { token: null })).status, 401)
 })
 
+test('the same bill scanned twice updates the saved one; anything that could be a different bill is added', async () => {
+  const sample = await fixture('bill-1')
+  const bill = (changes = {}) => ({
+    ...sample,
+    bill: {
+      ...structuredClone(sample.bill),
+      clinic: 'Bedok Polyclinic',
+      visitDate: '2026-08-20',
+      ...changes,
+    },
+  })
+  const count = async (token = aliceToken) =>
+    (await (await request('/all', { token })).json()).data.items.filter(
+      (i) => i.type === 'bill' && i.visitDate === '2026-08-20',
+    ).length
+
+  const first = await save(bill())
+  assert.equal(first.status, 201)
+  const saved = (await first.json()).data
+
+  // Scanned again: same clinic (case and spacing ignored), date and total. The corrected lines replace the old ones.
+  const items = structuredClone(sample.bill.items)
+  items[0].description = 'Corrected description'
+  const again = await save(bill({ clinic: '  bedok   POLYCLINIC ', items }))
+  assert.equal(again.status, 200)
+  const updated = (await again.json()).data
+  assert.equal(updated.id, saved.id)
+  assert.equal(updated.createdAt, saved.createdAt)
+  assert.equal(updated.scan.bill.items[0].description, 'Corrected description')
+  assert.equal(await count(), 1)
+  const opened = (await (await request(`/${saved.id}`)).json()).data
+  assert.equal(opened.scan.bill.items[0].description, 'Corrected description')
+
+  // A different date, total or clinic is a different bill.
+  const moreThanBefore = sample.bill.totalPayableCents + 50
+  for (const changes of [
+    { visitDate: '2026-08-21' },
+    { totalPayableCents: moreThanBefore },
+    { clinic: 'Tampines Polyclinic' },
+  ]) {
+    assert.equal((await save(bill(changes))).status, 201)
+  }
+
+  // Not enough printed to tell bills apart: always added.
+  for (const changes of [{ visitDate: null }, { clinic: null }]) {
+    assert.equal((await save(bill(changes))).status, 201)
+    assert.equal((await save(bill(changes))).status, 201)
+  }
+
+  // Another person's identical bill is their own record.
+  assert.equal((await save(bill(), { token: bobToken })).status, 201)
+  assert.equal(await count(bobToken), 1)
+
+  // Medicines are never merged.
+  assert.equal((await save(med)).status, 201)
+  assert.equal((await save(med)).status, 201)
+})
+
 test('rejects unknown fields, photos, owner injection and malformed or unconfirmed data without saving', async () => {
   const bad = []
   const change = (fn) => {

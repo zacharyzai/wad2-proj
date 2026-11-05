@@ -24,7 +24,7 @@ The server validates the supplied data; it cannot prove that a human actually ch
 - Medication: name, positive dose up to 100, known frequency; daily frequency requires an integer 1–6 times/day. Nonempty timing selections must match the daily count. Optional contract fields can be null; warnings is an array. PRN/weekly/tapering data can be saved without creating a schedule.
 - Bill: integer nonnegative cents, at least one complete item, known categories/schemes, valid calendar date or null. Items minus subsidies not already included in the items minus MediSave must equal the total. No dollars-to-cents normalization is applied to confirmed data.
 - Limits: 64 KiB per scan, 2,000 characters per text field, 100 items, 100 subsidies, 50 warnings; each money value at most 1,000,000,000,000 cents. Reject unknown fields at every level and image data URLs in text fields.
-- No deduplication: each successful POST creates a new history entry. Submit once and retain the returned ID; do not automatically retry an uncertain POST. PUT/PATCH and idempotent save keys are not supplied in this PR.
+- A bill that is already saved is updated, not added again: when the clinic (ignoring case and extra spaces), `visitDate` and `totalPayableCents` all match a saved bill of the same user, and all three are present, POST replaces that bill's details and returns `200` with the same `id` and `createdAt`. Anything else creates a new history entry (`201`). This is so scanning the same bill twice does not count it twice in the clinic totals. Two requests at the same instant can still both create. Medicines are never merged. Do not automatically retry an uncertain POST. PUT/PATCH and idempotent save keys are not supplied.
 
 Example medication detail:
 

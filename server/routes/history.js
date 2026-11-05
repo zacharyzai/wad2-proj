@@ -51,10 +51,36 @@ async function database(req, res, work) {
   }
 }
 
+// Lower-cases and collapses spaces, so "Bedok  Polyclinic" and "bedok polyclinic" are the same clinic.
+const norm = (text) => text.toLowerCase().replace(/\s+/g, ' ').trim()
+
+// The user's saved bill that this one is a second scan of: same clinic, same visit date and same total paid. All three must be
+// printed on the bill, otherwise two different bills could look alike. null when there is none.
+async function savedCopyOf(userId, bill) {
+  if (!bill.clinic || !bill.visitDate || bill.totalPayableCents == null) return null
+  const sameDayAndTotal = await Scan.find({
+    userId,
+    type: 'bill',
+    'bill.visitDate': bill.visitDate,
+    'bill.totalPayableCents': bill.totalPayableCents,
+  }).sort({ createdAt: -1, _id: -1 })
+  return (
+    sameDayAndTotal.find((d) => d.bill.clinic && norm(d.bill.clinic) === norm(bill.clinic)) ?? null
+  )
+}
+
+// A new scan is added to History (201). A bill that is already there is updated with the newly confirmed details instead (200,
+// same id and date), so History and the clinic totals count it once.
 router.post('/', (req, res) => {
   const { scan, error } = checkConfirmedScan(req.body)
   if (error) return sendError(res, 400, 'BAD_REQUEST', error)
   return database(req, res, async () => {
+    const existing = scan.type === 'bill' ? await savedCopyOf(req.userId, scan.bill) : null
+    if (existing) {
+      existing.set({ source: scan.source, bill: scan.bill })
+      await existing.save()
+      return res.json({ ok: true, data: record(existing.toObject({ versionKey: false })) })
+    }
     const saved = await Scan.create({ userId: req.userId, ...scan })
     res.status(201).json({ ok: true, data: record(saved.toObject({ versionKey: false })) })
   })
