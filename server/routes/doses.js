@@ -20,16 +20,23 @@ const singaporeDay = (ms) => new Date(ms + 8 * 3_600_000).toISOString().slice(0,
 // Tomorrow is allowed (a device clock slightly ahead); anything older than a year is not a schedule day.
 export function checkDate(date, now = Date.now()) {
   const day = new Date(`${date}T00:00:00Z`)
-  if (typeof date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(date) || Number.isNaN(day.getTime()) || day.toISOString().slice(0, 10) !== date) {
+  if (
+    typeof date !== 'string' ||
+    !/^\d{4}-\d{2}-\d{2}$/.test(date) ||
+    Number.isNaN(day.getTime()) ||
+    day.toISOString().slice(0, 10) !== date
+  ) {
     return 'date must be a real date, YYYY-MM-DD'
   }
-  if (date > singaporeDay(now + DAY_MS) || date < singaporeDay(now - 365 * DAY_MS)) return 'date must be within the last year'
+  if (date > singaporeDay(now + DAY_MS) || date < singaporeDay(now - 365 * DAY_MS))
+    return 'date must be within the last year'
   return null
 }
 
 function checkTick(body) {
   const { doseId, date } = body ?? {}
-  if (typeof doseId !== 'string' || !DOSE_ID.test(doseId)) return { error: 'doseId must be 1 to 80 letters, digits or hyphens' }
+  if (typeof doseId !== 'string' || !DOSE_ID.test(doseId))
+    return { error: 'doseId must be 1 to 80 letters, digits or hyphens' }
   const error = checkDate(date)
   return error ? { error } : { tick: { doseId, date } }
 }
@@ -41,7 +48,11 @@ async function followUp(userId, { doseId, date }, taken) {
   let timer
   try {
     const link = await GoogleLink.findOne({ userId })
-    if (link) await Promise.race([setFollowUpCancelled(link, doseId, date, taken), new Promise((resolve) => (timer = setTimeout(resolve, 4000)))])
+    if (link)
+      await Promise.race([
+        setFollowUpCancelled(link, doseId, date, taken),
+        new Promise((resolve) => (timer = setTimeout(resolve, 4000))),
+      ])
   } catch {
     // see above
   } finally {
@@ -53,7 +64,8 @@ const router = Router()
 router.use(doseRateLimit, (req, res, next) => {
   res.set('Cache-Control', 'no-store')
   // Tokens always carry a database id; anything else is not a real account.
-  if (!mongoose.isValidObjectId(req.userId)) return sendError(res, 401, 'NOT_LOGGED_IN', 'Please log in')
+  if (!mongoose.isValidObjectId(req.userId))
+    return sendError(res, 401, 'NOT_LOGGED_IN', 'Please log in')
   next()
 })
 
@@ -61,7 +73,9 @@ router.get('/', (req, res) => {
   const error = checkDate(req.query.date)
   if (error) return sendError(res, 400, 'BAD_REQUEST', error)
   return withDb(res, async () => {
-    const ticks = await Dose.find({ userId: req.userId, date: req.query.date }, { doseId: 1 }).sort({ doseId: 1 }).lean()
+    const ticks = await Dose.find({ userId: req.userId, date: req.query.date }, { doseId: 1 })
+      .sort({ doseId: 1 })
+      .lean()
     res.json({ ok: true, data: { date: req.query.date, taken: ticks.map((t) => t.doseId) } })
   })
 })
@@ -74,7 +88,7 @@ router.post('/', (req, res) => {
     const key = { userId: req.userId, ...tick }
     let dose = await Dose.findOne(key).lean()
     if (!dose) {
-      if (await Dose.countDocuments({ userId: req.userId, date: tick.date }) >= MAX_PER_DAY) {
+      if ((await Dose.countDocuments({ userId: req.userId, date: tick.date })) >= MAX_PER_DAY) {
         return sendError(res, 400, 'BAD_REQUEST', `at most ${MAX_PER_DAY} doses a day`)
       }
       try {

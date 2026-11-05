@@ -20,7 +20,9 @@ export async function signUp(page, { name = 'Mei Ling', role = 'senior' } = {}) 
   // A new account is asked "Day or night mode" once: keep Day and press Next.
   // Wait until the choice is saved to the account, or the question comes back on the next page.
   await expect(page.getByRole('heading', { name: 'Day or night mode' })).toBeVisible()
-  const saved = page.waitForResponse((r) => r.url().endsWith('/api/auth/me') && r.request().method() === 'PATCH')
+  const saved = page.waitForResponse(
+    (r) => r.url().endsWith('/api/auth/me') && r.request().method() === 'PATCH',
+  )
   await page.getByRole('button', { name: 'Next' }).click()
   await saved
   return email

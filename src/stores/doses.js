@@ -63,7 +63,9 @@ export const useDosesStore = defineStore('doses', () => {
     pastError.value = null
     const missing = dates.filter((date) => date < today.value && !past.has(date))
     const answers = await Promise.all(missing.map((date) => dosesTaken(date)))
-    answers.forEach((res, i) => (res.ok ? past.set(missing[i], new Set(res.data.taken)) : (pastError.value = res.error.code)))
+    answers.forEach((res, i) =>
+      res.ok ? past.set(missing[i], new Set(res.data.taken)) : (pastError.value = res.error.code),
+    )
   }
   // action: whoever is logged out takes their ticks with them.
   function forget() {
@@ -85,5 +87,21 @@ export const useDosesStore = defineStore('doses', () => {
     document.removeEventListener('visibilitychange', onVisible)
   }
 
-  return { today, nowTime, taken, busy, ready, loadError, loadTicks, newDay, toggle, startClock, stopClock, past, pastError, loadPast, forget }
+  return {
+    today,
+    nowTime,
+    taken,
+    busy,
+    ready,
+    loadError,
+    loadTicks,
+    newDay,
+    toggle,
+    startClock,
+    stopClock,
+    past,
+    pastError,
+    loadPast,
+    forget,
+  }
 })

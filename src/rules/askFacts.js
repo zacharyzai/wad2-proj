@@ -5,7 +5,8 @@
 //     instruction only when the dose, frequency and times don't already say it.
 //   - A finished or stopped course is history: left out, unless the question names it.
 // list: the page's entries, [{ source, medication }]. Returns the same shape, ready to send.
-const clip = (text, max) => (typeof text === 'string' && text.length > max ? `${text.slice(0, max - 1).trimEnd()}…` : text)
+const clip = (text, max) =>
+  typeof text === 'string' && text.length > max ? `${text.slice(0, max - 1).trimEnd()}…` : text
 
 // The entries a piece of text mentions (by the first word of the name: "Metformin" in "Metformin 500 mg").
 export function namedIn(list, text = '') {
@@ -17,7 +18,10 @@ export function namedIn(list, text = '') {
 }
 
 // The structured fields already say how to take it: then the printed sentence adds nothing.
-const knownHow = (m) => m.doseAmount != null && m.frequencyType != null && (m.frequencyType !== 'daily' || m.timesPerDay != null)
+const knownHow = (m) =>
+  m.doseAmount != null &&
+  m.frequencyType != null &&
+  (m.frequencyType !== 'daily' || m.timesPerDay != null)
 // Only trims what is there: a field the medicine never had is not invented.
 const compact = ({ medication }) => {
   const { quantity, strength, rawInstruction, warnings, ...rest } = medication // neither the pack size nor the strength helps answer "what / when / how"
@@ -32,5 +36,7 @@ export function factsFor(list, question, { previousQuestion = '', finished = () 
   const asked = namedIn(list, question)
   const about = asked.length ? asked : namedIn(list, previousQuestion) // a follow-up is about what was just discussed
   if (about.length) return about.map(({ source, medication }) => ({ source, medication }))
-  return list.filter((entry) => !finished(entry)).map((entry) => ({ source: entry.source, medication: compact(entry) }))
+  return list
+    .filter((entry) => !finished(entry))
+    .map((entry) => ({ source: entry.source, medication: compact(entry) }))
 }

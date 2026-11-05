@@ -5,7 +5,12 @@ import { extname } from 'node:path'
 import { extractScan } from '../services/gemini.js'
 
 const [type, file] = process.argv.slice(2)
-const mime = { '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp' }[extname(file ?? '').toLowerCase()]
+const mime = {
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.png': 'image/png',
+  '.webp': 'image/webp',
+}[extname(file ?? '').toLowerCase()]
 if (!['medication', 'bill'].includes(type) || !mime) {
   console.error('Usage: pnpm try:scan <medication|bill> <photo.jpg|png|webp>')
   process.exit(1)

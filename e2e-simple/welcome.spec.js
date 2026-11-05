@@ -11,13 +11,19 @@ test('a first visit opens the welcome page', async ({ page }) => {
 
 test('Try me out leads to sign-up', async ({ page }) => {
   await page.goto('/welcome')
-  await page.getByRole('link', { name: /Try me out/ }).first().click()
+  await page
+    .getByRole('link', { name: /Try me out/ })
+    .first()
+    .click()
   await expect(page).toHaveURL(/\/signup$/)
 })
 
 test('tapping a language switches the page', async ({ page }) => {
   await page.goto('/welcome')
-  await page.getByRole('group', { name: 'Language', exact: true }).getByRole('button', { name: '中文' }).click()
+  await page
+    .getByRole('group', { name: 'Language', exact: true })
+    .getByRole('button', { name: '中文' })
+    .click()
   await expect(page.getByRole('heading', { level: 1 })).toHaveAccessibleName('看懂您的医药账单')
 })
 

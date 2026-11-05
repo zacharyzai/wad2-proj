@@ -15,12 +15,52 @@ defineProps({ text: { type: String, default: '' } })
 </template>
 
 <style scoped>
-.scroll-cue { display: flex; flex-direction: column; align-items: center; gap: 4px; margin: 0; font-size: 18px; font-weight: 700; color: var(--l-muted); text-align: center; }
-.arrows { display: flex; flex-direction: column; align-items: center; color: var(--l-accent); }
-.arrows > * + * { margin-top: -16px; } /* the two chevrons nest into one double arrow */
+.scroll-cue {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--l-muted);
+  text-align: center;
+}
+.arrows {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: var(--l-accent);
+}
+.arrows > * + * {
+  margin-top: -16px;
+} /* the two chevrons nest into one double arrow */
 /* Each arrow brightens and nudges down in turn, so the pair reads as one movement downwards. Transform and opacity only. */
-.arrows > * { opacity: 0.25; animation: cue 1.8s cubic-bezier(0.77, 0, 0.175, 1) infinite; }
-.arrows > * + * { animation-delay: 0.2s; }
-@keyframes cue { 0%, 100% { opacity: 0.25; transform: translateY(-3px); } 45% { opacity: 1; transform: translateY(4px); } }
-@media (prefers-reduced-motion: reduce) { .arrows > * { animation: none; opacity: 1; } .arrows > :first-child { opacity: 0.45; } }
+.arrows > * {
+  opacity: 0.25;
+  animation: cue 1.8s cubic-bezier(0.77, 0, 0.175, 1) infinite;
+}
+.arrows > * + * {
+  animation-delay: 0.2s;
+}
+@keyframes cue {
+  0%,
+  100% {
+    opacity: 0.25;
+    transform: translateY(-3px);
+  }
+  45% {
+    opacity: 1;
+    transform: translateY(4px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .arrows > * {
+    animation: none;
+    opacity: 1;
+  }
+  .arrows > :first-child {
+    opacity: 0.45;
+  }
+}
 </style>

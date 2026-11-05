@@ -20,7 +20,9 @@ const copied = ref(false)
 
 const fmt = (iso, opts) => (iso ? new Date(iso).toLocaleDateString(locale.value, opts) : '')
 const link = computed(() => (invite.value ? `${location.origin}/shared/${invite.value.token}` : ''))
-const whatsapp = computed(() => `https://wa.me/?text=${encodeURIComponent(`${t('careCard.shareMessage')} ${link.value}`)}`)
+const whatsapp = computed(
+  () => `https://wa.me/?text=${encodeURIComponent(`${t('careCard.shareMessage')} ${link.value}`)}`,
+)
 
 async function load() {
   const res = await myCaregivers()
@@ -54,7 +56,14 @@ async function closeRemove(row) {
   row?.querySelector('[data-testid="care-remove"]')?.focus()
 }
 const makeInvite = () => run(createInvite, (d) => (invite.value = d))
-const remove = (c) => run(() => removeCareLink(c.id), () => { caregivers.value = caregivers.value.filter((x) => x.id !== c.id); removing.value = null })
+const remove = (c) =>
+  run(
+    () => removeCareLink(c.id),
+    () => {
+      caregivers.value = caregivers.value.filter((x) => x.id !== c.id)
+      removing.value = null
+    },
+  )
 
 async function copy() {
   try {
@@ -72,24 +81,72 @@ async function copy() {
     <p class="text-muted-a11y m-0">{{ t('careCard.intro') }}</p>
     <ErrorBanner v-if="errorCode" :code="errorCode" />
 
-    <ul v-if="caregivers.length" class="list-unstyled m-0 d-flex flex-column gap-3" data-testid="care-caregivers">
+    <ul
+      v-if="caregivers.length"
+      class="list-unstyled m-0 d-flex flex-column gap-3"
+      data-testid="care-caregivers"
+    >
       <li v-for="c in caregivers" :key="c.id" class="d-flex flex-column gap-2">
         <div class="d-flex align-items-center gap-3 flex-wrap">
-          <span class="flex-grow-1"><strong>{{ c.name }}</strong><br /><span class="text-body-secondary">{{ t('careCard.since', { date: fmt(c.since, { day: 'numeric', month: 'short', year: 'numeric' }) }) }}</span></span>
-            <button type="button" class="btn btn-outline btn-sm" :aria-expanded="removing === c.id" data-testid="care-remove" @click="askRemove(c, $event)">{{ t('careCard.remove') }}</button>
+          <span class="flex-grow-1"
+            ><strong>{{ c.name }}</strong
+            ><br /><span class="text-body-secondary">{{
+              t('careCard.since', {
+                date: fmt(c.since, { day: 'numeric', month: 'short', year: 'numeric' }),
+              })
+            }}</span></span
+          >
+          <button
+            type="button"
+            class="btn btn-outline btn-sm"
+            :aria-expanded="removing === c.id"
+            data-testid="care-remove"
+            @click="askRemove(c, $event)"
+          >
+            {{ t('careCard.remove') }}
+          </button>
         </div>
-        <div v-if="removing === c.id" class="alert alert-warning flex-column" role="alertdialog" :aria-label="t('careCard.removeAsk', { name: c.name })" @keydown.esc.stop="closeRemove($event.currentTarget.closest('li'))">
+        <div
+          v-if="removing === c.id"
+          class="alert alert-warning flex-column"
+          role="alertdialog"
+          :aria-label="t('careCard.removeAsk', { name: c.name })"
+          @keydown.esc.stop="closeRemove($event.currentTarget.closest('li'))"
+        >
           <strong>{{ t('careCard.removeAsk', { name: c.name }) }}</strong>
           <div class="d-flex flex-wrap gap-2">
-            <button type="button" class="btn btn-danger btn-sm" :disabled="busy" data-testid="care-remove-yes" @click="remove(c)">{{ t('careCard.removeYes') }}</button>
-            <button type="button" class="btn btn-secondary btn-sm" data-testid="care-remove-keep" @click="closeRemove($event.currentTarget.closest('li'))">{{ t('careCard.keep') }}</button>
+            <button
+              type="button"
+              class="btn btn-danger btn-sm"
+              :disabled="busy"
+              data-testid="care-remove-yes"
+              @click="remove(c)"
+            >
+              {{ t('careCard.removeYes') }}
+            </button>
+            <button
+              type="button"
+              class="btn btn-secondary btn-sm"
+              data-testid="care-remove-keep"
+              @click="closeRemove($event.currentTarget.closest('li'))"
+            >
+              {{ t('careCard.keep') }}
+            </button>
           </div>
         </div>
       </li>
     </ul>
     <p v-else class="m-0">{{ t('careCard.none') }}</p>
 
-    <button v-if="!inviting" type="button" class="btn btn-primary" data-testid="care-invite" @click="inviting = true"><AppIcon name="users" />{{ t('careCard.invite') }}</button>
+    <button
+      v-if="!inviting"
+      type="button"
+      class="btn btn-primary"
+      data-testid="care-invite"
+      @click="inviting = true"
+    >
+      <AppIcon name="users" />{{ t('careCard.invite') }}
+    </button>
 
     <section v-else class="d-flex flex-column gap-3" :aria-label="t('careCard.invite')">
       <template v-if="!invite">
@@ -97,15 +154,47 @@ async function copy() {
         <p class="m-0">{{ t('careCard.inviteSee') }}</p>
         <p class="m-0">{{ t('careCard.inviteNot') }}</p>
         <p class="m-0 text-body-secondary">{{ t('careCard.inviteExpiry') }}</p>
-        <button type="button" class="btn btn-primary" :disabled="busy" data-testid="care-invite-create" @click="makeInvite">{{ busy ? t('auth.working') : t('careCard.create') }}</button>
+        <button
+          type="button"
+          class="btn btn-primary"
+          :disabled="busy"
+          data-testid="care-invite-create"
+          @click="makeInvite"
+        >
+          {{ busy ? t('auth.working') : t('careCard.create') }}
+        </button>
       </template>
       <template v-else>
         <h3 class="care-h">{{ t('careCard.linkReady') }}</h3>
-        <input class="form-control" :value="link" readonly :aria-label="t('careCard.linkLabel')" data-testid="care-invite-link" @focus="$event.target.select()" />
-        <p class="m-0 text-body-secondary">{{ t('history.expires', { date: fmt(invite.expiresAt, { day: 'numeric', month: 'long', year: 'numeric' }) }) }}</p>
+        <input
+          class="form-control"
+          :value="link"
+          readonly
+          :aria-label="t('careCard.linkLabel')"
+          data-testid="care-invite-link"
+          @focus="$event.target.select()"
+        />
+        <p class="m-0 text-body-secondary">
+          {{
+            t('history.expires', {
+              date: fmt(invite.expiresAt, { day: 'numeric', month: 'long', year: 'numeric' }),
+            })
+          }}
+        </p>
         <div class="d-flex flex-wrap gap-2">
-          <a :href="whatsapp" target="_blank" rel="noopener" class="btn btn-primary btn-sm" data-testid="care-invite-whatsapp"><AppIcon name="send" :size="20" />{{ t('history.whatsapp') }}</a>
-          <button type="button" class="btn btn-secondary btn-sm" @click="copy"><AppIcon :name="copied ? 'check' : 'file'" :size="20" />{{ copied ? t('history.copied') : t('history.copy') }}</button>
+          <a
+            :href="whatsapp"
+            target="_blank"
+            rel="noopener"
+            class="btn btn-primary btn-sm"
+            data-testid="care-invite-whatsapp"
+            ><AppIcon name="send" :size="20" />{{ t('history.whatsapp') }}</a
+          >
+          <button type="button" class="btn btn-secondary btn-sm" @click="copy">
+            <AppIcon :name="copied ? 'check' : 'file'" :size="20" />{{
+              copied ? t('history.copied') : t('history.copy')
+            }}
+          </button>
         </div>
         <span class="visually-hidden" role="status">{{ copied ? t('history.copied') : '' }}</span>
       </template>
@@ -114,5 +203,9 @@ async function copy() {
 </template>
 
 <style scoped>
-.care-h { font-size: var(--fs-body); font-weight: 700; margin: 0; }
+.care-h {
+  font-size: var(--fs-body);
+  font-weight: 700;
+  margin: 0;
+}
 </style>

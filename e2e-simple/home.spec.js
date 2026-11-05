@@ -4,7 +4,9 @@ import { signUp } from './helpers.js'
 
 test('Home greets you by name', async ({ page }) => {
   await signUp(page, { name: 'Mei Ling' })
-  await expect(page.getByText(/^Good (morning|afternoon|evening), Mei Ling!$/).first()).toBeVisible()
+  await expect(
+    page.getByText(/^Good (morning|afternoon|evening), Mei Ling!$/).first(),
+  ).toBeVisible()
 })
 
 test('each Home choice opens its page', async ({ page }) => {
@@ -21,7 +23,9 @@ test('each Home choice opens its page', async ({ page }) => {
 
 test('no medicines yet explains reminders', async ({ page }) => {
   await signUp(page)
-  await expect(page.getByText('Scan a medicine label and we will remind you when to take it.')).toBeVisible()
+  await expect(
+    page.getByText('Scan a medicine label and we will remind you when to take it.'),
+  ).toBeVisible()
 })
 
 test('an unknown page is friendly', async ({ page }) => {

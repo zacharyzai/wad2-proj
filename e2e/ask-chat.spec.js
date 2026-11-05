@@ -3,7 +3,10 @@
 // Answers are mocked in the browser (no AI quota).
 import { test, expect } from './fixtures.js'
 
-const answer = (text, extra = {}) => ({ ok: true, data: { type: 'ANSWER', answer: text, askPharmacist: false, ...extra } })
+const answer = (text, extra = {}) => ({
+  ok: true,
+  data: { type: 'ANSWER', answer: text, askPharmacist: false, ...extra },
+})
 
 // Answers in turn; records what the page sent. `delay` holds each answer back (ms).
 function mockChat(page, replies, delay = 0) {
@@ -18,11 +21,15 @@ function mockChat(page, replies, delay = 0) {
 
 test('the empty page says hello by name, with the capsule waving', async ({ page }) => {
   await page.goto('/ask')
-  await expect(page.getByTestId('ask-hello')).toHaveText(/^Good (morning|afternoon|evening), Tan Mei Ling!$/)
+  await expect(page.getByTestId('ask-hello')).toHaveText(
+    /^Good (morning|afternoon|evening), Tan Mei Ling!$/,
+  )
   await expect(page.locator('.intro svg.cb.cb-waving')).toBeVisible()
 })
 
-test('while waiting it says what it is doing, step by step, and the capsule thinks', async ({ page }) => {
+test('while waiting it says what it is doing, step by step, and the capsule thinks', async ({
+  page,
+}) => {
   mockChat(page, [answer('Keep them dry.')], 2000)
   await page.goto('/ask')
   await page.getByRole('button', { name: 'How do I store medicines?' }).click()
@@ -33,13 +40,19 @@ test('while waiting it says what it is doing, step by step, and the capsule thin
   await expect(page.getByTestId('ask-answer')).toContainText('Keep them dry.')
 })
 
-test('the answer card: the first sentence leads, the rest follows, word by word; the next steps come once it has appeared', async ({ page }) => {
-  mockChat(page, [answer('Take it after food. This helps your stomach, and it works best with a meal every day.')])
+test('the answer card: the first sentence leads, the rest follows, word by word; the next steps come once it has appeared', async ({
+  page,
+}) => {
+  mockChat(page, [
+    answer('Take it after food. This helps your stomach, and it works best with a meal every day.'),
+  ])
   await page.goto('/ask')
   await page.getByRole('button', { name: 'How do I store medicines?' }).click()
   const card = page.getByTestId('ask-answer')
   await expect(card.locator('.ans-lead')).toHaveText('Take it after food.')
-  await expect(card.locator('.ans-more')).toHaveText('This helps your stomach, and it works best with a meal every day.')
+  await expect(card.locator('.ans-more')).toHaveText(
+    'This helps your stomach, and it works best with a meal every day.',
+  )
   await expect(card.locator('.w.wait')).toHaveCount(0) // all the words have appeared
   await expect(page.getByTestId('ask-quick')).toBeVisible()
   await expect(page.getByTestId('ask-follow')).toBeVisible()
@@ -49,9 +62,20 @@ test('reading aloud lights up the word being said', async ({ page }) => {
   // A device voice that reports each word, like Chrome and Safari do.
   await page.addInitScript(() => {
     let current = null
-    const synth = { getVoices: () => [{ lang: 'en-SG', name: 'en' }], addEventListener() {}, speak: (u) => (current = u), cancel: () => current?.onend?.(), pause() {}, resume() {} }
+    const synth = {
+      getVoices: () => [{ lang: 'en-SG', name: 'en' }],
+      addEventListener() {},
+      speak: (u) => (current = u),
+      cancel: () => current?.onend?.(),
+      pause() {},
+      resume() {},
+    }
     Object.defineProperty(window, 'speechSynthesis', { value: synth, configurable: true })
-    window.SpeechSynthesisUtterance = class { constructor(text) { this.text = text } }
+    window.SpeechSynthesisUtterance = class {
+      constructor(text) {
+        this.text = text
+      }
+    }
     window.__say = (charIndex) => current.onboundary({ name: 'word', charIndex })
   })
   mockChat(page, [answer('Take it after food.')])
@@ -69,13 +93,20 @@ test('reading aloud lights up the word being said', async ({ page }) => {
 })
 
 test('"Explain more simply" asks again with the last answer as context', async ({ page }) => {
-  const sent = mockChat(page, [answer('Store below 25 degrees, away from light and moisture.'), answer('Keep them somewhere cool and dry.')])
+  const sent = mockChat(page, [
+    answer('Store below 25 degrees, away from light and moisture.'),
+    answer('Keep them somewhere cool and dry.'),
+  ])
   await page.goto('/ask')
   await page.getByRole('button', { name: 'How do I store medicines?' }).click()
   await page.getByTestId('ask-simpler').click()
-  await expect(page.getByTestId('ask-answer').nth(1)).toContainText('Keep them somewhere cool and dry.')
+  await expect(page.getByTestId('ask-answer').nth(1)).toContainText(
+    'Keep them somewhere cool and dry.',
+  )
   expect(sent[1].question).toBe('Please explain your last answer again in simpler words.')
-  expect(sent[1].history).toEqual([{ q: 'How do I store medicines?', a: 'Store below 25 degrees, away from light and moisture.' }])
+  expect(sent[1].history).toEqual([
+    { q: 'How do I store medicines?', a: 'Store below 25 degrees, away from light and moisture.' },
+  ])
 })
 
 test('an answer has no "Was this helpful?" or "Say it in" under it', async ({ page }) => {
@@ -87,7 +118,9 @@ test('an answer has no "Was this helpful?" or "Say it in" under it', async ({ pa
   await expect(page.getByText('Say it in')).toHaveCount(0)
 })
 
-test('scrolled up in a long conversation, "Latest answer" brings the newest one back', async ({ page }) => {
+test('scrolled up in a long conversation, "Latest answer" brings the newest one back', async ({
+  page,
+}) => {
   const long = 'Take one tablet in the morning after breakfast. '.repeat(8)
   mockChat(page, [answer(long), answer(long), answer('The newest answer.')])
   await page.goto('/ask')

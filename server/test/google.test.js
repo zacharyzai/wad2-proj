@@ -24,14 +24,22 @@ const realFetch = globalThis.fetch
 afterEach(() => (globalThis.fetch = realFetch))
 const AUTH = { authorization: `Bearer ${signToken('64b000000000000000000001', false)}` }
 const call = (method, path, body, headers = AUTH) =>
-  realFetch(`${base}/api/google${path}`, { method, redirect: 'manual', headers: { 'content-type': 'application/json', ...headers }, body: body && JSON.stringify(body) })
+  realFetch(`${base}/api/google${path}`, {
+    method,
+    redirect: 'manual',
+    headers: { 'content-type': 'application/json', ...headers },
+    body: body && JSON.stringify(body),
+  })
 
 // Metformin twice a day for 30 days, as the Schedule page will send it.
 const metformin = {
   medicineId: 'm1',
   label: 'Metformin 500mg',
   instruction: { count: 1, unit: 'tablet', food: 'after' },
-  doses: [{ id: 'm1-morning', slot: 'morning', time: '08:00' }, { id: 'm1-night', slot: 'night', time: '21:00' }],
+  doses: [
+    { id: 'm1-morning', slot: 'morning', time: '08:00' },
+    { id: 'm1-night', slot: 'night', time: '21:00' },
+  ],
   startDate: '2026-10-23',
   endDate: '2026-11-21',
   flagged: false,
@@ -40,7 +48,10 @@ const metformin = {
 test('state: belongs to one user, expires after 10 minutes, and is never accepted as a login (or the other way round)', () => {
   const now = Date.UTC(2026, 9, 25)
   const state = g.signState('u1', '/schedule', now)
-  assert.deepEqual({ ...g.readState(state, now), exp: undefined }, { purpose: 'google', sub: 'u1', next: '/schedule', exp: undefined })
+  assert.deepEqual(
+    { ...g.readState(state, now), exp: undefined },
+    { purpose: 'google', sub: 'u1', next: '/schedule', exp: undefined },
+  )
   assert.equal(g.readState(state, now + 11 * 60 * 1000), null)
   assert.equal(g.readState(state.slice(0, -2) + 'xx', now), null)
   assert.equal(g.readState('nonsense', now), null)
@@ -54,7 +65,9 @@ test('refresh tokens are encrypted at rest: unreadable, different every time, an
   assert.ok(!a.includes('refresh'))
   assert.equal(g.decrypt(a), '1//refresh-token')
   const [iv, tag, data] = a.split('.')
-  assert.throws(() => g.decrypt([iv, tag, data.slice(0, -2) + (data.endsWith('A') ? 'BB' : 'AA')].join('.')))
+  assert.throws(() =>
+    g.decrypt([iv, tag, data.slice(0, -2) + (data.endsWith('A') ? 'BB' : 'AA')].join('.')),
+  )
 })
 
 test('the permission page asks for events only, with a refresh token', () => {
@@ -66,7 +79,7 @@ test('the permission page asks for events only, with a refresh token', () => {
   assert.equal(url.searchParams.get('redirect_uri'), 'http://localhost:5173/api/google/callback')
 })
 
-test('one repeating event per dose, in Singapore time, with an alert at dose time, in the user\'s language', () => {
+test("one repeating event per dose, in Singapore time, with an alert at dose time, in the user's language", () => {
   const [entry] = g.checkEntries([metformin]).entries
   const event = g.buildEvent(entry, entry.doses[1], 'en')
   assert.deepEqual(event, {
@@ -78,9 +91,25 @@ test('one repeating event per dose, in Singapore time, with an alert at dose tim
     reminders: { useDefault: false, overrides: [{ method: 'popup', minutes: 0 }] },
   })
   assert.equal(g.buildEvent(entry, entry.doses[0], 'zh').summary, '服用 Metformin 500mg')
-  assert.equal(g.buildEvent(entry, entry.doses[0], 'zh').description, '1 粒，饭后。如有疑问，请问药剂师。') // the unit and punctuation follow the language
-  assert.equal(g.buildEvent({ ...entry, instruction: { count: 2, unit: 'tablet', food: null } }, entry.doses[0]).description, '2 tablets. Ask your pharmacist if unsure.')
-  assert.equal(g.buildEvent({ ...entry, instruction: { count: 10, unit: 'ml', food: 'with' } }, entry.doses[0], 'ms').description, '10 ml, semasa makan. Tanya ahli farmasi jika tidak pasti.')
+  assert.equal(
+    g.buildEvent(entry, entry.doses[0], 'zh').description,
+    '1 粒，饭后。如有疑问，请问药剂师。',
+  ) // the unit and punctuation follow the language
+  assert.equal(
+    g.buildEvent(
+      { ...entry, instruction: { count: 2, unit: 'tablet', food: null } },
+      entry.doses[0],
+    ).description,
+    '2 tablets. Ask your pharmacist if unsure.',
+  )
+  assert.equal(
+    g.buildEvent(
+      { ...entry, instruction: { count: 10, unit: 'ml', food: 'with' } },
+      entry.doses[0],
+      'ms',
+    ).description,
+    '10 ml, semasa makan. Tanya ahli farmasi jika tidak pasti.',
+  )
   // A dose at 23:50 ends after midnight, on the next day.
   assert.equal(g.buildEvent(entry, { id: 'x', time: '23:50' }).end.dateTime, '2026-10-24T00:05:00')
 })
@@ -112,34 +141,74 @@ test('the "Not ticked yet" alert comes 15 minutes after the dose, every day of t
     recurrence: ['RRULE:FREQ=DAILY;COUNT=30'],
     reminders: { useDefault: false, overrides: [{ method: 'popup', minutes: 0 }] },
   })
-  for (const lang of g.LANGS) assert.ok(g.buildFollowUpEvent(entry, entry.doses[0], lang).summary.includes('Metformin 500mg'), lang) // the name stays as printed
-  assert.equal(g.buildFollowUpEvent(entry, entry.doses[0], 'zh').summary, '还没打勾：Metformin 500mg')
+  for (const lang of g.LANGS)
+    assert.ok(
+      g.buildFollowUpEvent(entry, entry.doses[0], lang).summary.includes('Metformin 500mg'),
+      lang,
+    ) // the name stays as printed
+  assert.equal(
+    g.buildFollowUpEvent(entry, entry.doses[0], 'zh').summary,
+    '还没打勾：Metformin 500mg',
+  )
   // A dose at 23:50 is followed up after midnight: the series starts on the next day, at 00:05.
-  assert.equal(g.buildFollowUpEvent(entry, { id: 'x', time: '23:50' }).start.dateTime, '2026-10-24T00:05:00')
+  assert.equal(
+    g.buildFollowUpEvent(entry, { id: 'x', time: '23:50' }).start.dateTime,
+    '2026-10-24T00:05:00',
+  )
 })
 
 test('sync plan: create new doses, leave unchanged ones, patch changed ones, remove dropped ones; never flagged or endless ones', () => {
-  const { entries } = g.checkEntries([metformin, { ...metformin, medicineId: 'p1', doses: [{ id: 'p1', time: '09:00' }], flagged: true }, { ...metformin, medicineId: 'e1', doses: [{ id: 'e1', time: '09:00' }], endDate: null }])
+  const { entries } = g.checkEntries([
+    metformin,
+    { ...metformin, medicineId: 'p1', doses: [{ id: 'p1', time: '09:00' }], flagged: true },
+    { ...metformin, medicineId: 'e1', doses: [{ id: 'e1', time: '09:00' }], endDate: null },
+  ])
   const first = g.planSync(entries, new Map())
-  assert.deepEqual(first.insert.map((p) => p.doseId), ['m1-morning', 'm1-morning:late', 'm1-night', 'm1-night:late']) // each dose and its follow-up alert
-  assert.deepEqual(first.insert.filter((p) => p.doseId.endsWith(':late')).map((p) => p.time), ['08:00', '21:00']) // kept, so a tick can find its day
-  assert.deepEqual(first.skipped, [{ medicineId: 'p1', reason: 'flagged' }, { medicineId: 'e1', reason: 'noEndDate' }])
+  assert.deepEqual(
+    first.insert.map((p) => p.doseId),
+    ['m1-morning', 'm1-morning:late', 'm1-night', 'm1-night:late'],
+  ) // each dose and its follow-up alert
+  assert.deepEqual(
+    first.insert.filter((p) => p.doseId.endsWith(':late')).map((p) => p.time),
+    ['08:00', '21:00'],
+  ) // kept, so a tick can find its day
+  assert.deepEqual(first.skipped, [
+    { medicineId: 'p1', reason: 'flagged' },
+    { medicineId: 'e1', reason: 'noEndDate' },
+  ])
 
-  const stored = new Map(first.insert.map((p) => [p.doseId, { eventId: `ev-${p.doseId}`, hash: p.hash, time: p.time }]))
+  const stored = new Map(
+    first.insert.map((p) => [p.doseId, { eventId: `ev-${p.doseId}`, hash: p.hash, time: p.time }]),
+  )
   const again = g.planSync(entries, stored)
   assert.deepEqual([again.insert, again.patch, again.remove], [[], [], []]) // safe to run twice
 
-  const changed = g.checkEntries([{ ...metformin, doses: [{ id: 'm1-morning', time: '07:30' }] }]).entries
+  const changed = g.checkEntries([
+    { ...metformin, doses: [{ id: 'm1-morning', time: '07:30' }] },
+  ]).entries
   const plan = g.planSync(changed, stored)
-  assert.deepEqual(plan.patch.map((p) => [p.doseId, p.eventId, p.event.start.dateTime]), [
-    ['m1-morning', 'ev-m1-morning', '2026-10-23T07:30:00'],
-    ['m1-morning:late', 'ev-m1-morning:late', '2026-10-23T07:45:00'], // the follow-up moves with the dose
+  assert.deepEqual(
+    plan.patch.map((p) => [p.doseId, p.eventId, p.event.start.dateTime]),
+    [
+      ['m1-morning', 'ev-m1-morning', '2026-10-23T07:30:00'],
+      ['m1-morning:late', 'ev-m1-morning:late', '2026-10-23T07:45:00'], // the follow-up moves with the dose
+    ],
+  )
+  assert.deepEqual(plan.remove, [
+    { doseId: 'm1-night', eventId: 'ev-m1-night' },
+    { doseId: 'm1-night:late', eventId: 'ev-m1-night:late' },
   ])
-  assert.deepEqual(plan.remove, [{ doseId: 'm1-night', eventId: 'ev-m1-night' }, { doseId: 'm1-night:late', eventId: 'ev-m1-night:late' }])
 })
 
 // A GoogleLink stand-in: what syncSchedule reads and saves.
-const fakeLink = (events = new Map()) => ({ refreshToken: g.encrypt('1//rt'), events, saved: 0, save() { this.saved++ } })
+const fakeLink = (events = new Map()) => ({
+  refreshToken: g.encrypt('1//rt'),
+  events,
+  saved: 0,
+  save() {
+    this.saved++
+  },
+})
 
 // Google: the token endpoint and the Calendar events endpoint. Records every Calendar call.
 function stubGoogle({ tokenError } = {}) {
@@ -147,9 +216,13 @@ function stubGoogle({ tokenError } = {}) {
   let n = 0
   globalThis.fetch = async (url, init) => {
     if (url.startsWith('https://oauth2.googleapis.com/token')) {
-      return tokenError ? new Response(JSON.stringify({ error: tokenError }), { status: 400 }) : Response.json({ access_token: 'at' })
+      return tokenError
+        ? new Response(JSON.stringify({ error: tokenError }), { status: 400 })
+        : Response.json({ access_token: 'at' })
     }
-    calls.push(`${init.method} ${url.replace('https://www.googleapis.com/calendar/v3/calendars/primary/events', '')}`)
+    calls.push(
+      `${init.method} ${url.replace('https://www.googleapis.com/calendar/v3/calendars/primary/events', '')}`,
+    )
     assert.equal(init.headers.authorization, 'Bearer at')
     if (init.method === 'DELETE') return new Response(null, { status: 204 })
     return Response.json({ id: `ev${++n}` })
@@ -162,12 +235,23 @@ test('syncSchedule creates the events once, then a second run does nothing', asy
   const link = fakeLink()
   const { entries } = g.checkEntries([metformin])
   // Counted in doses (2), though each also gets a follow-up alert (4 events): the Schedule page shows "2 doses are in your calendar".
-  assert.deepEqual(await g.syncSchedule(link, entries, 'en'), { created: 2, updated: 0, removed: 0, skipped: [] })
+  assert.deepEqual(await g.syncSchedule(link, entries, 'en'), {
+    created: 2,
+    updated: 0,
+    removed: 0,
+    skipped: [],
+  })
   assert.deepEqual(calls, ['POST ', 'POST ', 'POST ', 'POST '])
-  assert.deepEqual([...link.events.keys()], ['m1-morning', 'm1-morning:late', 'm1-night', 'm1-night:late'])
+  assert.deepEqual(
+    [...link.events.keys()],
+    ['m1-morning', 'm1-morning:late', 'm1-night', 'm1-night:late'],
+  )
   assert.equal(g.doseCount(link), 2)
   assert.equal(link.events.get('m1-night:late').time, '21:00')
-  assert.equal(await g.syncSchedule(link, entries, 'en').then((r) => r.created + r.updated + r.removed), 0)
+  assert.equal(
+    await g.syncSchedule(link, entries, 'en').then((r) => r.created + r.updated + r.removed),
+    0,
+  )
   assert.equal(calls.length, 4)
   assert.equal(link.saved, 2)
 
@@ -180,17 +264,29 @@ test('ticking a dose cancels that day\'s "Not ticked yet" alert, and unticking b
   const calls = []
   let status = 'confirmed' // what Google holds for that day's alert
   globalThis.fetch = async (url, init) => {
-    if (url.startsWith('https://oauth2.googleapis.com/token')) return Response.json({ access_token: 'at' })
-    const path = decodeURIComponent(url.replace('https://www.googleapis.com/calendar/v3/calendars/primary/events', ''))
+    if (url.startsWith('https://oauth2.googleapis.com/token'))
+      return Response.json({ access_token: 'at' })
+    const path = decodeURIComponent(
+      url.replace('https://www.googleapis.com/calendar/v3/calendars/primary/events', ''),
+    )
     calls.push(`${init.method} ${path}${init.body ? ' ' + init.body : ''}`)
     if (init.method === 'PATCH') status = JSON.parse(init.body).status
-    if (init.method === 'GET') return Response.json({ items: [{ id: 'evL_20261104T001500Z', status }] })
+    if (init.method === 'GET')
+      return Response.json({ items: [{ id: 'evL_20261104T001500Z', status }] })
     return Response.json({})
   }
-  const link = fakeLink(new Map([['m1-morning:late', { eventId: 'evL', hash: 'h', time: '08:00' }], ['m1-morning', { eventId: 'evD', hash: 'h' }]]))
+  const link = fakeLink(
+    new Map([
+      ['m1-morning:late', { eventId: 'evL', hash: 'h', time: '08:00' }],
+      ['m1-morning', { eventId: 'evD', hash: 'h' }],
+    ]),
+  )
 
   assert.equal(await g.setFollowUpCancelled(link, 'm1-morning', '2026-11-04', true), true)
-  assert.match(calls[0], /^GET \/evL\/instances\?timeMin=2026-11-04T08:15:00\+08:00&timeMax=2026-11-04T08:16:00\+08:00&showDeleted=true$/) // that one day, in Singapore time
+  assert.match(
+    calls[0],
+    /^GET \/evL\/instances\?timeMin=2026-11-04T08:15:00\+08:00&timeMax=2026-11-04T08:16:00\+08:00&showDeleted=true$/,
+  ) // that one day, in Singapore time
   assert.equal(calls[1], 'PATCH /evL_20261104T001500Z {"status":"cancelled"}')
 
   assert.equal(await g.setFollowUpCancelled(link, 'm1-morning', '2026-11-04', false), true)
@@ -203,20 +299,26 @@ test('ticking a dose cancels that day\'s "Not ticked yet" alert, and unticking b
 test('a tick with nothing to cancel does nothing: no follow-up stored, or that day is not in the course', async () => {
   const calls = []
   globalThis.fetch = async (url, init) => {
-    if (url.startsWith('https://oauth2.googleapis.com/token')) return Response.json({ access_token: 'at' })
+    if (url.startsWith('https://oauth2.googleapis.com/token'))
+      return Response.json({ access_token: 'at' })
     calls.push(init.method)
     return Response.json({ items: [] }) // no instance on that day
   }
   assert.equal(await g.setFollowUpCancelled(fakeLink(), 'm1-morning', '2026-11-04', true), false)
   assert.equal(calls.length, 0) // not connected for this dose: Google is not even asked
-  const link = fakeLink(new Map([['m1-morning:late', { eventId: 'evL', hash: 'h', time: '08:00' }]]))
+  const link = fakeLink(
+    new Map([['m1-morning:late', { eventId: 'evL', hash: 'h', time: '08:00' }]]),
+  )
   assert.equal(await g.setFollowUpCancelled(link, 'm1-morning', '2027-06-01', true), false)
   assert.deepEqual(calls, ['GET'])
 })
 
 test('Google access removed (invalid_grant) is "connect again", not a crash', async () => {
   stubGoogle({ tokenError: 'invalid_grant' })
-  await assert.rejects(g.syncSchedule(fakeLink(), [], 'en'), { code: 'GOOGLE_DISCONNECTED', status: 401 })
+  await assert.rejects(g.syncSchedule(fakeLink(), [], 'en'), {
+    code: 'GOOGLE_DISCONNECTED',
+    status: 401,
+  })
 })
 
 test('routes: login needed, Connect gives a permission page tied to this user, and the callback always lands on our page', async () => {
@@ -228,7 +330,12 @@ test('routes: login needed, Connect gives a permission page tied to this user, a
 
   let res = await call('GET', `/callback?code=abc&state=forged`, undefined, {})
   assert.equal(res.headers.get('location'), '/account?google=failed')
-  res = await call('GET', `/callback?error=access_denied&state=${encodeURIComponent(state)}`, undefined, {})
+  res = await call(
+    'GET',
+    `/callback?error=access_denied&state=${encodeURIComponent(state)}`,
+    undefined,
+    {},
+  )
   assert.equal(res.headers.get('location'), '/schedule?google=cancelled')
 
   // `next` can't send people to another website.

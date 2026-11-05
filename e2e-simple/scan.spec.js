@@ -5,7 +5,9 @@ import { signUp, openSample } from './helpers.js'
 test('Scan offers a medicine label or a bill', async ({ page }) => {
   await signUp(page)
   await page.goto('/scan')
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('What would you like to scan today?')
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(
+    'What would you like to scan today?',
+  )
   await expect(page.getByTestId('choose-medication')).toContainText('Medicine label')
   await expect(page.getByTestId('choose-bill')).toContainText('Medical bill')
 })

@@ -18,7 +18,9 @@ const takenOff = computed(() => props.line.minus && props.line.amountCents > 0) 
 const amount = computed(() => (takenOff.value ? '−' : '') + money(props.line.amountCents))
 // Spoken as words ("$8.70 taken off"), since a minus sign isn't read the same way by every voice.
 const speech = computed(() => {
-  const said = takenOff.value ? t('bill.takenOffAmount', { amount: money(props.line.amountCents) }) : money(props.line.amountCents)
+  const said = takenOff.value
+    ? t('bill.takenOffAmount', { amount: money(props.line.amountCents) })
+    : money(props.line.amountCents)
   return `${props.line.name}. ${said}. ${props.line.text}`
 })
 const panelId = computed(() => `line-${props.line.id}`)
@@ -26,7 +28,13 @@ const panelId = computed(() => `line-${props.line.id}`)
 
 <template>
   <li class="line" :class="`tone-${line.tone}`">
-    <button type="button" class="line-btn" :aria-expanded="open" :aria-controls="panelId" @click="$emit('toggle')">
+    <button
+      type="button"
+      class="line-btn"
+      :aria-expanded="open"
+      :aria-controls="panelId"
+      @click="$emit('toggle')"
+    >
       <span class="line-tile"><AppIcon :name="line.icon" :size="24" /></span>
       <span class="d-flex flex-column gap-1 flex-grow-1 min-w-0">
         <span class="line-name" :lang="line.nameLang">{{ line.name }}</span>

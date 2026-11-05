@@ -36,14 +36,31 @@ router.post('/', scanRateLimit, async (req, res) => {
     return res.json({ ok: true, data: { ...sample, source: 'sample' } })
   }
 
-  if (!Object.hasOwn(MOCK_BY_TYPE, type)) return sendError(res, 400, 'BAD_REQUEST', 'type must be "medication" or "bill"')
+  if (!Object.hasOwn(MOCK_BY_TYPE, type))
+    return sendError(res, 400, 'BAD_REQUEST', 'type must be "medication" or "bill"')
   // `images`: the pages of one bill or label, in order. `image` (one photo) still works.
   const pages = images ?? [image]
-  if (!Array.isArray(pages) || !pages.length || pages.length > MAX_PAGES || !pages.every((p) => typeof p === 'string' && IMAGE_DATA_URL.test(p))) {
-    return sendError(res, 400, 'BAD_REQUEST', `images must be 1 to ${MAX_PAGES} base64 JPEG, PNG or WebP data URLs`)
+  if (
+    !Array.isArray(pages) ||
+    !pages.length ||
+    pages.length > MAX_PAGES ||
+    !pages.every((p) => typeof p === 'string' && IMAGE_DATA_URL.test(p))
+  ) {
+    return sendError(
+      res,
+      400,
+      'BAD_REQUEST',
+      `images must be 1 to ${MAX_PAGES} base64 JPEG, PNG or WebP data URLs`,
+    )
   }
 
-  if (!takeDailyQuota()) return sendError(res, 429, 'RATE_LIMITED', 'Daily scan limit reached, please try again tomorrow')
+  if (!takeDailyQuota())
+    return sendError(
+      res,
+      429,
+      'RATE_LIMITED',
+      'Daily scan limit reached, please try again tomorrow',
+    )
 
   if (process.env.USE_MOCK_AI === 'true') {
     return res.json({ ok: true, data: { ...MOCK_BY_TYPE[type], source: 'mock' } })
@@ -51,7 +68,10 @@ router.post('/', scanRateLimit, async (req, res) => {
 
   try {
     // A bill that doesn't add up may be read once more: that reading counts against the daily cap too.
-    res.json({ ok: true, data: await extractScan(type, pages, { canRecheck: () => takeDailyQuota() }) })
+    res.json({
+      ok: true,
+      data: await extractScan(type, pages, { canRecheck: () => takeDailyQuota() }),
+    })
   } catch (err) {
     if (err instanceof ScanError) return sendError(res, err.status, err.code, err.message)
     throw err // Express 5 forwards it to the error handler in app.js

@@ -5,7 +5,15 @@ import { computed, nextTick, onMounted, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useDosesStore } from '../../stores/doses'
 import { useScheduleText, SLOT_ICONS } from '../../composables/useScheduleText'
-import { doseSlots, labelLimitDays, supplyDays, validDate, validDays, validTime, MAX_DAYS } from '../../rules/schedule'
+import {
+  doseSlots,
+  labelLimitDays,
+  supplyDays,
+  validDate,
+  validDays,
+  validTime,
+  MAX_DAYS,
+} from '../../rules/schedule'
 import AppIcon from '../layout/AppIcon.vue'
 
 const props = defineProps({
@@ -31,7 +39,8 @@ const tried = ref(false) // errors show after the first Save, not while the pers
 const slots = doseSlots(props.medicine.medication) ?? []
 const problems = computed(() => {
   const p = {}
-  if (!/^\d+$/.test(String(form.days).trim()) || !validDays(Number(form.days))) p.days = t('schedule.form.bad.days', { max: MAX_DAYS })
+  if (!/^\d+$/.test(String(form.days).trim()) || !validDays(Number(form.days)))
+    p.days = t('schedule.form.bad.days', { max: MAX_DAYS })
   if (!validDate(form.startDate)) p.startDate = t('schedule.form.bad.start')
   for (const slot of slots) if (!validTime(form.times[slot])) p[slot] = t('schedule.form.bad.time')
   return p
@@ -51,10 +60,21 @@ onMounted(() => daysInput.value.focus())
 </script>
 
 <template>
-  <form ref="formEl" class="edit-form" novalidate :aria-label="t('schedule.form.title', { name: label })" @submit.prevent="save">
+  <form
+    ref="formEl"
+    class="edit-form"
+    novalidate
+    :aria-label="t('schedule.form.title', { name: label })"
+    @submit.prevent="save"
+  >
     <div class="field">
       <label :for="`days-${id}`" class="field-label">{{ t('schedule.form.days') }}</label>
-      <span :id="`days-help-${id}`" class="field-help">{{ t('schedule.form.daysHelp') }}<template v-if="supplyText(medicine.medication)"> {{ supplyText(medicine.medication) }}</template></span>
+      <span :id="`days-help-${id}`" class="field-help"
+        >{{ t('schedule.form.daysHelp')
+        }}<template v-if="supplyText(medicine.medication)">
+          {{ supplyText(medicine.medication) }}</template
+        ></span
+      >
       <input
         :id="`days-${id}`"
         ref="daysInput"
@@ -68,9 +88,19 @@ onMounted(() => daysInput.value.focus())
         :aria-describedby="`days-help-${id}` + (shown('days') ? ` days-error-${id}` : '')"
         data-testid="schedule-days"
       />
-      <p v-if="shown('days')" :id="`days-error-${id}`" class="field-error" role="alert">{{ shown('days') }}</p>
+      <p v-if="shown('days')" :id="`days-error-${id}`" class="field-error" role="alert">
+        {{ shown('days') }}
+      </p>
       <!-- Not a block: the person may know better (a doctor told them), so this only says what the label says. -->
-      <p v-if="limit && Number(form.days) > limit" class="alert alert-warning m-0" data-testid="schedule-over-limit"><AppIcon name="alert" :size="20" />{{ t('schedule.form.overLimit', { days: limit }, limit) }}</p>
+      <p
+        v-if="limit && Number(form.days) > limit"
+        class="alert alert-warning m-0"
+        data-testid="schedule-over-limit"
+      >
+        <AppIcon name="alert" :size="20" />{{
+          t('schedule.form.overLimit', { days: limit }, limit)
+        }}
+      </p>
     </div>
     <div class="field">
       <label :for="`start-${id}`" class="field-label">{{ t('schedule.form.start') }}</label>
@@ -84,13 +114,17 @@ onMounted(() => daysInput.value.focus())
         :aria-describedby="shown('startDate') ? `start-error-${id}` : null"
         data-testid="schedule-start"
       />
-      <p v-if="shown('startDate')" :id="`start-error-${id}`" class="field-error" role="alert">{{ shown('startDate') }}</p>
+      <p v-if="shown('startDate')" :id="`start-error-${id}`" class="field-error" role="alert">
+        {{ shown('startDate') }}
+      </p>
     </div>
     <fieldset class="field times">
       <legend class="field-label">{{ t('schedule.form.times') }}</legend>
       <div class="time-grid">
         <div v-for="slot in slots" :key="slot" class="field">
-          <label :for="`time-${id}-${slot}`" class="time-label"><AppIcon :name="SLOT_ICONS[slot]" :size="20" />{{ t(`timing.${slot}`) }}</label>
+          <label :for="`time-${id}-${slot}`" class="time-label"
+            ><AppIcon :name="SLOT_ICONS[slot]" :size="20" />{{ t(`timing.${slot}`) }}</label
+          >
           <input
             :id="`time-${id}-${slot}`"
             v-model="form.times[slot]"
@@ -101,13 +135,19 @@ onMounted(() => daysInput.value.focus())
             :aria-describedby="shown(slot) ? `time-error-${id}-${slot}` : null"
             :data-testid="`schedule-time-${slot}`"
           />
-          <p v-if="shown(slot)" :id="`time-error-${id}-${slot}`" class="field-error" role="alert">{{ shown(slot) }}</p>
+          <p v-if="shown(slot)" :id="`time-error-${id}-${slot}`" class="field-error" role="alert">
+            {{ shown(slot) }}
+          </p>
         </div>
       </div>
     </fieldset>
     <div class="d-flex flex-column flex-sm-row gap-3">
-      <button type="submit" class="btn btn-primary" data-testid="schedule-save"><AppIcon name="check" />{{ t('schedule.form.save') }}</button>
-      <button type="button" class="btn btn-ghost" @click="emit('cancel')">{{ t('schedule.form.cancel') }}</button>
+      <button type="submit" class="btn btn-primary" data-testid="schedule-save">
+        <AppIcon name="check" />{{ t('schedule.form.save') }}
+      </button>
+      <button type="button" class="btn btn-ghost" @click="emit('cancel')">
+        {{ t('schedule.form.cancel') }}
+      </button>
     </div>
   </form>
 </template>

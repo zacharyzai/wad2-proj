@@ -11,9 +11,14 @@ test('home page loads and switches language @i18n @smoke', async ({ page }) => {
   await expect(page.locator('html')).toHaveAttribute('lang', 'zh')
 })
 
-test('sample scan works through the dev proxy, and only with a login @smoke', async ({ request }) => {
+test('sample scan works through the dev proxy, and only with a login @smoke', async ({
+  request,
+}) => {
   expect((await request.post('/api/scan', { data: { sampleId: 'med-1' } })).status()).toBe(401)
-  const res = await request.post('/api/scan', { data: { sampleId: 'med-1' }, headers: { authorization: `Bearer ${testToken()}` } })
+  const res = await request.post('/api/scan', {
+    data: { sampleId: 'med-1' },
+    headers: { authorization: `Bearer ${testToken()}` },
+  })
   expect(res.ok()).toBeTruthy()
   const body = await res.json()
   expect(body.data.medication.name).toBe('Metformin')

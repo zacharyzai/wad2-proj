@@ -10,10 +10,18 @@ import { useMedicinesStore } from './medicines'
 
 const OWNER_KEY = 'medicinesOwner' // whose list the browser's cache is
 function owner() {
-  try { return localStorage.getItem(OWNER_KEY) } catch { return null }
+  try {
+    return localStorage.getItem(OWNER_KEY)
+  } catch {
+    return null
+  }
 }
 function setOwner(email) {
-  try { email ? localStorage.setItem(OWNER_KEY, email) : localStorage.removeItem(OWNER_KEY) } catch { /* cache only */ }
+  try {
+    email ? localStorage.setItem(OWNER_KEY, email) : localStorage.removeItem(OWNER_KEY)
+  } catch {
+    /* cache only */
+  }
 }
 export function syncMedicinesWithAccount() {
   const authStore = useAuthStore()
@@ -44,8 +52,8 @@ export function syncMedicinesWithAccount() {
     if (res.data.medicines) {
       replaceAll(res.data.medicines)
       sent = snapshot()
-    // Never saved: this browser's list (from before lists were kept on accounts) goes up once. An empty one has nothing to
-    // bring over, and saving it would turn "not shared yet" into "no doses" for a linked caregiver.
+      // Never saved: this browser's list (from before lists were kept on accounts) goes up once. An empty one has nothing to
+      // bring over, and saving it would turn "not shared yet" into "no doses" for a linked caregiver.
     } else sent = medicines.length ? '' : snapshot()
     ready = true
     push()
@@ -82,5 +90,7 @@ export function syncMedicinesWithAccount() {
   })
 
   watch(medicines, push, { deep: true })
-  watch(() => authStore.user?.email ?? (authStore.checked ? '' : undefined), load, { immediate: true })
+  watch(() => authStore.user?.email ?? (authStore.checked ? '' : undefined), load, {
+    immediate: true,
+  })
 }

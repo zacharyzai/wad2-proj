@@ -35,7 +35,10 @@ export async function compress(files) {
   const pages = []
   for (const file of files) {
     if (isPdf(file)) {
-      const drawn = await pdfToJpegs(file, { pages: MAX_PAGES - pages.length, onInfo: (info) => (pdfPages = info) })
+      const drawn = await pdfToJpegs(file, {
+        pages: MAX_PAGES - pages.length,
+        onInfo: (info) => (pdfPages = info),
+      })
       drawn.forEach((page) => fromPdf.add(page))
       pages.push(...drawn)
     } else {
@@ -54,7 +57,11 @@ export async function compress(files) {
 export async function fitUpload(pages) {
   for (const quality of [0.65, 0.5]) {
     if (pages.reduce((sum, page) => sum + page.length, 0) <= MAX_UPLOAD) break
-    pages = await Promise.all(pages.map((src) => loadImage(src).then((img) => toJpeg(img, img.naturalWidth, img.naturalHeight, quality))))
+    pages = await Promise.all(
+      pages.map((src) =>
+        loadImage(src).then((img) => toJpeg(img, img.naturalWidth, img.naturalHeight, quality)),
+      ),
+    )
   }
   return pages
 }

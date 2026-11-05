@@ -37,7 +37,8 @@ function fakeSpeech(page, { recognition = true } = {}) {
         start() {
           window.__recLang = this.lang
           setTimeout(() => {
-            if (window.__recError) return this.onerror?.({ error: window.__recError }), this.onend?.()
+            if (window.__recError)
+              return (this.onerror?.({ error: window.__recError }), this.onend?.())
             this.onresult?.({ results: [[{ transcript: window.__heard }]] })
             this.onend?.()
           }, 50)
@@ -49,7 +50,10 @@ function fakeSpeech(page, { recognition = true } = {}) {
   }, recognition)
 }
 
-const answer = (text) => ({ ok: true, data: { type: 'ANSWER', answer: text, askPharmacist: false } })
+const answer = (text) => ({
+  ok: true,
+  data: { type: 'ANSWER', answer: text, askPharmacist: false },
+})
 
 test('the mic fills the text box in the app language and does not send', async ({ page }) => {
   await fakeSpeech(page)
@@ -59,18 +63,24 @@ test('the mic fills the text box in the app language and does not send', async (
   await switchLanguage(page, 'BM')
   await page.evaluate(() => (window.__heard = 'Bila saya patut makan ubat ini'))
   await page.getByTestId('ask-mic').click()
-  await expect(page.getByLabel('Atau taip soalan anda sendiri')).toHaveValue('Bila saya patut makan ubat ini')
+  await expect(page.getByLabel('Atau taip soalan anda sendiri')).toHaveValue(
+    'Bila saya patut makan ubat ini',
+  )
   expect(await page.evaluate(() => window.__recLang)).toBe('ms-MY')
   expect(asked).toBe(0)
 })
 
-test('a browser that cannot hear Tamil says so, instead of "couldn\'t hear you"', async ({ page }) => {
+test('a browser that cannot hear Tamil says so, instead of "couldn\'t hear you"', async ({
+  page,
+}) => {
   await fakeSpeech(page)
   await page.goto('/ask')
   await switchLanguage(page, 'தமிழ்')
   await page.evaluate(() => (window.__recError = 'language-not-supported'))
   await page.getByTestId('ask-mic').click()
-  await expect(page.getByText('இந்த உலாவியில் இந்த மொழியில் பேச முடியாது', { exact: false })).toBeVisible()
+  await expect(
+    page.getByText('இந்த உலாவியில் இந்த மொழியில் பேச முடியாது', { exact: false }),
+  ).toBeVisible()
   expect(await page.evaluate(() => window.__recLang)).toBe('ta-IN')
 })
 
@@ -94,16 +104,26 @@ test('every answer can be read aloud and stopped, at the saved speed', async ({ 
   const first = page.getByTestId('ask-answer').first()
   await first.getByRole('button', { name: 'Read aloud' }).click()
   await expect(first.getByRole('button', { name: 'Stop' })).toBeVisible()
-  expect(await page.evaluate(() => window.__spoken)).toEqual([{ text: 'First answer.', rate: 0.75, lang: 'en-SG' }])
+  expect(await page.evaluate(() => window.__spoken)).toEqual([
+    { text: 'First answer.', rate: 0.75, lang: 'en-SG' },
+  ])
   await first.getByRole('button', { name: 'Stop' }).click()
   await expect(first.getByRole('button', { name: 'Read aloud' })).toBeVisible()
-  await expect(page.getByTestId('ask-answer').nth(1).getByRole('button', { name: 'Read aloud' })).toBeVisible()
+  await expect(
+    page.getByTestId('ask-answer').nth(1).getByRole('button', { name: 'Read aloud' }),
+  ).toBeVisible()
 })
 
-test('an answer in a language the device has no voice for is read with audio from our server', async ({ page }) => {
+test('an answer in a language the device has no voice for is read with audio from our server', async ({
+  page,
+}) => {
   await fakeSpeech(page)
-  await page.addInitScript(() => (window.speechSynthesis.getVoices = () => [{ lang: 'en-SG', name: 'English' }])) // no Tamil voice
-  await page.route('**/api/chat', (route) => route.fulfill({ json: answer('ஒரு நாளைக்கு 2 முறை.') }))
+  await page.addInitScript(
+    () => (window.speechSynthesis.getVoices = () => [{ lang: 'en-SG', name: 'English' }]),
+  ) // no Tamil voice
+  await page.route('**/api/chat', (route) =>
+    route.fulfill({ json: answer('ஒரு நாளைக்கு 2 முறை.') }),
+  )
   await page.goto('/ask')
   await switchLanguage(page, 'தமிழ்')
   await expect(page.locator('html')).toHaveAttribute('lang', 'ta') // the switch fades in: Tamil from the next frame on
@@ -111,5 +131,8 @@ test('an answer in a language the device has no voice for is read with audio fro
   await page.keyboard.press('Enter')
   const sent = page.waitForRequest('**/api/tts')
   await page.getByTestId('ask-answer').getByRole('button').first().click()
-  expect((await sent).postDataJSON()).toMatchObject({ lang: 'ta', text: expect.stringContaining('2 முறை') })
+  expect((await sent).postDataJSON()).toMatchObject({
+    lang: 'ta',
+    text: expect.stringContaining('2 முறை'),
+  })
 })

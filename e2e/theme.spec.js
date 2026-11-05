@@ -12,12 +12,22 @@ test('starts in day mode even when the device is set to dark', async ({ page }) 
   await expect(page.locator('.col-main')).not.toHaveCSS('background-color', NIGHT_BG)
 })
 
-test('Account: Night is saved to the account and kept after reload; Day switches back', async ({ page }) => {
+test('Account: Night is saved to the account and kept after reload; Day switches back', async ({
+  page,
+}) => {
   await page.goto('/account')
   const choices = page.getByTestId('account-theme')
-  await expect(choices.locator('[data-theme-choice="light"]')).toHaveAttribute('aria-pressed', 'true')
+  await expect(choices.locator('[data-theme-choice="light"]')).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  )
 
-  const saved = page.waitForRequest((r) => r.url().endsWith('/api/auth/me') && r.method() === 'PATCH' && r.postDataJSON()?.theme === 'dark')
+  const saved = page.waitForRequest(
+    (r) =>
+      r.url().endsWith('/api/auth/me') &&
+      r.method() === 'PATCH' &&
+      r.postDataJSON()?.theme === 'dark',
+  )
   await choices.getByRole('button', { name: 'Night' }).click()
   await saved
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
@@ -30,7 +40,9 @@ test('Account: Night is saved to the account and kept after reload; Day switches
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'light')
 })
 
-test('Same as my device follows the device, also when it changes while the app is open', async ({ page }) => {
+test('Same as my device follows the device, also when it changes while the app is open', async ({
+  page,
+}) => {
   await page.emulateMedia({ colorScheme: 'dark' })
   await page.goto('/account')
   await page.getByTestId('account-theme').getByRole('button', { name: 'Same as my device' }).click()
@@ -52,7 +64,9 @@ test('logging in on a new device uses the account’s day/night choice', async (
   await page.close()
 })
 
-test('after signing up, Home asks day or night first, then the Beginner’s guide opens', async ({ browser }) => {
+test('after signing up, Home asks day or night first, then the Beginner’s guide opens', async ({
+  browser,
+}) => {
   const page = await browser.newPage({ storageState: { cookies: [], origins: [] } }) // a new device: the guide not seen yet
   await mockAuth(page)
   await page.goto('/signup')
@@ -71,7 +85,12 @@ test('after signing up, Home asks day or night first, then the Beginner’s guid
   await ask.getByRole('button', { name: 'Night' }).click()
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark') // they see it before deciding
 
-  const saved = page.waitForRequest((r) => r.url().endsWith('/api/auth/me') && r.method() === 'PATCH' && r.postDataJSON()?.theme === 'dark')
+  const saved = page.waitForRequest(
+    (r) =>
+      r.url().endsWith('/api/auth/me') &&
+      r.method() === 'PATCH' &&
+      r.postDataJSON()?.theme === 'dark',
+  )
   await page.getByTestId('theme-prompt-next').click()
   await saved
   await expect(ask).toHaveCount(0)
@@ -88,8 +107,15 @@ test('Esc on the day/night question keeps day mode, saves it, and moves on', asy
   await page.goto('/')
   await expect(page.getByTestId('theme-prompt')).toBeVisible()
   expect(await page.getByTestId('theme-prompt').evaluate((d) => d.matches(':modal'))).toBe(true) // a real pop-up over the page, even on the first page
-  await expect(page.getByTestId('theme-prompt').locator('[data-theme-choice="light"]')).toBeFocused() // focus starts inside
-  const saved = page.waitForRequest((r) => r.url().endsWith('/api/auth/me') && r.method() === 'PATCH' && r.postDataJSON()?.theme === 'light')
+  await expect(
+    page.getByTestId('theme-prompt').locator('[data-theme-choice="light"]'),
+  ).toBeFocused() // focus starts inside
+  const saved = page.waitForRequest(
+    (r) =>
+      r.url().endsWith('/api/auth/me') &&
+      r.method() === 'PATCH' &&
+      r.postDataJSON()?.theme === 'light',
+  )
   await page.keyboard.press('Escape')
   await saved
   await expect(page.getByTestId('theme-prompt')).toHaveCount(0)

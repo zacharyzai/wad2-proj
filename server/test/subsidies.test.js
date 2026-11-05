@@ -1,7 +1,18 @@
 // Owner: Lokesh. Subsidy rules for the bill questionnaire (src/rules/subsidies.js). Sources and figures: see each rule's sourceUrl.
 import { test } from 'vitest'
 import assert from 'node:assert/strict'
-import { RULES, PLACES, UNKNOWN, checkRules, chasTier, normalizeAnswers, validYear, billPlace, discountCents, compareWithBill } from '../../src/rules/subsidies.js'
+import {
+  RULES,
+  PLACES,
+  UNKNOWN,
+  checkRules,
+  chasTier,
+  normalizeAnswers,
+  validYear,
+  billPlace,
+  discountCents,
+  compareWithBill,
+} from '../../src/rules/subsidies.js'
 import bill1 from '../fixtures/bill-1.json' with { type: 'json' }
 import bill2 from '../fixtures/bill-2.json' with { type: 'json' }
 import bill3 from '../fixtures/bill-3.json' with { type: 'json' }
@@ -13,21 +24,51 @@ import ta from '../../src/i18n/locales/ta.json' with { type: 'json' }
 // Fixed "this year" so the tests don't change as time passes.
 const YEAR = 2026
 // { pioneer: true, merdeka: false, chas: true, polyclinic: true } for these answers.
-const results = (answers) => Object.fromEntries(checkRules(answers, YEAR).map(({ rule, result }) => [rule.id, result]))
-const citizen = (birthYear, citizenSince = 'birth') => ({ residency: 'citizen', birthYear, citizenSince })
+const results = (answers) =>
+  Object.fromEntries(checkRules(answers, YEAR).map(({ rule, result }) => [rule.id, result]))
+const citizen = (birthYear, citizenSince = 'birth') => ({
+  residency: 'citizen',
+  birthYear,
+  citizenSince,
+})
 
 test('Pioneer Generation case: born 1945, citizen since birth', () => {
-  assert.deepEqual(results(citizen(1945)), { pioneer: true, merdeka: false, chas: true, polyclinic: true })
+  assert.deepEqual(results(citizen(1945)), {
+    pioneer: true,
+    merdeka: false,
+    chas: true,
+    polyclinic: true,
+  })
 })
 
 test('Merdeka Generation case: born 1955, citizen since 1990', () => {
-  assert.deepEqual(results(citizen(1955, 1990)), { pioneer: false, merdeka: true, chas: true, polyclinic: true })
+  assert.deepEqual(results(citizen(1955, 1990)), {
+    pioneer: false,
+    merdeka: true,
+    chas: true,
+    polyclinic: true,
+  })
 })
 
 test('not eligible for PG or MG: born 1985 citizen, and non-citizens', () => {
-  assert.deepEqual(results(citizen(1985)), { pioneer: false, merdeka: false, chas: true, polyclinic: true })
-  assert.deepEqual(results({ residency: 'pr', birthYear: 1945 }), { pioneer: false, merdeka: false, chas: false, polyclinic: true })
-  assert.deepEqual(results({ residency: 'other', birthYear: 1945 }), { pioneer: false, merdeka: false, chas: false, polyclinic: false })
+  assert.deepEqual(results(citizen(1985)), {
+    pioneer: false,
+    merdeka: false,
+    chas: true,
+    polyclinic: true,
+  })
+  assert.deepEqual(results({ residency: 'pr', birthYear: 1945 }), {
+    pioneer: false,
+    merdeka: false,
+    chas: false,
+    polyclinic: true,
+  })
+  assert.deepEqual(results({ residency: 'other', birthYear: 1945 }), {
+    pioneer: false,
+    merdeka: false,
+    chas: false,
+    polyclinic: false,
+  })
 })
 
 test('birth year boundaries: 1949 / 1950 and 1959 / 1960', () => {
@@ -41,23 +82,57 @@ test('birth year boundaries: 1949 / 1950 and 1959 / 1960', () => {
 
 test('citizenship year boundaries: 1986 / 1987 (PG) and 1996 / 1997 (MG)', () => {
   // Born 1949 or earlier: citizen by 1986 is PG; citizen 1987–1996 is MG (they didn't get PG); later is neither.
-  assert.deepEqual([results(citizen(1940, 1986)).pioneer, results(citizen(1940, 1986)).merdeka], [true, false])
-  assert.deepEqual([results(citizen(1940, 1987)).pioneer, results(citizen(1940, 1987)).merdeka], [false, true])
-  assert.deepEqual([results(citizen(1940, 1996)).pioneer, results(citizen(1940, 1996)).merdeka], [false, true])
-  assert.deepEqual([results(citizen(1940, 1997)).pioneer, results(citizen(1940, 1997)).merdeka], [false, false])
+  assert.deepEqual(
+    [results(citizen(1940, 1986)).pioneer, results(citizen(1940, 1986)).merdeka],
+    [true, false],
+  )
+  assert.deepEqual(
+    [results(citizen(1940, 1987)).pioneer, results(citizen(1940, 1987)).merdeka],
+    [false, true],
+  )
+  assert.deepEqual(
+    [results(citizen(1940, 1996)).pioneer, results(citizen(1940, 1996)).merdeka],
+    [false, true],
+  )
+  assert.deepEqual(
+    [results(citizen(1940, 1997)).pioneer, results(citizen(1940, 1997)).merdeka],
+    [false, false],
+  )
   // Born 1950–1959: citizen by 1996.
   assert.equal(results(citizen(1955, 1996)).merdeka, true)
   assert.equal(results(citizen(1955, 1997)).merdeka, false)
 })
 
 test('missing answers give "unknown", never a guess', () => {
-  assert.deepEqual(results({}), { pioneer: UNKNOWN, merdeka: UNKNOWN, chas: UNKNOWN, polyclinic: UNKNOWN })
+  assert.deepEqual(results({}), {
+    pioneer: UNKNOWN,
+    merdeka: UNKNOWN,
+    chas: UNKNOWN,
+    polyclinic: UNKNOWN,
+  })
   // Citizen, but no birth year yet.
-  assert.deepEqual(results({ residency: 'citizen' }), { pioneer: UNKNOWN, merdeka: UNKNOWN, chas: true, polyclinic: true })
+  assert.deepEqual(results({ residency: 'citizen' }), {
+    pioneer: UNKNOWN,
+    merdeka: UNKNOWN,
+    chas: true,
+    polyclinic: true,
+  })
   // Old enough, but citizenship year not given.
-  assert.deepEqual([results({ residency: 'citizen', birthYear: 1945 }).pioneer, results({ residency: 'citizen', birthYear: 1945 }).merdeka], [UNKNOWN, UNKNOWN])
+  assert.deepEqual(
+    [
+      results({ residency: 'citizen', birthYear: 1945 }).pioneer,
+      results({ residency: 'citizen', birthYear: 1945 }).merdeka,
+    ],
+    [UNKNOWN, UNKNOWN],
+  )
   // Too young for either scheme: the birth year alone decides.
-  assert.deepEqual([results({ residency: 'citizen', birthYear: 1980 }).pioneer, results({ residency: 'citizen', birthYear: 1980 }).merdeka], [false, false])
+  assert.deepEqual(
+    [
+      results({ residency: 'citizen', birthYear: 1980 }).pioneer,
+      results({ residency: 'citizen', birthYear: 1980 }).merdeka,
+    ],
+    [false, false],
+  )
   // Not a citizen: no birth year needed to say no.
   assert.equal(results({ residency: 'other' }).pioneer, false)
 })
@@ -81,7 +156,10 @@ test('validYear: after 1900 and not in the future', () => {
 
 test('normalizeAnswers turns "since birth" into the birth year and ignores citizenship for non-citizens', () => {
   assert.equal(normalizeAnswers(citizen(1955), YEAR).citizenYear, 1955)
-  assert.equal(normalizeAnswers({ residency: 'pr', birthYear: 1955, citizenSince: 1990 }, YEAR).citizenYear, null)
+  assert.equal(
+    normalizeAnswers({ residency: 'pr', birthYear: 1955, citizenSince: 1990 }, YEAR).citizenYear,
+    null,
+  )
 })
 
 test('CHAS card colour follows household monthly income per person', () => {
@@ -105,12 +183,20 @@ test('every rule has an official source, a check date and no invented figures', 
     assert.equal(typeof rule.eligible, 'function', rule.id)
     if (rule.discount === null) assert.equal(rule.discountAt, null, rule.id)
     else {
-      assert.ok(Number.isInteger(rule.discount) && rule.discount > 0 && rule.discount <= 100, rule.id)
+      assert.ok(
+        Number.isInteger(rule.discount) && rule.discount > 0 && rule.discount <= 100,
+        rule.id,
+      )
       assert.ok(rule.appliesAt.includes(rule.discountAt), rule.id)
     }
   }
   // Only the figures confirmed on the official pages (MOH, checked 2026-10-21).
-  assert.deepEqual(Object.fromEntries(RULES.map((r) => [r.id, r.discount])), { pioneer: 50, merdeka: 25, chas: null, polyclinic: null })
+  assert.deepEqual(Object.fromEntries(RULES.map((r) => [r.id, r.discount])), {
+    pioneer: 50,
+    merdeka: 25,
+    chas: null,
+    polyclinic: null,
+  })
 })
 
 test('every rule label and explanation exists in all four languages', () => {
@@ -124,7 +210,13 @@ test('every rule label and explanation exists in all four languages', () => {
 })
 
 // A made-up GP clinic bill: no subsidies on it.
-const GP_BILL = { clinic: 'Sunrise Family Clinic', items: [{ description: 'Consultation', category: 'consultation', amountCents: 3000 }], subsidies: [], medisaveCents: 0, totalPayableCents: 3000 }
+const GP_BILL = {
+  clinic: 'Sunrise Family Clinic',
+  items: [{ description: 'Consultation', category: 'consultation', amountCents: 3000 }],
+  subsidies: [],
+  medisaveCents: 0,
+  totalPayableCents: 3000,
+}
 const ids = (list) => list.map((m) => m.rule.id)
 
 test('billPlace: from the place read off the bill; without one, polyclinic by name, anything else a GP clinic', () => {
@@ -133,12 +225,19 @@ test('billPlace: from the place read off the bill; without one, polyclinic by na
   assert.equal(billPlace({ ...GP_BILL, clinic: null }), 'chasClinic')
   assert.equal(billPlace({ ...GP_BILL, place: 'polyclinic' }), 'polyclinic')
   for (const place of ['gp', 'dental']) assert.equal(billPlace({ ...GP_BILL, place }), 'chasClinic')
-  for (const place of ['hospital', 'specialist', 'tcm', 'pharmacy', 'lab', 'other']) assert.equal(billPlace({ ...GP_BILL, place }), 'other')
+  for (const place of ['hospital', 'specialist', 'tcm', 'pharmacy', 'lab', 'other'])
+    assert.equal(billPlace({ ...GP_BILL, place }), 'other')
   assert.ok(PLACES.includes('other'))
 })
 
 test('remaining bill: a subsidy already inside net lines is not taken off twice', () => {
-  const net = { items: [{ amountCents: 48300 }], subsidies: [{ scheme: 'government', amountCents: 89700, includedInItems: true }, { scheme: 'merdeka', amountCents: 1000 }] }
+  const net = {
+    items: [{ amountCents: 48300 }],
+    subsidies: [
+      { scheme: 'government', amountCents: 89700, includedInItems: true },
+      { scheme: 'merdeka', amountCents: 1000 },
+    ],
+  }
   assert.equal(discountCents(net, 100), 47300) // 483.00 − 10.00, not max(0, 483 − 897 − 10)
 })
 
@@ -146,14 +245,24 @@ test('hospital bill: what is on it is listed, schemes are shown as "may not appl
   const hospital = {
     clinic: 'Merlion Valley General Hospital',
     place: 'hospital',
-    items: [{ description: 'Daily Ward Charges', category: 'ward', amountCents: 14000 }, { description: 'GST 9%', category: 'tax', amountCents: 8712 }],
-    subsidies: [{ scheme: 'government', amountCents: 68583 }, { scheme: 'pioneer', amountCents: 5276 }, { scheme: 'insurance', amountCents: 15000 }],
+    items: [
+      { description: 'Daily Ward Charges', category: 'ward', amountCents: 14000 },
+      { description: 'GST 9%', category: 'tax', amountCents: 8712 },
+    ],
+    subsidies: [
+      { scheme: 'government', amountCents: 68583 },
+      { scheme: 'pioneer', amountCents: 5276 },
+      { scheme: 'insurance', amountCents: 15000 },
+    ],
     medisaveCents: 6000,
     totalPayableCents: 10653,
   }
   const r = compareWithBill(hospital, citizen(1945), YEAR)
   assert.equal(r.place, 'other')
-  assert.deepEqual(r.onBill.map((s) => s.scheme), ['government', 'pioneer', 'insurance'])
+  assert.deepEqual(
+    r.onBill.map((s) => s.scheme),
+    ['government', 'pioneer', 'insurance'],
+  )
   assert.equal(r.onBill.find((s) => s.scheme === 'insurance').rule, null) // no rule: just shown as on the bill
   assert.ok(r.mayQualify.every((m) => m.here === false && m.amountCents === null))
   assert.equal(r.estimateCents, null)
@@ -169,7 +278,10 @@ test('discountCents: percent of the bill after subsidies, whole cents', () => {
 
 test('PG on a polyclinic bill without PG: estimated amount from the confirmed 50%', () => {
   const r = compareWithBill(bill1.bill, citizen(1945), YEAR)
-  assert.deepEqual(r.onBill.map((s) => [s.scheme, s.amountCents, s.result]), [['government', 870, true]])
+  assert.deepEqual(
+    r.onBill.map((s) => [s.scheme, s.amountCents, s.result]),
+    [['government', 870, true]],
+  )
   const pioneer = r.mayQualify.find((m) => m.rule.id === 'pioneer')
   assert.deepEqual([pioneer.result, pioneer.here, pioneer.amountCents], [true, true, 700])
   assert.equal(r.estimateCents, 700) // 1400 − 700

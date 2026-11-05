@@ -5,9 +5,11 @@
 // Reduced motion, a hidden tab or an older browser: the change happens at once.
 import { nextTick } from 'vue'
 
-const reduceMotion = typeof matchMedia === 'function' ? matchMedia('(prefers-reduced-motion: reduce)') : null
+const reduceMotion =
+  typeof matchMedia === 'function' ? matchMedia('(prefers-reduced-motion: reduce)') : null
 
-export const canFade = () => Boolean(document.startViewTransition) && !reduceMotion?.matches && !document.hidden
+export const canFade = () =>
+  Boolean(document.startViewTransition) && !reduceMotion?.matches && !document.hidden
 // A screen fade is running: the router then leaves its own page transition out (src/router/index.js).
 export const screenFading = () => document.documentElement.classList.contains('fade-vt')
 

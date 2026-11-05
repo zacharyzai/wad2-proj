@@ -20,11 +20,25 @@ function mockChat(page, replies) {
   })
   return sent
 }
-const answer = (text, askPharmacist = false) => ({ ok: true, data: { type: 'ANSWER', answer: text, askPharmacist } })
+const answer = (text, askPharmacist = false) => ({
+  ok: true,
+  data: { type: 'ANSWER', answer: text, askPharmacist },
+})
 const myMedicines = (page) => page.getByTestId('my-medicines')
 
 test('a long list shows four medicines at a time, with Previous and Next', async ({ page }) => {
-  await page.addInitScript(() => localStorage.setItem('medicines', JSON.stringify(Array.from({ length: 10 }, (_, i) => ({ id: `m${i + 1}`, source: 'typed', medication: { name: `Medicine ${i + 1}` } })))))
+  await page.addInitScript(() =>
+    localStorage.setItem(
+      'medicines',
+      JSON.stringify(
+        Array.from({ length: 10 }, (_, i) => ({
+          id: `m${i + 1}`,
+          source: 'typed',
+          medication: { name: `Medicine ${i + 1}` },
+        })),
+      ),
+    ),
+  )
   await page.goto('/ask')
   await page.getByRole('button', { name: /^My medicines/ }).click()
   const names = myMedicines(page).locator('.med-name')
@@ -58,7 +72,11 @@ test('Ask works without any medicines, with general answers @smoke', async ({ pa
   await page.getByRole('button', { name: 'How do I store medicines?' }).click()
   await expect(page.getByTestId('ask-answer')).toContainText('Keep them in a cool, dry place.')
   await expect(page.getByTestId('ask-pharmacist')).toContainText('Check with your pharmacist')
-  expect(sent[0]).toMatchObject({ medicines: [], question: 'How do I store medicines?', lang: 'en' })
+  expect(sent[0]).toMatchObject({
+    medicines: [],
+    question: 'How do I store medicines?',
+    lang: 'en',
+  })
 })
 
 test('a checked label is remembered, sent with questions, and can be removed', async ({ page }) => {
@@ -69,16 +87,22 @@ test('a checked label is remembered, sent with questions, and can be removed', a
   await expect(myMedicines(page)).toContainText('Sample')
 
   // The empty page asks about their own medicine first.
-  await expect(page.getByTestId('ask-starters').getByRole('button').first()).toHaveText('When do I take Metformin?')
+  await expect(page.getByTestId('ask-starters').getByRole('button').first()).toHaveText(
+    'When do I take Metformin?',
+  )
   await page.getByRole('button', { name: 'Can I take Metformin with food?' }).click()
   await expect(page.getByTestId('ask-answer')).toContainText('Take it after your meal.')
   await expect(page.getByTestId('ask-about')).toContainText('Metformin') // the card says which medicine it's about
-  expect(sent[0].medicines).toMatchObject([{ source: 'label', medication: { name: 'Metformin', strength: '500 mg' } }])
+  expect(sent[0].medicines).toMatchObject([
+    { source: 'label', medication: { name: 'Metformin', strength: '500 mg' } },
+  ])
 
   // Typed question sent with Enter; a "not on the label" reply shows the fixed pharmacist line.
   await page.getByLabel('Or type your own question').fill('Can I drink coffee with it?')
   await page.getByLabel('Or type your own question').press('Enter')
-  await expect(page.getByTestId('ask-answer').nth(1)).toContainText('Not on your label. Ask your pharmacist.')
+  await expect(page.getByTestId('ask-answer').nth(1)).toContainText(
+    'Not on your label. Ask your pharmacist.',
+  )
   await expect(page.getByLabel('Or type your own question')).toHaveValue('')
 
   // The medicine list survives a reload; the conversation survives moving between pages.
@@ -127,27 +151,52 @@ test('one question at a time, then follow-ups under the answer', async ({ page }
   release()
 
   const follow = page.getByTestId('ask-follow')
-  await expect(follow.getByRole('button')).toHaveText(['When do I take my medicine?', 'What side effects to watch for?', 'What if I miss a dose?'])
+  await expect(follow.getByRole('button')).toHaveText([
+    'When do I take my medicine?',
+    'What side effects to watch for?',
+    'What if I miss a dose?',
+  ])
   await follow.getByRole('button', { name: 'What side effects to watch for?' }).click()
   await expect(page.getByTestId('ask-answer')).toHaveCount(2)
-  expect(sent.map((b) => b.question)).toEqual(['Can I take my medicine with food?', 'What side effects to watch for?'])
+  expect(sent.map((b) => b.question)).toEqual([
+    'Can I take my medicine with food?',
+    'What side effects to watch for?',
+  ])
   await expect(page.getByTestId('ask-follow')).toHaveCount(1) // only under the newest answer
 })
 
 test('sources, when a reply has them, show under the answer', async ({ page }) => {
-  mockChat(page, [{ ok: true, data: { type: 'ANSWER', answer: 'Keep below 30 degrees.', askPharmacist: false, sources: [{ title: 'HealthHub' }] } }])
+  mockChat(page, [
+    {
+      ok: true,
+      data: {
+        type: 'ANSWER',
+        answer: 'Keep below 30 degrees.',
+        askPharmacist: false,
+        sources: [{ title: 'HealthHub' }],
+      },
+    },
+  ])
   await page.goto('/ask')
   await page.getByRole('button', { name: 'How do I store medicines?' }).click()
   await expect(page.getByTestId('ask-from')).toHaveText('From: HealthHub')
 })
 
-test('a question about an unknown medicine asks for it, and adding it answers the question', async ({ page }) => {
-  const sent = mockChat(page, [{ ok: true, data: { type: 'NEED_MEDICINE' } }, answer('Take 2 tablets when needed, as your label says.')])
+test('a question about an unknown medicine asks for it, and adding it answers the question', async ({
+  page,
+}) => {
+  const sent = mockChat(page, [
+    { ok: true, data: { type: 'NEED_MEDICINE' } },
+    answer('Take 2 tablets when needed, as your label says.'),
+  ])
   await page.goto('/ask')
   await page.getByRole('button', { name: 'When do I take my medicine?' }).click()
   const need = page.getByTestId('ask-need')
   await expect(need).toContainText('Which medicine is this?')
-  await expect(need.getByRole('link', { name: 'Photo of label' })).toHaveAttribute('href', '/scan?type=medication')
+  await expect(need.getByRole('link', { name: 'Photo of label' })).toHaveAttribute(
+    'href',
+    '/scan?type=medication',
+  )
   await expect(need.getByRole('button', { name: 'Ask again' })).toBeDisabled()
 
   await need.getByRole('button', { name: 'Type it in' }).click()
@@ -158,20 +207,30 @@ test('a question about an unknown medicine asks for it, and adding it answers th
   await page.getByRole('button', { name: 'Add medicine' }).click()
   await expect(myMedicines(page)).toContainText('Typed in')
   await expect(page.getByTestId('ask-answer')).toContainText('Take 2 tablets when needed')
-  expect(sent[1].medicines).toEqual([{ source: 'typed', medication: { name: 'Panadol', rawInstruction: 'Take 2 tablets when needed' } }])
+  expect(sent[1].medicines).toEqual([
+    {
+      source: 'typed',
+      medication: { name: 'Panadol', rawInstruction: 'Take 2 tablets when needed' },
+    },
+  ])
   await expect(page.getByTestId('ask-need')).toHaveCount(0)
 })
 
 test('an emergency question shows the 995 card, with no AI involved', async ({ page }) => {
   await page.goto('/ask')
-  await page.getByLabel('Or type your own question').fill('My mother has chest pain after taking it')
+  await page
+    .getByLabel('Or type your own question')
+    .fill('My mother has chest pain after taking it')
   await page.getByRole('button', { name: 'Ask', exact: true }).click()
   await expect(page.getByTestId('ask-urgent')).toContainText('This could be an emergency')
   await expect(page.getByRole('link', { name: 'Call 995' })).toHaveAttribute('href', 'tel:995')
 })
 
 test('a failed question can be retried', async ({ page }) => {
-  mockChat(page, [{ ok: false, error: { code: 'RATE_LIMITED', message: '' } }, answer('Store them below 25 degrees.')])
+  mockChat(page, [
+    { ok: false, error: { code: 'RATE_LIMITED', message: '' } },
+    answer('Store them below 25 degrees.'),
+  ])
   await page.goto('/ask')
   await page.getByRole('button', { name: 'How do I store medicines?' }).click()
   await expect(page.getByRole('alert')).toContainText('Too many questions')
@@ -188,24 +247,46 @@ test('questions are asked in the chosen language @i18n', async ({ page }) => {
   expect(sent[0]).toMatchObject({ question: '药物怎样保存？', lang: 'zh' })
 })
 
-test('the AI\'s suggested next questions become chips, and follow-ups carry the earlier turns', async ({ page }) => {
-  const suggested = { ok: true, data: { type: 'ANSWER', answer: 'Hello! I can help with your medicines.', askPharmacist: false, suggestions: ['How do I store insulin?', 'What if I miss a dose?'] } }
+test("the AI's suggested next questions become chips, and follow-ups carry the earlier turns", async ({
+  page,
+}) => {
+  const suggested = {
+    ok: true,
+    data: {
+      type: 'ANSWER',
+      answer: 'Hello! I can help with your medicines.',
+      askPharmacist: false,
+      suggestions: ['How do I store insulin?', 'What if I miss a dose?'],
+    },
+  }
   const sent = mockChat(page, [suggested, answer('Keep it in the fridge.')])
   await page.goto('/ask')
   await page.getByLabel('Or type your own question').fill('Hi there')
   await page.getByLabel('Or type your own question').press('Enter')
   const follow = page.getByTestId('ask-follow')
-  await expect(follow.getByRole('button')).toHaveText(['How do I store insulin?', 'What if I miss a dose?'])
+  await expect(follow.getByRole('button')).toHaveText([
+    'How do I store insulin?',
+    'What if I miss a dose?',
+  ])
   expect(sent[0].history).toEqual([])
 
   await follow.getByRole('button', { name: 'How do I store insulin?' }).click()
   await expect(page.getByTestId('ask-answer').nth(1)).toContainText('Keep it in the fridge.')
-  expect(sent[1]).toMatchObject({ question: 'How do I store insulin?', history: [{ q: 'Hi there', a: 'Hello! I can help with your medicines.' }] })
+  expect(sent[1]).toMatchObject({
+    question: 'How do I store insulin?',
+    history: [{ q: 'Hi there', a: 'Hello! I can help with your medicines.' }],
+  })
   // No suggestions on this answer: the fixed follow-ups come back.
-  await expect(follow.getByRole('button')).toHaveText(['When do I take my medicine?', 'What if I miss a dose?', 'What side effects to watch for?'])
+  await expect(follow.getByRole('button')).toHaveText([
+    'When do I take my medicine?',
+    'What if I miss a dose?',
+    'What side effects to watch for?',
+  ])
 })
 
-test('New conversation starts over (earlier turns are no longer sent), with Undo (H3)', async ({ page }) => {
+test('New conversation starts over (earlier turns are no longer sent), with Undo (H3)', async ({
+  page,
+}) => {
   const sent = mockChat(page, [answer('Keep them dry.'), answer('Take it after food.')])
   await page.goto('/ask')
   await page.getByRole('button', { name: 'How do I store medicines?' }).click()
@@ -224,7 +305,9 @@ test('New conversation starts over (earlier turns are no longer sent), with Undo
   expect(sent[1].history).toEqual([]) // a fresh start: the old topic isn't sent
 })
 
-test('near the 300-letter limit, the box says how many are left instead of silently stopping (H5)', async ({ page }) => {
+test('near the 300-letter limit, the box says how many are left instead of silently stopping (H5)', async ({
+  page,
+}) => {
   await page.goto('/ask')
   const box = page.getByLabel('Or type your own question')
   await box.fill('x'.repeat(240))
@@ -235,17 +318,39 @@ test('near the 300-letter limit, the box says how many are left instead of silen
 
 // What goes to the AI with a question: only what the question needs (src/rules/askFacts.js).
 const TODAY = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Singapore' }).format(new Date())
-const ago = (n) => new Date(new Date(`${TODAY}T00:00:00Z`).getTime() - n * 864e5).toISOString().slice(0, 10)
+const ago = (n) =>
+  new Date(new Date(`${TODAY}T00:00:00Z`).getTime() - n * 864e5).toISOString().slice(0, 10)
 const med = (id, name, extra = {}, schedule = null, source = 'label') => ({
-  id, source, sample: false,
-  medication: { name, strength: '5 mg', doseAmount: 1, doseUnit: 'tablet', quantity: 30, timesPerDay: 1, timing: ['morning'], withFood: 'after', frequencyType: 'daily', rawInstruction: 'Take 1 tablet once a day after food', warnings: ['May cause dizziness'], ...extra },
+  id,
+  source,
+  sample: false,
+  medication: {
+    name,
+    strength: '5 mg',
+    doseAmount: 1,
+    doseUnit: 'tablet',
+    quantity: 30,
+    timesPerDay: 1,
+    timing: ['morning'],
+    withFood: 'after',
+    frequencyType: 'daily',
+    rawInstruction: 'Take 1 tablet once a day after food',
+    warnings: ['May cause dizziness'],
+    ...extra,
+  },
   ...(schedule ? { schedule } : {}),
 })
 async function seedMedicines(page) {
   const list = [
     med('m1', 'Metformin', {}, { startDate: ago(2), days: 30, times: {} }),
     med('m2', 'Amlodipine', {}, { startDate: ago(20), days: 5, times: {} }), // finished 15 days ago
-    med('m3', 'Panadol', { frequencyType: 'as_needed', timesPerDay: null, timing: null }, null, 'typed'),
+    med(
+      'm3',
+      'Panadol',
+      { frequencyType: 'as_needed', timesPerDay: null, timing: null },
+      null,
+      'typed',
+    ),
   ]
   await page.addInitScript((list) => localStorage.setItem('medicines', JSON.stringify(list)), list)
 }
@@ -264,7 +369,9 @@ test('a question about one medicine sends only that medicine, in full', async ({
   expect(sent[0].medicines[0].medication.quantity).toBe(30)
 })
 
-test('a general question sends a compact list of what is taken now, leaving out finished courses', async ({ page }) => {
+test('a general question sends a compact list of what is taken now, leaving out finished courses', async ({
+  page,
+}) => {
   const sent = mockChat(page, [answer('Metformin in the morning.')])
   await seedMedicines(page)
   await page.goto('/ask')
@@ -279,7 +386,9 @@ test('a general question sends a compact list of what is taken now, leaving out 
   expect(sent[0].medicines.find((m) => m.source === 'typed').medication.name).toBe('Panadol') // typed ones keep their source
 })
 
-test('a finished medicine is sent when the question names it; a follow-up stays on the same medicine', async ({ page }) => {
+test('a finished medicine is sent when the question names it; a follow-up stays on the same medicine', async ({
+  page,
+}) => {
   const sent = mockChat(page, [answer('Ask your pharmacist.', true), answer('The same at night.')])
   await seedMedicines(page)
   await page.goto('/ask')
@@ -294,20 +403,31 @@ test('a finished medicine is sent when the question names it; a follow-up stays 
   expect(sentNames(sent[1])).toEqual(['Amlodipine'])
 })
 
-const TEN_MEDICINES = Array.from({ length: 10 }, (_, i) => ({ id: `m${i + 1}`, source: 'typed', medication: { name: `Medicine ${i + 1}` } }))
+const TEN_MEDICINES = Array.from({ length: 10 }, (_, i) => ({
+  id: `m${i + 1}`,
+  source: 'typed',
+  medication: { name: `Medicine ${i + 1}` },
+}))
 async function openLongList(page) {
-  await page.addInitScript((list) => localStorage.setItem('medicines', JSON.stringify(list)), TEN_MEDICINES)
+  await page.addInitScript(
+    (list) => localStorage.setItem('medicines', JSON.stringify(list)),
+    TEN_MEDICINES,
+  )
   await page.goto('/ask')
   await page.getByRole('button', { name: /^My medicines/ }).click()
   await expect(page.getByTestId('meds-pages')).toContainText('Page 1 of 3')
 }
 
-test('Ask with a long list open: big targets and text, no sideways scroll @a11y', async ({ page }) => {
+test('Ask with a long list open: big targets and text, no sideways scroll @a11y', async ({
+  page,
+}) => {
   await openLongList(page)
   await expectSeniorFriendly(page)
 })
 
-test('Previous and Next work by keyboard, and focus stays on the button @a11y', async ({ page }) => {
+test('Previous and Next work by keyboard, and focus stays on the button @a11y', async ({
+  page,
+}) => {
   await openLongList(page)
   const next = page.getByTestId('meds-next')
   const prev = page.getByTestId('meds-prev')

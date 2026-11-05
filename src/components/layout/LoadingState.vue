@@ -29,14 +29,35 @@ const elapsed = computed(() => {
 </template>
 
 <style scoped>
-.ls { display: inline-flex; align-items: center; gap: 10px; width: fit-content; }
+.ls {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  width: fit-content;
+}
 /* 16px, not 13px: the app's minimum text size for seniors. */
-.ls-label { font-size: 16px; font-weight: 500; color: var(--color-text-muted); animation: label-breathe 1.8s ease-in-out infinite; } /* solid words that gently brighten between two AA text colours, never a gradient */
-.ls-time { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 16px; font-variant-numeric: tabular-nums; color: var(--color-text-muted); }
+.ls-label {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  animation: label-breathe 1.8s ease-in-out infinite;
+} /* solid words that gently brighten between two AA text colours, never a gradient */
+.ls-time {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-muted);
+}
 
-@keyframes label-breathe { 50% { color: var(--color-text); } }
+@keyframes label-breathe {
+  50% {
+    color: var(--color-text);
+  }
+}
 
 @media (prefers-reduced-motion: reduce) {
-  .ls-label { animation: none; }
+  .ls-label {
+    animation: none;
+  }
 }
 </style>

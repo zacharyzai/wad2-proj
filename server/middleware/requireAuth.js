@@ -15,14 +15,18 @@ async function endedByPasswordChange({ sub, iat }) {
   } catch {
     return false
   }
-  const user = await User.findById(sub).select('passwordChangedAt').lean().catch(() => null)
+  const user = await User.findById(sub)
+    .select('passwordChangedAt')
+    .lean()
+    .catch(() => null)
   const changed = user?.passwordChangedAt
   return Boolean(changed) && !(Number.isInteger(iat) && iat >= Math.floor(changed.getTime() / 1000))
 }
 
 export async function requireAuth(req, res, next) {
   const payload = readToken(bearer(req))
-  if (!payload || (await endedByPasswordChange(payload))) return sendError(res, 401, 'NOT_LOGGED_IN', 'Please log in')
+  if (!payload || (await endedByPasswordChange(payload)))
+    return sendError(res, 401, 'NOT_LOGGED_IN', 'Please log in')
   req.userId = payload.sub
   req.remember = payload.rem
   next()

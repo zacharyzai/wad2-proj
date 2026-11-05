@@ -19,12 +19,21 @@ const { t } = useI18n()
 
 // The button that started the scan is gone, so keyboard focus fell to the page: put it on Cancel, the one thing to press here.
 const cancelButton = ref(null)
-onMounted(() => (document.activeElement === document.body || !document.activeElement) && cancelButton.value?.focus())
+onMounted(
+  () =>
+    (document.activeElement === document.body || !document.activeElement) &&
+    cancelButton.value?.focus(),
+)
 </script>
 
 <template>
   <div class="busy rise">
-    <div v-if="coverView" class="cover-view" :class="{ done: coverView.covered }" aria-hidden="true">
+    <div
+      v-if="coverView"
+      class="cover-view"
+      :class="{ done: coverView.covered }"
+      aria-hidden="true"
+    >
       <img :src="coverView.original" alt="" />
       <img v-if="coverView.covered" :src="coverView.covered" alt="" class="cover-after" />
       <span class="cover-line"></span>
@@ -35,19 +44,36 @@ onMounted(() => (document.activeElement === document.body || !document.activeEle
       <span class="progress-ring__pulse" style="inset: 42px"></span>
       <span class="progress-ring__core"><Spinner :size="66" /></span>
     </div>
-    <LoadingState :label="covering ? (coverPage ? t('scan.coveringPage', coverPage) : t('scan.covering')) : t(`scan.reading.${readingType}`)" :pill="!!coverView" />
+    <LoadingState
+      :label="
+        covering
+          ? coverPage
+            ? t('scan.coveringPage', coverPage)
+            : t('scan.covering')
+          : t(`scan.reading.${readingType}`)
+      "
+      :pill="!!coverView"
+    />
     <!-- A photo goes through two steps: covered on this phone, then read. Samples only have the second. -->
     <ol v-if="coverView" class="scan-steps" data-testid="scan-steps">
       <li :class="covering ? 'now' : 'done'" :aria-current="covering ? 'step' : null">
-        <span class="step-mark" aria-hidden="true"><AppIcon v-if="!covering" name="check" :size="18" :stroke="3" /><template v-else>1</template></span>{{ t('scan.steps.cover') }}
+        <span class="step-mark" aria-hidden="true"
+          ><AppIcon v-if="!covering" name="check" :size="18" :stroke="3" /><template v-else
+            >1</template
+          ></span
+        >{{ t('scan.steps.cover') }}
       </li>
       <li :class="covering ? 'next' : 'now'" :aria-current="covering ? null : 'step'">
         <span class="step-mark" aria-hidden="true">2</span>{{ t(`scan.steps.read.${readingType}`) }}
       </li>
     </ol>
     <p class="lead-text" data-testid="scan-wait">{{ slow ? t('scan.slow') : t('scan.wait') }}</p>
-    <span class="reassure-pill"><AppIcon name="shield" :size="20" class="text-teal" />{{ t('scan.neverStored') }}</span>
-    <button ref="cancelButton" type="button" class="btn btn-ghost" @click="emit('cancel')">{{ t('scan.cancel') }}</button>
+    <span class="reassure-pill"
+      ><AppIcon name="shield" :size="20" class="text-teal" />{{ t('scan.neverStored') }}</span
+    >
+    <button ref="cancelButton" type="button" class="btn btn-ghost" @click="emit('cancel')">
+      {{ t('scan.cancel') }}
+    </button>
   </div>
 </template>
 

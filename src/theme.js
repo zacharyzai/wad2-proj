@@ -21,13 +21,16 @@ function saved() {
   }
 }
 
-const deviceDark = typeof matchMedia === 'function' ? matchMedia('(prefers-color-scheme: dark)') : null
-const reduceMotion = typeof matchMedia === 'function' ? matchMedia('(prefers-reduced-motion: reduce)') : null
+const deviceDark =
+  typeof matchMedia === 'function' ? matchMedia('(prefers-color-scheme: dark)') : null
+const reduceMotion =
+  typeof matchMedia === 'function' ? matchMedia('(prefers-reduced-motion: reduce)') : null
 export const themeChoice = ref(saved()) // what they picked
 export const shownTheme = ref('light') // what is showing: always 'light' or 'dark' ('system' resolved)
 
 // What shows is always 'light' or 'dark' (tokens.css): 'system' becomes whichever the device is using now.
-const resolve = () => (themeChoice.value === 'system' ? (deviceDark?.matches ? 'dark' : 'light') : themeChoice.value)
+const resolve = () =>
+  themeChoice.value === 'system' ? (deviceDark?.matches ? 'dark' : 'light') : themeChoice.value
 function apply() {
   shownTheme.value = resolve()
   document.documentElement.dataset.theme = shownTheme.value
@@ -39,7 +42,8 @@ function apply() {
 const FADE_MS = 500
 function applyChange(pressed) {
   const root = document.documentElement
-  if (!pressed || reduceMotion?.matches || document.hidden || root.dataset.theme === resolve()) return apply()
+  if (!pressed || reduceMotion?.matches || document.hidden || root.dataset.theme === resolve())
+    return apply()
   if (canFade()) return fadeScreen(apply, 'theme')
   root.classList.add('theme-fade')
   apply()

@@ -8,7 +8,9 @@ import { DEMO_USER, mockAuth, mockWrongLogin, fillLogin, login, signIn } from '.
 test.describe('logged out', () => {
   test.use({ loggedIn: false })
 
-  test('every app page sends you to log in, then back to the page you wanted; opening the app shows Start', async ({ page }) => {
+  test('every app page sends you to log in, then back to the page you wanted; opening the app shows Start', async ({
+    page,
+  }) => {
     await mockAuth(page)
     for (const path of ['/scan', '/bill', '/ask', '/account']) {
       await page.goto(path)
@@ -30,15 +32,25 @@ test.describe('logged out', () => {
   test('wrong password shows an error and stays on the login page @smoke', async ({ page }) => {
     await mockWrongLogin(page)
     await login(page, 'demo@example.com', 'not-the-password')
-    await expect(page.getByTestId('login-error')).toContainText('That email or password is not right.')
+    await expect(page.getByTestId('login-error')).toContainText(
+      'That email or password is not right.',
+    )
     await expect(page).toHaveURL(/\/login$/)
   })
 
-  test('Remember me keeps you logged in after the browser closes; without it, only for this visit', async ({ page, context }) => {
+  test('Remember me keeps you logged in after the browser closes; without it, only for this visit', async ({
+    page,
+    context,
+  }) => {
     await mockAuth(page)
     await login(page)
     await expect(page).toHaveURL(/\/$/)
-    expect(await page.evaluate(() => [Boolean(localStorage.getItem('token')), Boolean(sessionStorage.getItem('token'))])).toEqual([true, false])
+    expect(
+      await page.evaluate(() => [
+        Boolean(localStorage.getItem('token')),
+        Boolean(sessionStorage.getItem('token')),
+      ]),
+    ).toEqual([true, false])
     await page.reload()
     await expect(page).toHaveURL(/\/$/) // /api/auth/me recognised the saved token
 
@@ -53,14 +65,21 @@ test.describe('logged out', () => {
     await page.getByTestId('login-remember').uncheck()
     await page.getByTestId('login-submit').click()
     await expect(page).toHaveURL(/\/$/)
-    expect(await page.evaluate(() => [Boolean(localStorage.getItem('token')), Boolean(sessionStorage.getItem('token'))])).toEqual([false, true])
+    expect(
+      await page.evaluate(() => [
+        Boolean(localStorage.getItem('token')),
+        Boolean(sessionStorage.getItem('token')),
+      ]),
+    ).toEqual([false, true])
     const fresh = await context.newPage()
     await mockAuth(fresh)
     await fresh.goto('/scan')
     await expect(fresh).toHaveURL(/\/login\?next=/)
   })
 
-  test('signup shows every missing detail at once and calls nothing until they are fixed', async ({ page }) => {
+  test('signup shows every missing detail at once and calls nothing until they are fixed', async ({
+    page,
+  }) => {
     await mockAuth(page)
     let calls = 0
     page.on('request', (r) => r.url().includes('/api/auth/signup') && calls++)
@@ -68,14 +87,22 @@ test.describe('logged out', () => {
     await page.getByTestId('signup-password').fill('short')
     await page.getByTestId('signup-submit').click()
     await expect(page.getByTestId('signup-missing')).toBeVisible()
-    for (const id of ['signup-name', 'signup-email', 'signup-password', 'signup-dob', 'signup-citizenship']) {
+    for (const id of [
+      'signup-name',
+      'signup-email',
+      'signup-password',
+      'signup-dob',
+      'signup-citizenship',
+    ]) {
       await expect(page.getByTestId(id)).toHaveAttribute('aria-invalid', 'true')
     }
     await expect(page.getByTestId('signup-name')).toBeFocused() // the first problem
     expect(calls).toBe(0)
   })
 
-  test('signup: the password rules tick off as they are met; one that misses a rule is warned about, and no account is made until a new one meets them all', async ({ page }) => {
+  test('signup: the password rules tick off as they are met; one that misses a rule is warned about, and no account is made until a new one meets them all', async ({
+    page,
+  }) => {
     await mockAuth(page)
     let calls = 0
     page.on('request', (r) => r.url().includes('/api/auth/signup') && calls++)
@@ -87,7 +114,11 @@ test.describe('logged out', () => {
     await page.getByTestId('signup-income').selectOption('upTo1500')
     const rules = page.getByTestId('signup-hint').locator('li')
     const met = () => rules.evaluateAll((li) => li.map((l) => `${l.dataset.rule}:${l.dataset.ok}`))
-    await expect(rules).toHaveText([/At least 8 characters/, /Letters and numbers/, /A special character/])
+    await expect(rules).toHaveText([
+      /At least 8 characters/,
+      /Letters and numbers/,
+      /A special character/,
+    ])
     for (const [typed, want] of [
       ['abc', ['length:false', 'mix:false', 'special:false']],
       ['tehtarikmorning', ['length:true', 'mix:false', 'special:false']], // no numbers
@@ -97,10 +128,14 @@ test.describe('logged out', () => {
       await expect.poll(met, typed).toEqual(want)
     }
     await page.getByTestId('signup-submit').click()
-    await expect(page.getByTestId('signup-pw-warn')).toHaveText('This password is not safe enough. Please think of a new one that meets every rule below.')
+    await expect(page.getByTestId('signup-pw-warn')).toHaveText(
+      'This password is not safe enough. Please think of a new one that meets every rule below.',
+    )
     await expect(page.getByTestId('signup-password')).toHaveAttribute('aria-invalid', 'true')
     await expect(page.getByTestId('signup-password')).toBeFocused() // the only thing to fix
-    await expect(page.getByTestId('signup-password')).toHaveAccessibleDescription(/not safe enough.*Done: At least 8 characters Done: Letters and numbers Not yet: A special character/)
+    await expect(page.getByTestId('signup-password')).toHaveAccessibleDescription(
+      /not safe enough.*Done: At least 8 characters Done: Letters and numbers Not yet: A special character/,
+    )
     expect(calls).toBe(0)
     // A new one that meets every rule: the warning goes, and the account is made.
     await page.getByTestId('signup-password').fill('teh-tarik-1952')
@@ -110,7 +145,9 @@ test.describe('logged out', () => {
     await expect.poll(() => calls).toBe(1)
   })
 
-  test('signup sends name, email, password, date of birth and citizenship (with the year), then continues', async ({ page }) => {
+  test('signup sends name, email, password, date of birth and citizenship (with the year), then continues', async ({
+    page,
+  }) => {
     await mockAuth(page)
     const sent = page.waitForRequest('**/api/auth/signup')
     await page.goto('/signup?next=/scan')
@@ -123,47 +160,76 @@ test.describe('logged out', () => {
     await page.getByTestId('signup-income').selectOption('1501to2300')
     await page.getByTestId('signup-submit').click()
     expect((await sent).postDataJSON()).toEqual({
-      name: 'Lim Ah Huat', email: 'ahhuat@example.com', password: 'teh-tarik-1952', dob: '1958-11-02', citizenship: 'became', citizenSince: 1975, income: '1501to2300', remember: true, language: 'en', role: 'senior', // the default role (a caregiver picks theirs: e2e/care.spec.js)
+      name: 'Lim Ah Huat',
+      email: 'ahhuat@example.com',
+      password: 'teh-tarik-1952',
+      dob: '1958-11-02',
+      citizenship: 'became',
+      citizenSince: 1975,
+      income: '1501to2300',
+      remember: true,
+      language: 'en',
+      role: 'senior', // the default role (a caregiver picks theirs: e2e/care.spec.js)
     })
     await expect(page).toHaveURL(/\/scan$/)
   })
 
   for (const colorScheme of ['light', 'dark']) {
-    test(`Start, Log in and Create account have no WCAG A/AA violations (${colorScheme}) @a11y`, async ({ page }) => {
+    test(`Start, Log in and Create account have no WCAG A/AA violations (${colorScheme}) @a11y`, async ({
+      page,
+    }) => {
       await page.emulateMedia({ colorScheme, reducedMotion: 'reduce' })
       const bad = []
       for (const path of ['/start', '/login', '/signup']) {
         await page.goto(path)
         await page.waitForLoadState('networkidle') // dev styles arrive just after load
         if (path === '/signup') await page.getByTestId('signup-submit').click() // with every error showing
-        const { violations } = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze()
-        bad.push(...violations.map((v) => `${path} ${v.id}: ${v.nodes.map((n) => n.target).join(' | ')}`))
+        const { violations } = await new AxeBuilder({ page })
+          .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
+          .analyze()
+        bad.push(
+          ...violations.map((v) => `${path} ${v.id}: ${v.nodes.map((n) => n.target).join(' | ')}`),
+        )
       }
       expect(bad).toEqual([])
     })
   }
 
-  test('a forgotten password is not a dead end, and an ended login says why (H9, H1)', async ({ page }) => {
+  test('a forgotten password is not a dead end, and an ended login says why (H9, H1)', async ({
+    page,
+  }) => {
     await page.goto('/login?expired=1')
-    await expect(page.getByTestId('login-error')).toHaveText(/You were logged out. Please log in again./)
+    await expect(page.getByTestId('login-error')).toHaveText(
+      /You were logged out. Please log in again./,
+    )
     await page.getByTestId('login-forgot').click() // the reset flow itself: e2e/forgot.spec.js
     await expect(page).toHaveURL(/\/forgot$/)
-    await expect(page.getByTestId('forgot-family')).toContainText('Ask the family member who helped set up your account')
+    await expect(page.getByTestId('forgot-family')).toContainText(
+      'Ask the family member who helped set up your account',
+    )
   })
 
-  test('Start, Log in and Create account have no missing translations in any language @i18n', async ({ page }) => {
+  test('Start, Log in and Create account have no missing translations in any language @i18n', async ({
+    page,
+  }) => {
     for (const path of ['/start', '/login', '/signup']) {
       await page.goto(path)
       for (const code of ['zh', 'ms', 'ta', 'en']) {
         await page.getByTestId('lang-switch').locator(`[lang="${code}"]`).click()
-        await expect(page.locator('main')).not.toContainText(/\b(auth|common|errors|pages|account|start|timing|food|player|unit)\.[A-Za-z]+/)
+        await expect(page.locator('main')).not.toContainText(
+          /\b(auth|common|errors|pages|account|start|timing|food|player|unit)\.[A-Za-z]+/,
+        )
       }
     }
   })
 
-  test('Start: "Join for free" opens Create account, "Log in" opens Log in, and Back returns to Start', async ({ page }) => {
+  test('Start: "Join for free" opens Create account, "Log in" opens Log in, and Back returns to Start', async ({
+    page,
+  }) => {
     await page.goto('/start')
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText('An easier way to understand your medicine and bills.')
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText(
+      'An easier way to understand your medicine and bills.',
+    )
     await page.getByTestId('start-join').click()
     await expect(page).toHaveURL(/\/signup$/)
     await expect(page.getByRole('heading', { level: 1 })).toHaveText("Let's set you up.")
@@ -176,7 +242,9 @@ test.describe('logged out', () => {
     await expect(page).toHaveURL(/\/login$/)
   })
 
-  test('Log in and Create account point to each other in words, keeping where the person was going', async ({ page }) => {
+  test('Log in and Create account point to each other in words, keeping where the person was going', async ({
+    page,
+  }) => {
     await page.goto('/login?next=/scan')
     await expect(page.getByTestId('auth-switch')).toContainText('New here?')
     await page.getByTestId('auth-switch').getByRole('link', { name: 'Create account' }).click()
@@ -199,7 +267,9 @@ test('Account shows the details, saves edits and logs out', async ({ page, isMob
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Your account')
   await expect(page.getByTestId('account-name')).toContainText('Tan Mei Ling')
   await expect(page.getByTestId('account-dob')).toContainText('1952')
-  await expect(page.getByTestId('account-citizenship')).toContainText('Singapore citizen (by birth)')
+  await expect(page.getByTestId('account-citizenship')).toContainText(
+    'Singapore citizen (by birth)',
+  )
   await expect(page.getByTestId('account-income')).toContainText('$1,500 or less')
   if (!isMobile) await expect(page.locator('.acct')).toHaveAttribute('aria-current', 'page')
 
@@ -209,7 +279,9 @@ test('Account shows the details, saves edits and logs out', async ({ page, isMob
   await page.getByTestId('account-save').click()
   await expect(page.getByTestId('account-toast')).toHaveText('Settings saved')
   await expect(page.getByTestId('account-toast')).toHaveCount(0, { timeout: 4500 }) // fades after 3 seconds
-  await expect(page.getByTestId('account-citizenship')).toContainText('Singapore citizen since 1970')
+  await expect(page.getByTestId('account-citizenship')).toContainText(
+    'Singapore citizen since 1970',
+  )
 
   // A PR is not asked about income (CHAS is for citizens), and it disappears from the details.
   await page.getByTestId('account-edit').click()
@@ -225,11 +297,17 @@ test('Account shows the details, saves edits and logs out', async ({ page, isMob
   await expect(page).toHaveURL(/\/login\?next=/)
 })
 
-test('language: chosen on the welcome page becomes the account language at signup', async ({ browser }) => {
+test('language: chosen on the welcome page becomes the account language at signup', async ({
+  browser,
+}) => {
   const page = await browser.newPage({ storageState: { cookies: [], origins: [] } })
   await mockAuth(page)
   await page.goto('/welcome')
-  await page.getByTestId('landing-nav').getByRole('link', { name: /Try me out/ }).first().waitFor()
+  await page
+    .getByTestId('landing-nav')
+    .getByRole('link', { name: /Try me out/ })
+    .first()
+    .waitFor()
   await page.evaluate(() => localStorage.setItem('locale', 'zh')) // as tapping 中文 on the welcome page does
   const sent = page.waitForRequest('**/api/auth/signup')
   await page.goto('/signup')
@@ -244,7 +322,9 @@ test('language: chosen on the welcome page becomes the account language at signu
   await page.close()
 })
 
-test('language: logging in on a new device switches to the account language', async ({ browser }) => {
+test('language: logging in on a new device switches to the account language', async ({
+  browser,
+}) => {
   const page = await browser.newPage({ storageState: { cookies: [], origins: [] } })
   await mockAuth(page, { ...DEMO_USER, language: 'ta' })
   await login(page)
@@ -253,12 +333,20 @@ test('language: logging in on a new device switches to the account language', as
   await page.close()
 })
 
-test('language: picked on the login page wins over the account language, and is saved to the account', async ({ browser }) => {
+test('language: picked on the login page wins over the account language, and is saved to the account', async ({
+  browser,
+}) => {
   const page = await browser.newPage({ storageState: { cookies: [], origins: [] } })
   await mockAuth(page, { ...DEMO_USER, language: 'zh' })
   const patches = []
-  page.on('request', (r) => r.url().includes('/api/auth/me') && r.method() === 'PATCH' && patches.push(r.postDataJSON()))
-  await page.addInitScript(() => localStorage.getItem('locale') || localStorage.setItem('locale', 'zh')) // this device was in Chinese
+  page.on(
+    'request',
+    (r) =>
+      r.url().includes('/api/auth/me') && r.method() === 'PATCH' && patches.push(r.postDataJSON()),
+  )
+  await page.addInitScript(
+    () => localStorage.getItem('locale') || localStorage.setItem('locale', 'zh'),
+  ) // this device was in Chinese
   await page.goto('/login')
   await page.getByRole('button', { name: /^EN\b/ }).click()
   await fillLogin(page)
@@ -268,23 +356,39 @@ test('language: picked on the login page wins over the account language, and is 
   await page.close()
 })
 
-test('language: changing it on Account saves it and says "Settings saved" (the language is only chosen there)', async ({ page }) => {
+test('language: changing it on Account saves it and says "Settings saved" (the language is only chosen there)', async ({
+  page,
+}) => {
   const patches = []
-  page.on('request', (r) => r.url().includes('/api/auth/me') && r.method() === 'PATCH' && patches.push(r.postDataJSON()))
+  page.on(
+    'request',
+    (r) =>
+      r.url().includes('/api/auth/me') && r.method() === 'PATCH' && patches.push(r.postDataJSON()),
+  )
   await page.goto('/account')
   await expect.poll(() => patches).toEqual([{ language: 'en' }]) // an account with no language yet gets this device's
   await page.getByTestId('account-language').getByRole('button', { name: 'Bahasa Melayu' }).click()
   await expect(page.getByTestId('account-toast')).toHaveText('Tetapan disimpan')
-  await expect(page.getByTestId('account-language').getByRole('button', { name: 'Bahasa Melayu' })).toHaveAttribute('aria-pressed', 'true')
+  await expect(
+    page.getByTestId('account-language').getByRole('button', { name: 'Bahasa Melayu' }),
+  ).toHaveAttribute('aria-pressed', 'true')
   await expect.poll(() => patches.at(-1)).toEqual({ language: 'ms' })
 
-  await page.getByTestId('account-language').getByRole('button', { name: '中文', exact: true }).click()
+  await page
+    .getByTestId('account-language')
+    .getByRole('button', { name: '中文', exact: true })
+    .click()
   await expect.poll(() => patches.at(-1)).toEqual({ language: 'zh' })
-  await page.getByTestId('account-language').getByRole('button', { name: 'English', exact: true }).click()
+  await page
+    .getByTestId('account-language')
+    .getByRole('button', { name: 'English', exact: true })
+    .click()
   await expect.poll(() => patches.at(-1)).toEqual({ language: 'en' })
 })
 
-test('Log out asks first in a pop-up, so one stray tap does not log a senior out (H5)', async ({ page }) => {
+test('Log out asks first in a pop-up, so one stray tap does not log a senior out (H5)', async ({
+  page,
+}) => {
   await page.goto('/account')
   await page.getByTestId('account-logout').click()
   const ask = page.getByTestId('account-logout-ask')
@@ -301,11 +405,15 @@ test('Log out asks first in a pop-up, so one stray tap does not log a senior out
   await expect(page).toHaveURL(/\/account$/)
 })
 
-test('the Bill page checks subsidies from the account, and links to Account to change the details', async ({ page }) => {
+test('the Bill page checks subsidies from the account, and links to Account to change the details', async ({
+  page,
+}) => {
   await page.goto('/bill')
   await page.getByRole('button', { name: /Tampines/ }).click()
   await page.getByText('Press here to see more').click()
-  await expect(page.getByTestId('bill-basis')).toContainText('born 1952, Singapore citizen (by birth)')
+  await expect(page.getByTestId('bill-basis')).toContainText(
+    'born 1952, Singapore citizen (by birth)',
+  )
   // Born 1952, citizen by birth: Merdeka Generation. Income $1,500 or less: a CHAS Blue card.
   await expect(page.locator('[data-rule="merdeka"]')).toContainText('You may qualify')
   await expect(page.getByTestId('chas-card')).toHaveText('Likely a CHAS Blue card')
@@ -318,14 +426,18 @@ test('details from a different account give its own result', async ({ page }) =>
   await page.goto('/bill')
   await page.getByRole('button', { name: /Bedok/ }).click()
   await page.getByText('Press here to see more').click()
-  await expect(page.getByTestId('bill-basis')).toContainText('born 1946, Singapore citizen since 1980')
+  await expect(page.getByTestId('bill-basis')).toContainText(
+    'born 1946, Singapore citizen since 1980',
+  )
   await expect(page.locator('[data-rule="pioneer"]')).toContainText('You may qualify') // born by 1949, citizen by 1986
 })
 
 test.describe('logged out, on a small screen', () => {
   test.use({ loggedIn: false })
 
-  test('Log in and Create account: big targets and text, no sideways scroll @a11y', async ({ page }) => {
+  test('Log in and Create account: big targets and text, no sideways scroll @a11y', async ({
+    page,
+  }) => {
     for (const path of ['/login', '/signup']) {
       await page.goto(path)
       await expect(page.getByRole('heading', { level: 1 })).toBeVisible()

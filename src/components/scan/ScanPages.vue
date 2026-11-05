@@ -20,7 +20,9 @@ const shotBad = (s) => s.problem !== null && s.problem !== 'checking' && !s.anyw
 const badPages = computed(() => props.shots.flatMap((s, i) => (shotBad(s) ? [i + 1] : [])))
 const checking = computed(() => props.shots.some((s) => s.problem === 'checking'))
 const full = computed(() => props.shots.length >= props.max)
-const badList = computed(() => new Intl.ListFormat(locale.value, { type: 'conjunction' }).format(badPages.value.map(String)))
+const badList = computed(() =>
+  new Intl.ListFormat(locale.value, { type: 'conjunction' }).format(badPages.value.map(String)),
+)
 
 const title = ref(null)
 const throwBox = ref(null)
@@ -35,7 +37,10 @@ watch(
   async (open) => {
     if (!open) return
     await nextTick()
-    throwBox.value?.scrollIntoView({ block: 'center', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })
+    throwBox.value?.scrollIntoView({
+      block: 'center',
+      behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+    })
     throwBox.value?.querySelector('button')?.focus({ preventScroll: true })
   },
 )
@@ -49,44 +54,143 @@ watch(
     </div>
     <div class="cols">
       <ol class="shots" :aria-label="t('scan.pages.title')">
-        <li v-for="(s, i) in shots" :key="s.id" class="card shot" :class="{ bad: shotBad(s) }" data-testid="scan-page">
+        <li
+          v-for="(s, i) in shots"
+          :key="s.id"
+          class="card shot"
+          :class="{ bad: shotBad(s) }"
+          data-testid="scan-page"
+        >
           <span class="shot-head">
             {{ t('scan.pages.page', { n: i + 1 }) }}
             <Spinner v-if="s.problem === 'checking'" :size="24" />
             <AppIcon v-else-if="!shotBad(s)" name="checkCircle" :size="24" class="shot-ok" />
             <AppIcon v-else name="alert" :size="24" class="shot-warn" />
           </span>
-          <img :src="s.src" :alt="t('scan.dz.pageAlt', { n: i + 1, total: shots.length })" class="shot-img" />
-          <p class="shot-state" :class="{ warn: shotBad(s) }" role="status" data-testid="scan-page-state">
-            {{ s.problem === 'checking' ? t('scan.pages.checking') : shotBad(s) ? t(`scan.pages.problem.${s.problem}`) : t('scan.pages.ok') }}
+          <img
+            :src="s.src"
+            :alt="t('scan.dz.pageAlt', { n: i + 1, total: shots.length })"
+            class="shot-img"
+          />
+          <p
+            class="shot-state"
+            :class="{ warn: shotBad(s) }"
+            role="status"
+            data-testid="scan-page-state"
+          >
+            {{
+              s.problem === 'checking'
+                ? t('scan.pages.checking')
+                : shotBad(s)
+                  ? t(`scan.pages.problem.${s.problem}`)
+                  : t('scan.pages.ok')
+            }}
           </p>
           <div class="shot-acts">
-            <button type="button" class="btn btn-sm" :class="shotBad(s) ? 'btn-primary' : 'btn-secondary'" :aria-label="t('scan.pages.retakeN', { n: i + 1 })" data-testid="scan-page-retake" @click="emit('retake', i)"><AppIcon name="camera" :size="20" />{{ t('scan.pages.retake') }}</button>
-            <button v-if="shotBad(s)" type="button" class="btn btn-ghost btn-sm" :aria-label="t('scan.pages.anywayN', { n: i + 1 })" data-testid="scan-page-anyway" @click="emit('anyway', i)">{{ t('scan.pages.anyway') }}</button>
-            <button v-else type="button" class="btn btn-ghost btn-sm" :aria-label="t('scan.pages.removeN', { n: i + 1 })" data-testid="scan-page-remove" @click="emit('remove', i)"><AppIcon name="x" :size="20" />{{ t('scan.pages.remove') }}</button>
+            <button
+              type="button"
+              class="btn btn-sm"
+              :class="shotBad(s) ? 'btn-primary' : 'btn-secondary'"
+              :aria-label="t('scan.pages.retakeN', { n: i + 1 })"
+              data-testid="scan-page-retake"
+              @click="emit('retake', i)"
+            >
+              <AppIcon name="camera" :size="20" />{{ t('scan.pages.retake') }}
+            </button>
+            <button
+              v-if="shotBad(s)"
+              type="button"
+              class="btn btn-ghost btn-sm"
+              :aria-label="t('scan.pages.anywayN', { n: i + 1 })"
+              data-testid="scan-page-anyway"
+              @click="emit('anyway', i)"
+            >
+              {{ t('scan.pages.anyway') }}
+            </button>
+            <button
+              v-else
+              type="button"
+              class="btn btn-ghost btn-sm"
+              :aria-label="t('scan.pages.removeN', { n: i + 1 })"
+              data-testid="scan-page-remove"
+              @click="emit('remove', i)"
+            >
+              <AppIcon name="x" :size="20" />{{ t('scan.pages.remove') }}
+            </button>
           </div>
         </li>
       </ol>
 
       <section class="card d-flex flex-column gap-3 more-card" aria-labelledby="more-q">
-        <p v-if="cameraBlocked" class="alert alert-warning m-0" role="alert"><AppIcon name="alert" />{{ t('scan.cameraBlocked') }}</p>
+        <p v-if="cameraBlocked" class="alert alert-warning m-0" role="alert">
+          <AppIcon name="alert" />{{ t('scan.cameraBlocked') }}
+        </p>
         <template v-if="!full">
           <h2 id="more-q" class="more-q">{{ t('scan.pages.more') }}</h2>
-          <button type="button" class="btn btn-primary" data-testid="scan-add-page" @click="emit('add')"><AppIcon name="camera" />{{ t('scan.pages.add') }}</button>
+          <button
+            type="button"
+            class="btn btn-primary"
+            data-testid="scan-add-page"
+            @click="emit('add')"
+          >
+            <AppIcon name="camera" />{{ t('scan.pages.add') }}
+          </button>
         </template>
         <h2 v-else id="more-q" class="more-q">{{ t('scan.pages.full', { max }) }}</h2>
-        <button type="button" class="btn" :class="full ? 'btn-primary' : 'btn-outline'" :disabled="badPages.length > 0 || checking" :aria-describedby="badPages.length ? 'fix-first' : null" data-testid="scan-pages-done" @click="emit('done')"><AppIcon name="check" />{{ t('scan.pages.done') }}</button>
-        <p v-if="badPages.length" id="fix-first" class="fix-first">{{ t('scan.pages.fixFirst', { pages: badList }) }}</p>
+        <button
+          type="button"
+          class="btn"
+          :class="full ? 'btn-primary' : 'btn-outline'"
+          :disabled="badPages.length > 0 || checking"
+          :aria-describedby="badPages.length ? 'fix-first' : null"
+          data-testid="scan-pages-done"
+          @click="emit('done')"
+        >
+          <AppIcon name="check" />{{ t('scan.pages.done') }}
+        </button>
+        <p v-if="badPages.length" id="fix-first" class="fix-first">
+          {{ t('scan.pages.fixFirst', { pages: badList }) }}
+        </p>
         <p class="privacy"><AppIcon name="receipt" :size="20" />{{ t('scan.pages.tip') }}</p>
-        <div v-if="askThrow" ref="throwBox" class="alert alert-warning flex-column" role="alertdialog" aria-labelledby="throw-q" aria-describedby="throw-text" data-testid="scan-pages-throw">
+        <div
+          v-if="askThrow"
+          ref="throwBox"
+          class="alert alert-warning flex-column"
+          role="alertdialog"
+          aria-labelledby="throw-q"
+          aria-describedby="throw-text"
+          data-testid="scan-pages-throw"
+        >
           <strong id="throw-q">{{ t('scan.pages.throw.title', { n: shots.length }) }}</strong>
           <span id="throw-text">{{ t('scan.pages.throw.text') }}</span>
           <div class="d-flex flex-column flex-sm-row gap-3">
-            <button type="button" class="btn btn-primary" data-testid="scan-pages-keep" @click="emit('keep')">{{ t('scan.pages.throw.keep') }}</button>
-            <button type="button" class="btn btn-secondary" data-testid="scan-pages-throw-yes" @click="emit('throw')">{{ t('scan.pages.throw.yes') }}</button>
+            <button
+              type="button"
+              class="btn btn-primary"
+              data-testid="scan-pages-keep"
+              @click="emit('keep')"
+            >
+              {{ t('scan.pages.throw.keep') }}
+            </button>
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-testid="scan-pages-throw-yes"
+              @click="emit('throw')"
+            >
+              {{ t('scan.pages.throw.yes') }}
+            </button>
           </div>
         </div>
-        <button v-else type="button" class="btn btn-ghost" data-testid="scan-pages-cancel" @click="emit('cancel')"><AppIcon name="x" />{{ t('scan.cancel') }}</button>
+        <button
+          v-else
+          type="button"
+          class="btn btn-ghost"
+          data-testid="scan-pages-cancel"
+          @click="emit('cancel')"
+        >
+          <AppIcon name="x" />{{ t('scan.cancel') }}
+        </button>
       </section>
     </div>
   </div>

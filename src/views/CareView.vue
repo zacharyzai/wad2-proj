@@ -31,20 +31,45 @@ onMounted(load)
 
     <LoadingState v-if="loading" />
     <ErrorBanner v-else-if="errorCode" :code="errorCode" retryable @retry="load" />
-    <EmptyState v-else-if="!seniors.length" :title="t('care.emptyTitle')" :text="t('care.emptyText')" icon="users" />
+    <EmptyState
+      v-else-if="!seniors.length"
+      :title="t('care.emptyTitle')"
+      :text="t('care.emptyText')"
+      icon="users"
+    />
 
     <ul v-else class="list-unstyled d-flex flex-column gap-3 m-0" data-testid="care-list">
       <li v-for="s in seniors" :key="s.id">
-        <RouterLink :to="{ name: 'care-senior', params: { seniorId: s.id } }" class="card care-row" data-testid="care-senior">
+        <RouterLink
+          :to="{ name: 'care-senior', params: { seniorId: s.id } }"
+          class="card care-row"
+          data-testid="care-senior"
+        >
           <span class="care-icon" aria-hidden="true"><AppIcon name="user" :size="28" /></span>
           <span class="flex-grow-1">
             <span class="care-name">{{ s.name }}</span>
             <!-- Words and icons, never colour alone. -->
-            <span v-if="!s.today" class="d-flex mt-2"><span class="badge badge-teal"><AppIcon name="clock" :size="18" />{{ t('care.notShared') }}</span></span>
+            <span v-if="!s.today" class="d-flex mt-2"
+              ><span class="badge badge-teal"
+                ><AppIcon name="clock" :size="18" />{{ t('care.notShared') }}</span
+              ></span
+            >
             <span v-else class="d-flex flex-wrap gap-2 mt-2">
-              <span class="badge badge-success"><AppIcon name="checkCircle" :size="18" />{{ t('care.nTaken', { n: s.today.taken }) }}</span>
-              <span v-if="s.today.missed" class="badge badge-warning"><AppIcon name="alert" :size="18" />{{ t('care.nMissed', { n: s.today.missed }) }}</span>
-              <span class="badge badge-teal"><AppIcon name="clock" :size="18" />{{ t('care.nUpcoming', { n: s.today.upcoming }) }}</span>
+              <span class="badge badge-success"
+                ><AppIcon name="checkCircle" :size="18" />{{
+                  t('care.nTaken', { n: s.today.taken })
+                }}</span
+              >
+              <span v-if="s.today.missed" class="badge badge-warning"
+                ><AppIcon name="alert" :size="18" />{{
+                  t('care.nMissed', { n: s.today.missed })
+                }}</span
+              >
+              <span class="badge badge-teal"
+                ><AppIcon name="clock" :size="18" />{{
+                  t('care.nUpcoming', { n: s.today.upcoming })
+                }}</span
+              >
             </span>
           </span>
           <AppIcon name="right" :size="24" />
@@ -55,7 +80,27 @@ onMounted(load)
 </template>
 
 <style scoped>
-.care-row { display: flex; align-items: center; gap: var(--s-4); text-decoration: none; color: inherit; }
-.care-icon { flex: none; width: var(--tile-lg); height: var(--tile-lg); display: grid; place-items: center; border-radius: var(--r-field); background: var(--color-tint); color: var(--color-primary-text); }
-.care-name { display: block; font-size: var(--fs-h3); font-weight: 700; overflow-wrap: anywhere; }
+.care-row {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  text-decoration: none;
+  color: inherit;
+}
+.care-icon {
+  flex: none;
+  width: var(--tile-lg);
+  height: var(--tile-lg);
+  display: grid;
+  place-items: center;
+  border-radius: var(--r-field);
+  background: var(--color-tint);
+  color: var(--color-primary-text);
+}
+.care-name {
+  display: block;
+  font-size: var(--fs-h3);
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
 </style>

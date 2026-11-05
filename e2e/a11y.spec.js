@@ -32,7 +32,10 @@ test('a new page opens at the top with its heading focused @a11y', async ({ page
   await expect(page.getByRole('heading', { level: 1, name: 'Check what we read' })).toBeFocused()
 })
 
-test('a page change on a phone is instant: the new page starts at the top and only fades up quickly', async ({ page, isMobile }) => {
+test('a page change on a phone is instant: the new page starts at the top and only fades up quickly', async ({
+  page,
+  isMobile,
+}) => {
   test.skip(!isMobile, 'the phone tab bar')
   // Phones skip the page transition (it held every tap for about half a second on a slower phone).
   await page.addInitScript(() => {
@@ -48,7 +51,9 @@ test('a page change on a phone is instant: the new page starts at the top and on
   await expect(page).toHaveURL(/\/scan$/)
   expect(await page.evaluate(() => scrollY)).toBe(0) // at the top straight away, no jump
   expect(await page.evaluate(() => window.__transitions)).toBe(0)
-  await expect.poll(() => page.locator('#main').evaluate((el) => getComputedStyle(el).opacity)).toBe('1')
+  await expect
+    .poll(() => page.locator('#main').evaluate((el) => getComputedStyle(el).opacity))
+    .toBe('1')
   await page.goBack()
   await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(100) // Back returns to where Home was
 })

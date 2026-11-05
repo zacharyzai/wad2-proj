@@ -26,7 +26,9 @@ async function walkToFinish(page) {
   await expect(title(page)).toHaveText('You are ready')
 }
 
-test('first visit: welcome card, then it points at the real buttons and waits for a tap on each', async ({ page }) => {
+test('first visit: welcome card, then it points at the real buttons and waits for a tap on each', async ({
+  page,
+}) => {
   await page.goto('/')
   await expect(title(page)).toHaveText('Your language, read aloud')
   await expect(title(page)).toBeFocused()
@@ -66,7 +68,9 @@ test('first visit: welcome card, then it points at the real buttons and waits fo
   await page.getByTestId('guide-start').click()
   await expect(guide(page)).toHaveCount(0)
   await expect(page).toHaveURL(/\/$/) // back to Home, not left on Account
-  await expect(page.getByTestId('guide-toast')).toContainText('You are ready. Open this again from "How to use the app".')
+  await expect(page.getByTestId('guide-toast')).toContainText(
+    'You are ready. Open this again from "How to use the app".',
+  )
   await page.reload()
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
   await expect(guide(page)).toHaveCount(0)
@@ -77,7 +81,9 @@ function innerWidthOf(page) {
   return page.viewportSize().width
 }
 
-test('every step that leads on has the same Next button; on a "Tap" step it does the tap for you', async ({ page }) => {
+test('every step that leads on has the same Next button; on a "Tap" step it does the tap for you', async ({
+  page,
+}) => {
   await page.goto('/')
   await expect(page.getByTestId('guide-next')).toHaveText('Next') // the welcome card too
   await page.getByTestId('guide-next').click()
@@ -117,38 +123,53 @@ test('Back goes to the step before, on its own page; the first step has none', a
 })
 
 for (const height of [844, 667, 568]) {
-  test(`on a ${height}px tall phone, step 3 shows both cards whole, clear of the bubble`, async ({ page, isMobile }) => {
+  test(`on a ${height}px tall phone, step 3 shows both cards whole, clear of the bubble`, async ({
+    page,
+    isMobile,
+  }) => {
     test.skip(!isMobile, 'phone sizes')
     await page.setViewportSize({ width: 375, height })
     await page.goto('/')
     for (let i = 0; i < 2; i++) await page.getByTestId('guide-next').click()
     await stepText(page, 3)
     await expect(page.locator('[data-guide="scan-choice"]')).toBeVisible()
-    const clear = () => page.evaluate(() => {
-      const r = document.querySelector('[data-guide="scan-choice"]').getBoundingClientRect()
-      const b = document.querySelector('.bubble').getBoundingClientRect()
-      return r.top >= 0 && (b.top >= r.bottom || b.bottom <= r.top)
-    })
+    const clear = () =>
+      page.evaluate(() => {
+        const r = document.querySelector('[data-guide="scan-choice"]').getBoundingClientRect()
+        const b = document.querySelector('.bubble').getBoundingClientRect()
+        return r.top >= 0 && (b.top >= r.bottom || b.bottom <= r.top)
+      })
     await expect.poll(clear).toBe(true)
   })
 }
 
-test('on a phone, the question box in step 5 shows above the tab bar, clear of the bubble', async ({ page, isMobile }) => {
+test('on a phone, the question box in step 5 shows above the tab bar, clear of the bubble', async ({
+  page,
+  isMobile,
+}) => {
   test.skip(!isMobile, 'the phone tab bar')
   await page.setViewportSize({ width: 375, height: 667 })
   await page.goto('/')
   for (let i = 0; i < 4; i++) await page.getByTestId('guide-next').click()
   await stepText(page, 5)
   await expect(page.locator('[data-guide="ask-box"]')).toBeVisible()
-  const clear = () => page.evaluate(() => {
-    const r = document.querySelector('[data-guide="ask-box"]').getBoundingClientRect()
-    const b = document.querySelector('.bubble').getBoundingClientRect()
-    return r.top >= 0 && r.bottom <= document.querySelector('.nav').getBoundingClientRect().top && (b.top >= r.bottom || b.bottom <= r.top)
-  })
+  const clear = () =>
+    page.evaluate(() => {
+      const r = document.querySelector('[data-guide="ask-box"]').getBoundingClientRect()
+      const b = document.querySelector('.bubble').getBoundingClientRect()
+      return (
+        r.top >= 0 &&
+        r.bottom <= document.querySelector('.nav').getBoundingClientRect().top &&
+        (b.top >= r.bottom || b.bottom <= r.top)
+      )
+    })
   await expect.poll(clear).toBe(true)
 })
 
-test('the page does not move under the guide, and it scrolls again afterwards', async ({ page, isMobile }) => {
+test('the page does not move under the guide, and it scrolls again afterwards', async ({
+  page,
+  isMobile,
+}) => {
   await page.setViewportSize({ width: isMobile ? 375 : 1280, height: 500 }) // shorter than the page, so it could scroll
   await page.goto('/')
   await page.getByTestId('guide-next').click()
@@ -161,20 +182,31 @@ test('the page does not move under the guide, and it scrolls again afterwards', 
   expect(await page.evaluate(() => scrollY)).toBe(y)
   await page.keyboard.press('Escape')
   await expect(page.getByTestId('guide-coach')).toHaveCount(0)
-  await expect.poll(async () => { await page.mouse.wheel(0, 200); return page.evaluate(() => scrollY) }).toBeGreaterThan(y)
+  await expect
+    .poll(async () => {
+      await page.mouse.wheel(0, 200)
+      return page.evaluate(() => scrollY)
+    })
+    .toBeGreaterThan(y)
   expect(await page.evaluate(() => document.body.style.paddingBottom)).toBe('')
 })
 
-test('Skip or Esc end it at any step; the closing message fades after a few seconds', async ({ page }) => {
+test('Skip or Esc end it at any step; the closing message fades after a few seconds', async ({
+  page,
+}) => {
   await page.goto('/scan?type=medication')
   await page.getByTestId('guide-next').click()
   await page.keyboard.press('Escape')
   await expect(guide(page)).toHaveCount(0)
-  await expect(page.getByTestId('guide-toast')).toContainText('Closed. Open it again from "How to use the app".')
+  await expect(page.getByTestId('guide-toast')).toContainText(
+    'Closed. Open it again from "How to use the app".',
+  )
   await expect(page.getByTestId('guide-toast')).toHaveCount(0, { timeout: 4500 }) // gone after 3 seconds
 })
 
-test('the language buttons on the welcome card switch the app; tap steps name the button in that language @i18n', async ({ page }) => {
+test('the language buttons on the welcome card switch the app; tap steps name the button in that language @i18n', async ({
+  page,
+}) => {
   await page.goto('/')
   await guide(page).getByRole('button', { name: '中文' }).click()
   await expect(title(page)).toHaveText('选择语言，朗读页面')
@@ -205,7 +237,10 @@ test('arriving mid-task (another page first) waits, then shows on Home', async (
   await expect(guide(page)).toBeVisible()
 })
 
-test('it can be opened again any time: sidebar on desktop, Account on every screen', async ({ page, isMobile }) => {
+test('it can be opened again any time: sidebar on desktop, Account on every screen', async ({
+  page,
+  isMobile,
+}) => {
   await page.goto('/account') // not Home or Scan, so the guide waits
   await expect(guide(page)).toHaveCount(0)
   await page.getByTestId('account-guide').click()
@@ -230,13 +265,18 @@ test('the speaker reads the step and can be stopped', async ({ page }) => {
   await speak.click()
   await expect(speak).toHaveAttribute('aria-pressed', 'true')
   expect(await page.evaluate(() => window.__spoken)).toEqual([
-    { text: 'Your language, read aloud. Pick your language, and tap a speaker to hear a page read aloud. Next, we will show you the main buttons.', lang: 'en-SG' },
+    {
+      text: 'Your language, read aloud. Pick your language, and tap a speaker to hear a page read aloud. Next, we will show you the main buttons.',
+      lang: 'en-SG',
+    },
   ])
   await speak.click()
   await expect(speak).toHaveAttribute('aria-pressed', 'false')
 })
 
-test('no Tamil voice on the device: the speaker plays Tamil audio from our server (never the English voice saying "dot")', async ({ page }) => {
+test('no Tamil voice on the device: the speaker plays Tamil audio from our server (never the English voice saying "dot")', async ({
+  page,
+}) => {
   await page.addInitScript(() => {
     localStorage.setItem('locale', 'ta')
     window.__spoken = 0
@@ -254,7 +294,9 @@ test('no Tamil voice on the device: the speaker plays Tamil audio from our serve
 })
 
 for (const colorScheme of ['light', 'dark']) {
-  test(`the guide has no WCAG A/AA violations: card, pointing step, finish (${colorScheme}) @a11y`, async ({ page }) => {
+  test(`the guide has no WCAG A/AA violations: card, pointing step, finish (${colorScheme}) @a11y`, async ({
+    page,
+  }) => {
     await page.emulateMedia({ colorScheme, reducedMotion: 'reduce' })
     await signIn(page, { ...DEMO_USER, theme: colorScheme }) // night mode is the account's choice, not the device's
     await page.goto('/')
@@ -262,8 +304,13 @@ for (const colorScheme of ['light', 'dark']) {
     await expect(page.locator('html')).toHaveAttribute('data-theme', colorScheme)
     const bad = []
     const check = async (where) => {
-      const { violations } = await new AxeBuilder({ page }).include('[data-testid="guide"]').withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze()
-      bad.push(...violations.map((v) => `${where} ${v.id}: ${v.nodes.map((n) => n.target).join(' | ')}`))
+      const { violations } = await new AxeBuilder({ page })
+        .include('[data-testid="guide"]')
+        .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
+        .analyze()
+      bad.push(
+        ...violations.map((v) => `${where} ${v.id}: ${v.nodes.map((n) => n.target).join(' | ')}`),
+      )
     }
     await check('welcome')
     await page.getByTestId('guide-next').click()

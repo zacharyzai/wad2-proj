@@ -77,5 +77,16 @@ export const useGuideStore = defineStore('guide', () => {
     if (state === 'deferred' ? route.name === 'home' : startPage) openGuide()
   }
 
-  return { open, step, ended, askTheme, currentStep, nextStep, prevStep, openGuide, endGuide, maybeShowGuide }
+  return {
+    open,
+    step,
+    ended,
+    askTheme,
+    currentStep,
+    nextStep,
+    prevStep,
+    openGuide,
+    endGuide,
+    maybeShowGuide,
+  }
 })

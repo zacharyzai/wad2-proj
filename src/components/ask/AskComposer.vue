@@ -24,11 +24,16 @@ function onEnter(e) {
 }
 
 // Voice input, in the page language.
-const Recognition = typeof window !== 'undefined' && (window.SpeechRecognition || window.webkitSpeechRecognition)
+const Recognition =
+  typeof window !== 'undefined' && (window.SpeechRecognition || window.webkitSpeechRecognition)
 const REC_LANG = { en: 'en-SG', zh: 'zh-CN', ms: 'ms-MY', ta: 'ta-IN' }
 const micError = ref(null) // which ask.mic message to show
 // The browser's speech service decides which languages work (Safari and iPhones often have no Tamil or Malay): say so.
-const MIC_ERRORS = { 'language-not-supported': 'noLang', 'not-allowed': 'blocked', 'service-not-allowed': 'blocked' }
+const MIC_ERRORS = {
+  'language-not-supported': 'noLang',
+  'not-allowed': 'blocked',
+  'service-not-allowed': 'blocked',
+}
 let recognition = null
 
 function toggleMic() {
@@ -39,8 +44,12 @@ function toggleMic() {
   // The words appear in the box as they are said, so people can see they're being heard.
   recognition.interimResults = true
   recognition.maxAlternatives = 1
-  recognition.onresult = (e) => (question.value = Array.from(e.results, (r) => r[0].transcript).join('').slice(0, MAX))
-  recognition.onerror = (e) => (micError.value = e.error === 'aborted' ? null : (MIC_ERRORS[e.error] ?? 'error'))
+  recognition.onresult = (e) =>
+    (question.value = Array.from(e.results, (r) => r[0].transcript)
+      .join('')
+      .slice(0, MAX))
+  recognition.onerror = (e) =>
+    (micError.value = e.error === 'aborted' ? null : (MIC_ERRORS[e.error] ?? 'error'))
   recognition.onend = () => {
     listening.value = false
     stopLevel?.()
@@ -60,7 +69,12 @@ function toggleMic() {
 const level = ref(0)
 let stopLevel = null
 async function followLevel() {
-  if (matchMedia('(prefers-reduced-motion: reduce)').matches || !navigator.mediaDevices?.getUserMedia || typeof AudioContext !== 'function') return
+  if (
+    matchMedia('(prefers-reduced-motion: reduce)').matches ||
+    !navigator.mediaDevices?.getUserMedia ||
+    typeof AudioContext !== 'function'
+  )
+    return
   let stream
   try {
     stream = await navigator.mediaDevices.getUserMedia({ audio: true })
@@ -113,18 +127,49 @@ onBeforeUnmount(() => {
         @keydown.enter.exact="onEnter"
       ></textarea>
       <div class="tools">
-        <button type="button" class="btn btn-outline btn-icon" :aria-label="t('ask.meds.add')" :title="t('ask.meds.add')" @click="emit('add-medicine')"><AppIcon name="plus" :size="22" /></button>
-        <button v-if="Recognition" type="button" class="btn btn-outline btn-icon mic" :style="{ '--level': level.toFixed(3) }" :aria-pressed="listening" :aria-label="listening ? t('ask.mic.stop') : t('ask.mic.start')" :title="listening ? t('ask.mic.stop') : t('ask.mic.start')" :disabled="loading" data-testid="ask-mic" @click="toggleMic">
+        <button
+          type="button"
+          class="btn btn-outline btn-icon"
+          :aria-label="t('ask.meds.add')"
+          :title="t('ask.meds.add')"
+          @click="emit('add-medicine')"
+        >
+          <AppIcon name="plus" :size="22" />
+        </button>
+        <button
+          v-if="Recognition"
+          type="button"
+          class="btn btn-outline btn-icon mic"
+          :style="{ '--level': level.toFixed(3) }"
+          :aria-pressed="listening"
+          :aria-label="listening ? t('ask.mic.stop') : t('ask.mic.start')"
+          :title="listening ? t('ask.mic.stop') : t('ask.mic.start')"
+          :disabled="loading"
+          data-testid="ask-mic"
+          @click="toggleMic"
+        >
           <AppIcon :name="listening ? 'pause' : 'mic'" :size="22" />
         </button>
-        <button type="submit" class="btn btn-primary btn-icon send" :aria-label="t('ask.send')" :title="t('ask.send')" :disabled="loading || !question.trim()"><AppIcon name="send" :size="22" :stroke="2.5" /></button>
+        <button
+          type="submit"
+          class="btn btn-primary btn-icon send"
+          :aria-label="t('ask.send')"
+          :title="t('ask.send')"
+          :disabled="loading || !question.trim()"
+        >
+          <AppIcon name="send" :size="22" :stroke="2.5" />
+        </button>
       </div>
     </form>
     <span role="status" class="mic-status">
       <template v-if="listening">{{ t('ask.mic.listening') }}</template>
       <template v-else-if="micError">{{ t(`ask.mic.${micError}`) }}</template>
       <!-- Say the limit is near instead of silently stopping the typing. -->
-      <template v-else-if="question.length > MAX - 50"><span data-testid="ask-left">{{ t('ask.left', { n: MAX - question.length }) }}</span></template>
+      <template v-else-if="question.length > MAX - 50"
+        ><span data-testid="ask-left">{{
+          t('ask.left', { n: MAX - question.length })
+        }}</span></template
+      >
     </span>
     <slot />
   </div>

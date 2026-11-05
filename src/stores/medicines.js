@@ -27,28 +27,58 @@ const fromLabel = (medication) => {
 
 // Re-scanning a label: a course still running carries on (same days, so its ticks and reminders do too). One that has
 // ended is a refill: it starts again from today, from the new label (or Schedule asks how many days). Changed times stay.
-const ended = (schedule) => Boolean(schedule?.days) && addDays(schedule.startDate, schedule.days - 1) < todayInSingapore()
+const ended = (schedule) =>
+  Boolean(schedule?.days) && addDays(schedule.startDate, schedule.days - 1) < todayInSingapore()
 function scheduleFor(previous, medication) {
   if (previous?.schedule && !ended(previous.schedule)) {
     // Carries on, but never past a limit the label gives ("not more than 7 days"), even if it was scheduled for longer before.
     const limit = labelLimitDays(medication)
-    return { schedule: limit && previous.schedule.days > limit ? { ...previous.schedule, days: limit } : previous.schedule }
+    return {
+      schedule:
+        limit && previous.schedule.days > limit
+          ? { ...previous.schedule, days: limit }
+          : previous.schedule,
+    }
   }
   const times = previous?.schedule?.times ?? {}
   const fresh = fromLabel(medication).schedule
-  return fresh ? { schedule: { ...fresh, times } } : previous?.schedule ? { schedule: { times } } : {}
+  return fresh
+    ? { schedule: { ...fresh, times } }
+    : previous?.schedule
+      ? { schedule: { times } }
+      : {}
 }
 
 // A course that has finished or been stopped: history, not something the person takes now.
 export const isFinished = (entry) => ended(entry.schedule)
 
-const same = (a, b) => a.name.trim().toLowerCase() === b.name.trim().toLowerCase() && (a.strength ?? '') === (b.strength ?? '')
+const same = (a, b) =>
+  a.name.trim().toLowerCase() === b.name.trim().toLowerCase() &&
+  (a.strength ?? '') === (b.strength ?? '')
 
 // What Confirm needs to open a saved medicine: every contract field present (typed ones have only a name and
 // instructions), nothing to flag beyond the usual required fields, no photo, and `savedId` saying which one to replace.
 export function scanFromMedicine(entry) {
-  const blank = { name: null, strength: null, doseAmount: null, doseUnit: null, quantity: null, timesPerDay: null, timing: null, withFood: null, frequencyType: null, rawInstruction: null, warnings: [] }
-  return { type: 'medication', source: entry.sample ? 'sample' : entry.source, unclear: [], medication: { ...blank, ...structuredClone(toRaw(entry.medication)) }, savedId: entry.id }
+  const blank = {
+    name: null,
+    strength: null,
+    doseAmount: null,
+    doseUnit: null,
+    quantity: null,
+    timesPerDay: null,
+    timing: null,
+    withFood: null,
+    frequencyType: null,
+    rawInstruction: null,
+    warnings: [],
+  }
+  return {
+    type: 'medication',
+    source: entry.sample ? 'sample' : entry.source,
+    unclear: [],
+    medication: { ...blank, ...structuredClone(toRaw(entry.medication)) },
+    savedId: entry.id,
+  }
 }
 
 export const useMedicinesStore = defineStore('medicines', () => {
@@ -116,7 +146,9 @@ export const useMedicinesStore = defineStore('medicines', () => {
     entry.source = 'label'
     if (!entry.schedule?.days) Object.assign(entry, fromLabel(copy)) // e.g. "when needed" fixed to twice a day: now it has days
     // Corrected into the name of another saved medicine: keep this one (it has the schedule being fixed), drop the copy.
-    for (let i = medicines.length - 1; i >= 0; i--) if (i !== medicines.indexOf(entry) && same(medicines[i].medication, copy)) medicines.splice(i, 1)
+    for (let i = medicines.length - 1; i >= 0; i--)
+      if (i !== medicines.indexOf(entry) && same(medicines[i].medication, copy))
+        medicines.splice(i, 1)
   }
 
   // Schedule page: how many days, from when, and any times the user changed.
@@ -135,5 +167,13 @@ export const useMedicinesStore = defineStore('medicines', () => {
     if (!medicines.some((m) => m.id === entry.id)) medicines.splice(index, 0, entry)
   }
 
-  return { medicines, savedMedicine, rememberMedicine, replaceMedicine, setSchedule, forgetMedicine, restoreMedicine }
+  return {
+    medicines,
+    savedMedicine,
+    rememberMedicine,
+    replaceMedicine,
+    setSchedule,
+    forgetMedicine,
+    restoreMedicine,
+  }
 })

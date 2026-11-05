@@ -343,21 +343,13 @@
       "medication": {
         "title": "Label ubat",
         "text": "Untuk apa, dan bila perlu diambil.",
-        "tags": [
-          "Tablet",
-          "Sirap",
-          "Krim"
-        ],
+        "tags": ["Tablet", "Sirap", "Krim"],
         "go": "Imbas label"
       },
       "bill": {
         "title": "Bil perubatan",
         "text": "Jumlah bayaran, dan bantuan yang boleh didapati.",
-        "tags": [
-          "Klinik",
-          "Hospital",
-          "Subsidi"
-        ],
+        "tags": ["Klinik", "Hospital", "Subsidi"],
         "go": "Imbas bil"
       },
       "pending": "Gambar anda sudah sedia. Apakah ia? Ketik satu untuk mengimbasnya.",

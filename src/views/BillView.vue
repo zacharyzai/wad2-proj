@@ -14,7 +14,15 @@ import LoadingState from '../components/layout/LoadingState.vue'
 import ErrorBanner from '../components/layout/ErrorBanner.vue'
 import AppIcon from '../components/layout/AppIcon.vue'
 import KindIcon from '../components/layout/KindIcon.vue'
-import { CATEGORY_STYLE, SUBSIDY_STYLE, MEDISAVE_STYLE, money, minusMoney, sumCents, deducted } from '../components/bill/lines'
+import {
+  CATEGORY_STYLE,
+  SUBSIDY_STYLE,
+  MEDISAVE_STYLE,
+  money,
+  minusMoney,
+  sumCents,
+  deducted,
+} from '../components/bill/lines'
 import { citizenshipText } from '../utils/account'
 import { billGap, linesTotal, sectionsOff } from '../rules/billCheck'
 const scanStore = useScanStore()
@@ -31,7 +39,9 @@ const SAMPLES = [
 ]
 
 // Only a bill the user has checked on Confirm (or a built-in sample) is broken down.
-const scan = computed(() => (scanStore.confirmed && scanStore.current?.type === 'bill' ? scanStore.current : null))
+const scan = computed(() =>
+  scanStore.confirmed && scanStore.current?.type === 'bill' ? scanStore.current : null,
+)
 const bill = computed(() => scan.value?.bill)
 // Lines that don't add up to the bill's total (a misread digit): the total shown is the bill's own; this says so, and where.
 const gap = computed(() => (bill.value ? billGap(bill.value) : null))
@@ -70,7 +80,10 @@ function goBack() {
   else router.push({ name: 'home' })
 }
 function toTop() {
-  window.scrollTo({ top: 0, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })
+  window.scrollTo({
+    top: 0,
+    behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+  })
   const h1 = document.querySelector('main h1')
   h1?.setAttribute('tabindex', '-1') // headings aren't focusable by default
   h1?.focus({ preventScroll: true })
@@ -82,7 +95,13 @@ watch(bill, () => (openId.value = null))
 const toggle = (id) => (openId.value = openId.value === id ? null : id)
 
 const date = computed(
-  () => bill.value?.visitDate && new Date(`${bill.value.visitDate}T00:00`).toLocaleDateString(locale.value, { day: 'numeric', month: 'long', year: 'numeric' }),
+  () =>
+    bill.value?.visitDate &&
+    new Date(`${bill.value.visitDate}T00:00`).toLocaleDateString(locale.value, {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    }),
 )
 
 const charged = computed(() =>
@@ -115,16 +134,25 @@ const GROUP_AT = 6
 const grouped = computed(() => itemLines.value.length > GROUP_AT)
 const groups = computed(() => {
   const byKind = new Map()
-  for (const line of itemLines.value) byKind.set(line.category, [...(byKind.get(line.category) ?? []), line])
+  for (const line of itemLines.value)
+    byKind.set(line.category, [...(byKind.get(line.category) ?? []), line])
   return [...byKind]
-    .map(([category, lines]) => ({ category, ...CATEGORY_STYLE[category], name: t(`bill.category.${category}`), lines, cents: sumCents(lines) }))
+    .map(([category, lines]) => ({
+      category,
+      ...CATEGORY_STYLE[category],
+      name: t(`bill.category.${category}`),
+      lines,
+      cents: sumCents(lines),
+    }))
     .sort((a, b) => b.cents - a.cents)
 })
 const biggest = computed(() => (grouped.value ? groups.value.slice(0, 3) : []))
 const openGroups = ref([])
 watch(bill, () => (openGroups.value = []))
 const toggleGroup = (category) =>
-  (openGroups.value = openGroups.value.includes(category) ? openGroups.value.filter((c) => c !== category) : [...openGroups.value, category])
+  (openGroups.value = openGroups.value.includes(category)
+    ? openGroups.value.filter((c) => c !== category)
+    : [...openGroups.value, category])
 
 // Phones: with the charges open, "You pay" scrolls out of sight. A slim bar above the bottom tabs keeps it in view while the
 // summary card is scrolled past, with a way back to it. Hidden on desktop, where the summary sits beside the list.
@@ -135,13 +163,18 @@ watch(summaryCard, (card) => {
   summaryWatch?.disconnect()
   summaryPassed.value = false
   if (!card) return
-  summaryWatch = new IntersectionObserver(([entry]) => (summaryPassed.value = !entry.isIntersecting && entry.boundingClientRect.top < 0))
+  summaryWatch = new IntersectionObserver(
+    ([entry]) => (summaryPassed.value = !entry.isIntersecting && entry.boundingClientRect.top < 0),
+  )
   summaryWatch.observe(card)
 })
 onBeforeUnmount(() => summaryWatch?.disconnect())
 const payBar = computed(() => showItems.value && summaryPassed.value)
 function toSummary() {
-  summaryCard.value?.scrollIntoView({ block: 'start', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })
+  summaryCard.value?.scrollIntoView({
+    block: 'start',
+    behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+  })
   summaryCard.value?.focus({ preventScroll: true })
 }
 
@@ -154,7 +187,15 @@ const takenOff = computed(() => {
       ...SUBSIDY_STYLE,
       name: t(`scheme.${s.scheme}`),
       // Already inside the net charges: shown so people see it, but without a minus (it isn't taken off again).
-      tag: t(s.includedInItems ? 'bill.inLines' : s.scheme === 'insurance' ? 'bill.tag.insurance' : s.scheme === 'paid' ? 'bill.tag.paid' : 'bill.tag.subsidy'),
+      tag: t(
+        s.includedInItems
+          ? 'bill.inLines'
+          : s.scheme === 'insurance'
+            ? 'bill.tag.insurance'
+            : s.scheme === 'paid'
+              ? 'bill.tag.paid'
+              : 'bill.tag.subsidy',
+      ),
       amountCents: s.amountCents,
       minus: !s.includedInItems,
       text: t(`bill.explain.scheme.${s.scheme}`),
@@ -166,7 +207,9 @@ const takenOff = computed(() => {
       tag: t('bill.tag.medisave'),
       amountCents: b.medisaveCents,
       minus: true,
-      text: b.medisaveCents ? t('bill.explain.medisave') : `${t('bill.explain.medisave')} ${t('bill.explain.medisaveNone')}`,
+      text: b.medisaveCents
+        ? t('bill.explain.medisave')
+        : `${t('bill.explain.medisave')} ${t('bill.explain.medisaveNone')}`,
     },
   ]
 })
@@ -176,8 +219,10 @@ const takenOff = computed(() => {
 const user = computed(() => authStore.user)
 const answers = computed(() => ({
   birthYear: user.value?.dob ? Number(user.value.dob.slice(0, 4)) : null,
-  residency: { birth: 'citizen', became: 'citizen', pr: 'pr', other: 'other' }[user.value?.citizenship] ?? null,
-  citizenSince: user.value?.citizenship === 'birth' ? 'birth' : user.value?.citizenSince ?? null,
+  residency:
+    { birth: 'citizen', became: 'citizen', pr: 'pr', other: 'other' }[user.value?.citizenship] ??
+    null,
+  citizenSince: user.value?.citizenship === 'birth' ? 'birth' : (user.value?.citizenSince ?? null),
   income: user.value?.income ?? null,
 }))
 
@@ -210,12 +255,28 @@ const split = computed(() => {
     { key: 'pay', cents: b.totalPayableCents },
     { key: 'subsidy', cents: sumCents(deducted(b.subsidies)) },
     { key: 'medisave', cents: b.medisaveCents },
-  ].filter((part) => part.cents > 0).map((part) => ({ ...part, pct: (part.cents / charges) * 100 }))
+  ]
+    .filter((part) => part.cents > 0)
+    .map((part) => ({ ...part, pct: (part.cents / charges) * 100 }))
 })
 
 const summary = computed(() => [
-  [t(bill.value.subsidies.some((x) => x.includedInItems) ? 'bill.summary.chargesNet' : 'bill.summary.charges'), money(sumCents(bill.value.items))],
-  [t(bill.value.subsidies.some((x) => x.scheme === 'insurance') ? 'bill.summary.subsidiesInsurance' : 'bill.summary.subsidies'), minusMoney(sumCents(deducted(bill.value.subsidies)))],
+  [
+    t(
+      bill.value.subsidies.some((x) => x.includedInItems)
+        ? 'bill.summary.chargesNet'
+        : 'bill.summary.charges',
+    ),
+    money(sumCents(bill.value.items)),
+  ],
+  [
+    t(
+      bill.value.subsidies.some((x) => x.scheme === 'insurance')
+        ? 'bill.summary.subsidiesInsurance'
+        : 'bill.summary.subsidies',
+    ),
+    minusMoney(sumCents(deducted(bill.value.subsidies))),
+  ],
   [t('bill.summary.medisave'), minusMoney(bill.value.medisaveCents)],
 ])
 </script>
@@ -223,7 +284,14 @@ const summary = computed(() => [
 <template>
   <div class="page">
     <div class="d-flex align-items-start gap-3">
-      <button v-if="bill" type="button" class="back" :aria-label="openedHere ? t('bill.closeBill') : t('nav.back')" data-testid="bill-back" @click="goBack"></button>
+      <button
+        v-if="bill"
+        type="button"
+        class="back"
+        :aria-label="openedHere ? t('bill.closeBill') : t('nav.back')"
+        data-testid="bill-back"
+        @click="goBack"
+      ></button>
       <div class="page-head">
         <h1>{{ t('pages.bill') }}</h1>
         <p v-if="bill" class="lead-text">{{ t('bill.lead') }}</p>
@@ -234,7 +302,12 @@ const summary = computed(() => [
 
     <div v-if="bill" class="cols">
       <div>
-        <section ref="summaryCard" tabindex="-1" class="card card-result main-card rise" :aria-label="t('bill.summary.label')">
+        <section
+          ref="summaryCard"
+          tabindex="-1"
+          class="card card-result main-card rise"
+          :aria-label="t('bill.summary.label')"
+        >
           <span class="ring" aria-hidden="true"></span>
           <div class="d-flex align-items-center gap-3">
             <KindIcon kind="bill" class="glow" />
@@ -244,33 +317,64 @@ const summary = computed(() => [
             </div>
           </div>
           <i18n-t keypath="bill.pay" tag="h2" class="pay-title">
-            <template #amount><span class="hero-number"><span aria-hidden="true">{{ money(shownPay) }}</span><span class="visually-hidden">{{ money(bill.totalPayableCents) }}</span></span></template>
+            <template #amount
+              ><span class="hero-number"
+                ><span aria-hidden="true">{{ money(shownPay) }}</span
+                ><span class="visually-hidden">{{ money(bill.totalPayableCents) }}</span></span
+              ></template
+            >
           </i18n-t>
           <!-- Picture of the list below it (which has the words), so hidden from screen readers. -->
           <div class="split" aria-hidden="true">
-            <span v-for="part in split" :key="part.key" class="seg" :class="`seg-${part.key}`" :style="{ flexGrow: part.pct }"></span>
+            <span
+              v-for="part in split"
+              :key="part.key"
+              class="seg"
+              :class="`seg-${part.key}`"
+              :style="{ flexGrow: part.pct }"
+            ></span>
           </div>
           <dl class="summary-row">
             <div v-for="([label, amount], i) in summary" :key="label">
-              <dt><span v-if="i" class="swatch" :class="i === 1 ? 'seg-subsidy' : 'seg-medisave'" aria-hidden="true"></span>{{ label }}</dt>
+              <dt>
+                <span
+                  v-if="i"
+                  class="swatch"
+                  :class="i === 1 ? 'seg-subsidy' : 'seg-medisave'"
+                  aria-hidden="true"
+                ></span
+                >{{ label }}
+              </dt>
               <dd>{{ amount }}</dd>
             </div>
           </dl>
           <p v-if="biggest.length" class="biggest" data-testid="bill-biggest">
             <span class="biggest-label">{{ t('bill.biggest') }}</span>
             <span>
-              <template v-for="(g, i) in biggest" :key="g.category"><template v-if="i"> · </template>{{ g.name }} <strong>{{ money(g.cents) }}</strong></template>
+              <template v-for="(g, i) in biggest" :key="g.category"
+                ><template v-if="i"> · </template>{{ g.name }}
+                <strong>{{ money(g.cents) }}</strong></template
+              >
             </span>
           </p>
-          <span v-if="scan.source === 'sample'" class="badge badge-navy align-self-start"><AppIcon name="file" :size="18" />{{ t('bill.sampleTag') }}</span>
+          <span v-if="scan.source === 'sample'" class="badge badge-navy align-self-start"
+            ><AppIcon name="file" :size="18" />{{ t('bill.sampleTag') }}</span
+          >
         </section>
 
         <div v-if="gap" class="alert alert-info" role="note" data-testid="bill-gap">
           <AppIcon name="info" />
           <div class="d-flex flex-column gap-2">
             <strong>{{ t('bill.gap.title') }}</strong>
-            <span>{{ t('bill.gap.text', { lines: money(linesTotal(bill)), total: money(bill.totalPayableCents) }) }}</span>
-            <span v-for="s in offSections" :key="s.section">{{ t('confirm.bill.gapWhere', { section: s.section, printed: money(s.printedCents) }) }}</span>
+            <span>{{
+              t('bill.gap.text', {
+                lines: money(linesTotal(bill)),
+                total: money(bill.totalPayableCents),
+              })
+            }}</span>
+            <span v-for="s in offSections" :key="s.section">{{
+              t('confirm.bill.gapWhere', { section: s.section, printed: money(s.printedCents) })
+            }}</span>
             <span class="fw-normal">{{ t('bill.gap.subsidy') }}</span>
           </div>
         </div>
@@ -280,7 +384,9 @@ const summary = computed(() => [
           <AppIcon name="user" :size="20" />
           <span class="d-flex flex-column">
             {{ t('bill.basis', { year: user.dob.slice(0, 4), status: citizenshipText(t, user) }) }}
-            <RouterLink :to="{ name: 'account' }" class="basis-link">{{ t('bill.basisChange') }}<AppIcon name="right" :size="18" /></RouterLink>
+            <RouterLink :to="{ name: 'account' }" class="basis-link"
+              >{{ t('bill.basisChange') }}<AppIcon name="right" :size="18"
+            /></RouterLink>
           </span>
         </p>
         <SubsidyResults :bill="bill" :answers="answers" />
@@ -289,38 +395,89 @@ const summary = computed(() => [
       <div>
         <section class="d-flex flex-column gap-3" aria-labelledby="bill-charged">
           <h2 id="bill-charged" class="section-label">{{ t('bill.charged') }}</h2>
-          <button v-if="itemLines.length" type="button" class="btn btn-outline details-toggle" :aria-expanded="showItems" aria-controls="bill-items" data-testid="bill-items-toggle" @click="showItems = !showItems">
-            <AppIcon :name="showItems ? 'up' : 'down'" />{{ t(showItems ? 'bill.hideItems' : 'bill.showItems', { n: itemLines.length }) }}
+          <button
+            v-if="itemLines.length"
+            type="button"
+            class="btn btn-outline details-toggle"
+            :aria-expanded="showItems"
+            aria-controls="bill-items"
+            data-testid="bill-items-toggle"
+            @click="showItems = !showItems"
+          >
+            <AppIcon :name="showItems ? 'up' : 'down'" />{{
+              t(showItems ? 'bill.hideItems' : 'bill.showItems', { n: itemLines.length })
+            }}
           </button>
           <ul v-show="showItems" id="bill-items" class="lines">
             <template v-if="grouped">
               <li v-for="g in groups" :key="g.category" class="group" :class="`tone-${g.tone}`">
-                <button type="button" class="group-btn" :aria-expanded="openGroups.includes(g.category)" :aria-controls="`group-${g.category}`" data-testid="bill-group" @click="toggleGroup(g.category)">
+                <button
+                  type="button"
+                  class="group-btn"
+                  :aria-expanded="openGroups.includes(g.category)"
+                  :aria-controls="`group-${g.category}`"
+                  data-testid="bill-group"
+                  @click="toggleGroup(g.category)"
+                >
                   <span class="group-tile"><AppIcon :name="g.icon" :size="24" /></span>
                   <span class="d-flex flex-column gap-1 flex-grow-1 min-w-0">
                     <span class="group-name">{{ g.name }}</span>
-                    <span class="group-count">{{ t('bill.groupCount', { n: g.lines.length }, g.lines.length) }}</span>
+                    <span class="group-count">{{
+                      t('bill.groupCount', { n: g.lines.length }, g.lines.length)
+                    }}</span>
                   </span>
                   <span class="group-amount">{{ money(g.cents) }}</span>
-                  <AppIcon :name="openGroups.includes(g.category) ? 'up' : 'down'" :size="22" class="group-chev" />
+                  <AppIcon
+                    :name="openGroups.includes(g.category) ? 'up' : 'down'"
+                    :size="22"
+                    class="group-chev"
+                  />
                 </button>
-                <ul v-if="openGroups.includes(g.category)" :id="`group-${g.category}`" class="lines group-lines">
-                  <BillLine v-for="line in g.lines" :key="line.id" :line="line" :open="openId === line.id" @toggle="toggle(line.id)" />
+                <ul
+                  v-if="openGroups.includes(g.category)"
+                  :id="`group-${g.category}`"
+                  class="lines group-lines"
+                >
+                  <BillLine
+                    v-for="line in g.lines"
+                    :key="line.id"
+                    :line="line"
+                    :open="openId === line.id"
+                    @toggle="toggle(line.id)"
+                  />
                 </ul>
               </li>
             </template>
             <template v-else>
-              <BillLine v-for="line in itemLines" :key="line.id" :line="line" :open="openId === line.id" @toggle="toggle(line.id)" />
+              <BillLine
+                v-for="line in itemLines"
+                :key="line.id"
+                :line="line"
+                :open="openId === line.id"
+                @toggle="toggle(line.id)"
+              />
             </template>
           </ul>
           <ul v-if="taxLines.length" class="lines">
-            <BillLine v-for="line in taxLines" :key="line.id" :line="line" :open="openId === line.id" @toggle="toggle(line.id)" />
+            <BillLine
+              v-for="line in taxLines"
+              :key="line.id"
+              :line="line"
+              :open="openId === line.id"
+              @toggle="toggle(line.id)"
+            />
           </ul>
         </section>
         <section class="d-flex flex-column gap-3" aria-labelledby="bill-off">
           <h2 id="bill-off" class="section-label">{{ t('bill.takenOff') }}</h2>
           <ul class="lines">
-            <BillLine v-for="line in takenOff" :key="line.id" :line="line" :open="openId === line.id" @toggle="toggle(line.id)" />
+            <BillLine
+              v-for="line in takenOff"
+              :key="line.id"
+              :line="line"
+              :open="openId === line.id"
+              @toggle="toggle(line.id)"
+            />
           </ul>
         </section>
         <p class="total" data-testid="bill-total">
@@ -328,17 +485,29 @@ const summary = computed(() => [
           <strong>{{ money(bill.totalPayableCents) }}</strong>
         </p>
         <div class="d-flex flex-column gap-3">
-          <button type="button" class="btn btn-primary" data-testid="bill-done" @click="goBack"><AppIcon name="left" />{{ openedHere ? t('bill.closeBill') : t('nav.back') }}</button>
-          <RouterLink :to="{ name: 'home' }" class="btn btn-secondary" data-testid="bill-home"><AppIcon name="home" />{{ t('nav.home') }}</RouterLink>
-          <RouterLink :to="{ name: 'scan', hash: '#bill' }" class="btn btn-outline"><AppIcon name="scan" />{{ t('bill.another') }}</RouterLink>
-          <button type="button" class="btn btn-ghost" data-testid="bill-top" @click="toTop"><AppIcon name="up" />{{ t('nav.backTop') }}</button>
+          <button type="button" class="btn btn-primary" data-testid="bill-done" @click="goBack">
+            <AppIcon name="left" />{{ openedHere ? t('bill.closeBill') : t('nav.back') }}
+          </button>
+          <RouterLink :to="{ name: 'home' }" class="btn btn-secondary" data-testid="bill-home"
+            ><AppIcon name="home" />{{ t('nav.home') }}</RouterLink
+          >
+          <RouterLink :to="{ name: 'scan', hash: '#bill' }" class="btn btn-outline"
+            ><AppIcon name="scan" />{{ t('bill.another') }}</RouterLink
+          >
+          <button type="button" class="btn btn-ghost" data-testid="bill-top" @click="toTop">
+            <AppIcon name="up" />{{ t('nav.backTop') }}
+          </button>
         </div>
       </div>
 
       <Transition name="pay-bar">
         <div v-if="payBar" class="pay-bar" data-testid="bill-pay-bar">
-          <span class="pay-bar-text">{{ t('bill.total') }}<strong>{{ money(bill.totalPayableCents) }}</strong></span>
-          <button type="button" data-testid="bill-pay-bar-top" @click="toSummary"><AppIcon name="up" :size="20" />{{ t('bill.toSummary') }}</button>
+          <span class="pay-bar-text"
+            >{{ t('bill.total') }}<strong>{{ money(bill.totalPayableCents) }}</strong></span
+          >
+          <button type="button" data-testid="bill-pay-bar-top" @click="toSummary">
+            <AppIcon name="up" :size="20" />{{ t('bill.toSummary') }}
+          </button>
         </div>
       </Transition>
     </div>
@@ -347,20 +516,43 @@ const summary = computed(() => [
       <AppIcon name="alert" />
       <div class="d-flex flex-column gap-3">
         <span>{{ t('bill.unchecked.text') }}</span>
-        <RouterLink :to="{ name: 'confirm' }" class="btn btn-primary btn-sm align-self-start">{{ t('bill.unchecked.action') }}</RouterLink>
+        <RouterLink :to="{ name: 'confirm' }" class="btn btn-primary btn-sm align-self-start">{{
+          t('bill.unchecked.action')
+        }}</RouterLink>
       </div>
     </div>
 
     <EmptyState v-else :title="t('bill.none.title')" :text="t('bill.none.text')" kind="bill">
-      <RouterLink :to="{ name: 'scan', hash: '#bill' }" class="btn btn-primary"><AppIcon name="scan" />{{ t('bill.scan') }}</RouterLink>
+      <RouterLink :to="{ name: 'scan', hash: '#bill' }" class="btn btn-primary"
+        ><AppIcon name="scan" />{{ t('bill.scan') }}</RouterLink
+      >
     </EmptyState>
 
     <!-- Samples: always offered when there's no real bill, and as "try another" while looking at a sample. -->
-    <section v-if="!bill || scan.source === 'sample'" class="d-flex flex-column gap-3" aria-labelledby="bill-samples">
-      <h2 id="bill-samples" class="section-label">{{ bill ? t('bill.moreSamples') : t('bill.samplesTitle') }}</h2>
+    <section
+      v-if="!bill || scan.source === 'sample'"
+      class="d-flex flex-column gap-3"
+      aria-labelledby="bill-samples"
+    >
+      <h2 id="bill-samples" class="section-label">
+        {{ bill ? t('bill.moreSamples') : t('bill.samplesTitle') }}
+      </h2>
       <div class="samples" data-guide="bill-samples">
-        <button v-for="sample in SAMPLES" :key="sample.id" type="button" class="card card-interactive sample" :disabled="loading" @click="openSample(sample.id)">
-          <img :src="`/samples/${sample.id}.svg`" alt="" loading="lazy" decoding="async" class="sample-thumb" />
+        <button
+          v-for="sample in SAMPLES"
+          :key="sample.id"
+          type="button"
+          class="card card-interactive sample"
+          :disabled="loading"
+          @click="openSample(sample.id)"
+        >
+          <img
+            :src="`/samples/${sample.id}.svg`"
+            alt=""
+            loading="lazy"
+            decoding="async"
+            class="sample-thumb"
+          />
           <span class="d-flex flex-column flex-grow-1">
             <span class="sample-name">{{ t(`bill.samples.${sample.key}`) }}</span>
             <span class="text-muted-a11y sample-kind">{{ t('bill.sampleTag') }}</span>

@@ -30,7 +30,9 @@ test('a bill line explains itself', async ({ page }) => {
   await openBill(page, TAMPINES)
   await page.getByTestId('bill-items-toggle').click() // the charges are behind a dropdown
   await page.getByRole('button', { name: /HbA1c blood test/ }).click()
-  await expect(page.getByText('These are tests that help the doctor check your health')).toBeVisible()
+  await expect(
+    page.getByText('These are tests that help the doctor check your health'),
+  ).toBeVisible()
 })
 
 test('subsidies open with their sources', async ({ page }) => {

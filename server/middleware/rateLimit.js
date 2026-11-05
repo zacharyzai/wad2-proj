@@ -9,7 +9,8 @@ const limiter = (windowMin, limit, message, skip, extra = {}) =>
     legacyHeaders: false,
     skip,
     ...extra,
-    handler: (req, res) => res.status(429).json({ ok: false, error: { code: 'RATE_LIMITED', message } }),
+    handler: (req, res) =>
+      res.status(429).json({ ok: false, error: { code: 'RATE_LIMITED', message } }),
   })
 
 // shortcut: all counters live in process memory, so they reset on restart / serverless cold start
@@ -20,22 +21,52 @@ export const scanRateLimit = limiter(
   'Too many scans, please try again later',
   (req) => req.body?.sampleId !== undefined,
 )
-export const chatRateLimit = limiter(1, Number(process.env.CHAT_RATE_LIMIT) || 10, 'Too many questions, please try again later')
+export const chatRateLimit = limiter(
+  1,
+  Number(process.env.CHAT_RATE_LIMIT) || 10,
+  'Too many questions, please try again later',
+)
 // Read-aloud for devices without a voice: open without an account (the welcome page uses it), so per IP.
-export const ttsRateLimit = limiter(1, Number(process.env.TTS_RATE_LIMIT) || 12, 'Too many read-alouds, please try again later')
+export const ttsRateLimit = limiter(
+  1,
+  Number(process.env.TTS_RATE_LIMIT) || 12,
+  'Too many read-alouds, please try again later',
+)
 // Slows password guessing: only failed logins and signups count.
 // Dose ticks are cheap, but a script shouldn't be able to hammer the database. Far above what a person tapping ticks can reach.
-export const doseRateLimit = limiter(1, Number(process.env.DOSE_RATE_LIMIT) || 60, 'Too many changes, please wait a minute')
+export const doseRateLimit = limiter(
+  1,
+  Number(process.env.DOSE_RATE_LIMIT) || 60,
+  'Too many changes, please wait a minute',
+)
 // "Forgot your password?": every request counts (each one may send an email; it always answers the same, so counting
 // only failures would never stop anything). Per email too, in MongoDB (routes/auth.js).
-export const forgotRateLimit = limiter(60, Number(process.env.FORGOT_RATE_LIMIT) || 10, 'Too many requests, please wait a while')
+export const forgotRateLimit = limiter(
+  60,
+  Number(process.env.FORGOT_RATE_LIMIT) || 10,
+  'Too many requests, please wait a while',
+)
 // Choosing the new password from the emailed link: every try counts, so links can't be guessed at speed.
-export const resetRateLimit = limiter(15, Number(process.env.RESET_RATE_LIMIT) || 20, 'Too many tries, please wait a few minutes')
-export const authRateLimit =limiter(15, Number(process.env.AUTH_RATE_LIMIT) || 10, 'Too many tries, please wait a few minutes', undefined, { skipSuccessfulRequests: true })
+export const resetRateLimit = limiter(
+  15,
+  Number(process.env.RESET_RATE_LIMIT) || 20,
+  'Too many tries, please wait a few minutes',
+)
+export const authRateLimit = limiter(
+  15,
+  Number(process.env.AUTH_RATE_LIMIT) || 10,
+  'Too many tries, please wait a few minutes',
+  undefined,
+  { skipSuccessfulRequests: true },
+)
 
 // Global cap across all users, so rotating IPs can't drain the daily AI quota. Scan, chat and read-aloud
 // count separately (they use different models, so different quotas). Call only after validation, right before the AI call.
-const CAPS = { scan: ['AI_DAILY_CAP', 200], chat: ['AI_CHAT_DAILY_CAP', 500], tts: ['AI_TTS_DAILY_CAP', 300] }
+const CAPS = {
+  scan: ['AI_DAILY_CAP', 200],
+  chat: ['AI_CHAT_DAILY_CAP', 500],
+  tts: ['AI_TTS_DAILY_CAP', 300],
+}
 const counters = {}
 
 export function takeDailyQuota(kind = 'scan') {

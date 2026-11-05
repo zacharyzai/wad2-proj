@@ -12,7 +12,9 @@ test('Ask says hello by name', async ({ page }) => {
 test('an emergency question gets the 995 card', async ({ page }) => {
   await signUp(page)
   await page.goto('/ask')
-  await page.getByLabel('Or type your own question').fill('My mother has chest pain after taking it')
+  await page
+    .getByLabel('Or type your own question')
+    .fill('My mother has chest pain after taking it')
   await page.getByRole('button', { name: 'Ask', exact: true }).click()
   await expect(page.getByTestId('ask-urgent')).toContainText('This could be an emergency')
   await expect(page.getByRole('link', { name: 'Call 995' })).toBeVisible()

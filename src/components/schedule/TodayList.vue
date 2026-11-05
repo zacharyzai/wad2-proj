@@ -35,18 +35,34 @@ const groups = computed(() => {
     if (!byTime.has(dose.time)) byTime.set(dose.time, [])
     byTime.get(dose.time).push(dose)
   }
-  const list = [...byTime].map(([time, doses]) => ({ time, doses, slot: doses.every((d) => d.slot === doses[0].slot) ? doses[0].slot : null }))
-  const states = timeStates(list.map((g) => g.time), nowTime.value)
+  const list = [...byTime].map(([time, doses]) => ({
+    time,
+    doses,
+    slot: doses.every((d) => d.slot === doses[0].slot) ? doses[0].slot : null,
+  }))
+  const states = timeStates(
+    list.map((g) => g.time),
+    nowTime.value,
+  )
   return list.map((g, i) => ({ ...g, state: states[i] }))
 })
 const allTaken = (g) => g.doses.every((d) => taken.value.has(d.id))
 // The time that's due and not yet ticked: shown at the top with "I've taken it" for each of its doses.
-const dueGroup = computed(() => (ready.value ? groups.value.find((g) => g.state === 'now' && !allTaken(g)) : null))
+const dueGroup = computed(() =>
+  ready.value ? groups.value.find((g) => g.state === 'now' && !allTaken(g)) : null,
+)
 // "Next: Metformin at 6:00 PM": the first untaken dose that isn't due yet.
-const nextDose = computed(() => groups.value.filter((g) => g.state === 'later').flatMap((g) => g.doses).find((d) => !taken.value.has(d.id)))
+const nextDose = computed(() =>
+  groups.value
+    .filter((g) => g.state === 'later')
+    .flatMap((g) => g.doses)
+    .find((d) => !taken.value.has(d.id)),
+)
 const doneCount = computed(() => todayDoses.value.filter((d) => taken.value.has(d.id)).length)
 const RING = 2 * Math.PI * 30 // the progress ring's circumference (r = 30)
-const percent = computed(() => (todayDoses.value.length ? Math.round((doneCount.value / todayDoses.value.length) * 100) : 0))
+const percent = computed(() =>
+  todayDoses.value.length ? Math.round((doneCount.value / todayDoses.value.length) * 100) : 0,
+)
 // The % counts up to its new value (and the ring fills with it), from 0 when the page opens. Reduced motion: at once.
 // After a tick of their own, a soft glow sweeps the whole card, left edge to right, quickly and at one steady speed
 // (BAND_MS). The moment its front edge reaches the ring, it is logged for all to see: the ring glows and ripples, the
@@ -69,7 +85,9 @@ function countTo(to) {
   const start = performance.now()
   const step = (now) => {
     const k = Math.min(1, (now - start) / COUNT_MS)
-    shown.value = Math.round(from + (to - from) * (k < 0.5 ? 4 * k ** 3 : 1 - (-2 * k + 2) ** 3 / 2)) // eased in and out
+    shown.value = Math.round(
+      from + (to - from) * (k < 0.5 ? 4 * k ** 3 : 1 - (-2 * k + 2) ** 3 / 2),
+    ) // eased in and out
     if (k < 1) frame = requestAnimationFrame(step)
   }
   frame = requestAnimationFrame(step)
@@ -152,56 +170,153 @@ const onBackdrop = (event) => event.target === askBox.value && answer(false)
 </script>
 
 <template>
-  <section ref="listEl" class="d-flex flex-column gap-4" aria-labelledby="today-title" data-testid="schedule-today">
+  <section
+    ref="listEl"
+    class="d-flex flex-column gap-4"
+    aria-labelledby="today-title"
+    data-testid="schedule-today"
+  >
     <h2 id="today-title" class="visually-hidden">{{ t('schedule.today') }}</h2>
     <ErrorBanner v-if="loadError" :code="loadError" retryable @retry="doses.loadTicks" />
 
     <p v-if="!todayDoses.length" class="card m-0 text-muted-a11y" data-testid="schedule-none-today">
       {{ t(needDays ? 'schedule.noneTodayNeedDays' : 'schedule.noneToday') }}
-      <RouterLink v-if="needDays" :to="medsLink" class="d-block mt-2 fw-bold">{{ t('schedule.tab.meds') }}</RouterLink>
+      <RouterLink v-if="needDays" :to="medsLink" class="d-block mt-2 fw-bold">{{
+        t('schedule.tab.meds')
+      }}</RouterLink>
     </p>
     <template v-else>
       <!-- What's due now: the one thing to do, with "I've taken it" for each dose of that time. Never for a missed dose. -->
-      <section v-if="dueGroup" class="due" :class="`slot-${dueGroup.slot ?? 'other'}`" aria-labelledby="due-title" data-testid="schedule-due">
+      <section
+        v-if="dueGroup"
+        class="due"
+        :class="`slot-${dueGroup.slot ?? 'other'}`"
+        aria-labelledby="due-title"
+        data-testid="schedule-due"
+      >
         <div class="d-flex align-items-start gap-3">
-          <span class="slot-tile lg" aria-hidden="true"><AppIcon :name="SLOT_ICONS[dueGroup.slot] ?? 'clock'" :size="26" /></span>
+          <span class="slot-tile lg" aria-hidden="true"
+            ><AppIcon :name="SLOT_ICONS[dueGroup.slot] ?? 'clock'" :size="26"
+          /></span>
           <div class="d-flex flex-column gap-1 min-w-0">
-            <h2 id="due-title" class="due-title">{{ dueGroup.doses.length === 1 ? t('schedule.due.one', { name: dueGroup.doses[0].label }) : t('schedule.due.many', { n: dueGroup.doses.length }) }}</h2>
-            <p class="m-0">{{ t(dueGroup.doses.length > 1 ? 'schedule.due.textMany' : 'schedule.due.text', { time: timeText(dueGroup.time) }) }}</p>
+            <h2 id="due-title" class="due-title">
+              {{
+                dueGroup.doses.length === 1
+                  ? t('schedule.due.one', { name: dueGroup.doses[0].label })
+                  : t('schedule.due.many', { n: dueGroup.doses.length })
+              }}
+            </h2>
+            <p class="m-0">
+              {{
+                t(dueGroup.doses.length > 1 ? 'schedule.due.textMany' : 'schedule.due.text', {
+                  time: timeText(dueGroup.time),
+                })
+              }}
+            </p>
           </div>
         </div>
         <!-- Several due together: a button for each, so a tablet that wasn't taken is never ticked with the others. -->
         <ul v-if="dueGroup.doses.length > 1" class="due-list">
           <li v-for="d in dueGroup.doses" :key="d.id" :data-testid="`schedule-due-${d.id}`">
-            <span class="due-med"><strong>{{ d.label }}</strong><span class="text-muted-a11y">{{ doseText(d.instruction) }}</span></span>
-            <span v-if="taken.has(d.id)" class="badge badge-success"><AppIcon name="check" :size="18" :stroke="3" />{{ t('schedule.taken') }}</span>
-            <button v-else type="button" class="btn btn-primary" :aria-label="t('schedule.due.takeLabel', { name: d.label })" data-testid="schedule-due-take" @click="toggle(d, true)"><AppIcon name="check" />{{ t('schedule.due.take') }}</button>
+            <span class="due-med"
+              ><strong>{{ d.label }}</strong
+              ><span class="text-muted-a11y">{{ doseText(d.instruction) }}</span></span
+            >
+            <span v-if="taken.has(d.id)" class="badge badge-success"
+              ><AppIcon name="check" :size="18" :stroke="3" />{{ t('schedule.taken') }}</span
+            >
+            <button
+              v-else
+              type="button"
+              class="btn btn-primary"
+              :aria-label="t('schedule.due.takeLabel', { name: d.label })"
+              data-testid="schedule-due-take"
+              @click="toggle(d, true)"
+            >
+              <AppIcon name="check" />{{ t('schedule.due.take') }}
+            </button>
           </li>
         </ul>
-        <button v-else type="button" class="btn btn-primary" data-testid="schedule-due-take" @click="toggle(dueGroup.doses[0], true)"><AppIcon name="check" />{{ t('schedule.due.take') }}</button>
+        <button
+          v-else
+          type="button"
+          class="btn btn-primary"
+          data-testid="schedule-due-take"
+          @click="toggle(dueGroup.doses[0], true)"
+        >
+          <AppIcon name="check" />{{ t('schedule.due.take') }}
+        </button>
       </section>
 
       <!-- The day's progress: the words say it; the numbers and the ring only show it. -->
-      <div ref="planEl" class="progress-card" :class="{ logged: landed }" :style="landing && { '--rx': `${landing.x}px`, '--ry': `${landing.y}px`, '--arrive': `${landing.arrive}ms` }" data-testid="schedule-progress">
+      <div
+        ref="planEl"
+        class="progress-card"
+        :class="{ logged: landed }"
+        :style="
+          landing && {
+            '--rx': `${landing.x}px`,
+            '--ry': `${landing.y}px`,
+            '--arrive': `${landing.arrive}ms`,
+          }
+        "
+        data-testid="schedule-progress"
+      >
         <!-- Success, after a dose is ticked (decoration): a glow sweeps the card from left to right, and rings ripple out of
              the progress ring as the glow reaches it. -->
-        <span v-if="sweep && landing" :key="sweep" class="pc-sweep" aria-hidden="true" data-testid="schedule-progress-sweep">
+        <span
+          v-if="sweep && landing"
+          :key="sweep"
+          class="pc-sweep"
+          aria-hidden="true"
+          data-testid="schedule-progress-sweep"
+        >
           <span class="pc-trail"></span>
           <span class="pc-ripple"></span><span class="pc-ripple late"></span>
         </span>
         <div class="pc-words">
           <span class="pc-title">{{ t('schedule.plan.title') }}</span>
           <div class="pc-stats" aria-hidden="true">
-            <span><small>{{ t('schedule.plan.total') }}</small><b>{{ todayDoses.length }}</b></span>
-            <span class="pc-taken"><small>{{ t('schedule.plan.taken') }}</small><b :key="doneCount" :class="{ bump: sweep }">{{ doneCount }}</b><span v-if="sweep" :key="sweep" class="pc-plus" data-testid="schedule-progress-plus">+1</span></span>
+            <span
+              ><small>{{ t('schedule.plan.total') }}</small
+              ><b>{{ todayDoses.length }}</b></span
+            >
+            <span class="pc-taken"
+              ><small>{{ t('schedule.plan.taken') }}</small
+              ><b :key="doneCount" :class="{ bump: sweep }">{{ doneCount }}</b
+              ><span v-if="sweep" :key="sweep" class="pc-plus" data-testid="schedule-progress-plus"
+                >+1</span
+              ></span
+            >
           </div>
-          <strong class="progress-words" :class="{ 'visually-hidden': doneCount !== todayDoses.length }" data-testid="schedule-progress-words">{{ doneCount === todayDoses.length ? t('schedule.allDone') : t('schedule.progress', { done: doneCount, total: todayDoses.length }) }}</strong>
-          <span v-if="nextDose" class="pc-next">{{ t('schedule.next', { name: nextDose.label, time: timeText(nextDose.time) }) }}</span>
+          <strong
+            class="progress-words"
+            :class="{ 'visually-hidden': doneCount !== todayDoses.length }"
+            data-testid="schedule-progress-words"
+            >{{
+              doneCount === todayDoses.length
+                ? t('schedule.allDone')
+                : t('schedule.progress', { done: doneCount, total: todayDoses.length })
+            }}</strong
+          >
+          <span v-if="nextDose" class="pc-next">{{
+            t('schedule.next', { name: nextDose.label, time: timeText(nextDose.time) })
+          }}</span>
         </div>
         <svg ref="ringEl" class="ring" :class="{ landed }" viewBox="0 0 72 72" aria-hidden="true">
           <circle cx="36" cy="36" r="30" class="ring-track" />
-          <circle cx="36" cy="36" r="30" class="ring-fill" :class="{ full: doneCount === todayDoses.length }" :stroke-dasharray="RING" :stroke-dashoffset="RING * (1 - shown / 100)" />
-          <text x="36" y="36" class="ring-num" text-anchor="middle" dominant-baseline="central">{{ shown }}%</text>
+          <circle
+            cx="36"
+            cy="36"
+            r="30"
+            class="ring-fill"
+            :class="{ full: doneCount === todayDoses.length }"
+            :stroke-dasharray="RING"
+            :stroke-dashoffset="RING * (1 - shown / 100)"
+          />
+          <text x="36" y="36" class="ring-num" text-anchor="middle" dominant-baseline="central">
+            {{ shown }}%
+          </text>
         </svg>
       </div>
 
@@ -218,23 +333,39 @@ const onBackdrop = (event) => event.target === askBox.value && answer(false)
           :data-state="g.state"
         >
           <div class="group-head">
-            <span class="slot-tile sm" aria-hidden="true"><AppIcon :name="SLOT_ICONS[g.slot] ?? 'clock'" :size="20" /></span>
+            <span class="slot-tile sm" aria-hidden="true"
+              ><AppIcon :name="SLOT_ICONS[g.slot] ?? 'clock'" :size="20"
+            /></span>
             <h3 :id="`slot-title-${g.time}`" class="group-name">
-              <template v-if="g.slot">{{ t(`timing.${g.slot}`) }}<span class="visually-hidden"> · </span></template>
+              <template v-if="g.slot"
+                >{{ t(`timing.${g.slot}`) }}<span class="visually-hidden"> · </span></template
+              >
               <span class="slot-clock">{{ timeText(g.time) }}</span>
             </h3>
-            <span class="badge slot-state" :class="`state-${bandStatus(g).kind}`" data-testid="slot-state">
-              <AppIcon v-if="bandStatus(g).kind === 'done'" name="checkCircle" :size="18" />{{ bandStatus(g).text }}
+            <span
+              class="badge slot-state"
+              :class="`state-${bandStatus(g).kind}`"
+              data-testid="slot-state"
+            >
+              <AppIcon v-if="bandStatus(g).kind === 'done'" name="checkCircle" :size="18" />{{
+                bandStatus(g).text
+              }}
             </span>
           </div>
           <!-- Never "take it now" for a missed dose: that is the pharmacist's call. -->
-          <p v-if="g.state === 'earlier' && !allTaken(g)" class="slot-note m-0">{{ t('schedule.slot.missed') }}</p>
+          <p v-if="g.state === 'earlier' && !allTaken(g)" class="slot-note m-0">
+            {{ t('schedule.slot.missed') }}
+          </p>
           <ul class="cards">
             <li v-for="(d, i) in g.doses" :key="d.id" :data-testid="`dose-${d.id}`">
               <!-- The tick. The button holds only the medicine's name (so what's seen is what's spoken: WCAG 2.5.3) and its click area
                    stretches over the whole row, a big target for unsteady hands. aria-pressed says taken or not; the amount and
                    the word under it are plain text beside it. -->
-              <div class="dose dcard" :class="{ done: taken.has(d.id), busy: !ready }" :style="{ '--n': i }">
+              <div
+                class="dose dcard"
+                :class="{ done: taken.has(d.id), busy: !ready }"
+                :style="{ '--n': i }"
+              >
                 <KindIcon kind="medication" :size="48" />
                 <span class="dose-info dcard-info">
                   <span class="tag" aria-hidden="true">{{ timeText(d.time) }}</span>
@@ -247,13 +378,29 @@ const onBackdrop = (event) => event.target === askBox.value && answer(false)
                     :aria-describedby="`dose-detail-${d.id}`"
                     :disabled="!ready"
                     @click="tap(d)"
-                  >{{ d.label }}</button>
-                  <span v-if="purposeOf(d.medicineId)" class="dose-detail" data-testid="dose-purpose">{{ purposeOf(d.medicineId) }}</span>
-                  <span :id="`dose-detail-${d.id}`" class="dose-detail">{{ doseText(d.instruction) }}</span>
+                  >
+                    {{ d.label }}
+                  </button>
+                  <span
+                    v-if="purposeOf(d.medicineId)"
+                    class="dose-detail"
+                    data-testid="dose-purpose"
+                    >{{ purposeOf(d.medicineId) }}</span
+                  >
+                  <span :id="`dose-detail-${d.id}`" class="dose-detail">{{
+                    doseText(d.instruction)
+                  }}</span>
                 </span>
                 <!-- Its state, on the right: taken (it pops in) or "Tap when taken". The whole card is the button. -->
-                <span :key="taken.has(d.id) ? 'on' : 'off'" class="box pill dose-word" :class="taken.has(d.id) ? 'pill-ok pop' : 'pill-tap'" aria-hidden="true">
-                  <AppIcon v-if="taken.has(d.id)" name="check" :size="18" :stroke="3" />{{ taken.has(d.id) ? t('schedule.taken') : t('schedule.tapWhenTaken') }}
+                <span
+                  :key="taken.has(d.id) ? 'on' : 'off'"
+                  class="box pill dose-word"
+                  :class="taken.has(d.id) ? 'pill-ok pop' : 'pill-tap'"
+                  aria-hidden="true"
+                >
+                  <AppIcon v-if="taken.has(d.id)" name="check" :size="18" :stroke="3" />{{
+                    taken.has(d.id) ? t('schedule.taken') : t('schedule.tapWhenTaken')
+                  }}
                 </span>
               </div>
             </li>
@@ -263,25 +410,69 @@ const onBackdrop = (event) => event.target === askBox.value && answer(false)
     </template>
 
     <!-- "Did you take it?": a pop-up with the pill bobbing in soft rings, and two big choices. -->
-    <dialog ref="askBox" class="take-ask" role="alertdialog" aria-labelledby="take-title" aria-describedby="take-text" data-testid="schedule-take-ask" @cancel.prevent="answer(false)" @click="onBackdrop">
+    <dialog
+      ref="askBox"
+      class="take-ask"
+      role="alertdialog"
+      aria-labelledby="take-title"
+      aria-describedby="take-text"
+      data-testid="schedule-take-ask"
+      @cancel.prevent="answer(false)"
+      @click="onBackdrop"
+    >
       <div v-if="asking" class="ask-card">
         <div class="ask-art" aria-hidden="true">
           <span class="ask-ring"></span><span class="ask-ring two"></span>
           <KindIcon kind="medication" :size="76" class="ask-pill" />
         </div>
-        <h2 id="take-title" class="ask-title">{{ asking.early ? t('schedule.early.title') : t('schedule.ask.title', { name: asking.dose.label }) }}</h2>
-        <p v-if="doseText(asking.dose.instruction)" class="ask-dose">{{ doseText(asking.dose.instruction) }}</p>
-        <p id="take-text" class="ask-text">{{ asking.early ? t('schedule.early.text', { name: asking.dose.label, time: timeText(asking.dose.time) }) : t('schedule.ask.when', { time: timeText(asking.dose.time) }) }}</p>
+        <h2 id="take-title" class="ask-title">
+          {{
+            asking.early
+              ? t('schedule.early.title')
+              : t('schedule.ask.title', { name: asking.dose.label })
+          }}
+        </h2>
+        <p v-if="doseText(asking.dose.instruction)" class="ask-dose">
+          {{ doseText(asking.dose.instruction) }}
+        </p>
+        <p id="take-text" class="ask-text">
+          {{
+            asking.early
+              ? t('schedule.early.text', {
+                  name: asking.dose.label,
+                  time: timeText(asking.dose.time),
+                })
+              : t('schedule.ask.when', { time: timeText(asking.dose.time) })
+          }}
+        </p>
         <div class="ask-acts">
-          <button type="button" class="btn btn-primary" autofocus :data-early-yes="asking.dose.id" @click="answer(true)"><AppIcon name="check" :size="22" />{{ t('schedule.early.yes') }}</button>
-          <button type="button" class="btn btn-secondary" @click="answer(false)">{{ t('schedule.early.no') }}</button>
+          <button
+            type="button"
+            class="btn btn-primary"
+            autofocus
+            :data-early-yes="asking.dose.id"
+            @click="answer(true)"
+          >
+            <AppIcon name="check" :size="22" />{{ t('schedule.early.yes') }}
+          </button>
+          <button type="button" class="btn btn-secondary" @click="answer(false)">
+            {{ t('schedule.early.no') }}
+          </button>
         </div>
       </div>
     </dialog>
 
     <!-- Medicines still waiting for their number of days: one line here, the form is in My medicines. -->
-    <RouterLink v-if="needDays && todayDoses.length" :to="medsLink" class="alert alert-warning need-link" data-testid="schedule-need-days-link">
-      <AppIcon name="alert" /><span>{{ t('schedule.needDaysCount', { n: needDays }, needDays) }}</span><AppIcon name="right" class="ms-auto" />
+    <RouterLink
+      v-if="needDays && todayDoses.length"
+      :to="medsLink"
+      class="alert alert-warning need-link"
+      data-testid="schedule-need-days-link"
+    >
+      <AppIcon name="alert" /><span>{{
+        t('schedule.needDaysCount', { n: needDays }, needDays)
+      }}</span
+      ><AppIcon name="right" class="ms-auto" />
     </RouterLink>
   </section>
 </template>

@@ -52,7 +52,8 @@ function hasDarkAreas(img) {
   ctx.drawImage(img, 0, 0, w, h)
   const px = ctx.getImageData(0, 0, w, h).data
   let dark = 0
-  for (let i = 0; i < px.length; i += 4) if (0.3 * px[i] + 0.59 * px[i + 1] + 0.11 * px[i + 2] < 110) dark++
+  for (let i = 0; i < px.length; i += 4)
+    if (0.3 * px[i] + 0.59 * px[i + 1] + 0.11 * px[i + 2] < 110) dark++
   return dark / (w * h) > 0.01
 }
 
@@ -61,7 +62,11 @@ async function readLines(img, filter = NORMAL) {
   const { canvas, scale } = forReading(img, filter)
   const ocr = await getWorker()
   const { data } = await ocr.recognize(canvas, {}, { blocks: true, text: true })
-  return { lines: (data.blocks ?? []).flatMap((block) => block.paragraphs.flatMap((p) => p.lines)), text: data.text, scale }
+  return {
+    lines: (data.blocks ?? []).flatMap((block) => block.paragraphs.flatMap((p) => p.lines)),
+    text: data.text,
+    scale,
+  }
 }
 
 /**
@@ -77,7 +82,9 @@ export async function redactImage(dataUrl) {
   const first = await readLines(img)
   const { scale, text } = first
   const a = planRedaction(first.lines)
-  const b = hasDarkAreas(img) ? planRedaction((await readLines(img, INVERTED)).lines) : { keep: [], hits: [] }
+  const b = hasDarkAreas(img)
+    ? planRedaction((await readLines(img, INVERTED)).lines)
+    : { keep: [], hits: [] }
   const keep = [...a.keep, ...b.keep]
   const hits = [...a.hits, ...b.hits]
 
@@ -107,9 +114,20 @@ export async function redactImage(dataUrl) {
     // Personal details on a shown row are blacked out again, only inside the strip (so they never cut into the next row).
     for (const { bbox } of hits) {
       const pad = Math.max(4, (bbox.y1 - bbox.y0) * 0.2)
-      ctx.fillRect(bbox.x0 - pad, bbox.y0 - pad, bbox.x1 - bbox.x0 + 2 * pad, bbox.y1 - bbox.y0 + 2 * pad)
+      ctx.fillRect(
+        bbox.x0 - pad,
+        bbox.y0 - pad,
+        bbox.x1 - bbox.x0 + 2 * pad,
+        bbox.y1 - bbox.y0 + 2 * pad,
+      )
     }
     ctx.restore()
   }
-  return { dataUrl: canvas.toDataURL('image/jpeg', 0.8), keep, hits, text, ms: Math.round(performance.now() - started) }
+  return {
+    dataUrl: canvas.toDataURL('image/jpeg', 0.8),
+    keep,
+    hits,
+    text,
+    ms: Math.round(performance.now() - started),
+  }
 }

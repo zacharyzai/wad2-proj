@@ -6,8 +6,26 @@
 import { test, expect } from './fixtures.js'
 
 let n = 0
-const med = (title, createdAt, purpose = null) => ({ id: `m${++n}`, type: 'medication', source: 'ai', title, purpose, createdAt, visitDate: null, totalPayableCents: null })
-const bill = (title, visitDate, cents) => ({ id: `b${++n}`, type: 'bill', source: 'ai', title, purpose: null, createdAt: `${visitDate}T04:00:00Z`, visitDate, totalPayableCents: cents })
+const med = (title, createdAt, purpose = null) => ({
+  id: `m${++n}`,
+  type: 'medication',
+  source: 'ai',
+  title,
+  purpose,
+  createdAt,
+  visitDate: null,
+  totalPayableCents: null,
+})
+const bill = (title, visitDate, cents) => ({
+  id: `b${++n}`,
+  type: 'bill',
+  source: 'ai',
+  title,
+  purpose: null,
+  createdAt: `${visitDate}T04:00:00Z`,
+  visitDate,
+  totalPayableCents: cents,
+})
 
 const ITEMS = [
   med('Metformin 500 mg', '2026-11-01T02:00:00Z', 'diabetes'),
@@ -21,33 +39,72 @@ const ITEMS = [
   bill('Merlion Valley General Hospital', '2026-11-01', 10653),
   bill('Bedok Polyclinic', '2026-10-28', 1400),
   bill('Bedok Polyclinic', '2026-10-02', 1400),
-  ...Array.from({ length: 10 }, (_, i) => bill('Tan Family Clinic', `2026-0${(i % 9) + 1}-1${i % 9}`, 3000)),
+  ...Array.from({ length: 10 }, (_, i) =>
+    bill('Tan Family Clinic', `2026-0${(i % 9) + 1}-1${i % 9}`, 3000),
+  ),
   bill('Bedok Polyclinic', '2025-12-15', 1400),
 ].sort((a, b) => b.createdAt.localeCompare(a.createdAt))
 
 // On the timetable: Metformin and Amlodipine (taking now). Panadol and the cough syrup aren't.
-const onList = (id, name, strength, timing) => ({ id, source: 'label', sample: false, medication: { name, strength, doseAmount: 1, doseUnit: 'tablet', timesPerDay: timing.length, timing, withFood: 'after', frequencyType: 'daily', rawInstruction: 'x', warnings: [] }, schedule: { startDate: '2026-11-01', days: 30, times: {} } })
+const onList = (id, name, strength, timing) => ({
+  id,
+  source: 'label',
+  sample: false,
+  medication: {
+    name,
+    strength,
+    doseAmount: 1,
+    doseUnit: 'tablet',
+    timesPerDay: timing.length,
+    timing,
+    withFood: 'after',
+    frequencyType: 'daily',
+    rawInstruction: 'x',
+    warnings: [],
+  },
+  schedule: { startDate: '2026-11-01', days: 30, times: {} },
+})
 
 async function setUp(page) {
   await page.clock.setFixedTime(new Date('2026-11-03T10:00:00+08:00'))
-  await page.addInitScript((list) => localStorage.setItem('medicines', JSON.stringify(list)), [onList('s1', 'Metformin', '500 mg', ['morning', 'evening']), onList('s2', 'Amlodipine', '5 mg', ['morning'])])
-  await page.route(/\/api\/history\/all$/, (route) => route.fulfill({ json: { ok: true, data: { items: ITEMS, total: ITEMS.length, capped: false } } }))
+  await page.addInitScript(
+    (list) => localStorage.setItem('medicines', JSON.stringify(list)),
+    [
+      onList('s1', 'Metformin', '500 mg', ['morning', 'evening']),
+      onList('s2', 'Amlodipine', '5 mg', ['morning']),
+    ],
+  )
+  await page.route(/\/api\/history\/all$/, (route) =>
+    route.fulfill({
+      json: { ok: true, data: { items: ITEMS, total: ITEMS.length, capped: false } },
+    }),
+  )
 }
 const rows = (page, testid) => page.getByTestId(testid).getByTestId('history-row')
 
-test('medicines: one row each, however often scanned; taking now first, the rest folded away', async ({ page }) => {
+test('medicines: one row each, however often scanned; taking now first, the rest folded away', async ({
+  page,
+}) => {
   await setUp(page)
   await page.goto('/history')
-  await expect(rows(page, 'history-taking')).toHaveText([/Metformin 500 mg\s*Scanned 4 times\s*(Nov 1|1 Nov)/, /Amlodipine 5 mg\s*Usually used for high blood pressure/])
+  await expect(rows(page, 'history-taking')).toHaveText([
+    /Metformin 500 mg\s*Scanned 4 times\s*(Nov 1|1 Nov)/,
+    /Amlodipine 5 mg\s*Usually used for high blood pressure/,
+  ])
   const fold = page.getByTestId('history-not-taking-toggle')
   await expect(fold).toHaveText(/No longer taking \(2\)/)
   await expect(fold).toHaveAttribute('aria-expanded', 'false')
   await expect(page.getByTestId('history-not-taking')).toBeHidden()
   await fold.click()
-  await expect(rows(page, 'history-not-taking')).toHaveText([/Panadol\s*Scanned 2 times/, /Cough syrup/])
+  await expect(rows(page, 'history-not-taking')).toHaveText([
+    /Panadol\s*Scanned 2 times/,
+    /Cough syrup/,
+  ])
 })
 
-test('find a medicine: one tap on a chip, or a few letters, even one that is folded away', async ({ page }) => {
+test('find a medicine: one tap on a chip, or a few letters, even one that is folded away', async ({
+  page,
+}) => {
   await setUp(page)
   await page.goto('/history')
   const chips = page.getByTestId('history-quick')
@@ -68,7 +125,9 @@ test('find a medicine: one tap on a chip, or a few letters, even one that is fol
   await expect(rows(page, 'history-taking')).toHaveCount(2)
 })
 
-test('find a medicine by what it is for: "diabetes", an everyday word, or another language; the row says why it was found', async ({ page }) => {
+test('find a medicine by what it is for: "diabetes", an everyday word, or another language; the row says why it was found', async ({
+  page,
+}) => {
   await setUp(page)
   await page.goto('/history')
   const find = page.getByTestId('history-find')
@@ -76,7 +135,12 @@ test('find a medicine by what it is for: "diabetes", an everyday word, or anothe
   await find.fill('diabetes')
   await expect(row).toHaveCount(1)
   await expect(row).toHaveText(/Metformin 500 mg\s*Usually used for diabetes \(blood sugar\)/) // why it was found, not "Scanned 4 times"
-  for (const [typed, name] of [['blood pressure', 'Amlodipine 5 mg'], ['Sugar', 'Metformin 500 mg'], ['kencing manis', 'Metformin 500 mg'], ['hypertension', 'Amlodipine 5 mg']]) {
+  for (const [typed, name] of [
+    ['blood pressure', 'Amlodipine 5 mg'],
+    ['Sugar', 'Metformin 500 mg'],
+    ['kencing manis', 'Metformin 500 mg'],
+    ['hypertension', 'Amlodipine 5 mg'],
+  ]) {
     await find.fill(typed)
     await expect(row, typed).toHaveCount(1)
     await expect(row, typed).toContainText(name)
@@ -90,7 +154,9 @@ test('find a medicine by what it is for: "diabetes", an everyday word, or anothe
   await expect(row).toContainText('Metformin 500 mg')
 })
 
-test('a medicine opens to every scan of it, each with Listen again and Delete; Back returns to the list', async ({ page }) => {
+test('a medicine opens to every scan of it, each with Listen again and Delete; Back returns to the list', async ({
+  page,
+}) => {
   await setUp(page)
   await page.goto('/history')
   await rows(page, 'history-taking').first().click()
@@ -106,17 +172,25 @@ test('a medicine opens to every scan of it, each with Listen again and Delete; B
   await expect(rows(page, 'history-taking')).toHaveCount(2)
 })
 
-test('bills: under the month of the visit, all of them at once, with what was paid at each clinic this year', async ({ page }) => {
+test('bills: under the month of the visit, all of them at once, with what was paid at each clinic this year', async ({
+  page,
+}) => {
   await setUp(page)
   await page.goto('/history?tab=bill')
   await expect(page.getByTestId('history-row')).toHaveCount(14) // more than one old page of 10: no "show older"
-  await expect(page.getByTestId('history-month-2026-11')).toContainText('Merlion Valley General Hospital')
+  await expect(page.getByTestId('history-month-2026-11')).toContainText(
+    'Merlion Valley General Hospital',
+  )
   await expect(page.getByRole('heading', { name: 'This month' })).toBeVisible()
   await expect(page.getByTestId('history-month-2026-10').getByTestId('history-row')).toHaveCount(2)
   await expect(page.getByRole('heading', { name: 'December 2025' })).toBeVisible()
   // This year only (the December 2025 visit is left out), most paid first.
   await expect(page.getByTestId('history-year')).toContainText('What you paid in 2026')
-  await expect(page.getByTestId('history-year').locator('li')).toHaveText([/Tan Family Clinic\s*10 bills\s*\$300\.00/, /Merlion Valley General Hospital\s*1 bill\s*\$106\.53/, /Bedok Polyclinic\s*2 bills\s*\$28\.00/])
+  await expect(page.getByTestId('history-year').locator('li')).toHaveText([
+    /Tan Family Clinic\s*10 bills\s*\$300\.00/,
+    /Merlion Valley General Hospital\s*1 bill\s*\$106\.53/,
+    /Bedok Polyclinic\s*2 bills\s*\$28\.00/,
+  ])
 
   // A chip jumps to its month.
   await page.getByTestId('history-month-chip').filter({ hasText: 'Dec 2025' }).click()
@@ -128,13 +202,17 @@ test('bills: under the month of the visit, all of them at once, with what was pa
   await expect(page.getByTestId('history-year')).toHaveCount(0) // the totals step aside while finding
 })
 
-test('a bill opens on its own, with what was paid; the list it came from is in the address', async ({ page }) => {
+test('a bill opens on its own, with what was paid; the list it came from is in the address', async ({
+  page,
+}) => {
   await setUp(page)
   await page.goto('/history')
   await page.getByTestId('history-tab-bill').click()
   await expect(page).toHaveURL(/\?tab=bill$/)
   await page.getByTestId('history-month-2026-11').getByTestId('history-row').click()
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Merlion Valley General Hospital')
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(
+    'Merlion Valley General Hospital',
+  )
   await expect(page.getByText('You paid $106.53').first()).toBeVisible()
   await expect(page.getByTestId('history-item')).toHaveCount(1)
   await page.goBack()

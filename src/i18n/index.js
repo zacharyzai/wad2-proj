@@ -26,7 +26,11 @@ const i18n = createI18n({
 // Only English ships inside the first download. 中文, Bahasa Melayu and தமிழ் (about 55 kB each) are fetched the first time
 // someone uses them, then kept by the browser. main.js waits for the saved language before showing the app, so nobody
 // sees English flash first; a language that can't be fetched (offline) simply isn't switched to.
-const LOADERS = { zh: () => import('./locales/zh.json'), ms: () => import('./locales/ms.json'), ta: () => import('./locales/ta.json') }
+const LOADERS = {
+  zh: () => import('./locales/zh.json'),
+  ms: () => import('./locales/ms.json'),
+  ta: () => import('./locales/ta.json'),
+}
 const loading = {}
 const hasMessages = (code) => i18n.global.availableLocales.includes(code)
 function loadMessages(code) {

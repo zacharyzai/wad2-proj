@@ -1,74 +1,352 @@
 /* Scoped styles for App.vue. Phones and tablets (<992): header, fixed bottom tabs. Desktop (≥992): white sidebar. Content max 1040px. */
-.shell { min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; padding-bottom: calc(82px + env(safe-area-inset-bottom)); }
+.shell {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: calc(82px + env(safe-area-inset-bottom));
+}
 
 /* Phone header: brand | account, (day/night is the button beside Account; language is on the Account page) */
-.side { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; grid-template-areas: 'brand theme acct' 'langs langs langs'; align-items: center; gap: 12px; padding: 12px 16px 14px; background: var(--color-card); border-bottom: 1px solid var(--color-border); }
-.brand { grid-area: brand; min-width: 0; display: flex; align-items: center; gap: 12px; color: var(--color-text); text-decoration: none; }
-.brand:hover { color: var(--color-text); }
-.logo { width: 48px; height: 48px; border-radius: 12px; }
-.brand-name { font-size: 18px; font-weight: 800; line-height: 1.15; letter-spacing: -0.01em; }
-.brand-can { display: block; color: var(--color-primary-text); }
-.desk-only, .navi.desk-only, .acct-label, .acct-chev { display: none; }
-.theme-box { grid-area: theme; display: flex; }
+.side {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  grid-template-areas: 'brand theme acct' 'langs langs langs';
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px 14px;
+  background: var(--color-card);
+  border-bottom: 1px solid var(--color-border);
+}
+.brand {
+  grid-area: brand;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--color-text);
+  text-decoration: none;
+}
+.brand:hover {
+  color: var(--color-text);
+}
+.logo {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+}
+.brand-name {
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+.brand-can {
+  display: block;
+  color: var(--color-primary-text);
+}
+.desk-only,
+.navi.desk-only,
+.acct-label,
+.acct-chev {
+  display: none;
+}
+.theme-box {
+  grid-area: theme;
+  display: flex;
+}
 /* Language: phones, a full-width row under the name, day/night and Account (as on the pages before logging in). */
-.lang-box { grid-area: langs; display: flex; flex-direction: column; gap: 8px; }
+.lang-box {
+  grid-area: langs;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
 
-.acct { grid-area: acct; display: grid; place-items: center; width: var(--hit); height: var(--hit); border-radius: var(--r-pill); background: var(--color-tint); color: var(--color-tint-text); text-decoration: none; }
-.acct:hover { color: var(--color-tint-text); background: var(--color-tint-strong); }
-.acct[aria-current='page'] { background: var(--color-primary); color: var(--color-on-primary); }
+.acct {
+  grid-area: acct;
+  display: grid;
+  place-items: center;
+  width: var(--hit);
+  height: var(--hit);
+  border-radius: var(--r-pill);
+  background: var(--color-tint);
+  color: var(--color-tint-text);
+  text-decoration: none;
+}
+.acct:hover {
+  color: var(--color-tint-text);
+  background: var(--color-tint-strong);
+}
+.acct[aria-current='page'] {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}
 
 /* Bottom tabs: the active tab gets a tinted pill behind its icon and a bar under its label. */
-.nav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 10; display: flex; padding: 8px 8px calc(8px + env(safe-area-inset-bottom)); background: var(--color-card); border-top: 1px solid var(--color-border); box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.05); }
+.nav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10;
+  display: flex;
+  padding: 8px 8px calc(8px + env(safe-area-inset-bottom));
+  background: var(--color-card);
+  border-top: 1px solid var(--color-border);
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.05);
+}
 /* Phone tabs share the width by label length (5 tabs; long Tamil words like அட்டவணை need more room than "Ask"). */
-.navi { position: relative; flex: 1 1 auto; min-width: 0; white-space: nowrap; min-height: var(--z64, 64px); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding-bottom: 6px; border-radius: var(--r-tile); color: var(--color-text-muted); font-size: 16px; font-weight: 600; line-height: 1.2; text-align: center; text-decoration: none; }
-.navi:hover { color: var(--color-tint-text); }
-.guide-link { width: 100%; border: 1px solid var(--color-border); background: none; font-family: inherit; }
-.navi-icon { width: var(--z56, 56px); height: 32px; border-radius: var(--r-pill); display: grid; place-items: center; transition: background-color var(--dur) var(--ease-out); }
-.navi.on { color: var(--color-tint-text); font-weight: 700; }
-.navi.on .navi-icon { background: var(--color-tint); }
-.navi.on::after { content: ''; position: absolute; bottom: 0; width: 20px; height: 4px; border-radius: var(--r-pill); background: var(--color-primary-text); }
-.lang-ta .navi { font-size: 14px; } /* the only way 5 Tamil tabs fit a 360px phone; the icons carry the meaning too */
+.navi {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+  white-space: nowrap;
+  min-height: var(--z64, 64px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding-bottom: 6px;
+  border-radius: var(--r-tile);
+  color: var(--color-text-muted);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: center;
+  text-decoration: none;
+}
+.navi:hover {
+  color: var(--color-tint-text);
+}
+.guide-link {
+  width: 100%;
+  border: 1px solid var(--color-border);
+  background: none;
+  font-family: inherit;
+}
+.navi-icon {
+  width: var(--z56, 56px);
+  height: 32px;
+  border-radius: var(--r-pill);
+  display: grid;
+  place-items: center;
+  transition: background-color var(--dur) var(--ease-out);
+}
+.navi.on {
+  color: var(--color-tint-text);
+  font-weight: 700;
+}
+.navi.on .navi-icon {
+  background: var(--color-tint);
+}
+.navi.on::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  width: 20px;
+  height: 4px;
+  border-radius: var(--r-pill);
+  background: var(--color-primary-text);
+}
+.lang-ta .navi {
+  font-size: 14px;
+} /* the only way 5 Tamil tabs fit a 360px phone; the icons carry the meaning too */
 
-.col-main { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; background: var(--color-page); }
-.main { flex: 1 1 auto; padding: var(--gutter) var(--gutter) 28px; }
+.col-main {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-page);
+}
+.main {
+  flex: 1 1 auto;
+  padding: var(--gutter) var(--gutter) 28px;
+}
 /* The page container is focused by code after a route change (never by Tab), so it carries no ring; the heading inside gets the focus. */
-.main:focus { outline: none; box-shadow: none; }
-.wrap, .ft { width: 100%; max-width: 1040px; margin: 0 auto; }
+.main:focus {
+  outline: none;
+  box-shadow: none;
+}
+.wrap,
+.ft {
+  width: 100%;
+  max-width: 1040px;
+  margin: 0 auto;
+}
 /* Disclaimer card under every page */
-.ft { display: flex; align-items: flex-start; gap: 12px; margin-bottom: var(--gutter); padding: 16px 18px; border-radius: 18px; background: var(--color-surface-2); color: var(--color-text-muted); font-size: 16px; line-height: 1.5; width: calc(100% - 2 * var(--gutter)); }
-.ft-icon { color: var(--color-primary-text); margin-top: 1px; }
+.ft {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: var(--gutter);
+  padding: 16px 18px;
+  border-radius: 18px;
+  background: var(--color-surface-2);
+  color: var(--color-text-muted);
+  font-size: 16px;
+  line-height: 1.5;
+  width: calc(100% - 2 * var(--gutter));
+}
+.ft-icon {
+  color: var(--color-primary-text);
+  margin-top: 1px;
+}
 
 @media (min-width: 992px) {
-  .shell { flex-direction: row; padding-bottom: 0; }
-  .side { position: sticky; top: 0; align-self: flex-start; flex: 0 0 248px; display: flex; flex-direction: column; align-items: stretch; gap: 18px; height: 100vh; height: 100dvh; padding: 22px 16px 20px; border-bottom: 0; border-right: 1px solid var(--color-border); overflow-y: auto; }
-  .brand { padding: 0 4px; }
-  .logo { width: 44px; height: 44px; border-radius: 12px; }
-  .brand-name { font-size: 17px; }
-  .desk-only, .navi.desk-only { display: flex; }
+  .shell {
+    flex-direction: row;
+    padding-bottom: 0;
+  }
+  .side {
+    position: sticky;
+    top: 0;
+    align-self: flex-start;
+    flex: 0 0 248px;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 18px;
+    height: 100vh;
+    height: 100dvh;
+    padding: 22px 16px 20px;
+    border-bottom: 0;
+    border-right: 1px solid var(--color-border);
+    overflow-y: auto;
+  }
+  .brand {
+    padding: 0 4px;
+  }
+  .logo {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+  }
+  .brand-name {
+    font-size: 17px;
+  }
+  .desk-only,
+  .navi.desk-only {
+    display: flex;
+  }
 
-  .nav { position: static; flex-direction: column; gap: 4px; padding: 0; border: 0; box-shadow: none; background: none; }
-  .navi { flex: none; flex-direction: row; justify-content: flex-start; gap: 12px; min-height: 46px; padding: 5px 10px; color: var(--color-text); font-size: 16px; text-align: left; }
-  .navi-icon { width: var(--tile); height: var(--tile); border-radius: var(--r-sm); background: var(--color-surface-2); color: var(--color-text-muted); }
-  .navi:hover { background: var(--color-surface-2); color: var(--color-text); }
-  .navi.on { background: var(--color-tint); }
-  .navi.on .navi-icon { background: var(--color-primary); color: #fff; }
-  .navi.on::after { display: none; }
-  .lang-ta .navi { font-size: 17px; }
+  .nav {
+    position: static;
+    flex-direction: column;
+    gap: 4px;
+    padding: 0;
+    border: 0;
+    box-shadow: none;
+    background: none;
+  }
+  .navi {
+    flex: none;
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 12px;
+    min-height: 46px;
+    padding: 5px 10px;
+    color: var(--color-text);
+    font-size: 16px;
+    text-align: left;
+  }
+  .navi-icon {
+    width: var(--tile);
+    height: var(--tile);
+    border-radius: var(--r-sm);
+    background: var(--color-surface-2);
+    color: var(--color-text-muted);
+  }
+  .navi:hover {
+    background: var(--color-surface-2);
+    color: var(--color-text);
+  }
+  .navi.on {
+    background: var(--color-tint);
+  }
+  .navi.on .navi-icon {
+    background: var(--color-primary);
+    color: #fff;
+  }
+  .navi.on::after {
+    display: none;
+  }
+  .lang-ta .navi {
+    font-size: 17px;
+  }
   /* "How to use the app" is the longest sidebar label (Tamil needs two lines), so it wraps instead of running out of the button. */
-  .guide-link { white-space: normal; line-height: 1.3; padding-block: 8px; }
-  .guide-link .navi-label { min-width: 0; }
+  .guide-link {
+    white-space: normal;
+    line-height: 1.3;
+    padding-block: 8px;
+  }
+  .guide-link .navi-label {
+    min-width: 0;
+  }
 
-  .lang-box { margin-top: auto; } /* the settings group (language, day/night, account) sits at the bottom */
-  .lang-label { align-items: center; gap: 8px; padding: 0 4px; font-size: 16px; font-weight: 700; color: var(--color-text-muted); }
-  .lang-box .segmented { display: grid; grid-template-columns: 1fr 1fr; } /* two by two: Tamil fits the sidebar */
+  .lang-box {
+    margin-top: auto;
+  } /* the settings group (language, day/night, account) sits at the bottom */
+  .lang-label {
+    align-items: center;
+    gap: 8px;
+    padding: 0 4px;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--color-text-muted);
+  }
+  .lang-box .segmented {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  } /* two by two: Tamil fits the sidebar */
 
-  .acct { display: flex; align-items: center; gap: 12px; width: 100%; height: auto; min-height: var(--z56, 56px); padding: 4px 12px; border-radius: var(--r-tile); background: var(--color-surface-2); color: var(--color-text); }
-  .acct:hover { background: var(--color-border); color: var(--color-text); }
-  .acct-icon { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; background: var(--color-tint); color: var(--color-tint-text); }
-  .acct-label { display: block; flex: 1; font-size: 16px; font-weight: 600; }
-  .acct-chev { display: block; }
-  .acct[aria-current='page'] { background: var(--color-tint); color: var(--color-tint-text); font-weight: 700; } /* on the Account page, like the active nav item */
-  .acct[aria-current='page'] .acct-icon { background: var(--color-primary); color: var(--color-on-primary); }
+  .acct {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    height: auto;
+    min-height: var(--z56, 56px);
+    padding: 4px 12px;
+    border-radius: var(--r-tile);
+    background: var(--color-surface-2);
+    color: var(--color-text);
+  }
+  .acct:hover {
+    background: var(--color-border);
+    color: var(--color-text);
+  }
+  .acct-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: var(--color-tint);
+    color: var(--color-tint-text);
+  }
+  .acct-label {
+    display: block;
+    flex: 1;
+    font-size: 16px;
+    font-weight: 600;
+  }
+  .acct-chev {
+    display: block;
+  }
+  .acct[aria-current='page'] {
+    background: var(--color-tint);
+    color: var(--color-tint-text);
+    font-weight: 700;
+  } /* on the Account page, like the active nav item */
+  .acct[aria-current='page'] .acct-icon {
+    background: var(--color-primary);
+    color: var(--color-on-primary);
+  }
 
-  .main { padding: var(--gutter) var(--gutter) 32px; }
+  .main {
+    padding: var(--gutter) var(--gutter) 32px;
+  }
 }

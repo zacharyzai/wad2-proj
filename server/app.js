@@ -35,8 +35,10 @@ app.use('/api', (req, res) => sendError(res, 404, 'NOT_FOUND', 'Unknown API rout
 
 // eslint-disable-next-line no-unused-vars
 app.use((err, req, res, next) => {
-  if (err.type === 'entity.too.large') return sendError(res, 413, 'IMAGE_TOO_LARGE', 'Image is too large')
-  if (err.type === 'entity.parse.failed') return sendError(res, 400, 'BAD_REQUEST', 'Malformed JSON')
+  if (err.type === 'entity.too.large')
+    return sendError(res, 413, 'IMAGE_TOO_LARGE', 'Image is too large')
+  if (err.type === 'entity.parse.failed')
+    return sendError(res, 400, 'BAD_REQUEST', 'Malformed JSON')
   console.error(err)
   sendError(res, 500, 'SERVER_ERROR', 'Something went wrong')
 })

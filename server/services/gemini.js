@@ -78,9 +78,15 @@ const SCHEMAS = {
     clinic: S,
     place: E(BILL_PLACES),
     visitDate: S,
-    items: { type: 'ARRAY', items: obj({ description: S, category: E(BILL_CATEGORIES), amount: N, section: S }) },
+    items: {
+      type: 'ARRAY',
+      items: obj({ description: S, category: E(BILL_CATEGORIES), amount: N, section: S }),
+    },
     subtotals: { type: 'ARRAY', items: obj({ section: S, amount: N }) },
-    subsidies: { type: 'ARRAY', items: obj({ scheme: E(SUBSIDY_SCHEMES), amount: N, includedInItems: { type: 'BOOLEAN' } }) },
+    subsidies: {
+      type: 'ARRAY',
+      items: obj({ scheme: E(SUBSIDY_SCHEMES), amount: N, includedInItems: { type: 'BOOLEAN' } }),
+    },
     medisave: N,
     totalPayable: N,
     gstAbsorbed: { type: 'BOOLEAN' },
@@ -155,13 +161,19 @@ Extract the bill.
 ${RULES}`,
 }
 
-export const list = (value) => (value ?? '').split(',').map((m) => m.trim()).filter(Boolean)
+export const list = (value) =>
+  (value ?? '')
+    .split(',')
+    .map((m) => m.trim())
+    .filter(Boolean)
 
 // One attempt per model: how to send the request and where that provider puts the reply text.
 // `body` is everything except the model name, so scan and chat share the same senders.
 // The main key, then any add-on keys (GEMINI_EXTRA_KEYS / GROQ_EXTRA_KEYS, comma separated) from other accounts for their own quota.
-export const geminiKeys = () => [process.env.GEMINI_API_KEY, ...list(process.env.GEMINI_EXTRA_KEYS)].filter(Boolean)
-const groqKeys = () => [process.env.GROQ_API_KEY, ...list(process.env.GROQ_EXTRA_KEYS)].filter(Boolean)
+export const geminiKeys = () =>
+  [process.env.GEMINI_API_KEY, ...list(process.env.GEMINI_EXTRA_KEYS)].filter(Boolean)
+const groqKeys = () =>
+  [process.env.GROQ_API_KEY, ...list(process.env.GROQ_EXTRA_KEYS)].filter(Boolean)
 // Same model on a different key is a different attempt, so one key running out doesn't rest the others.
 export const keyed = (model, i) => (i ? `${model}#${i + 1}` : model)
 
@@ -196,15 +208,20 @@ function groqAttempt(model, body, key, i) {
 // Gemini models first, then Groq; a provider is skipped when it has no key. Every model on the main key comes before add-on keys.
 export function attempts({ gemini, groq, geminiBody, groqBody }) {
   return [
-    ...geminiKeys().flatMap((key, i) => [...new Set(gemini)].map((m) => geminiAttempt(m, geminiBody, key, i))),
-    ...groqKeys().flatMap((key, i) => [...new Set(groq)].map((m) => groqAttempt(m, groqBody, key, i))),
+    ...geminiKeys().flatMap((key, i) =>
+      [...new Set(gemini)].map((m) => geminiAttempt(m, geminiBody, key, i)),
+    ),
+    ...groqKeys().flatMap((key, i) =>
+      [...new Set(groq)].map((m) => groqAttempt(m, groqBody, key, i)),
+    ),
   ]
 }
 
 // Tries each model in turn within one deadline. Resolves to the reply text, or null when the model sent none
 // (usually a refusal or safety block). Throws ScanError when no model answered at all.
 export async function firstReply(tries, timeoutMs = TIMEOUT_MS) {
-  if (!tries.length) throw new ScanError(503, 'AI_UNAVAILABLE', 'No AI key is set (GEMINI_API_KEY or GROQ_API_KEY)')
+  if (!tries.length)
+    throw new ScanError(503, 'AI_UNAVAILABLE', 'No AI key is set (GEMINI_API_KEY or GROQ_API_KEY)')
 
   const deadline = Date.now() + timeoutMs
   const statuses = []
@@ -236,8 +253,13 @@ export async function firstReply(tries, timeoutMs = TIMEOUT_MS) {
     restingUntil.set(attempt.name, Date.now() + REST_MS)
   }
 
-  if (statuses.length && statuses.every((s) => s === 429)) throw new ScanError(429, 'RATE_LIMITED', 'AI quota reached, please try again later')
-  throw new ScanError(503, 'AI_UNAVAILABLE', statuses.length ? 'The AI service returned an error' : 'Could not reach the AI service')
+  if (statuses.length && statuses.every((s) => s === 429))
+    throw new ScanError(429, 'RATE_LIMITED', 'AI quota reached, please try again later')
+  throw new ScanError(
+    503,
+    'AI_UNAVAILABLE',
+    statuses.length ? 'The AI service returned an error' : 'Could not reach the AI service',
+  )
 }
 
 // Parses the model's JSON reply; a reply that isn't JSON counts as an outage, not as data.
@@ -264,15 +286,27 @@ export async function extractScan(type, images, { canRecheck = () => true } = {}
   const left = timeout - (Date.now() - started)
   if (left < RECHECK_MIN_MS || !canRecheck()) return first
   // The second reading is used only if it adds up and agrees on the total: never a total changed to make the sums work.
-  const second = await readOnce(type, pages, `${PROMPTS.bill}\n${recheckNote(first.bill)}`, left).catch(() => null)
-  return second && addsUp(second) && second.bill.totalPayableCents === first.bill.totalPayableCents ? second : first
+  const second = await readOnce(
+    type,
+    pages,
+    `${PROMPTS.bill}\n${recheckNote(first.bill)}`,
+    left,
+  ).catch(() => null)
+  return second && addsUp(second) && second.bill.totalPayableCents === first.bill.totalPayableCents
+    ? second
+    : first
 }
 
 // What didn't add up in the first reading, so the second one looks there. It names the printed numbers, never an answer.
 function recheckNote(bill) {
   const $ = (cents) => `$${(cents / 100).toFixed(2)}`
-  const off = sectionsOff(bill).map((s) => `the lines under "${s.section}" add up to ${$(s.linesCents)}, but its subtotal is printed as ${$(s.printedCents)}`)
-  const why = off.length ? off.join('; ') : `the charges minus deductions come to ${$(billGap(bill) + bill.totalPayableCents)}, but the total payable is printed as ${$(bill.totalPayableCents)}`
+  const off = sectionsOff(bill).map(
+    (s) =>
+      `the lines under "${s.section}" add up to ${$(s.linesCents)}, but its subtotal is printed as ${$(s.printedCents)}`,
+  )
+  const why = off.length
+    ? off.join('; ')
+    : `the charges minus deductions come to ${$(billGap(bill) + bill.totalPayableCents)}, but the total payable is printed as ${$(bill.totalPayableCents)}`
   return `A first reading of this bill did not add up: ${why}. Read every amount again, digit by digit (a digit or a thousands comma may have been dropped from a large amount: the lines are $${(Math.abs(billGap(bill)) / 100).toFixed(2)} ${billGap(bill) < 0 ? 'too low' : 'too high'}), and return the whole bill.
 Copy only what is printed: never change an amount just to make the numbers add up.`
 }
@@ -298,10 +332,15 @@ async function readOnce(type, pages, basePrompt, timeoutMs) {
   const label = (i) => (pages.length > 1 ? [{ text: `Page ${i + 1} of ${pages.length}:` }] : [])
   const text = await firstReply(
     attempts({
-      gemini: [process.env.GEMINI_MODEL || 'gemini-3.8-flash', ...list(process.env.GEMINI_FALLBACK_MODELS)],
+      gemini: [
+        process.env.GEMINI_MODEL || 'gemini-3.8-flash',
+        ...list(process.env.GEMINI_FALLBACK_MODELS),
+      ],
       groq: list(process.env.GROQ_MODELS ?? 'qwen/qwen3.8-27b'),
       geminiBody: {
-        contents: [{ parts: [...images.flatMap((image, i) => [...label(i), image]), { text: prompt }] }],
+        contents: [
+          { parts: [...images.flatMap((image, i) => [...label(i), image]), { text: prompt }] },
+        ],
         generationConfig: {
           responseMimeType: 'application/json',
           responseSchema: SCHEMAS[type],
@@ -322,7 +361,10 @@ async function readOnce(type, pages, basePrompt, timeoutMs) {
           {
             role: 'user',
             content: [
-              { type: 'text', text: `${prompt}\nReply with JSON only, matching this schema:\n${JSON.stringify(SCHEMAS[type])}` },
+              {
+                type: 'text',
+                text: `${prompt}\nReply with JSON only, matching this schema:\n${JSON.stringify(SCHEMAS[type])}`,
+              },
               ...pages.map((url) => ({ type: 'image_url', image_url: { url } })),
             ],
           },
@@ -338,11 +380,26 @@ async function readOnce(type, pages, basePrompt, timeoutMs) {
   // A clear photo of the wrong kind of document must not be told to "retake it in good light". A bill sent as a label (or
   // the other way round) gets its own code, so the app can ask "was this meant to be a bill?" and read it as one.
   if (raw.otherDocument === true) {
-    if (type === 'medication' && raw.looksLike === 'bill') throw new ScanError(422, 'LOOKS_LIKE_BILL', 'This looks like a medical bill, not a medication label')
-    if (type === 'bill' && raw.looksLike === 'medication') throw new ScanError(422, 'LOOKS_LIKE_LABEL', 'This looks like a medication label, not a medical bill')
-    throw new ScanError(422, 'WRONG_DOCUMENT', `This is not a ${type === 'bill' ? 'medical bill' : 'medication label'}`)
+    if (type === 'medication' && raw.looksLike === 'bill')
+      throw new ScanError(
+        422,
+        'LOOKS_LIKE_BILL',
+        'This looks like a medical bill, not a medication label',
+      )
+    if (type === 'bill' && raw.looksLike === 'medication')
+      throw new ScanError(
+        422,
+        'LOOKS_LIKE_LABEL',
+        'This looks like a medication label, not a medical bill',
+      )
+    throw new ScanError(
+      422,
+      'WRONG_DOCUMENT',
+      `This is not a ${type === 'bill' ? 'medical bill' : 'medication label'}`,
+    )
   }
-  if (raw.readable === false) throw new ScanError(422, 'UNREADABLE_IMAGE', 'The photo could not be read')
+  if (raw.readable === false)
+    throw new ScanError(422, 'UNREADABLE_IMAGE', 'The photo could not be read')
 
   return type === 'medication' ? normalizeMedication(raw) : normalizeBill(raw)
 }

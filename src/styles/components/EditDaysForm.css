@@ -1,8 +1,40 @@
 /* Scoped styles for components/schedule/EditDaysForm.vue. */
-.edit-form { display: flex; flex-direction: column; gap: 16px; padding: 16px; border-radius: 18px; background: var(--color-surface-2); }
-.days-input { max-width: 12rem; }
-.times { border: 0; margin: 0; padding: 0; min-width: 0; }
-.times legend { margin-bottom: 8px; }
-.time-grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr)); }
-.time-label { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; }
-.field-error { display: flex; gap: 8px; margin: 0; color: var(--color-danger-text); font-size: 16px; font-weight: 600; }
+.edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+  border-radius: 18px;
+  background: var(--color-surface-2);
+}
+.days-input {
+  max-width: 12rem;
+}
+.times {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+.times legend {
+  margin-bottom: 8px;
+}
+.time-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
+}
+.time-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+}
+.field-error {
+  display: flex;
+  gap: 8px;
+  margin: 0;
+  color: var(--color-danger-text);
+  font-size: 16px;
+  font-weight: 600;
+}

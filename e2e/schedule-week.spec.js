@@ -14,11 +14,25 @@ const medicine = (id, name, strength, timing) => ({
   id,
   source: 'label',
   sample: false,
-  medication: { name, strength, doseAmount: 1, doseUnit: 'tablet', timesPerDay: timing.length, timing, withFood: 'after', frequencyType: 'daily', rawInstruction: 'x', warnings: [] },
+  medication: {
+    name,
+    strength,
+    doseAmount: 1,
+    doseUnit: 'tablet',
+    timesPerDay: timing.length,
+    timing,
+    withFood: 'after',
+    frequencyType: 'daily',
+    rawInstruction: 'x',
+    warnings: [],
+  },
   schedule: { startDate: MON, days: 30, times: {} },
 })
 // Metformin at 8 am and 6 pm, Amlodipine at 8 am: two medicines at the same time.
-const MEDICINES = [medicine('m1', 'Metformin', '500 mg', ['morning', 'evening']), medicine('m2', 'Amlodipine', '5 mg', ['morning'])]
+const MEDICINES = [
+  medicine('m1', 'Metformin', '500 mg', ['morning', 'evening']),
+  medicine('m2', 'Amlodipine', '5 mg', ['morning']),
+]
 
 async function setUp(page, { at, ticks = {} }) {
   await page.addInitScript((list) => {
@@ -27,14 +41,29 @@ async function setUp(page, { at, ticks = {} }) {
     localStorage.setItem('medicines', JSON.stringify(list))
   }, MEDICINES)
   await page.clock.setFixedTime(new Date(`${WED}T${at}:00+08:00`))
-  const taken = new Set(Object.entries(ticks).flatMap(([date, ids]) => ids.map((id) => `${date}/${id}`)))
+  const taken = new Set(
+    Object.entries(ticks).flatMap(([date, ids]) => ids.map((id) => `${date}/${id}`)),
+  )
   const sent = []
-  await page.route('**/api/google/**', (route) => route.fulfill({ status: 503, json: { ok: false, error: { code: 'GOOGLE_UNAVAILABLE', message: 'Not set up' } } }))
+  await page.route('**/api/google/**', (route) =>
+    route.fulfill({
+      status: 503,
+      json: { ok: false, error: { code: 'GOOGLE_UNAVAILABLE', message: 'Not set up' } },
+    }),
+  )
   await page.route('**/api/doses**', (route) => {
     const request = route.request()
     if (request.method() === 'GET') {
       const date = new URL(request.url()).searchParams.get('date')
-      return route.fulfill({ json: { ok: true, data: { date, taken: [...taken].filter((k) => k.startsWith(`${date}/`)).map((k) => k.split('/')[1]) } } })
+      return route.fulfill({
+        json: {
+          ok: true,
+          data: {
+            date,
+            taken: [...taken].filter((k) => k.startsWith(`${date}/`)).map((k) => k.split('/')[1]),
+          },
+        },
+      })
     }
     const { doseId, date } = request.postDataJSON()
     sent.push(`${request.method()} ${doseId} ${date}`)
@@ -47,27 +76,47 @@ const SUN = '2026-10-25'
 const THU = '2026-10-29'
 const SAT = '2026-10-31'
 const day = (page, date) => page.getByTestId(`day-${date}`)
-const TICKS = { [MON]: ['m1-morning', 'm2-morning', 'm1-evening'], [TUE]: ['m1-morning', 'm1-evening'], [WED]: ['m1-morning', 'm2-morning'] }
+const TICKS = {
+  [MON]: ['m1-morning', 'm2-morning', 'm1-evening'],
+  [TUE]: ['m1-morning', 'm1-evening'],
+  [WED]: ['m1-morning', 'm2-morning'],
+}
 
-test('the pill box: Sunday to Saturday, each day says how it went, in a badge and in words; the week in one sentence', async ({ page }) => {
+test('the pill box: Sunday to Saturday, each day says how it went, in a badge and in words; the week in one sentence', async ({
+  page,
+}) => {
   // Tuesday: Metformin taken both times, Amlodipine's morning missed. Today (6 pm due now): both mornings ticked.
   await setUp(page, { at: '19:00', ticks: TICKS })
   await page.goto('/schedule')
   const days = page.getByTestId('day-strip').locator('[data-testid^="day-"]')
   await expect(days).toHaveCount(7)
-  expect(await days.evaluateAll((els) => els.map((e) => e.dataset.testid))).toEqual([SUN, MON, TUE, WED, THU, '2026-10-30', SAT].map((d) => `day-${d}`))
-  await expect(page.getByTestId('day-strip').locator('.lid')).toHaveText(['S', 'M', 'T', 'W', 'T', 'F', 'S'])
+  expect(await days.evaluateAll((els) => els.map((e) => e.dataset.testid))).toEqual(
+    [SUN, MON, TUE, WED, THU, '2026-10-30', SAT].map((d) => `day-${d}`),
+  )
+  await expect(page.getByTestId('day-strip').locator('.lid')).toHaveText([
+    'S',
+    'M',
+    'T',
+    'W',
+    'T',
+    'F',
+    'S',
+  ])
   await expect(page.getByTestId('week-sentence')).toHaveText('1 dose missed this week.')
   await expect(day(page, SUN)).toHaveAttribute('data-state', 'none') // before the medicines started
   await expect(day(page, MON)).toHaveAttribute('data-state', 'ok')
   await expect(day(page, TUE)).toHaveAttribute('data-state', 'not')
   await expect(day(page, WED)).toHaveAttribute('data-state', 'open') // the evening is still to tick
-  await expect(day(page, TUE)).toHaveAccessibleName(/Tuesday, (27 October|October 27): a dose missed/)
+  await expect(day(page, TUE)).toHaveAccessibleName(
+    /Tuesday, (27 October|October 27): a dose missed/,
+  )
   await expect(day(page, WED)).toHaveAttribute('aria-pressed', 'true') // today is shown first
   await expect(page.getByTestId('schedule-today')).toBeVisible()
 })
 
-test('an earlier day: a missed dose is a plain warning, never something to tick; one taken at the same time still shows', async ({ page }) => {
+test('an earlier day: a missed dose is a plain warning, never something to tick; one taken at the same time still shows', async ({
+  page,
+}) => {
   const sent = await setUp(page, { at: '19:00', ticks: TICKS })
   await page.goto('/schedule')
   await day(page, TUE).click()
@@ -75,7 +124,9 @@ test('an earlier day: a missed dose is a plain warning, never something to tick;
   await expect(other).toHaveAttribute('data-date', TUE)
   await expect(other.getByRole('heading', { level: 2 })).toHaveText(/Tuesday/)
   await expect(page.getByTestId('other-lead')).toHaveText('1 dose was missed on this day.')
-  await expect(page.getByTestId('other-missed')).toHaveText('If you missed a dose, ask your pharmacist what to do.')
+  await expect(page.getByTestId('other-missed')).toHaveText(
+    'If you missed a dose, ask your pharmacist what to do.',
+  )
   await expect(page.getByTestId('other-m1-morning')).toHaveAttribute('data-state', 'ok') // taken at the same time...
   await expect(page.getByTestId('other-m2-morning')).toHaveAttribute('data-state', 'not') // ...and this one, missed
   await expect(page.getByTestId('other-m2-morning')).toContainText('Missed')
@@ -92,21 +143,35 @@ test('a later day: what is coming, to tick on the day', async ({ page }) => {
   await setUp(page, { at: '19:00' })
   await page.goto('/schedule')
   await day(page, THU).click()
-  await expect(page.getByTestId('other-lead')).toHaveText('Coming up. You can tick these on the day.')
+  await expect(page.getByTestId('other-lead')).toHaveText(
+    'Coming up. You can tick these on the day.',
+  )
   await expect(page.getByTestId('other-m1-evening')).toHaveAttribute('data-state', 'later')
   await expect(page.getByTestId('schedule-other-day').getByRole('button')).toHaveCount(0)
 })
 
-test('today: an 8 am dose not ticked by 2 pm still says "Take now", and old This week links open the pill box', async ({ page }) => {
-  await setUp(page, { at: '14:00', ticks: { [MON]: ['m1-morning', 'm2-morning', 'm1-evening'], [TUE]: ['m1-morning', 'm2-morning', 'm1-evening'] } })
+test('today: an 8 am dose not ticked by 2 pm still says "Take now", and old This week links open the pill box', async ({
+  page,
+}) => {
+  await setUp(page, {
+    at: '14:00',
+    ticks: {
+      [MON]: ['m1-morning', 'm2-morning', 'm1-evening'],
+      [TUE]: ['m1-morning', 'm2-morning', 'm1-evening'],
+    },
+  })
   await page.goto('/schedule?view=week')
   await expect(page.getByTestId('day-strip')).toBeVisible()
   await expect(page.getByTestId('slot-08:00')).toHaveAttribute('data-state', 'now')
   await expect(page.getByTestId('slot-18:00')).toHaveAttribute('data-state', 'later')
-  await expect(page.getByTestId('week-sentence')).toHaveText('Every dose so far this week is ticked.')
+  await expect(page.getByTestId('week-sentence')).toHaveText(
+    'Every dose so far this week is ticked.',
+  )
 })
 
-test('the day plan shows doses today and taken, and the % on the ring; the same in a sentence for screen readers only', async ({ page }) => {
+test('the day plan shows doses today and taken, and the % on the ring; the same in a sentence for screen readers only', async ({
+  page,
+}) => {
   await setUp(page, { at: '19:00', ticks: { [WED]: ['m1-morning'] } })
   await page.goto('/schedule')
   const plan = page.getByTestId('schedule-progress')
@@ -117,7 +182,9 @@ test('the day plan shows doses today and taken, and the % on the ring; the same 
   await expect(words).toHaveClass(/visually-hidden/) // not shown twice
 })
 
-test('tapping a dose asks "Did you take it?" in a pop-up; Not yet leaves it, Yes ticks it', async ({ page }) => {
+test('tapping a dose asks "Did you take it?" in a pop-up; Not yet leaves it, Yes ticks it', async ({
+  page,
+}) => {
   const sent = await setUp(page, { at: '19:00', ticks: { [WED]: ['m1-morning', 'm2-morning'] } })
   await page.goto('/schedule')
   const evening = page.getByRole('button', { name: /^Taken: Metformin 500 mg, 6:00\sPM$/i })
@@ -154,7 +221,9 @@ test('Today: two medicines due together each have their own "I\'ve taken it"', a
   await expect(due).toHaveCount(0) // all taken: the box has done its job
 })
 
-test('ticking a dose: a success sweep crosses the plan card, then the ring counts up by what it gained; none on opening', async ({ page }) => {
+test('ticking a dose: a success sweep crosses the plan card, then the ring counts up by what it gained; none on opening', async ({
+  page,
+}) => {
   await setUp(page, { at: '19:00', ticks: { [WED]: ['m1-morning', 'm2-morning'] } })
   await page.goto('/schedule')
   const plan = page.getByTestId('schedule-progress')
@@ -185,11 +254,21 @@ test('reduced motion: no sweep, the ring changes at once', async ({ page }) => {
   await expect(page.getByTestId('schedule-progress-sweep')).toBeHidden()
 })
 
-test('the pill box: every compartment and pill alike, but the day you are on, which always stands out', async ({ page }) => {
+test('the pill box: every compartment and pill alike, but the day you are on, which always stands out', async ({
+  page,
+}) => {
   await setUp(page, { at: '19:00' })
   await page.goto('/schedule')
   // How a day looks: its compartment's colour and its pill's colour.
-  const look = (date) => page.getByTestId(`day-${date}`).evaluate((el) => [getComputedStyle(el).backgroundColor, getComputedStyle(el.querySelector('.half.top')).backgroundColor].join(' / '))
+  const look = (date) =>
+    page
+      .getByTestId(`day-${date}`)
+      .evaluate((el) =>
+        [
+          getComputedStyle(el).backgroundColor,
+          getComputedStyle(el.querySelector('.half.top')).backgroundColor,
+        ].join(' / '),
+      )
   await expect(page.getByTestId(`day-${WED}`)).toHaveAttribute('aria-pressed', 'true') // today, to begin with
   // The colours ease in, so each check retries until they have settled.
   let rest
@@ -206,7 +285,9 @@ test('the pill box: every compartment and pill alike, but the day you are on, wh
   }).toPass()
 })
 
-test('Home: two medicines due together come one at a time, each with its own "I\'ve taken it"', async ({ page }) => {
+test('Home: two medicines due together come one at a time, each with its own "I\'ve taken it"', async ({
+  page,
+}) => {
   const sent = await setUp(page, { at: '08:10' })
   await page.goto('/')
   const card = page.getByTestId('home-today-due')
@@ -218,7 +299,9 @@ test('Home: two medicines due together come one at a time, each with its own "I\
   await expect(page.getByTestId('home-today-progress')).toHaveText('1 of 3 doses taken')
 })
 
-test('the pill box has no axe problems, day or night, with a missed day open @a11y', async ({ page }) => {
+test('the pill box has no axe problems, day or night, with a missed day open @a11y', async ({
+  page,
+}) => {
   await setUp(page, { at: '19:00', ticks: { [TUE]: ['m1-morning'] } })
   await page.goto('/schedule')
   await page.getByTestId(`day-${TUE}`).click()

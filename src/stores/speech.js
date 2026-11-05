@@ -17,7 +17,8 @@ function load() {
   }
 }
 
-const synth = typeof window !== 'undefined' && 'speechSynthesis' in window ? window.speechSynthesis : null
+const synth =
+  typeof window !== 'undefined' && 'speechSynthesis' in window ? window.speechSynthesis : null
 const clips = new Map() // lang + text → data URL, so a replay doesn't download it again
 
 // A tenth of a second of silence. Played inside the tap, it lets iPhones play the real clip after the download.
@@ -25,9 +26,18 @@ const SILENT = (() => {
   const n = 1600
   const view = new DataView(new ArrayBuffer(44 + n * 2))
   const str = (at, s) => [...s].forEach((c, i) => view.setUint8(at + i, c.charCodeAt(0)))
-  str(0, 'RIFF'), view.setUint32(4, 36 + n * 2, true), str(8, 'WAVEfmt '), view.setUint32(16, 16, true)
-  view.setUint16(20, 1, true), view.setUint16(22, 1, true), view.setUint32(24, 16000, true), view.setUint32(28, 32000, true)
-  view.setUint16(32, 2, true), view.setUint16(34, 16, true), str(36, 'data'), view.setUint32(40, n * 2, true)
+  ;(str(0, 'RIFF'),
+    view.setUint32(4, 36 + n * 2, true),
+    str(8, 'WAVEfmt '),
+    view.setUint32(16, 16, true))
+  ;(view.setUint16(20, 1, true),
+    view.setUint16(22, 1, true),
+    view.setUint32(24, 16000, true),
+    view.setUint32(28, 32000, true))
+  ;(view.setUint16(32, 2, true),
+    view.setUint16(34, 16, true),
+    str(36, 'data'),
+    view.setUint32(40, n * 2, true))
   return `data:audio/wav;base64,${btoa(String.fromCharCode(...new Uint8Array(view.buffer)))}`
 })()
 
@@ -83,12 +93,14 @@ export const useSpeechStore = defineStore('speech', () => {
       const voice = voiceFor(lang)
       if (voice && synth) {
         const u = new SpeechSynthesisUtterance(text)
-        if (typeof SpeechSynthesisVoice !== 'undefined' && voice instanceof SpeechSynthesisVoice) u.voice = voice
+        if (typeof SpeechSynthesisVoice !== 'undefined' && voice instanceof SpeechSynthesisVoice)
+          u.voice = voice
         u.lang = voice.lang
         u.rate = speed
         u.onend = () => end('done')
         u.onerror = (e) => end(/interrupted|canceled/.test(e.error ?? '') ? 'stopped' : 'failed')
-        if (onWord) u.onboundary = (e) => !over && (e.name ?? 'word') === 'word' && onWord(e.charIndex)
+        if (onWord)
+          u.onboundary = (e) => !over && (e.name ?? 'word') === 'word' && onWord(e.charIndex)
         synth.speak(u)
         onPlaying?.()
         return
@@ -97,7 +109,9 @@ export const useSpeechStore = defineStore('speech', () => {
       const a = (audio = new Audio(SILENT))
       a.play().catch(() => {})
       const key = `${lang}\n${text}`
-      const ready = clips.has(key) ? Promise.resolve({ ok: true, data: { audio: null } }) : readAloudAudio(text, lang)
+      const ready = clips.has(key)
+        ? Promise.resolve({ ok: true, data: { audio: null } })
+        : readAloudAudio(text, lang)
       ready.then((res) => {
         if (over) return
         if (!res.ok) return end('failed')
@@ -106,20 +120,32 @@ export const useSpeechStore = defineStore('speech', () => {
         a.playbackRate = speed
         a.onended = () => end('done')
         a.onerror = () => end('failed')
-        a.play().then(() => {
-          if (over) return
-          onPlaying?.()
-          if (!onWord) return
-          const follow = () => {
-            if (over || a !== audio) return
-            if (a.duration > 0) onWord(Math.floor((text.length * a.currentTime) / a.duration))
+        a.play().then(
+          () => {
+            if (over) return
+            onPlaying?.()
+            if (!onWord) return
+            const follow = () => {
+              if (over || a !== audio) return
+              if (a.duration > 0) onWord(Math.floor((text.length * a.currentTime) / a.duration))
+              requestAnimationFrame(follow)
+            }
             requestAnimationFrame(follow)
-          }
-          requestAnimationFrame(follow)
-        }, () => end('failed'))
+          },
+          () => end('failed'),
+        )
       })
     })
   }
 
-  return { rate, voices, speak, stopSpeaking, pauseSpeaking, resumeSpeaking, setSpeakingRate, usesDeviceVoice }
+  return {
+    rate,
+    voices,
+    speak,
+    stopSpeaking,
+    pauseSpeaking,
+    resumeSpeaking,
+    setSpeakingRate,
+    usesDeviceVoice,
+  }
 })

@@ -20,7 +20,9 @@ const PER_PAGE = 4
 const page = ref(1)
 const pages = computed(() => Math.max(1, Math.ceil(medicines.length / PER_PAGE)))
 const current = computed(() => Math.min(page.value, pages.value))
-const shown = computed(() => medicines.slice((current.value - 1) * PER_PAGE, current.value * PER_PAGE))
+const shown = computed(() =>
+  medicines.slice((current.value - 1) * PER_PAGE, current.value * PER_PAGE),
+)
 const turn = (by) => (page.value = Math.min(Math.max(current.value + by, 1), pages.value))
 
 // "Type a medicine": name is required, the instructions are what the label says (optional but useful).
@@ -44,7 +46,10 @@ function addTyped() {
     nameMissing.value = true
     return nameInput.value.focus()
   }
-  rememberMedicine({ name: newName.value.trim(), rawInstruction: newText.value.trim() || null }, 'typed')
+  rememberMedicine(
+    { name: newName.value.trim(), rawInstruction: newText.value.trim() || null },
+    'typed',
+  )
   newName.value = newText.value = ''
   adding.value = false
   page.value = 1 // the newest is first
@@ -72,7 +77,13 @@ onBeforeUnmount(() => clearTimeout(toastTimer))
 
 <template>
   <section class="card meds-panel" data-testid="my-medicines">
-    <button type="button" class="meds-toggle" :aria-expanded="open" aria-controls="meds-body" @click="open = !open">
+    <button
+      type="button"
+      class="meds-toggle"
+      :aria-expanded="open"
+      aria-controls="meds-body"
+      @click="open = !open"
+    >
       <KindIcon kind="medication" size="var(--tile)" />
       <span class="meds-head">
         <span class="meds-title">{{ t('ask.meds.title') }}</span>
@@ -89,19 +100,56 @@ onBeforeUnmount(() => clearTimeout(toastTimer))
           <KindIcon kind="medication" size="var(--tile)" />
           <div class="med-info">
             <span class="med-name">{{ medName(m.medication) }}</span>
-            <span v-if="m.medication.rawInstruction" class="text-muted-a11y" :lang="m.source === 'label' ? 'en' : null">“{{ m.medication.rawInstruction }}”</span>
-            <span v-if="m.sample || m.source === 'typed'" class="badge align-self-start">{{ t(m.sample ? 'ask.meds.sample' : 'ask.meds.typed') }}</span>
+            <span
+              v-if="m.medication.rawInstruction"
+              class="text-muted-a11y"
+              :lang="m.source === 'label' ? 'en' : null"
+              >“{{ m.medication.rawInstruction }}”</span
+            >
+            <span v-if="m.sample || m.source === 'typed'" class="badge align-self-start">{{
+              t(m.sample ? 'ask.meds.sample' : 'ask.meds.typed')
+            }}</span>
           </div>
-          <button type="button" class="btn btn-outline btn-sm" :aria-label="t('ask.meds.removeOne', { name: medName(m.medication) })" @click="remove(m)">
+          <button
+            type="button"
+            class="btn btn-outline btn-sm"
+            :aria-label="t('ask.meds.removeOne', { name: medName(m.medication) })"
+            @click="remove(m)"
+          >
             {{ t('ask.meds.remove') }}
           </button>
         </li>
       </ul>
       <!-- .disabled and aria-disabled, not disabled: keyboard focus stays on the button when it reaches the end. -->
-      <nav v-if="pages > 1" class="meds-pages" :aria-label="t('ask.meds.title')" data-testid="meds-pages">
-        <button type="button" class="btn btn-outline btn-sm" :class="{ disabled: current === 1 }" :aria-disabled="current === 1" data-testid="meds-prev" @click="turn(-1)"><AppIcon name="left" :size="20" />{{ t('ask.meds.prev') }}</button>
-        <span class="meds-page" role="status">{{ t('ask.meds.pageOf', { n: current, total: pages }) }}</span>
-        <button type="button" class="btn btn-outline btn-sm" :class="{ disabled: current === pages }" :aria-disabled="current === pages" data-testid="meds-next" @click="turn(1)">{{ t('ask.meds.next') }}<AppIcon name="right" :size="20" /></button>
+      <nav
+        v-if="pages > 1"
+        class="meds-pages"
+        :aria-label="t('ask.meds.title')"
+        data-testid="meds-pages"
+      >
+        <button
+          type="button"
+          class="btn btn-outline btn-sm"
+          :class="{ disabled: current === 1 }"
+          :aria-disabled="current === 1"
+          data-testid="meds-prev"
+          @click="turn(-1)"
+        >
+          <AppIcon name="left" :size="20" />{{ t('ask.meds.prev') }}
+        </button>
+        <span class="meds-page" role="status">{{
+          t('ask.meds.pageOf', { n: current, total: pages })
+        }}</span>
+        <button
+          type="button"
+          class="btn btn-outline btn-sm"
+          :class="{ disabled: current === pages }"
+          :aria-disabled="current === pages"
+          data-testid="meds-next"
+          @click="turn(1)"
+        >
+          {{ t('ask.meds.next') }}<AppIcon name="right" :size="20" />
+        </button>
       </nav>
 
       <form v-if="adding" class="add-form" @submit.prevent="addTyped">
@@ -119,28 +167,49 @@ onBeforeUnmount(() => clearTimeout(toastTimer))
             :aria-describedby="nameMissing ? 'new-name-error' : null"
             @input="nameMissing = false"
           />
-          <span v-if="nameMissing" id="new-name-error" class="field-help name-error" role="alert">{{ t('ask.form.nameMissing') }}</span>
+          <span v-if="nameMissing" id="new-name-error" class="field-help name-error" role="alert">{{
+            t('ask.form.nameMissing')
+          }}</span>
         </div>
         <div class="field">
           <label for="new-text" class="field-label">{{ t('ask.form.instructions') }}</label>
-          <input id="new-text" v-model="newText" class="field-input" maxlength="200" autocomplete="off" aria-describedby="new-text-hint" />
+          <input
+            id="new-text"
+            v-model="newText"
+            class="field-input"
+            maxlength="200"
+            autocomplete="off"
+            aria-describedby="new-text-hint"
+          />
           <span id="new-text-hint" class="field-help">{{ t('ask.form.hint') }}</span>
         </div>
         <div class="d-flex flex-wrap gap-2">
-          <button type="submit" class="btn btn-primary btn-sm"><AppIcon name="plus" :size="20" />{{ t('ask.form.add') }}</button>
-          <button type="button" class="btn btn-ghost btn-sm" @click="adding = false">{{ t('ask.form.cancel') }}</button>
+          <button type="submit" class="btn btn-primary btn-sm">
+            <AppIcon name="plus" :size="20" />{{ t('ask.form.add') }}
+          </button>
+          <button type="button" class="btn btn-ghost btn-sm" @click="adding = false">
+            {{ t('ask.form.cancel') }}
+          </button>
         </div>
       </form>
       <div v-else class="acts-row">
-        <RouterLink :to="{ name: 'scan', query: { type: 'medication' } }" class="btn btn-secondary btn-sm"><AppIcon name="camera" :size="20" />{{ t('ask.meds.photo') }}</RouterLink>
-        <button type="button" class="btn btn-secondary btn-sm" @click="openForm"><AppIcon name="pencil" :size="20" />{{ t('ask.meds.type') }}</button>
+        <RouterLink
+          :to="{ name: 'scan', query: { type: 'medication' } }"
+          class="btn btn-secondary btn-sm"
+          ><AppIcon name="camera" :size="20" />{{ t('ask.meds.photo') }}</RouterLink
+        >
+        <button type="button" class="btn btn-secondary btn-sm" @click="openForm">
+          <AppIcon name="pencil" :size="20" />{{ t('ask.meds.type') }}
+        </button>
       </div>
     </div>
 
     <!-- Undo for Remove. Polite, so screen readers hear it without being interrupted. -->
     <div v-if="removed" class="toast-ahma toast-undo rise" role="status" data-testid="ask-undo">
       <span>{{ t('ask.toast.removed', { name: medName(removed.entry.medication) }) }}</span>
-      <button ref="undoButton" type="button" class="btn btn-on-hero btn-sm" @click="undo">{{ t('ask.toast.undo') }}</button>
+      <button ref="undoButton" type="button" class="btn btn-on-hero btn-sm" @click="undo">
+        {{ t('ask.toast.undo') }}
+      </button>
     </div>
   </section>
 </template>

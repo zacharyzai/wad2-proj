@@ -64,7 +64,11 @@ export const useScanStore = defineStore('scan', () => {
     [current, confirmed],
     () => {
       try {
-        if (current.value) sessionStorage.setItem(KEY, JSON.stringify({ current: current.value, confirmed: confirmed.value }))
+        if (current.value)
+          sessionStorage.setItem(
+            KEY,
+            JSON.stringify({ current: current.value, confirmed: confirmed.value }),
+          )
         else sessionStorage.removeItem(KEY)
       } catch {
         // Not critical: the scan just won't survive a refresh.
@@ -93,9 +97,28 @@ export const useScanStore = defineStore('scan', () => {
   }
 
   return {
-    current, photos, pdfPages, confirmed, pendingFile, away,
-    reading, covering, coverView, coverPage, readingType, errorCode, pages, pagesPdf, fromPdf, checkedShots, lastRequest,
-    coverDocType, run, handingOver, pageOpen, slow,
+    current,
+    photos,
+    pdfPages,
+    confirmed,
+    pendingFile,
+    away,
+    reading,
+    covering,
+    coverView,
+    coverPage,
+    readingType,
+    errorCode,
+    pages,
+    pagesPdf,
+    fromPdf,
+    checkedShots,
+    lastRequest,
+    coverDocType,
+    run,
+    handingOver,
+    pageOpen,
+    slow,
     forget,
   }
 })

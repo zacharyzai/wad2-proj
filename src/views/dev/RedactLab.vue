@@ -25,12 +25,27 @@ async function toJpeg(src) {
 }
 
 async function run(name, src) {
-  const row = reactive({ name, original: null, redacted: null, keep: [], hits: [], text: '', ms: null, error: null })
+  const row = reactive({
+    name,
+    original: null,
+    redacted: null,
+    keep: [],
+    hits: [],
+    text: '',
+    ms: null,
+    error: null,
+  })
   results.unshift(row)
   try {
     row.original = await toJpeg(src)
     const out = await redactImage(row.original)
-    Object.assign(row, { redacted: out.dataUrl, keep: out.keep, hits: out.hits, text: out.text, ms: out.ms })
+    Object.assign(row, {
+      redacted: out.dataUrl,
+      keep: out.keep,
+      hits: out.hits,
+      text: out.text,
+      ms: out.ms,
+    })
   } catch (err) {
     row.error = String(err?.message ?? err)
   }
@@ -49,15 +64,29 @@ async function onFiles(event) {
 
 async function runSamples() {
   busy.value = true
-  for (const id of ['med-1', 'med-2', 'med-3', 'bill-1', 'dev-personal']) await run(id, id === 'dev-personal' ? fakeLabel() : `/samples/${id}.svg`)
+  for (const id of ['med-1', 'med-2', 'med-3', 'bill-1', 'dev-personal'])
+    await run(id, id === 'dev-personal' ? fakeLabel() : `/samples/${id}.svg`)
   busy.value = false
 }
 
 // A made-up label with fake personal details, to check the positive case without a real photo.
 function fakeLabel() {
-  const rows = ['POLYCLINIC PHARMACY', 'Name: TAN AH KOW', 'LIM MEI LING', 'NRIC: S1234567D   DOB: 15/03/1948', 'Tel: 9123 4567', 'Blk 123 Bedok North Ave 3 #04-56', 'METFORMIN 500 MG TABLET', 'TAKE 1 TABLET 2 TIMES A DAY', 'AFTER FOOD']
+  const rows = [
+    'POLYCLINIC PHARMACY',
+    'Name: TAN AH KOW',
+    'LIM MEI LING',
+    'NRIC: S1234567D   DOB: 15/03/1948',
+    'Tel: 9123 4567',
+    'Blk 123 Bedok North Ave 3 #04-56',
+    'METFORMIN 500 MG TABLET',
+    'TAKE 1 TABLET 2 TIMES A DAY',
+    'AFTER FOOD',
+  ]
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="900" height="620"><rect width="100%" height="100%" fill="#fff"/>${rows
-    .map((r, i) => `<text x="40" y="${70 + i * 62}" font-family="Arial" font-size="34" font-weight="${i === 6 ? 700 : 400}">${r}</text>`)
+    .map(
+      (r, i) =>
+        `<text x="40" y="${70 + i * 62}" font-family="Arial" font-size="34" font-weight="${i === 6 ? 700 : 400}">${r}</text>`,
+    )
     .join('')}</svg>`
   return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg)
 }
@@ -67,25 +96,54 @@ function fakeLabel() {
   <div class="page">
     <div class="page-head">
       <h1>Redaction test bench</h1>
-      <p class="lead-text">Pick label or bill photos. Each one is read on this device; only lines that look like medicine or bill details are shown, everything else is blacked out. Nothing is uploaded.</p>
+      <p class="lead-text">
+        Pick label or bill photos. Each one is read on this device; only lines that look like
+        medicine or bill details are shown, everything else is blacked out. Nothing is uploaded.
+      </p>
     </div>
 
     <div class="d-flex flex-wrap gap-3">
       <label class="btn btn-primary">
         Choose photos
-        <input type="file" accept="image/*" multiple class="d-none" :disabled="busy" @change="onFiles" />
+        <input
+          type="file"
+          accept="image/*"
+          multiple
+          class="d-none"
+          :disabled="busy"
+          @change="onFiles"
+        />
       </label>
-      <button type="button" class="btn btn-secondary" :disabled="busy" @click="runSamples">Run built-in samples</button>
+      <button type="button" class="btn btn-secondary" :disabled="busy" @click="runSamples">
+        Run built-in samples
+      </button>
     </div>
-    <p v-if="busy" role="status" class="lead-text">Reading… the first photo also downloads the reader (about 5 MB).</p>
+    <p v-if="busy" role="status" class="lead-text">
+      Reading… the first photo also downloads the reader (about 5 MB).
+    </p>
 
     <table v-if="results.length" class="table">
-      <thead><tr><th>Photo</th><th>Lines shown</th><th>Also covered on those lines</th><th>Time</th></tr></thead>
+      <thead>
+        <tr>
+          <th>Photo</th>
+          <th>Lines shown</th>
+          <th>Also covered on those lines</th>
+          <th>Time</th>
+        </tr>
+      </thead>
       <tbody>
         <tr v-for="r in results" :key="r.name + r.ms">
           <td>{{ r.name }}</td>
           <td>{{ r.error ? 'error' : r.keep.length }}</td>
-          <td>{{ r.error ? '' : r.hits.length ? [...new Set(r.hits.map((h) => h.reason))].join(', ') : 'nothing' }}</td>
+          <td>
+            {{
+              r.error
+                ? ''
+                : r.hits.length
+                  ? [...new Set(r.hits.map((h) => h.reason))].join(', ')
+                  : 'nothing'
+            }}
+          </td>
           <td>{{ r.ms != null ? (r.ms / 1000).toFixed(1) + ' s' : '…' }}</td>
         </tr>
       </tbody>
@@ -95,16 +153,29 @@ function fakeLabel() {
       <h2 class="h4 mb-0">{{ r.name }}</h2>
       <p v-if="r.error" class="alert alert-danger">{{ r.error }}</p>
       <div class="pair">
-        <figure v-if="r.original"><figcaption>Original</figcaption><img :src="r.original" alt="Original photo" /></figure>
-        <figure v-if="r.redacted"><figcaption>What would be sent</figcaption><img :src="r.redacted" alt="Photo with personal details blacked out" /></figure>
+        <figure v-if="r.original">
+          <figcaption>Original</figcaption>
+          <img :src="r.original" alt="Original photo" />
+        </figure>
+        <figure v-if="r.redacted">
+          <figcaption>What would be sent</figcaption>
+          <img :src="r.redacted" alt="Photo with personal details blacked out" />
+        </figure>
       </div>
       <details v-if="r.keep.length" open>
         <summary>Lines shown to the AI ({{ r.keep.length }})</summary>
-        <ul><li v-for="(k, i) in r.keep" :key="i">{{ k.text }}</li></ul>
+        <ul>
+          <li v-for="(k, i) in r.keep" :key="i">{{ k.text }}</li>
+        </ul>
       </details>
       <details v-if="r.hits.length">
         <summary>Personal details found and blacked out ({{ r.hits.length }}), not sent</summary>
-        <ul><li v-for="(h, i) in r.hits" :key="i"><strong>{{ h.reason }}</strong>: {{ h.text }}</li></ul>
+        <ul>
+          <li v-for="(h, i) in r.hits" :key="i">
+            <strong>{{ h.reason }}</strong
+            >: {{ h.text }}
+          </li>
+        </ul>
       </details>
       <details v-if="r.text">
         <summary>Everything the reader saw (lines not listed above stay black)</summary>
@@ -115,9 +186,27 @@ function fakeLabel() {
 </template>
 
 <style scoped>
-.pair { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
-figure { margin: 0; display: flex; flex-direction: column; gap: 8px; }
-figcaption { font-weight: 700; }
-figure img { width: 100%; border: 1px solid var(--color-border); border-radius: 12px; }
-pre { white-space: pre-wrap; font-size: 16px; }
+.pair {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+}
+figure {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+figcaption {
+  font-weight: 700;
+}
+figure img {
+  width: 100%;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+}
+pre {
+  white-space: pre-wrap;
+  font-size: 16px;
+}
 </style>

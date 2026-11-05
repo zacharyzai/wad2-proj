@@ -1,54 +1,250 @@
 /* Scoped styles for HistoryView.vue: two lists, a find box, chips, short rows, and one medicine or bill opened. */
-.history { gap: 20px; }
-.segmented button { display: inline-flex; align-items: center; gap: 10px; }
+.history {
+  gap: 20px;
+}
+.segmented button {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
 
 /* Find: a big box with its label above it (never only a placeholder: it disappears while typing). */
-.find { display: flex; flex-direction: column; gap: 6px; }
-.find-label { font-size: 18px; font-weight: 700; }
-.find-box { position: relative; display: flex; align-items: center; }
-.find-icon { position: absolute; left: 16px; color: var(--color-text-muted); pointer-events: none; }
-.find-input { width: 100%; min-height: var(--h-field); padding: 10px 52px 10px 50px; border: 2px solid var(--color-border-strong); border-radius: var(--r-field); background: var(--color-card); color: var(--color-text); font: inherit; font-size: 19px; }
-.find-input:focus { outline: none; border-color: var(--color-primary); box-shadow: var(--focus-ring); }
-.find-input::-webkit-search-cancel-button { display: none; } /* our own, bigger Clear button */
-.find-clear { position: absolute; right: 4px; width: var(--hit); height: var(--hit); display: grid; place-items: center; border: 0; border-radius: 50%; background: none; color: var(--color-text-muted); cursor: pointer; }
-.find-clear:hover { background: var(--color-surface-2); }
+.find {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.find-label {
+  font-size: 18px;
+  font-weight: 700;
+}
+.find-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.find-icon {
+  position: absolute;
+  left: 16px;
+  color: var(--color-text-muted);
+  pointer-events: none;
+}
+.find-input {
+  width: 100%;
+  min-height: var(--h-field);
+  padding: 10px 52px 10px 50px;
+  border: 2px solid var(--color-border-strong);
+  border-radius: var(--r-field);
+  background: var(--color-card);
+  color: var(--color-text);
+  font: inherit;
+  font-size: 19px;
+}
+.find-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: var(--focus-ring);
+}
+.find-input::-webkit-search-cancel-button {
+  display: none;
+} /* our own, bigger Clear button */
+.find-clear {
+  position: absolute;
+  right: 4px;
+  width: var(--hit);
+  height: var(--hit);
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+.find-clear:hover {
+  background: var(--color-surface-2);
+}
 
 /* One-tap chips: the person's medicines, or the months with bills. */
-.chips { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
-.chips-label { width: 100%; font-size: 16px; font-weight: 700; color: var(--color-text-muted); }
-.chip { min-height: var(--hit); padding: 6px 16px; border: 1px solid var(--color-border-strong); border-radius: var(--r-pill); background: var(--color-card); color: var(--color-text); font: inherit; font-size: 17px; font-weight: 600; cursor: pointer; }
-.chip:hover { border-color: var(--color-primary); }
-.chip[aria-pressed='true'] { border: 2px solid var(--color-primary); background: var(--color-tint); color: var(--color-tint-text); font-weight: 700; }
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.chips-label {
+  width: 100%;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+}
+.chip {
+  min-height: var(--hit);
+  padding: 6px 16px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--r-pill);
+  background: var(--color-card);
+  color: var(--color-text);
+  font: inherit;
+  font-size: 17px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.chip:hover {
+  border-color: var(--color-primary);
+}
+.chip[aria-pressed='true'] {
+  border: 2px solid var(--color-primary);
+  background: var(--color-tint);
+  color: var(--color-tint-text);
+  font-weight: 700;
+}
 
 /* Short rows: logo, name, one line under it, the date, an arrow. 7 or 8 fit on a phone. */
-.rows-block { display: flex; flex-direction: column; gap: 8px; }
-.rows { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; border: 1px solid var(--color-border); border-radius: var(--r-card); background: var(--color-card); overflow: hidden; }
-.rows li + li { border-top: 1px solid var(--color-border); }
-.row-link { display: flex; align-items: center; gap: 14px; min-height: 72px; padding: 10px 12px 10px 14px; color: var(--color-text); text-decoration: none; transition: background-color var(--dur) var(--ease-out); }
-.row-link:hover { background: var(--color-surface-2); color: var(--color-text); }
-.row-link:focus-visible { outline: none; box-shadow: inset var(--focus-ring); }
-.row-words { flex: 1; min-width: 0; display: flex; flex-direction: column; }
-.row-title { font-size: 18px; font-weight: 800; line-height: 1.3; overflow-wrap: anywhere; }
-.row-sub { font-size: 16px; color: var(--color-text-muted); }
-.row-sub:empty { display: none; }
-.row-date { flex: none; font-size: 16px; font-weight: 600; color: var(--color-text-muted); white-space: nowrap; }
-.row-chev { flex: none; color: var(--color-primary-text); }
+.rows-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--color-border);
+  border-radius: var(--r-card);
+  background: var(--color-card);
+  overflow: hidden;
+}
+.rows li + li {
+  border-top: 1px solid var(--color-border);
+}
+.row-link {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 72px;
+  padding: 10px 12px 10px 14px;
+  color: var(--color-text);
+  text-decoration: none;
+  transition: background-color var(--dur) var(--ease-out);
+}
+.row-link:hover {
+  background: var(--color-surface-2);
+  color: var(--color-text);
+}
+.row-link:focus-visible {
+  outline: none;
+  box-shadow: inset var(--focus-ring);
+}
+.row-words {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.row-title {
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+.row-sub {
+  font-size: 16px;
+  color: var(--color-text-muted);
+}
+.row-sub:empty {
+  display: none;
+}
+.row-date {
+  flex: none;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+.row-chev {
+  flex: none;
+  color: var(--color-primary-text);
+}
 
 /* "No longer taking (3)": folded away until asked for. */
-.fold { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: var(--hit); padding: 8px 4px; border: 0; background: none; color: var(--color-text-muted); font: inherit; font-size: var(--fs-small); font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; cursor: pointer; }
-.fold:hover { color: var(--color-text); }
+.fold {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: var(--hit);
+  padding: 8px 4px;
+  border: 0;
+  background: none;
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: var(--fs-small);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.fold:hover {
+  color: var(--color-text);
+}
 
 /* Bills: what was paid at each clinic this year, and a heading per month. */
-.year { display: flex; flex-direction: column; gap: 12px; }
-.year-title { margin: 0; font-size: var(--t20, 20px); font-weight: 800; }
-.year-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
-.year-list li { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; border-top: 1px solid var(--color-border); }
-.year-list li:first-child { border-top: 0; padding-top: 0; }
-.year-amount { font-family: var(--font-display); font-size: var(--t22, 22px); color: var(--color-primary-text); font-variant-numeric: tabular-nums lining-nums; white-space: nowrap; }
-.month { scroll-margin-top: 16px; }
-.month:focus { outline: none; }
+.year {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.year-title {
+  margin: 0;
+  font-size: var(--t20, 20px);
+  font-weight: 800;
+}
+.year-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+.year-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  border-top: 1px solid var(--color-border);
+}
+.year-list li:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+.year-amount {
+  font-family: var(--font-display);
+  font-size: var(--t22, 22px);
+  color: var(--color-primary-text);
+  font-variant-numeric: tabular-nums lining-nums;
+  white-space: nowrap;
+}
+.month {
+  scroll-margin-top: 16px;
+}
+.month:focus {
+  outline: none;
+}
 
 /* One medicine or bill opened. */
-.detail-head { display: flex; align-items: center; gap: 16px; }
-.detail-title { font-size: var(--fs-h1); overflow-wrap: anywhere; }
-.min-w-0 { min-width: 0; }
+.detail-head {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.detail-title {
+  font-size: var(--fs-h1);
+  overflow-wrap: anywhere;
+}
+.min-w-0 {
+  min-width: 0;
+}

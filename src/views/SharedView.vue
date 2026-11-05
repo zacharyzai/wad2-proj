@@ -60,8 +60,15 @@ async function accept() {
     </div>
 
     <LoadingState v-if="loading" />
-    <EmptyState v-else-if="gone" :title="t('invite.goneTitle')" :text="t('invite.goneText')" icon="users">
-      <RouterLink to="/" class="btn btn-primary"><AppIcon name="home" />{{ t('shared.open') }}</RouterLink>
+    <EmptyState
+      v-else-if="gone"
+      :title="t('invite.goneTitle')"
+      :text="t('invite.goneText')"
+      icon="users"
+    >
+      <RouterLink to="/" class="btn btn-primary"
+        ><AppIcon name="home" />{{ t('shared.open') }}</RouterLink
+      >
     </EmptyState>
     <ErrorBanner v-else-if="errorCode" :code="errorCode" retryable @retry="load" />
 
@@ -70,33 +77,64 @@ async function accept() {
 
       <div>
         <h3 class="invite-h">{{ t('invite.seeTitle') }}</h3>
-        <ul class="invite-list"><li>{{ t('invite.see1') }}</li><li>{{ t('invite.see2') }}</li></ul>
+        <ul class="invite-list">
+          <li>{{ t('invite.see1') }}</li>
+          <li>{{ t('invite.see2') }}</li>
+        </ul>
       </div>
       <div>
         <h3 class="invite-h">{{ t('invite.notTitle') }}</h3>
-        <ul class="invite-list"><li>{{ t('invite.not1') }}</li></ul>
+        <ul class="invite-list">
+          <li>{{ t('invite.not1') }}</li>
+        </ul>
       </div>
       <p class="m-0 fw-bold">{{ t('invite.removeAnytime', { name: invite.senior.name }) }}</p>
 
       <!-- Three situations: logged out, a senior account, a caregiver account. -->
       <div v-if="!role" class="d-flex flex-column gap-3">
         <p class="m-0">{{ t('invite.needAccount') }}</p>
-        <BigButton :to="{ name: 'login', query: back }" data-testid="invite-login">{{ t('invite.login') }}</BigButton>
-        <BigButton :to="{ name: 'signup', query: { ...back, role: 'caregiver' } }" variant="alt" data-testid="invite-signup">{{ t('invite.signup') }}</BigButton>
+        <BigButton :to="{ name: 'login', query: back }" data-testid="invite-login">{{
+          t('invite.login')
+        }}</BigButton>
+        <BigButton
+          :to="{ name: 'signup', query: { ...back, role: 'caregiver' } }"
+          variant="alt"
+          data-testid="invite-signup"
+          >{{ t('invite.signup') }}</BigButton
+        >
       </div>
-      <div v-else-if="role !== 'caregiver'" class="alert alert-warning" role="status" data-testid="invite-wrong-role">
+      <div
+        v-else-if="role !== 'caregiver'"
+        class="alert alert-warning"
+        role="status"
+        data-testid="invite-wrong-role"
+      >
         <AppIcon name="alert" /><span>{{ t('invite.seniorAccount') }}</span>
       </div>
       <div v-else class="d-flex flex-column gap-3">
         <ErrorBanner v-if="acceptCode && acceptCode !== 'WRONG_ROLE'" :code="acceptCode" />
-        <div v-else-if="acceptCode" class="alert alert-warning" role="alert"><AppIcon name="alert" /><span>{{ t('invite.seniorAccount') }}</span></div>
-        <BigButton :busy="accepting" data-testid="invite-accept" @click="accept">{{ accepting ? t('auth.working') : t('invite.accept', { name: invite.senior.name }) }}</BigButton>
+        <div v-else-if="acceptCode" class="alert alert-warning" role="alert">
+          <AppIcon name="alert" /><span>{{ t('invite.seniorAccount') }}</span>
+        </div>
+        <BigButton :busy="accepting" data-testid="invite-accept" @click="accept">{{
+          accepting ? t('auth.working') : t('invite.accept', { name: invite.senior.name })
+        }}</BigButton>
       </div>
     </Card>
   </div>
 </template>
 
 <style scoped>
-.invite-h { font-size: var(--fs-body); font-weight: 700; margin: 0 0 var(--s-2); }
-.invite-list { margin: 0; padding-left: 1.2em; display: flex; flex-direction: column; gap: var(--s-1); }
+.invite-h {
+  font-size: var(--fs-body);
+  font-weight: 700;
+  margin: 0 0 var(--s-2);
+}
+.invite-list {
+  margin: 0;
+  padding-left: 1.2em;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+}
 </style>

@@ -35,7 +35,14 @@ export function useAnswer() {
     // The first sentence leads the card (larger); the rest follows. One sentence: it is all the lead.
     const stop = text.search(/[.!?。！？](\s|$)/)
     const leadEnd = stop >= 0 && stop + 1 < text.trim().length ? stop + 1 : text.length
-    list.forEach((w, i) => Object.assign(w, { i, end: w.start + w.text.length, lead: w.start < leadEnd, word: /\S/.test(w.text) }))
+    list.forEach((w, i) =>
+      Object.assign(w, {
+        i,
+        end: w.start + w.text.length,
+        lead: w.start < leadEnd,
+        word: /\S/.test(w.text),
+      }),
+    )
     const rest = list.filter((w) => !w.lead)
     while (rest.length && !rest[0].word) rest.shift() // the space after the first sentence
     const parts = markRaw({ all: list, lead: list.filter((w) => w.lead), rest })
@@ -91,7 +98,25 @@ export function useAnswer() {
     stopSpeaking()
   }
   // The word being said (by its place in the text), for the highlight.
-  const isSaid = (m, w) => speaking.value === m.id && !preparing.value && w.word && wordAt.value >= w.start && wordAt.value < w.end + 1
+  const isSaid = (m, w) =>
+    speaking.value === m.id &&
+    !preparing.value &&
+    w.word &&
+    wordAt.value >= w.start &&
+    wordAt.value < w.end + 1
 
-  return { answerText, words, reveal, revealing, showAll, stopRevealing, speaking, preparing, speakFailed, play, stopReading, isSaid }
+  return {
+    answerText,
+    words,
+    reveal,
+    revealing,
+    showAll,
+    stopRevealing,
+    speaking,
+    preparing,
+    speakFailed,
+    play,
+    stopReading,
+    isSaid,
+  }
 }

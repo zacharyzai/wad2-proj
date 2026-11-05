@@ -20,7 +20,8 @@ const video = ref(null)
 // Until the first frame arrives the video is 0×0, and capturing would send an empty image.
 const ready = ref(false)
 onMounted(() => (video.value.srcObject = props.stream))
-const capture = () => emit('capture', toJpeg(video.value, video.value.videoWidth, video.value.videoHeight))
+const capture = () =>
+  emit('capture', toJpeg(video.value, video.value.videoWidth, video.value.videoHeight))
 </script>
 
 <template>
@@ -30,12 +31,30 @@ const capture = () => emit('capture', toJpeg(video.value, video.value.videoWidth
       <p v-if="note" class="lead-text" data-testid="scan-page-n">{{ note }}</p>
     </div>
     <div class="frame-area">
-      <video ref="video" class="live" autoplay playsinline muted @playing="ready = true" :aria-label="t('scan.preview')"></video>
+      <video
+        ref="video"
+        class="live"
+        autoplay
+        playsinline
+        muted
+        @playing="ready = true"
+        :aria-label="t('scan.preview')"
+      ></video>
       <span class="frame" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
       <span class="frame-hint"><AppIcon name="sun" :size="18" />{{ t(`scan.frame.${type}`) }}</span>
     </div>
-    <button type="button" class="btn btn-primary" :disabled="!ready" data-testid="scan-capture" @click="capture"><AppIcon name="camera" />{{ t('scan.capture') }}</button>
-    <button type="button" class="btn btn-secondary" @click="emit('cancel')"><AppIcon :name="back ? 'left' : 'x'" />{{ back ? t('scan.pages.back') : t('scan.cancel') }}</button>
+    <button
+      type="button"
+      class="btn btn-primary"
+      :disabled="!ready"
+      data-testid="scan-capture"
+      @click="capture"
+    >
+      <AppIcon name="camera" />{{ t('scan.capture') }}
+    </button>
+    <button type="button" class="btn btn-secondary" @click="emit('cancel')">
+      <AppIcon :name="back ? 'left' : 'x'" />{{ back ? t('scan.pages.back') : t('scan.cancel') }}
+    </button>
   </div>
 </template>
 

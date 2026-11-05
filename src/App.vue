@@ -30,15 +30,24 @@ const NAV = [
   { to: '/history', key: 'nav.history', icon: 'history' },
   { to: '/care', key: 'nav.care', icon: 'users', caregiverOnly: true },
 ]
-const navItems = computed(() => NAV.filter((item) => !item.caregiverOnly || authStore.user?.role === 'caregiver'))
+const navItems = computed(() =>
+  NAV.filter((item) => !item.caregiverOnly || authStore.user?.role === 'caregiver'),
+)
 // Prefix match so /scan/confirm and /scan/explain keep Scan highlighted; Home only on '/'.
 // The bill breakdown is part of the Scan flow (no tab of its own), so Scan stays lit on it.
-const isOn = (to) => (to === '/' ? route.path === '/' : route.path.startsWith(to) || (to === '/scan' && route.path.startsWith('/bill')))
+const isOn = (to) =>
+  to === '/'
+    ? route.path === '/'
+    : route.path.startsWith(to) || (to === '/scan' && route.path.startsWith('/bill'))
 
 // Tab title names the page, in the chosen language (route 'not-found' → key pages.notFound).
 watch(
   [() => route.name, locale],
-  ([name]) => (document.title = name && name !== 'home' ? `${t(`pages.${name.replace(/-(\w)/g, (_, c) => c.toUpperCase())}`)} · ${t('app.name')}` : t('app.name')),
+  ([name]) =>
+    (document.title =
+      name && name !== 'home'
+        ? `${t(`pages.${name.replace(/-(\w)/g, (_, c) => c.toUpperCase())}`)} · ${t('app.name')}`
+        : t('app.name')),
   { immediate: true },
 )
 
@@ -88,13 +97,23 @@ router.afterEach(async (to, from, failure) => {
           :class="{ on: isOn(item.to), 'desk-only': item.phone === false }"
           :aria-current="isOn(item.to) ? 'page' : null"
         >
-          <span class="navi-icon"><AppIcon :name="item.icon" :size="item.phone === false ? 22 : 24" :stroke="isOn(item.to) ? 2.25 : 2" /></span>
+          <span class="navi-icon"
+            ><AppIcon
+              :name="item.icon"
+              :size="item.phone === false ? 22 : 24"
+              :stroke="isOn(item.to) ? 2.25 : 2"
+          /></span>
           <span class="navi-label">{{ t(item.key) }}</span>
         </RouterLink>
       </nav>
 
       <!-- Reopens the Beginner's guide (desktop; on phones it is on the Account page). -->
-      <button type="button" class="navi desk-only guide-link" data-testid="open-guide" @click="openGuide">
+      <button
+        type="button"
+        class="navi desk-only guide-link"
+        data-testid="open-guide"
+        @click="openGuide"
+      >
         <span class="navi-icon"><AppIcon name="compass" :size="22" /></span>
         <span class="navi-label">{{ t('guide.open') }}</span>
       </button>
@@ -102,13 +121,21 @@ router.afterEach(async (to, from, failure) => {
       <!-- Day / night, one tap from every page: above Account in the sidebar, beside Account in the phone header. Language is the row above it (and on the Account page). -->
       <!-- Language, one tap from every page: a row under the phone header; in the sidebar's settings group on computers. -->
       <div class="lang-box">
-        <span class="lang-label desk-only" aria-hidden="true"><AppIcon name="globe" :size="20" />{{ t('nav.language') }}</span>
+        <span class="lang-label desk-only" aria-hidden="true"
+          ><AppIcon name="globe" :size="20" />{{ t('nav.language') }}</span
+        >
         <LanguageSwitch />
       </div>
       <div class="theme-box"><ThemeToggle /></div>
 
       <!-- Everyone has an account, so this is always Account (logged-out visitors are sent to Log in by the router). -->
-      <RouterLink to="/account" class="acct" data-guide="/account" :aria-label="t('nav.account')" :aria-current="isOn('/account') ? 'page' : null">
+      <RouterLink
+        to="/account"
+        class="acct"
+        data-guide="/account"
+        :aria-label="t('nav.account')"
+        :aria-current="isOn('/account') ? 'page' : null"
+      >
         <span class="acct-icon"><AppIcon name="user" :size="22" /></span>
         <span class="acct-label" aria-hidden="true">{{ t('nav.account') }}</span>
         <AppIcon name="right" :size="20" class="acct-chev" />
@@ -117,7 +144,10 @@ router.afterEach(async (to, from, failure) => {
 
     <div class="col-main">
       <!-- Every page sits on the same faint drawings of medicine, bills and the people the app is for. -->
-      <main id="main" class="main" tabindex="-1"><PageBackdrop /><div class="wrap"><RouterView /></div></main>
+      <main id="main" class="main" tabindex="-1">
+        <PageBackdrop />
+        <div class="wrap"><RouterView /></div>
+      </main>
       <footer class="ft">
         <AppIcon name="shield" :size="22" class="ft-icon" />
         <p>{{ t('app.disclaimer') }}</p>

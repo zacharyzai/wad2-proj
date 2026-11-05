@@ -27,14 +27,23 @@ function medication(m) {
   const dose = { amount: m.doseAmount, unit: unit(m.doseAmount) }
   // What it is usually for: a word from our own templates (the AI only picked the key), or nothing when it wasn't sure.
   const purpose = m.purpose ? t(`purpose.${m.purpose}`) : null
-  const base = { tag: t('explain.tag.medication'), kind: 'medication', name: m.name, purpose, warnings: m.warnings }
+  const base = {
+    tag: t('explain.tag.medication'),
+    kind: 'medication',
+    name: m.name,
+    purpose,
+    warnings: m.warnings,
+  }
 
   if (m.frequencyType !== 'daily') {
     return {
       ...base,
       kind: t(`freq.${m.frequencyType ?? 'other'}`),
       title: t('explain.med.askTitle'),
-      paras: [t('explain.med.askText'), m.rawInstruction && t('explain.med.labelSays', { text: m.rawInstruction })].filter(Boolean),
+      paras: [
+        t('explain.med.askText'),
+        m.rawInstruction && t('explain.med.labelSays', { text: m.rawInstruction }),
+      ].filter(Boolean),
       q: t('explain.check.askQ'),
       options: [
         { label: t('explain.check.yes'), right: false },
@@ -51,12 +60,17 @@ function medication(m) {
     ...base,
     title: t('explain.med.title', { ...dose, times: m.timesPerDay }, m.timesPerDay),
     paras: [
-      m.timing?.length && t('explain.med.when', { list: m.timing.map((k) => t(`timing.${k}`)).join(t('explain.sep')) }),
+      m.timing?.length &&
+        t('explain.med.when', {
+          list: m.timing.map((k) => t(`timing.${k}`)).join(t('explain.sep')),
+        }),
       m.withFood && t(`explain.med.food.${m.withFood}`),
       t('explain.med.daily'),
     ].filter(Boolean),
     q: t('explain.check.medQ', { unit: unit(2) }),
-    options: [m.doseAmount, wrongAmount].sort(byValue).map((n) => ({ label: `${n} ${unit(n)}`, right: n === m.doseAmount })),
+    options: [m.doseAmount, wrongAmount]
+      .sort(byValue)
+      .map((n) => ({ label: `${n} ${unit(n)}`, right: n === m.doseAmount })),
     right: t('explain.check.medRight', dose),
     wrong: t('explain.check.medWrong', dose),
     // Big digits for the dose, then when and food. Always words beside the numbers and icons.
@@ -66,7 +80,14 @@ function medication(m) {
       m.withFood && { icon: 'food', text: t(`food.${m.withFood}`) },
     ].filter(Boolean),
     // All four parts of the day, so the ones to take stand out in a day strip; skipped ones are for sighted context only.
-    times: m.timing?.length ? Object.keys(TIME_ICONS).map((k) => ({ key: k, icon: TIME_ICONS[k], text: t(`timing.${k}`), on: m.timing.includes(k) })) : [],
+    times: m.timing?.length
+      ? Object.keys(TIME_ICONS).map((k) => ({
+          key: k,
+          icon: TIME_ICONS[k],
+          text: t(`timing.${k}`),
+          on: m.timing.includes(k),
+        }))
+      : [],
     canSchedule: true,
   }
 }
@@ -75,7 +96,13 @@ function bill(b) {
   const charges = sumCents(b.items)
   const pay = b.totalPayableCents
   const wrongAmount = charges !== pay ? charges : pay + 1000
-  const date = b.visitDate && new Date(`${b.visitDate}T00:00`).toLocaleDateString(locale.value, { day: 'numeric', month: 'short', year: 'numeric' })
+  const date =
+    b.visitDate &&
+    new Date(`${b.visitDate}T00:00`).toLocaleDateString(locale.value, {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    })
   return {
     tag: t('explain.tag.bill'),
     kind: 'bill',
@@ -84,12 +111,17 @@ function bill(b) {
     title: t('explain.bill.title', { amount: money(pay) }),
     lines: [
       [t('explain.bill.charges'), money(charges)],
-      [t('explain.bill.subsidies'), minusMoney(sumCents(b.subsidies.filter((s) => !s.includedInItems)))],
+      [
+        t('explain.bill.subsidies'),
+        minusMoney(sumCents(b.subsidies.filter((s) => !s.includedInItems))),
+      ],
       [t('explain.bill.medisave'), minusMoney(b.medisaveCents)],
     ],
     paras: [t('explain.bill.p')],
     // Lines that don't add up to the bill's total (a misread digit): the total shown is the bill's own; say so, as Confirm and the Bill page do.
-    note: billGap(b) ? t('bill.gap.text', { lines: money(linesTotal(b)), total: money(pay) }) : null,
+    note: billGap(b)
+      ? t('bill.gap.text', { lines: money(linesTotal(b)), total: money(pay) })
+      : null,
     q: t('explain.check.billQ'),
     options: [pay, wrongAmount].sort(byValue).map((n) => ({ label: money(n), right: n === pay })),
     right: t('explain.check.billRight', { amount: money(pay) }),
@@ -106,7 +138,17 @@ const view = computed(() => {
 })
 
 const speech = computed(() =>
-  view.value ? [view.value.purpose && `${t('purpose.lead')} ${view.value.purpose}.`, view.value.title, ...(view.value.lines ?? []).map((line) => line.join(' ')), view.value.note, ...view.value.paras].filter(Boolean).join(' ') : '',
+  view.value
+    ? [
+        view.value.purpose && `${t('purpose.lead')} ${view.value.purpose}.`,
+        view.value.title,
+        ...(view.value.lines ?? []).map((line) => line.join(' ')),
+        view.value.note,
+        ...view.value.paras,
+      ]
+        .filter(Boolean)
+        .join(' ')
+    : '',
 )
 
 const picked = ref(null)
@@ -117,8 +159,12 @@ watch(locale, () => (picked.value = null))
   <div v-if="view" class="page">
     <div class="d-flex align-items-center gap-3 flex-wrap">
       <RouterLink :to="{ name: 'confirm' }" class="back" :aria-label="t('nav.back')"></RouterLink>
-      <span class="badge badge-success"><AppIcon name="checkCircle" :size="18" />{{ t('explain.checked') }}</span>
-      <span v-if="view.kind" class="badge badge-warning"><AppIcon name="alert" :size="18" />{{ view.kind }}</span>
+      <span class="badge badge-success"
+        ><AppIcon name="checkCircle" :size="18" />{{ t('explain.checked') }}</span
+      >
+      <span v-if="view.kind" class="badge badge-warning"
+        ><AppIcon name="alert" :size="18" />{{ view.kind }}</span
+      >
     </div>
 
     <div class="cols">
@@ -140,7 +186,9 @@ watch(locale, () => (picked.value = null))
 
           <!-- Bill: the amount inside the sentence is the big hero number. -->
           <i18n-t v-if="view.lines" keypath="explain.bill.title" tag="h1" class="explain-title">
-            <template #amount><span class="hero-number">{{ money(scan.bill.totalPayableCents) }}</span></template>
+            <template #amount
+              ><span class="hero-number">{{ money(scan.bill.totalPayableCents) }}</span></template
+            >
           </i18n-t>
           <h1 v-else class="explain-title">{{ view.title }}</h1>
 
@@ -153,21 +201,34 @@ watch(locale, () => (picked.value = null))
 
           <p v-if="view.note" class="alert alert-info m-0" role="note" data-testid="explain-gap">
             <AppIcon name="info" />
-            <span><strong class="d-block">{{ t('bill.gap.title') }}</strong>{{ view.note }}</span>
+            <span
+              ><strong class="d-block">{{ t('bill.gap.title') }}</strong
+              >{{ view.note }}</span
+            >
           </p>
 
           <div v-if="view.stats" class="stats stagger">
             <div v-for="stat in view.stats" :key="stat.text" class="stat">
-              <span v-if="stat.icon" class="stat-icon"><AppIcon :name="stat.icon" :size="44" /></span>
+              <span v-if="stat.icon" class="stat-icon"
+                ><AppIcon :name="stat.icon" :size="44"
+              /></span>
               <span v-else class="stat-big">{{ stat.big }}</span>
               <span class="stat-text">{{ stat.text }}</span>
             </div>
           </div>
           <ol v-if="view.times?.length" class="day-strip">
-            <li v-for="time in view.times" :key="time.key" class="slot" :class="{ on: time.on }" :aria-hidden="!time.on">
+            <li
+              v-for="time in view.times"
+              :key="time.key"
+              class="slot"
+              :class="{ on: time.on }"
+              :aria-hidden="!time.on"
+            >
               <AppIcon :name="time.icon" :size="26" />
               <span>{{ time.text }}</span>
-              <span v-if="time.on" class="slot-check" aria-hidden="true"><AppIcon name="check" :size="14" :stroke="3" /></span>
+              <span v-if="time.on" class="slot-check" aria-hidden="true"
+                ><AppIcon name="check" :size="14" :stroke="3"
+              /></span>
             </li>
           </ol>
 
@@ -211,7 +272,11 @@ watch(locale, () => (picked.value = null))
             </button>
           </div>
           <div role="status">
-            <p v-if="picked !== null" class="feedback" :class="view.options[picked].right ? 'right' : 'wrong'">
+            <p
+              v-if="picked !== null"
+              class="feedback"
+              :class="view.options[picked].right ? 'right' : 'wrong'"
+            >
               <AppIcon :name="view.options[picked].right ? 'checkCircle' : 'info'" :size="20" />
               {{ view.options[picked].right ? view.right : view.wrong }}
             </p>
@@ -219,10 +284,33 @@ watch(locale, () => (picked.value = null))
         </section>
 
         <div class="d-flex flex-column gap-3">
-          <RouterLink v-if="view.canSchedule" :to="{ name: 'schedule', query: scan.medication.frequencyType !== 'daily' ? { view: 'meds' } : {} }" class="btn btn-primary"><AppIcon name="calendar" />{{ t('explain.add') }}</RouterLink>
-          <RouterLink v-if="scan.type === 'medication'" :to="{ name: 'ask' }" class="btn btn-secondary"><AppIcon name="chat" />{{ t('explain.ask') }}</RouterLink>
-          <RouterLink v-if="view.canBreakdown" :to="{ name: 'bill' }" class="btn btn-primary"><AppIcon name="receipt" />{{ t('explain.bill.breakdown') }}</RouterLink>
-          <RouterLink :to="scan.type === 'bill' ? { name: 'scan', hash: '#bill' } : { name: 'scan', query: { type: 'medication' } }" :class="view.canSchedule || view.canBreakdown ? 'btn btn-ghost' : 'btn btn-primary'"><AppIcon name="scan" />{{ t('explain.another') }}</RouterLink>
+          <RouterLink
+            v-if="view.canSchedule"
+            :to="{
+              name: 'schedule',
+              query: scan.medication.frequencyType !== 'daily' ? { view: 'meds' } : {},
+            }"
+            class="btn btn-primary"
+            ><AppIcon name="calendar" />{{ t('explain.add') }}</RouterLink
+          >
+          <RouterLink
+            v-if="scan.type === 'medication'"
+            :to="{ name: 'ask' }"
+            class="btn btn-secondary"
+            ><AppIcon name="chat" />{{ t('explain.ask') }}</RouterLink
+          >
+          <RouterLink v-if="view.canBreakdown" :to="{ name: 'bill' }" class="btn btn-primary"
+            ><AppIcon name="receipt" />{{ t('explain.bill.breakdown') }}</RouterLink
+          >
+          <RouterLink
+            :to="
+              scan.type === 'bill'
+                ? { name: 'scan', hash: '#bill' }
+                : { name: 'scan', query: { type: 'medication' } }
+            "
+            :class="view.canSchedule || view.canBreakdown ? 'btn btn-ghost' : 'btn btn-primary'"
+            ><AppIcon name="scan" />{{ t('explain.another') }}</RouterLink
+          >
         </div>
       </div>
     </div>

@@ -18,7 +18,8 @@
     "try:scan": "node --env-file-if-exists=.env server/scripts/try-scan.js",
     "server:local": "node --env-file-if-exists=.env server/scripts/local-server.js",
     "db:check": "node --env-file-if-exists=.env server/scripts/check-database.js",
-    "atlas:configure": "node server/scripts/configure-atlas.js"
+    "atlas:configure": "node server/scripts/configure-atlas.js",
+    "format": "prettier --write src server e2e e2e-simple api load *.js"
   },
   "engines": {
     "node": ">=22.9.0"
@@ -45,6 +46,7 @@
     "@vue/test-utils": "^2.5.1",
     "jsdom": "^30.1.3",
     "mongodb-memory-server": "^11.3.0",
+    "prettier": "^3.9.10",
     "vite": "^8.3.4",
     "vitest": "^5.0.5"
   }

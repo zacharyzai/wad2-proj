@@ -20,7 +20,8 @@ const SLOTS_PER_DAY = {
   4: ['morning', 'afternoon', 'evening', 'bedtime'],
 }
 
-export const validTime = (time) => typeof time === 'string' && /^([01]\d|2[0-3]):[0-5]\d$/.test(time)
+export const validTime = (time) =>
+  typeof time === 'string' && /^([01]\d|2[0-3]):[0-5]\d$/.test(time)
 export const validDays = (days) => Number.isInteger(days) && days >= 1 && days <= MAX_DAYS
 
 const parseDate = (date) => {
@@ -28,10 +29,14 @@ const parseDate = (date) => {
   const [y, m, d] = date.split('-').map(Number)
   const utc = new Date(Date.UTC(y, m - 1, d))
   // Rejects dates that don't exist, such as 2026-02-30 (Date would roll it over to March).
-  return utc.getUTCFullYear() === y && utc.getUTCMonth() === m - 1 && utc.getUTCDate() === d ? utc : null
+  return utc.getUTCFullYear() === y && utc.getUTCMonth() === m - 1 && utc.getUTCDate() === d
+    ? utc
+    : null
 }
 const formatDate = (utc) =>
-  [utc.getUTCFullYear(), utc.getUTCMonth() + 1, utc.getUTCDate()].map((n, i) => String(n).padStart(i ? 2 : 4, '0')).join('-')
+  [utc.getUTCFullYear(), utc.getUTCMonth() + 1, utc.getUTCDate()]
+    .map((n, i) => String(n).padStart(i ? 2 : 4, '0'))
+    .join('-')
 
 export const validDate = (date) => parseDate(date) !== null
 
@@ -52,12 +57,22 @@ export function stopCourse(schedule, today) {
 
 // Today's date in Singapore, whatever time zone the device is set to.
 export function todayInSingapore(now = new Date()) {
-  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Singapore', year: 'numeric', month: '2-digit', day: '2-digit' }).format(now)
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Singapore',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(now)
 }
 
 // The time in Singapore as 'HH:MM', whatever time zone the device is set to.
 export function timeInSingapore(now = new Date()) {
-  return new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Singapore', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(now)
+  return new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Asia/Singapore',
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+  }).format(now)
 }
 const minutes = (hhmm) => Number(hhmm.slice(0, 2)) * 60 + Number(hhmm.slice(3, 5))
 
@@ -70,7 +85,10 @@ export function timeStates(times, now) {
   const at = minutes(now)
   return times.map((time, i) => {
     const start = minutes(time) - NOW_LEAD_MIN
-    const end = i + 1 < times.length ? Math.max(minutes(times[i + 1]) - NOW_LEAD_MIN, minutes(time) + 1) : 24 * 60
+    const end =
+      i + 1 < times.length
+        ? Math.max(minutes(times[i + 1]) - NOW_LEAD_MIN, minutes(time) + 1)
+        : 24 * 60
     return at < start ? 'later' : at >= end ? 'earlier' : 'now'
   })
 }
@@ -82,16 +100,21 @@ export const tooEarly = (time, now) => minutes(time) - minutes(now) > EARLY_MIN
 // The slots a medicine is taken at, or null when it can't be scheduled safely.
 export function doseSlots(medication = {}) {
   if (medication.frequencyType !== 'daily') return null
-  const timing = Array.isArray(medication.timing) ? TIMINGS.filter((slot) => medication.timing.includes(slot)) : []
+  const timing = Array.isArray(medication.timing)
+    ? TIMINGS.filter((slot) => medication.timing.includes(slot))
+    : []
   if (timing.length) return timing
   // Integer check first: object keys are strings, so SLOTS_PER_DAY['2'] would otherwise match.
-  return Number.isInteger(medication.timesPerDay) ? SLOTS_PER_DAY[medication.timesPerDay] ?? null : null
+  return Number.isInteger(medication.timesPerDay)
+    ? (SLOTS_PER_DAY[medication.timesPerDay] ?? null)
+    : null
 }
 
 // A label warning like "Do not use more than 7 days" or "for up to 2 weeks" limits the course, however many tablets there are.
 // Our own pattern (English labels, like the rest of the label text); the smallest limit wins; null when no warning gives one.
 // shortcut: only these phrasings; a limit worded another way is not caught, so the user still checks the days on Schedule.
-const LIMIT = /\b(?:more than|longer than|beyond|exceed(?:ing)?|up to|at most|maximum(?: of)?|max\.?(?: of)?)\s+(\d{1,3})\s*(day|week)s?\b/i
+const LIMIT =
+  /\b(?:more than|longer than|beyond|exceed(?:ing)?|up to|at most|maximum(?: of)?|max\.?(?: of)?)\s+(\d{1,3})\s*(day|week)s?\b/i
 export function labelLimitDays(medication = {}) {
   const limits = (medication.warnings ?? [])
     .map((w) => LIMIT.exec(String(w)))
@@ -126,10 +149,17 @@ export function buildSchedule(medicine, { startDate, days, times = {} } = {}) {
   return {
     medicineId: medicine.id,
     label: [medication.name, medication.strength].filter(Boolean).join(' '),
-    instruction: { count: medication.doseAmount ?? null, unit: medication.doseUnit ?? null, food: medication.withFood ?? null },
+    instruction: {
+      count: medication.doseAmount ?? null,
+      unit: medication.doseUnit ?? null,
+      food: medication.withFood ?? null,
+    },
     // The id is the medicine plus the slot, never a position, so editing a time updates the same Google event and keeps its ticks.
     // An invalid typed time falls back to the slot's usual time; the page checks with validTime before saving.
-    doses: (slots ?? []).map((slot) => ({ id: `${medicine.id}-${slot}`, time: validTime(times?.[slot]) ? times[slot] : SLOT_TIMES[slot] })),
+    doses: (slots ?? []).map((slot) => ({
+      id: `${medicine.id}-${slot}`,
+      time: validTime(times?.[slot]) ? times[slot] : SLOT_TIMES[slot],
+    })),
     startDate: start,
     endDate: start && validDays(days) ? addDays(start, days - 1) : null,
     flagged: slots === null,
@@ -140,7 +170,11 @@ export function buildSchedule(medicine, { startDate, days, times = {} } = {}) {
 // startDate and a label of at most 80 characters on every entry, even ones it skips, or it refuses the whole schedule.
 const LABEL_MAX = 80
 export function syncEntries(entries, today) {
-  return entries.map((e) => ({ ...e, label: e.label.slice(0, LABEL_MAX), startDate: e.startDate ?? today }))
+  return entries.map((e) => ({
+    ...e,
+    label: e.label.slice(0, LABEL_MAX),
+    startDate: e.startDate ?? today,
+  }))
 }
 
 // That day's doses across all entries, earliest first. Flagged entries and entries without both dates are left out.
@@ -148,8 +182,19 @@ export function syncEntries(entries, today) {
 export function dosesOn(entries, date) {
   if (!validDate(date)) return []
   return entries
-    .filter((e) => !e.flagged && e.startDate && e.endDate && e.startDate <= date && date <= e.endDate)
-    .flatMap((e) => e.doses.map((dose) => ({ id: dose.id, slot: dose.id.slice(e.medicineId.length + 1), time: dose.time, medicineId: e.medicineId, label: e.label, instruction: e.instruction })))
+    .filter(
+      (e) => !e.flagged && e.startDate && e.endDate && e.startDate <= date && date <= e.endDate,
+    )
+    .flatMap((e) =>
+      e.doses.map((dose) => ({
+        id: dose.id,
+        slot: dose.id.slice(e.medicineId.length + 1),
+        time: dose.time,
+        medicineId: e.medicineId,
+        label: e.label,
+        instruction: e.instruction,
+      })),
+    )
     .sort((a, b) => a.time.localeCompare(b.time) || a.label.localeCompare(b.label))
 }
 
@@ -172,7 +217,16 @@ export function weekSummary(entries, today, now, takenOn) {
   const todayState = new Map(todayTimes.map((time, i) => [time, timeStates(todayTimes, now)[i]]))
   const perDay = days.map((date) => ({ date, doses: dosesOn(entries, date), taken: takenOn(date) }))
   const found = new Map()
-  for (const { doses } of perDay) for (const d of doses) if (!found.has(d.id)) found.set(d.id, { id: d.id, medicineId: d.medicineId, slot: d.slot, time: d.time, label: d.label })
+  for (const { doses } of perDay)
+    for (const d of doses)
+      if (!found.has(d.id))
+        found.set(d.id, {
+          id: d.id,
+          medicineId: d.medicineId,
+          slot: d.slot,
+          time: d.time,
+          label: d.label,
+        })
   const notTicked = []
   let anyPassed = false
   const rows = [...found.values()]
@@ -192,6 +246,11 @@ export function weekSummary(entries, today, now, takenOn) {
         return { date, state: 'not' }
       }),
     }))
-  notTicked.sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time) || a.label.localeCompare(b.label))
+  notTicked.sort(
+    (a, b) =>
+      a.date.localeCompare(b.date) ||
+      a.time.localeCompare(b.time) ||
+      a.label.localeCompare(b.label),
+  )
   return { days, rows, notTicked, anyPassed }
 }

@@ -5,7 +5,17 @@ import assert from 'node:assert/strict'
 process.env.JWT_SECRET = 'test-secret-for-auth-checks-at-least-32-bytes'
 delete process.env.MONGODB_URI // so a request that passes the checks gets the "accounts unavailable" answer, not a real DB
 const { default: app } = await import('../app.js')
-const { hashPassword, verifyPassword, signToken, readToken, TOKEN_SECONDS, signResetToken, readResetToken, resetTokenMatches, RESET_SECONDS } = await import('../services/auth.js')
+const {
+  hashPassword,
+  verifyPassword,
+  signToken,
+  readToken,
+  TOKEN_SECONDS,
+  signResetToken,
+  readResetToken,
+  resetTokenMatches,
+  RESET_SECONDS,
+} = await import('../services/auth.js')
 const { checkProfile } = await import('../routes/auth.js')
 
 let server, base
@@ -16,8 +26,19 @@ beforeAll(() => {
 afterAll(() => server.close())
 
 const post = (path, body, headers = {}) =>
-  fetch(`${base}/api/auth${path}`, { method: 'POST', headers: { 'content-type': 'application/json', ...headers }, body: JSON.stringify(body) })
-const GOOD = { name: 'Tan Mei Ling', email: 'mei@example.com', password: 'teh-tarik-1952', dob: '1952-03-07', citizenship: 'birth', income: 'upTo1500' }
+  fetch(`${base}/api/auth${path}`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', ...headers },
+    body: JSON.stringify(body),
+  })
+const GOOD = {
+  name: 'Tan Mei Ling',
+  email: 'mei@example.com',
+  password: 'teh-tarik-1952',
+  dob: '1952-03-07',
+  citizenship: 'birth',
+  income: 'upTo1500',
+}
 
 test('passwords are salted hashes that only the right password matches', async () => {
   const a = await hashPassword('teh-tarik-1952')
@@ -41,7 +62,9 @@ test('tokens: remember me lasts 30 days, otherwise 12 hours; forged or expired t
   const token = signToken('u1', false, now)
   assert.equal(readToken(token, now + 13 * 3600 * 1000), null) // expired
   const [body] = token.split('.')
-  const forgedBody = Buffer.from(JSON.stringify({ sub: 'admin', rem: true, exp: 9e9 })).toString('base64url')
+  const forgedBody = Buffer.from(JSON.stringify({ sub: 'admin', rem: true, exp: 9e9 })).toString(
+    'base64url',
+  )
   assert.equal(readToken(`${forgedBody}.${token.split('.')[1]}`, now), null) // payload changed, old signature
   assert.equal(readToken(`${body}.AAAA`, now), null)
   assert.equal(readToken(undefined, now), null)
@@ -49,9 +72,22 @@ test('tokens: remember me lasts 30 days, otherwise 12 hours; forged or expired t
 
 test('profile checks: real dates, known citizenship, and a citizenship year only when it makes sense', () => {
   const now = new Date('2026-10-22T00:00:00Z')
-  assert.deepEqual(checkProfile(GOOD, now).profile, { name: 'Tan Mei Ling', dob: '1952-03-07', citizenship: 'birth', citizenSince: null, income: 'upTo1500' })
-  assert.equal(checkProfile({ ...GOOD, citizenship: 'pr', income: 'upTo1500' }, now).profile.income, null) // only citizens are asked
-  assert.deepEqual(checkProfile({ ...GOOD, citizenship: 'became', citizenSince: '1988' }, now).profile.citizenSince, 1988)
+  assert.deepEqual(checkProfile(GOOD, now).profile, {
+    name: 'Tan Mei Ling',
+    dob: '1952-03-07',
+    citizenship: 'birth',
+    citizenSince: null,
+    income: 'upTo1500',
+  })
+  assert.equal(
+    checkProfile({ ...GOOD, citizenship: 'pr', income: 'upTo1500' }, now).profile.income,
+    null,
+  ) // only citizens are asked
+  assert.deepEqual(
+    checkProfile({ ...GOOD, citizenship: 'became', citizenSince: '1988' }, now).profile
+      .citizenSince,
+    1988,
+  )
   for (const bad of [
     { name: '  ' },
     { dob: '1952-02-30' }, // not a real day
@@ -68,7 +104,12 @@ test('profile checks: real dates, known citizenship, and a citizenship year only
 })
 
 test('signup refuses bad details with 400 before touching the database', async () => {
-  for (const bad of [{ email: 'not-an-email' }, { password: 'short' }, { dob: '' }, { citizenship: 'martian' }]) {
+  for (const bad of [
+    { email: 'not-an-email' },
+    { password: 'short' },
+    { dob: '' },
+    { citizenship: 'martian' },
+  ]) {
     const res = await post('/signup', { ...GOOD, ...bad })
     assert.equal(res.status, 400, JSON.stringify(bad))
     assert.equal((await res.json()).error.code, 'BAD_REQUEST')
@@ -76,7 +117,10 @@ test('signup refuses bad details with 400 before touching the database', async (
 })
 
 test('with no database, a valid signup or login says accounts are unavailable (503), never crashes', async () => {
-  for (const [path, body] of [['/signup', GOOD], ['/login', { email: GOOD.email, password: GOOD.password }]]) {
+  for (const [path, body] of [
+    ['/signup', GOOD],
+    ['/login', { email: GOOD.email, password: GOOD.password }],
+  ]) {
     const res = await post(path, body)
     assert.equal(res.status, 503)
     assert.equal((await res.json()).ok, false)
@@ -85,7 +129,9 @@ test('with no database, a valid signup or login says accounts are unavailable (5
 
 test('/me needs a valid login token', async () => {
   assert.equal((await fetch(`${base}/api/auth/me`)).status, 401)
-  const forged = await fetch(`${base}/api/auth/me`, { headers: { authorization: 'Bearer abc.def' } })
+  const forged = await fetch(`${base}/api/auth/me`, {
+    headers: { authorization: 'Bearer abc.def' },
+  })
   assert.equal(forged.status, 401)
   assert.equal((await forged.json()).error.code, 'NOT_LOGGED_IN')
 })
@@ -100,7 +146,10 @@ test('a reset link works for 30 minutes, for its own account and its current pas
   const payload = readResetToken(link, now)
   assert.equal(payload.sub, user._id)
   assert.equal(resetTokenMatches(payload, user), true)
-  assert.ok(!link.includes(user.passwordHash) && !Buffer.from(link.split('.')[1], 'base64url').toString().includes('argon2')) // nothing about the password
+  assert.ok(
+    !link.includes(user.passwordHash) &&
+      !Buffer.from(link.split('.')[1], 'base64url').toString().includes('argon2'),
+  ) // nothing about the password
 
   assert.ok(readResetToken(link, now + (RESET_SECONDS - 1) * 1000)) // still fine just before 30 minutes
   assert.equal(readResetToken(link, now + (RESET_SECONDS + 1) * 1000), null) // expired after
@@ -124,9 +173,12 @@ test('reset links and logins can never stand in for each other; tampered or forg
   assert.equal(readResetToken(signToken(user._id, true)), null) // a login is not a reset link
   const [head, body, sig] = link.split('.')
   const claims = JSON.parse(Buffer.from(body, 'base64url').toString())
-  const swapped = Buffer.from(JSON.stringify({ ...claims, sub: '6a0000000000000000000002' })).toString('base64url')
+  const swapped = Buffer.from(
+    JSON.stringify({ ...claims, sub: '6a0000000000000000000002' }),
+  ).toString('base64url')
   assert.equal(readResetToken(`${head}.${swapped}.${sig}`), null) // pointed at another account
-  for (const bad of [undefined, '', 'not.a.link', link.slice(0, -4) + 'abcd', 'x'.repeat(3000)]) assert.equal(readResetToken(bad), null)
+  for (const bad of [undefined, '', 'not.a.link', link.slice(0, -4) + 'abcd', 'x'.repeat(3000)])
+    assert.equal(readResetToken(bad), null)
   assert.equal(resetTokenMatches({ sub: user._id, pwd: 'short' }, user), false)
   assert.equal(resetTokenMatches(null, user), false)
 })

@@ -1,24 +1,96 @@
 /* Scoped styles for components/ask/AskComposer.vue. */
 /* Composer: one rounded card with its tools inside. Docks above the phone tab bar once the conversation starts. */
-.dock { display: flex; flex-direction: column; gap: 10px; }
-.chat:not(.empty) .dock { position: sticky; bottom: calc(82px + env(safe-area-inset-bottom)); z-index: 5; padding-top: 16px; background: linear-gradient(to bottom, transparent, var(--color-page) 16px); }
-.composer { display: flex; flex-direction: column; gap: 6px; padding: 12px 12px 10px 18px; border: 1px solid var(--color-border); border-radius: var(--r-card); background: var(--color-card); box-shadow: var(--shadow-hover); transition: border-color var(--dur) var(--ease-out); }
-.composer:focus-within { border-color: var(--color-primary); }
-.composer textarea { width: 100%; min-height: 2lh; max-height: 8lh; padding: 6px 0; border: 0; outline: none; resize: none; background: none; color: var(--color-text); font: inherit; font-size: var(--t19, 19px); line-height: 1.45; field-sizing: content; }
-.composer textarea:focus-visible { box-shadow: none; }
-.composer textarea::placeholder { color: var(--color-text-muted); }
-.tools { display: flex; align-items: center; gap: 8px; }
-.mic { margin-left: auto; --bs-btn-bg: var(--color-surface-2); --bs-btn-border-color: transparent; }
-.mic[aria-pressed='true'] { --bs-btn-bg: var(--color-tint); --bs-btn-color: var(--color-tint-text); --bs-btn-border-color: var(--color-primary); }
+.dock {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.chat:not(.empty) .dock {
+  position: sticky;
+  bottom: calc(82px + env(safe-area-inset-bottom));
+  z-index: 5;
+  padding-top: 16px;
+  background: linear-gradient(to bottom, transparent, var(--color-page) 16px);
+}
+.composer {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 12px 10px 18px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--r-card);
+  background: var(--color-card);
+  box-shadow: var(--shadow-hover);
+  transition: border-color var(--dur) var(--ease-out);
+}
+.composer:focus-within {
+  border-color: var(--color-primary);
+}
+.composer textarea {
+  width: 100%;
+  min-height: 2lh;
+  max-height: 8lh;
+  padding: 6px 0;
+  border: 0;
+  outline: none;
+  resize: none;
+  background: none;
+  color: var(--color-text);
+  font: inherit;
+  font-size: var(--t19, 19px);
+  line-height: 1.45;
+  field-sizing: content;
+}
+.composer textarea:focus-visible {
+  box-shadow: none;
+}
+.composer textarea::placeholder {
+  color: var(--color-text-muted);
+}
+.tools {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.mic {
+  margin-left: auto;
+  --bs-btn-bg: var(--color-surface-2);
+  --bs-btn-border-color: transparent;
+}
+.mic[aria-pressed='true'] {
+  --bs-btn-bg: var(--color-tint);
+  --bs-btn-color: var(--color-tint-text);
+  --bs-btn-border-color: var(--color-primary);
+}
 /* Listening: a ring that grows with the voice (--level, 0 to 1, from the script); a soft glow when there's no level. */
-.mic[aria-pressed='true'] { box-shadow: 0 0 0 calc(4px + var(--level, 0) * 14px) color-mix(in srgb, var(--color-accent) 28%, transparent), 0 0 0 calc(8px + var(--level, 0) * 22px) color-mix(in srgb, var(--color-accent) 12%, transparent); transition: box-shadow 90ms linear; }
-.tools > :first-child + .send { margin-left: auto; }
-.mic-status:empty { display: none; }
-.mic-status { padding-left: 18px; font-weight: 700; color: var(--color-tint-text); }
+.mic[aria-pressed='true'] {
+  box-shadow:
+    0 0 0 calc(4px + var(--level, 0) * 14px)
+      color-mix(in srgb, var(--color-accent) 28%, transparent),
+    0 0 0 calc(8px + var(--level, 0) * 22px)
+      color-mix(in srgb, var(--color-accent) 12%, transparent);
+  transition: box-shadow 90ms linear;
+}
+.tools > :first-child + .send {
+  margin-left: auto;
+}
+.mic-status:empty {
+  display: none;
+}
+.mic-status {
+  padding-left: 18px;
+  font-weight: 700;
+  color: var(--color-tint-text);
+}
 
 @media (max-width: 575.98px) {
-  .chat:not(.empty) .composer textarea { min-height: 1lh; }
+  .chat:not(.empty) .composer textarea {
+    min-height: 1lh;
+  }
 }
 @media (min-width: 992px) {
-  .chat:not(.empty) .dock { bottom: 0; padding-bottom: 16px; }
+  .chat:not(.empty) .dock {
+    bottom: 0;
+    padding-bottom: 16px;
+  }
 }

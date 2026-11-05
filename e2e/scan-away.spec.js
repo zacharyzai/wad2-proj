@@ -4,29 +4,49 @@
 import { test, expect } from './fixtures.js'
 import { nextFrames } from './helpers/checks.js'
 
-const TINY_PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', 'base64')
+const TINY_PNG = Buffer.from(
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
+  'base64',
+)
 
 // Starts a medicine label scan and holds its answer back. answer(): the Metformin sample; answer(false): AI unavailable.
 async function startScan(page) {
-  await page.addInitScript(() => (window.__redactForTests = async (dataUrl) => ({ dataUrl, keep: [{ text: 'TAKE 1 TABLET' }], hits: [] })))
+  await page.addInitScript(
+    () =>
+      (window.__redactForTests = async (dataUrl) => ({
+        dataUrl,
+        keep: [{ text: 'TAKE 1 TABLET' }],
+        hits: [],
+      })),
+  )
   let release
   const held = new Promise((resolve) => (release = resolve))
   await page.route('**/api/scan', async (route) => {
     const ok = await held
-    if (!ok) return route.fulfill({ status: 503, json: { ok: false, error: { code: 'AI_UNAVAILABLE', message: 'AI is not available' } } })
-    const sample = await (await route.fetch({ postData: JSON.stringify({ sampleId: 'med-1' }) })).json()
+    if (!ok)
+      return route.fulfill({
+        status: 503,
+        json: { ok: false, error: { code: 'AI_UNAVAILABLE', message: 'AI is not available' } },
+      })
+    const sample = await (
+      await route.fetch({ postData: JSON.stringify({ sampleId: 'med-1' }) })
+    ).json()
     return route.fulfill({ json: { ok: true, data: { ...sample.data, source: 'mock' } } })
   })
   await page.goto('/scan?type=medication')
   const sent = page.waitForRequest('**/api/scan')
-  await page.getByTestId('upload-input').setInputFiles({ name: 'label.png', mimeType: 'image/png', buffer: TINY_PNG })
+  await page
+    .getByTestId('upload-input')
+    .setInputFiles({ name: 'label.png', mimeType: 'image/png', buffer: TINY_PNG })
   await page.getByRole('button', { name: 'Scan', exact: true }).click()
   await sent // covered and on its way
   return { answer: (ok = true) => release(ok) }
 }
 const tab = (page, name) => page.locator('.nav').getByRole('link', { name, exact: true })
 
-test('leaving mid-scan: it finishes anyway, says so on the page they are on, and waits there to be checked', async ({ page }) => {
+test('leaving mid-scan: it finishes anyway, says so on the page they are on, and waits there to be checked', async ({
+  page,
+}) => {
   const scan = await startScan(page)
   await tab(page, 'Schedule').click()
   const notice = page.getByTestId('scan-away')
@@ -41,7 +61,9 @@ test('leaving mid-scan: it finishes anyway, says so on the page they are on, and
   await expect(notice).toHaveCount(0)
 })
 
-test('coming back to Scan mid-scan shows it still reading, and it carries on to Confirm', async ({ page }) => {
+test('coming back to Scan mid-scan shows it still reading, and it carries on to Confirm', async ({
+  page,
+}) => {
   const scan = await startScan(page)
   await tab(page, 'Ask').click()
   await expect(page.getByTestId('scan-away')).toBeVisible()
@@ -53,7 +75,9 @@ test('coming back to Scan mid-scan shows it still reading, and it carries on to 
   await expect(page.getByLabel('Medicine name')).toHaveValue('Metformin')
 })
 
-test('a scan that fails while they are away says so, and Scan shows why; seen once, Scan starts fresh', async ({ page }) => {
+test('a scan that fails while they are away says so, and Scan shows why; seen once, Scan starts fresh', async ({
+  page,
+}) => {
   const scan = await startScan(page)
   await tab(page, 'Schedule').click()
   scan.answer(false)

@@ -62,7 +62,11 @@ export async function checkPhoto(dataUrl) {
     canvas.height = Math.max(1, Math.round(img.naturalHeight * scale))
     const ctx = canvas.getContext('2d', { willReadFrequently: true })
     ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
-    return photoProblem(ctx.getImageData(0, 0, canvas.width, canvas.height).data, canvas.width, canvas.height)
+    return photoProblem(
+      ctx.getImageData(0, 0, canvas.width, canvas.height).data,
+      canvas.width,
+      canvas.height,
+    )
   } catch {
     return null
   }

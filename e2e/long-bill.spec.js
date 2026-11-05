@@ -2,7 +2,10 @@
 // groups the charges by kind, and on phones a "You pay" bar stays in view. The scan is answered in the browser.
 import { test, expect } from './fixtures.js'
 
-const TINY_PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', 'base64')
+const TINY_PNG = Buffer.from(
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
+  'base64',
+)
 
 // 8 charges; the Omeprazole amount couldn't be read (null, and listed in `unclear`, as the server sends it).
 const ITEMS = [
@@ -15,19 +18,40 @@ const ITEMS = [
   { description: 'Wound dressing', category: 'procedure', amountCents: 1500 },
   { description: 'Medical report', category: 'other', amountCents: 2000 },
 ]
-const BILL = { clinic: 'Eastwater General Hospital', place: 'hospital', visitDate: '2026-10-15', items: ITEMS, subsidies: [], medisaveCents: 0, totalPayableCents: 16780 }
+const BILL = {
+  clinic: 'Eastwater General Hospital',
+  place: 'hospital',
+  visitDate: '2026-10-15',
+  items: ITEMS,
+  subsidies: [],
+  medisaveCents: 0,
+  totalPayableCents: 16780,
+}
 
 async function scanBill(page, bill, unclear) {
-  await page.addInitScript(() => (window.__redactForTests = async (dataUrl) => ({ dataUrl, keep: [{ text: 'TOTAL' }], hits: [] })))
-  await page.route('**/api/scan', (route) => route.fulfill({ json: { ok: true, data: { type: 'bill', source: 'ai', unclear, bill } } }))
+  await page.addInitScript(
+    () =>
+      (window.__redactForTests = async (dataUrl) => ({
+        dataUrl,
+        keep: [{ text: 'TOTAL' }],
+        hits: [],
+      })),
+  )
+  await page.route('**/api/scan', (route) =>
+    route.fulfill({ json: { ok: true, data: { type: 'bill', source: 'ai', unclear, bill } } }),
+  )
   await page.goto('/scan?type=bill')
-  await page.getByTestId('upload-input').setInputFiles({ name: 'bill.png', mimeType: 'image/png', buffer: TINY_PNG })
+  await page
+    .getByTestId('upload-input')
+    .setInputFiles({ name: 'bill.png', mimeType: 'image/png', buffer: TINY_PNG })
   await page.getByRole('button', { name: 'Scan', exact: true }).click()
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Check your bill items')
 }
 const amountOf = (page, item) => page.getByRole('spinbutton', { name: `Amount for ${item}` })
 
-test('Confirm: a long bill opens only the line that needs checking; the rest are one tap away and still saved', async ({ page }) => {
+test('Confirm: a long bill opens only the line that needs checking; the rest are one tap away and still saved', async ({
+  page,
+}) => {
   await scanBill(page, BILL, ['bill.items.5.amountCents'])
   await expect(amountOf(page, 'Omeprazole 20mg')).toBeVisible()
   await expect(amountOf(page, 'Consultation')).toHaveCount(0)
@@ -49,7 +73,9 @@ test('Confirm: a long bill opens only the line that needs checking; the rest are
   await expect(page.getByTestId('bill-total')).toContainText('$167.80')
 })
 
-test('Confirm: lines that don\'t add up with no subtotal to point at open every line', async ({ page }) => {
+test("Confirm: lines that don't add up with no subtotal to point at open every line", async ({
+  page,
+}) => {
   const items = ITEMS.map((item) => ({ ...item, amountCents: item.amountCents ?? 1680 }))
   await scanBill(page, { ...BILL, items, totalPayableCents: 16680 }, []) // $1.00 off, and the bill prints no subtotals
   await expect(page.getByTestId('confirm-gap')).toBeVisible()
@@ -62,14 +88,18 @@ test('Confirm: a short bill looks as before, with no fold', async ({ page }) => 
   await expect(page.getByTestId('confirm-fine-toggle')).toHaveCount(0)
 })
 
-test('Bill page: a long bill\'s charges open as one row per kind, biggest first, and the summary names the biggest', async ({ page }) => {
+test("Bill page: a long bill's charges open as one row per kind, biggest first, and the summary names the biggest", async ({
+  page,
+}) => {
   await scanBill(page, BILL, ['bill.items.5.amountCents'])
   await amountOf(page, 'Omeprazole 20mg').fill('16.80')
   await amountOf(page, 'Omeprazole 20mg').blur()
   await page.getByRole('button', { name: 'Looks correct' }).click()
   await page.getByRole('link', { name: /See full breakdown/ }).click()
 
-  await expect(page.getByTestId('bill-biggest')).toContainText('Tests $74.00 · Doctor visit $30.00 · Medicine $28.80')
+  await expect(page.getByTestId('bill-biggest')).toContainText(
+    'Tests $74.00 · Doctor visit $30.00 · Medicine $28.80',
+  )
   await page.getByTestId('bill-items-toggle').click()
   const groups = page.getByTestId('bill-group')
   await expect(groups).toHaveCount(5)
@@ -82,7 +112,10 @@ test('Bill page: a long bill\'s charges open as one row per kind, biggest first,
   await medicine.click()
   await expect(medicine).toHaveAttribute('aria-expanded', 'true')
   await page.getByRole('button', { name: /Omeprazole 20mg/ }).click() // a line still opens its plain explanation
-  await expect(page.getByRole('button', { name: /Omeprazole 20mg/ })).toHaveAttribute('aria-expanded', 'true')
+  await expect(page.getByRole('button', { name: /Omeprazole 20mg/ })).toHaveAttribute(
+    'aria-expanded',
+    'true',
+  )
 })
 
 test('Bill page: a short bill keeps the plain list and no "biggest" line', async ({ page }) => {
@@ -93,7 +126,10 @@ test('Bill page: a short bill keeps the plain list and no "biggest" line', async
   await expect(page.getByTestId('bill-group')).toHaveCount(0)
 })
 
-test('phones: with the charges open, "You pay" stays in view once the summary is scrolled past', async ({ page, isMobile }) => {
+test('phones: with the charges open, "You pay" stays in view once the summary is scrolled past', async ({
+  page,
+  isMobile,
+}) => {
   await page.goto('/bill')
   await page.getByRole('button', { name: 'Hospital stay: ward, GST and MediShield Life' }).click()
   await page.getByTestId('bill-items-toggle').click()

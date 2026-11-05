@@ -53,18 +53,44 @@ async function submit() {
 
 <template>
   <AuthShell active="reset">
-    <div v-if="state === 'done'" ref="panel" class="auth-panel" tabindex="-1" role="status" data-testid="reset-done">
-      <h2><span class="tile tile-soft"><AppIcon name="checkCircle" :size="26" /></span>{{ t('auth.reset.doneTitle') }}</h2>
+    <div
+      v-if="state === 'done'"
+      ref="panel"
+      class="auth-panel"
+      tabindex="-1"
+      role="status"
+      data-testid="reset-done"
+    >
+      <h2>
+        <span class="tile tile-soft"><AppIcon name="checkCircle" :size="26" /></span
+        >{{ t('auth.reset.doneTitle') }}
+      </h2>
       <p>{{ t('auth.reset.doneText') }}</p>
-      <BigButton data-testid="reset-continue" @click="enterApp(router, '/')">{{ t('auth.reset.continue') }}<AppIcon name="right" /></BigButton>
+      <BigButton data-testid="reset-continue" @click="enterApp(router, '/')"
+        >{{ t('auth.reset.continue') }}<AppIcon name="right"
+      /></BigButton>
     </div>
 
-    <div v-else-if="state === 'bad'" ref="panel" class="auth-panel" tabindex="-1" role="alert" data-testid="reset-bad">
-      <h2><span class="tile tile-warning"><AppIcon name="alert" :size="26" /></span>{{ t('auth.reset.badTitle') }}</h2>
+    <div
+      v-else-if="state === 'bad'"
+      ref="panel"
+      class="auth-panel"
+      tabindex="-1"
+      role="alert"
+      data-testid="reset-bad"
+    >
+      <h2>
+        <span class="tile tile-warning"><AppIcon name="alert" :size="26" /></span
+        >{{ t('auth.reset.badTitle') }}
+      </h2>
       <p>{{ t('auth.reset.badText') }}</p>
       <div class="auth-panel-acts">
-        <BigButton :to="{ name: 'forgot' }" data-testid="reset-new-link"><AppIcon name="mail" />{{ t('auth.reset.newLink') }}</BigButton>
-        <RouterLink :to="{ name: 'login' }" class="btn btn-ghost">{{ t('auth.forgot.back') }}</RouterLink>
+        <BigButton :to="{ name: 'forgot' }" data-testid="reset-new-link"
+          ><AppIcon name="mail" />{{ t('auth.reset.newLink') }}</BigButton
+        >
+        <RouterLink :to="{ name: 'login' }" class="btn btn-ghost">{{
+          t('auth.forgot.back')
+        }}</RouterLink>
       </div>
     </div>
 
@@ -74,26 +100,58 @@ async function submit() {
         <label for="reset-password" class="auth-label">{{ t('auth.reset.newPassword') }}</label>
         <div class="auth-field" :class="{ bad: weak }">
           <AppIcon name="lock" :size="22" />
-          <input id="reset-password" v-model="password" :type="showPw ? 'text' : 'password'" autocomplete="new-password" required :aria-invalid="weak" aria-describedby="reset-password-help" data-testid="reset-password" />
-          <button type="button" class="auth-eye" :aria-pressed="showPw" :aria-label="showPw ? t('auth.hide') : t('auth.show')" data-testid="reset-toggle" @click="showPw = !showPw">
+          <input
+            id="reset-password"
+            v-model="password"
+            :type="showPw ? 'text' : 'password'"
+            autocomplete="new-password"
+            required
+            :aria-invalid="weak"
+            aria-describedby="reset-password-help"
+            data-testid="reset-password"
+          />
+          <button
+            type="button"
+            class="auth-eye"
+            :aria-pressed="showPw"
+            :aria-label="showPw ? t('auth.hide') : t('auth.show')"
+            data-testid="reset-toggle"
+            @click="showPw = !showPw"
+          >
             <AppIcon :name="showPw ? 'blur' : 'eye'" :size="22" />
           </button>
         </div>
-        <p v-if="weak" class="auth-warn m-0" data-testid="reset-pw-warn"><AppIcon name="alert" :size="18" />{{ t('auth.pwRules.warn') }}</p>
-        <PasswordRules id="reset-password-help" :checks="checks" :tried="tried" data-testid="reset-hint" />
+        <p v-if="weak" class="auth-warn m-0" data-testid="reset-pw-warn">
+          <AppIcon name="alert" :size="18" />{{ t('auth.pwRules.warn') }}
+        </p>
+        <PasswordRules
+          id="reset-password-help"
+          :checks="checks"
+          :tried="tried"
+          data-testid="reset-hint"
+        />
       </div>
 
       <label class="auth-check">
-        <input v-model="remember" type="checkbox" aria-describedby="reset-remember-help" data-testid="reset-remember" />
+        <input
+          v-model="remember"
+          type="checkbox"
+          aria-describedby="reset-remember-help"
+          data-testid="reset-remember"
+        />
         {{ t('auth.remember') }}
       </label>
       <span id="reset-remember-help" class="auth-help mt-0">{{ t('auth.rememberHelp') }}</span>
 
-      <BigButton type="submit" :busy="busy" data-testid="reset-submit">{{ busy ? t('auth.working') : t('auth.reset.save') }}</BigButton>
+      <BigButton type="submit" :busy="busy" data-testid="reset-submit">{{
+        busy ? t('auth.working') : t('auth.reset.save')
+      }}</BigButton>
     </form>
   </AuthShell>
 </template>
 
 <style scoped>
-.auth-panel:focus { outline: none; }
+.auth-panel:focus {
+  outline: none;
+}
 </style>

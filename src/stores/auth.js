@@ -20,7 +20,8 @@ const USER_KEY = 'user'
 
 function save(token, remember, user) {
   try {
-    for (const s of [localStorage, sessionStorage]) s.removeItem(TOKEN_KEY), s.removeItem(USER_KEY)
+    for (const s of [localStorage, sessionStorage])
+      (s.removeItem(TOKEN_KEY), s.removeItem(USER_KEY))
     if (!token) return
     const store = remember ? localStorage : sessionStorage
     store.setItem(TOKEN_KEY, token)
@@ -72,7 +73,11 @@ export const useAuthStore = defineStore('auth', () => {
         useAccountLanguage(res.data.user)
         useAccountTheme(res.data.user)
         // Remembered logins get a fresh 30 days from today; either way the saved copy is updated.
-        save(res.data.token ?? readToken(), Boolean(res.data.token) || isRemembered(), res.data.user)
+        save(
+          res.data.token ?? readToken(),
+          Boolean(res.data.token) || isRemembered(),
+          res.data.user,
+        )
       } else if (res.error.code === 'NOT_LOGGED_IN') {
         // Only a bad token logs you out, not a network blip (then the saved copy keeps working).
         save(null)
@@ -111,16 +116,23 @@ export const useAuthStore = defineStore('auth', () => {
       await router.push(to)
     }, 'enter')
 
-  const login = (email, password, remember = true) => start('/auth/login', { email, password }, remember)
+  const login = (email, password, remember = true) =>
+    start('/auth/login', { email, password }, remember)
   // Forgot your password? Emails a reset link if an account uses this address (the answer is the same either way).
   // The language in use picks the email's language for accounts that haven't chosen one.
-  const requestReset = (email) => api('/auth/forgot', { method: 'POST', body: { email, language: i18n.global.locale.value } })
+  const requestReset = (email) =>
+    api('/auth/forgot', { method: 'POST', body: { email, language: i18n.global.locale.value } })
   // The new password from an emailed link: logs this device in (and every other device out).
-  const resetPassword = (token, password, remember = true) => start('/auth/reset', { token, password }, remember)
+  const resetPassword = (token, password, remember = true) =>
+    start('/auth/reset', { token, password }, remember)
   // profile = { name, dob, citizenship, citizenSince }
   // The language in use when they sign up (picked on the welcome page or above the form) becomes the account's language.
   const signup = (email, password, profile, remember = true) =>
-    start('/auth/signup', { ...profile, email, password, language: i18n.global.locale.value }, remember)
+    start(
+      '/auth/signup',
+      { ...profile, email, password, language: i18n.global.locale.value },
+      remember,
+    )
 
   // Saves account changes (PATCH /api/auth/me) and keeps the saved copy in step.
   async function patchMe(changes) {
@@ -153,7 +165,8 @@ export const useAuthStore = defineStore('auth', () => {
   // Logged in: switch to the account's language, unless they just picked one on the way in (then that one is saved).
   // Accounts from before languages were saved get this device's language.
   function useAccountLanguage(account, keepPicked = false) {
-    if (!account.language || (keepPicked && account.language !== i18n.global.locale.value)) saveLanguage(i18n.global.locale.value)
+    if (!account.language || (keepPicked && account.language !== i18n.global.locale.value))
+      saveLanguage(i18n.global.locale.value)
     else if (account.language !== i18n.global.locale.value) setLocale(account.language)
   }
 
@@ -187,5 +200,19 @@ export const useAuthStore = defineStore('auth', () => {
     }, 'enter')
   }
 
-  return { user, checked, restore, enterApp, login, requestReset, resetPassword, signup, updateProfile, saveLanguage, saveTheme, logout, leaveApp }
+  return {
+    user,
+    checked,
+    restore,
+    enterApp,
+    login,
+    requestReset,
+    resetPassword,
+    signup,
+    updateProfile,
+    saveLanguage,
+    saveTheme,
+    logout,
+    leaveApp,
+  }
 })

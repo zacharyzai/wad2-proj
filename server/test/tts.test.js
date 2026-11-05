@@ -17,10 +17,20 @@ beforeAll(() => {
 afterAll(() => server.close())
 beforeEach(() => (forgetSpeech(), forgetResting()))
 
-const say = (body) => fetch(`${base}/api/tts`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) })
+const say = (body) =>
+  fetch(`${base}/api/tts`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(body),
+  })
 
 test('read-aloud needs text (up to 900 characters) and one of the four languages', async () => {
-  for (const body of [{ lang: 'ta' }, { text: '   ', lang: 'ta' }, { text: 'hi', lang: 'fr' }, { text: 'x'.repeat(901), lang: 'en' }]) {
+  for (const body of [
+    { lang: 'ta' },
+    { text: '   ', lang: 'ta' },
+    { text: 'hi', lang: 'fr' },
+    { text: 'x'.repeat(901), lang: 'en' },
+  ]) {
     const res = await say(body)
     assert.equal(res.status, 400)
     assert.equal((await res.json()).error.code, 'BAD_REQUEST')
@@ -48,7 +58,9 @@ test('synthesize falls back to the next model, then caches the clip', async (t) 
 })
 
 test('a reply with no audio is an outage, not an empty clip', async (t) => {
-  vi.spyOn(globalThis, 'fetch').mockImplementation(async () => Response.json({ steps: [{ content: [{ type: 'text', text: 'sorry' }] }] }))
+  vi.spyOn(globalThis, 'fetch').mockImplementation(async () =>
+    Response.json({ steps: [{ content: [{ type: 'text', text: 'sorry' }] }] }),
+  )
   await assert.rejects(synthesize('hello', 'en'), { code: 'AI_UNAVAILABLE' })
 })
 

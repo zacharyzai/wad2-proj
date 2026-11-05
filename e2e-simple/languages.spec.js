@@ -41,6 +41,9 @@ test('read-aloud speed can be chosen', async ({ page }) => {
   await page.getByRole('button', { name: 'Looks correct' }).click()
   const player = page.getByRole('region', { name: 'Reading in English' })
   await player.getByRole('button', { name: '1.25×' }).click()
-  await expect(player.getByRole('button', { name: '1.25×' })).toHaveAttribute('aria-pressed', 'true')
+  await expect(player.getByRole('button', { name: '1.25×' })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  )
   await expect(player.getByRole('button', { name: 'Read aloud' })).toBeVisible()
 })

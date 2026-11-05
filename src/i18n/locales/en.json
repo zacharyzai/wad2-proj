@@ -343,21 +343,13 @@
       "medication": {
         "title": "Medicine label",
         "text": "What it is for, and when to take it.",
-        "tags": [
-          "Tablets",
-          "Syrups",
-          "Creams"
-        ],
+        "tags": ["Tablets", "Syrups", "Creams"],
         "go": "Scan a label"
       },
       "bill": {
         "title": "Medical bill",
         "text": "What you pay, and the help you can get.",
-        "tags": [
-          "Clinic",
-          "Hospital",
-          "Subsidies"
-        ],
+        "tags": ["Clinic", "Hospital", "Subsidies"],
         "go": "Scan a bill"
       },
       "pending": "Your photo is ready. What is it? Tap one to scan it.",

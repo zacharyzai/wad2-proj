@@ -6,27 +6,34 @@ import mongoose from 'mongoose'
 import { MongoMemoryServer } from 'mongodb-memory-server'
 
 const test = base.extend({
-  careBackend: [async ({}, use) => {
-    process.env.JWT_SECRET = randomBytes(48).toString('hex')
-    process.env.USE_MOCK_AI = 'true'
-    process.env.AUTH_RATE_LIMIT = '100'
-    const mongo = await MongoMemoryServer.create()
-    process.env.MONGODB_URI = mongo.getUri('care_browser_test')
-    let server
-    try {
-      const { default: app } = await import('../server/app.js')
-      server = app.listen(0, '127.0.0.1')
-      await once(server, 'listening')
-      await use(`http://127.0.0.1:${server.address().port}`)
-    } finally {
-      if (server) await new Promise((resolve) => server.close(resolve))
-      await mongoose.disconnect()
-      await mongo.stop()
-    }
-  }, { scope: 'worker' }],
+  careBackend: [
+    async ({}, use) => {
+      process.env.JWT_SECRET = randomBytes(48).toString('hex')
+      process.env.USE_MOCK_AI = 'true'
+      process.env.AUTH_RATE_LIMIT = '100'
+      const mongo = await MongoMemoryServer.create()
+      process.env.MONGODB_URI = mongo.getUri('care_browser_test')
+      let server
+      try {
+        const { default: app } = await import('../server/app.js')
+        server = app.listen(0, '127.0.0.1')
+        await once(server, 'listening')
+        await use(`http://127.0.0.1:${server.address().port}`)
+      } finally {
+        if (server) await new Promise((resolve) => server.close(resolve))
+        await mongoose.disconnect()
+        await mongo.stop()
+      }
+    },
+    { scope: 'worker' },
+  ],
 })
 
-test('senior creates an invite → new caregiver signs up and accepts → senior revokes the link', async ({ page, request, careBackend }, testInfo) => {
+test('senior creates an invite → new caregiver signs up and accepts → senior revokes the link', async ({
+  page,
+  request,
+  careBackend,
+}, testInfo) => {
   const errors = []
   page.on('pageerror', (error) => errors.push(error.message))
   await page.route('http://localhost:5173/api/**', async (route) => {
@@ -37,8 +44,17 @@ test('senior creates an invite → new caregiver signs up and accepts → senior
   const password = 'roti-prata-2026'
   const seniorEmail = `senior-${randomUUID()}@example.com`
   const caregiverEmail = `caregiver-${randomUUID()}@example.com`
-  const profile = { name: 'Sample Senior', dob: '1952-03-07', citizenship: 'birth', income: 'unsure', language: 'en', theme: 'light' }
-  const senior = await request.post(`${careBackend}/api/auth/signup`, { data: { ...profile, email: seniorEmail, password } })
+  const profile = {
+    name: 'Sample Senior',
+    dob: '1952-03-07',
+    citizenship: 'birth',
+    income: 'unsure',
+    language: 'en',
+    theme: 'light',
+  }
+  const senior = await request.post(`${careBackend}/api/auth/signup`, {
+    data: { ...profile, email: seniorEmail, password },
+  })
   expect(senior.status()).toBe(201)
   const seniorToken = (await senior.json()).data.token
   async function login(email) {
@@ -60,7 +76,10 @@ test('senior creates an invite → new caregiver signs up and accepts → senior
   const field = page.getByTestId('care-invite-link')
   await expect(field).toHaveValue(/\/shared\/[a-f0-9]{64}$/)
   const token = (await field.inputValue()).split('/').at(-1)
-  await page.screenshot({ path: `/tmp/wad2-caregiver-invite-${testInfo.project.name}.png`, fullPage: false })
+  await page.screenshot({
+    path: `/tmp/wad2-caregiver-invite-${testInfo.project.name}.png`,
+    fullPage: false,
+  })
   await logout()
 
   await page.goto(`/shared/${token}`)
@@ -80,7 +99,9 @@ test('senior creates an invite → new caregiver signs up and accepts → senior
   await expect(page).toHaveURL(/\/care\/[a-f0-9]{24}$/)
   // This senior's app never saved a timetable: "not shared yet", never invented zero doses.
   await expect(page.getByRole('heading', { name: 'Not shared yet' })).toBeVisible()
-  const caregiverLogin = await request.post(`${careBackend}/api/auth/login`, { data: { email: caregiverEmail, password } })
+  const caregiverLogin = await request.post(`${careBackend}/api/auth/login`, {
+    data: { email: caregiverEmail, password },
+  })
   const caregiverToken = (await caregiverLogin.json()).data.token
   const headers = { authorization: `Bearer ${caregiverToken}` }
   const linked = await request.get(`${careBackend}/api/care/links`, { headers })
@@ -94,12 +115,16 @@ test('senior creates an invite → new caregiver signs up and accepts → senior
   await login(seniorEmail)
   await expect(page.getByTestId('care-caregivers')).toContainText('Sample Caregiver')
   // A linked senior can still invite another caregiver.
-  const extra = await request.post(`${careBackend}/api/care/invites`, { headers: { authorization: `Bearer ${seniorToken}` } })
+  const extra = await request.post(`${careBackend}/api/care/invites`, {
+    headers: { authorization: `Bearer ${seniorToken}` },
+  })
   expect(extra.status()).toBe(201)
   await page.getByTestId('care-remove').click()
   await page.getByTestId('care-remove-yes').click()
   await expect(page.getByTestId('care-caregivers')).toHaveCount(0)
-  expect((await (await request.get(`${careBackend}/api/care/links`, { headers })).json()).data.links).toEqual([])
+  expect(
+    (await (await request.get(`${careBackend}/api/care/links`, { headers })).json()).data.links,
+  ).toEqual([])
   expect((await request.get(`${careBackend}/api/care/invites/${token}`)).status()).toBe(404)
   expect(errors).toEqual([])
 })

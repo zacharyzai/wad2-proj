@@ -34,9 +34,15 @@ const skippedIds = ref([]) // medicines the last sync left out for having no num
 const today = todayInSingapore()
 // `v` is bumped when the server starts making more events per dose (v2: the "Not ticked yet" alert), so devices that already synced
 // an unchanged schedule send it once more and pick them up. The server ignores it.
-const payload = computed(() => JSON.stringify({ v: 2, entries: syncEntries(props.entries, today), lang: locale.value }))
+const payload = computed(() =>
+  JSON.stringify({ v: 2, entries: syncEntries(props.entries, today), lang: locale.value }),
+)
 // Only those still without a number of days: adding it hides the note at once, before the next sync answers.
-const missing = computed(() => props.entries.filter((e) => skippedIds.value.includes(e.medicineId) && !e.endDate).map((e) => e.label))
+const missing = computed(() =>
+  props.entries
+    .filter((e) => skippedIds.value.includes(e.medicineId) && !e.endDate)
+    .map((e) => e.label),
+)
 
 // What was last sent from this device, so opening the page only syncs when the schedule changed since (e.g. a re-scanned label).
 const sentKey = () => `calendarSynced:${authStore.user?.email ?? ''}`
@@ -79,7 +85,9 @@ async function sync(force = false) {
   if (res.ok) {
     remember(body)
     events.value = Math.max(0, events.value + res.data.created - res.data.removed)
-    skippedIds.value = res.data.skipped.filter((s) => s.reason === 'noEndDate').map((s) => s.medicineId)
+    skippedIds.value = res.data.skipped
+      .filter((s) => s.reason === 'noEndDate')
+      .map((s) => s.medicineId)
     emit('notify', t('schedule.calendar.updated'))
   } else if (!onError(res.error.code)) {
     emit('notify', t('schedule.calendar.failed'), true)
@@ -136,7 +144,14 @@ onMounted(async () => {
   // Back from Google's permission page: say how it went, then tidy the address so a reload doesn't say it again.
   const result = RESULTS.includes(route.query.google) ? route.query.google : null
   // Back from Google: tidy the address, staying on Reminders (where this card is shown).
-  if (route.query.google !== undefined) router.replace({ query: { ...route.query, google: undefined, ...(route.name === 'schedule' && { view: 'meds' }) } })
+  if (route.query.google !== undefined)
+    router.replace({
+      query: {
+        ...route.query,
+        google: undefined,
+        ...(route.name === 'schedule' && { view: 'meds' }),
+      },
+    })
   if (result) emit('notify', t(`schedule.calendar.result.${result}`), result !== 'connected')
 
   const res = await googleStatus()
@@ -156,35 +171,99 @@ onBeforeUnmount(() => {
 
 <template>
   <!-- Shown even with no medicines yet, so it can be found (and connected) before the first label is scanned. -->
-  <section v-if="state !== 'hidden' && state !== 'loading'" class="card gap-3" aria-labelledby="calendar-title" data-testid="schedule-calendar">
-    <h2 id="calendar-title" class="d-flex align-items-center gap-3"><span class="tile tile-soft"><AppIcon name="calendar" :size="22" /></span>{{ t('schedule.calendar.title') }}</h2>
+  <section
+    v-if="state !== 'hidden' && state !== 'loading'"
+    class="card gap-3"
+    aria-labelledby="calendar-title"
+    data-testid="schedule-calendar"
+  >
+    <h2 id="calendar-title" class="d-flex align-items-center gap-3">
+      <span class="tile tile-soft"><AppIcon name="calendar" :size="22" /></span
+      >{{ t('schedule.calendar.title') }}
+    </h2>
 
     <template v-if="state === 'off'">
       <p class="m-0">{{ t('schedule.calendar.text') }}</p>
-      <button type="button" class="btn btn-primary" :disabled="busy" data-testid="calendar-connect" @click="connect"><AppIcon name="calendar" />{{ t('schedule.calendar.connect') }}</button>
+      <button
+        type="button"
+        class="btn btn-primary"
+        :disabled="busy"
+        data-testid="calendar-connect"
+        @click="connect"
+      >
+        <AppIcon name="calendar" />{{ t('schedule.calendar.connect') }}
+      </button>
     </template>
 
     <!-- They removed our access in their Google account: offer to connect again, not an error page. -->
     <template v-else-if="state === 'reconnect'">
-      <div class="alert alert-warning"><AppIcon name="alert" /><span>{{ t('errors.GOOGLE_DISCONNECTED') }}</span></div>
-      <button type="button" class="btn btn-primary" :disabled="busy" data-testid="calendar-reconnect" @click="connect"><AppIcon name="replay" />{{ t('schedule.calendar.reconnect') }}</button>
+      <div class="alert alert-warning">
+        <AppIcon name="alert" /><span>{{ t('errors.GOOGLE_DISCONNECTED') }}</span>
+      </div>
+      <button
+        type="button"
+        class="btn btn-primary"
+        :disabled="busy"
+        data-testid="calendar-reconnect"
+        @click="connect"
+      >
+        <AppIcon name="replay" />{{ t('schedule.calendar.reconnect') }}
+      </button>
     </template>
 
     <template v-else>
-      <span class="badge badge-success align-self-start" data-testid="calendar-connected"><AppIcon name="checkCircle" :size="18" />{{ t('schedule.calendar.connected') }}</span>
+      <span class="badge badge-success align-self-start" data-testid="calendar-connected"
+        ><AppIcon name="checkCircle" :size="18" />{{ t('schedule.calendar.connected') }}</span
+      >
       <p class="m-0">{{ t('schedule.calendar.events', events) }}</p>
-      <p class="alert alert-info m-0"><AppIcon name="info" /><span>{{ t('schedule.calendar.alerts') }}</span></p>
+      <p class="alert alert-info m-0">
+        <AppIcon name="info" /><span>{{ t('schedule.calendar.alerts') }}</span>
+      </p>
       <div v-if="missing.length" class="alert alert-warning" data-testid="calendar-missing">
-        <AppIcon name="alert" /><span>{{ t('schedule.calendar.missing', { names: missing.join(t('explain.sep')) }) }}</span>
+        <AppIcon name="alert" /><span>{{
+          t('schedule.calendar.missing', { names: missing.join(t('explain.sep')) })
+        }}</span>
       </div>
 
-      <button v-if="!askRemove" ref="disconnectButton" type="button" class="btn btn-outline btn-sm align-self-start" :disabled="busy" @click="askDisconnect">{{ t('schedule.calendar.disconnect') }}</button>
-      <div v-else ref="removeDialog" class="alert alert-note flex-column" role="alertdialog" aria-labelledby="remove-q" data-testid="calendar-disconnect-ask">
+      <button
+        v-if="!askRemove"
+        ref="disconnectButton"
+        type="button"
+        class="btn btn-outline btn-sm align-self-start"
+        :disabled="busy"
+        @click="askDisconnect"
+      >
+        {{ t('schedule.calendar.disconnect') }}
+      </button>
+      <div
+        v-else
+        ref="removeDialog"
+        class="alert alert-note flex-column"
+        role="alertdialog"
+        aria-labelledby="remove-q"
+        data-testid="calendar-disconnect-ask"
+      >
         <strong id="remove-q">{{ t('schedule.calendar.removeAsk') }}</strong>
         <div class="d-flex flex-column flex-sm-row flex-wrap gap-2">
-          <button type="button" class="btn btn-secondary btn-sm" :disabled="busy" @click="disconnect(true)">{{ t('schedule.calendar.removeYes') }}</button>
-          <button type="button" class="btn btn-secondary btn-sm" :disabled="busy" @click="disconnect(false)">{{ t('schedule.calendar.removeNo') }}</button>
-          <button type="button" class="btn btn-ghost btn-sm" @click="cancelDisconnect">{{ t('schedule.calendar.cancel') }}</button>
+          <button
+            type="button"
+            class="btn btn-secondary btn-sm"
+            :disabled="busy"
+            @click="disconnect(true)"
+          >
+            {{ t('schedule.calendar.removeYes') }}
+          </button>
+          <button
+            type="button"
+            class="btn btn-secondary btn-sm"
+            :disabled="busy"
+            @click="disconnect(false)"
+          >
+            {{ t('schedule.calendar.removeNo') }}
+          </button>
+          <button type="button" class="btn btn-ghost btn-sm" @click="cancelDisconnect">
+            {{ t('schedule.calendar.cancel') }}
+          </button>
         </div>
       </div>
     </template>

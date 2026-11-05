@@ -3,15 +3,44 @@
 import { test, expect } from './fixtures.js'
 import { expectNoAxeViolationsDayAndNight } from './helpers/checks.js'
 
-const MED = { id: 'h1', type: 'medication', createdAt: '2026-10-20T08:00:00Z', title: 'Metformin', subtitle: '500 mg', totalPayableCents: null }
-const BILL = { id: 'h2', type: 'bill', createdAt: '2026-10-19T08:00:00Z', title: 'Bedok Polyclinic', subtitle: null, totalPayableCents: 1400 }
+const MED = {
+  id: 'h1',
+  type: 'medication',
+  createdAt: '2026-10-20T08:00:00Z',
+  title: 'Metformin',
+  subtitle: '500 mg',
+  totalPayableCents: null,
+}
+const BILL = {
+  id: 'h2',
+  type: 'bill',
+  createdAt: '2026-10-19T08:00:00Z',
+  title: 'Bedok Polyclinic',
+  subtitle: null,
+  totalPayableCents: 1400,
+}
 const SCAN = {
-  type: 'medication', source: 'sample', unclear: [],
-  medication: { name: 'Metformin', strength: '500 mg', doseAmount: 1, doseUnit: 'tablet', timesPerDay: 2, timing: ['morning', 'evening'], withFood: 'after', frequencyType: 'daily', rawInstruction: 'Take 1 tablet twice a day after food', warnings: [] },
+  type: 'medication',
+  source: 'sample',
+  unclear: [],
+  medication: {
+    name: 'Metformin',
+    strength: '500 mg',
+    doseAmount: 1,
+    doseUnit: 'tablet',
+    timesPerDay: 2,
+    timing: ['morning', 'evening'],
+    withFood: 'after',
+    frequencyType: 'daily',
+    rawInstruction: 'Take 1 tablet twice a day after food',
+    warnings: [],
+  },
 }
 
 async function mockHistory(page, items = [MED, BILL]) {
-  await page.route(/\/api\/history\/all$/, (route) => route.fulfill({ json: { ok: true, data: { items, total: items.length, capped: false } } }))
+  await page.route(/\/api\/history\/all$/, (route) =>
+    route.fulfill({ json: { ok: true, data: { items, total: items.length, capped: false } } }),
+  )
 }
 // Listen again and Delete live on the medicine or bill's own view: open its row first.
 const openFirst = (page) => page.getByTestId('history-row').first().click()
@@ -35,7 +64,12 @@ test.describe('history list', () => {
   })
 
   test('a failed load shows an error with Try again', async ({ page }) => {
-    await page.route(/\/api\/history\/all$/, (route) => route.fulfill({ status: 500, json: { ok: false, error: { code: 'SERVER_ERROR', message: 'x' } } }))
+    await page.route(/\/api\/history\/all$/, (route) =>
+      route.fulfill({
+        status: 500,
+        json: { ok: false, error: { code: 'SERVER_ERROR', message: 'x' } },
+      }),
+    )
     await page.goto('/history')
     await expect(page.getByRole('alert')).toBeVisible()
     await expect(page.getByRole('button', { name: 'Try again' })).toBeVisible()
@@ -43,7 +77,9 @@ test.describe('history list', () => {
 
   test('Listen again opens the explanation for that scan', async ({ page }) => {
     await mockHistory(page)
-    await page.route(/\/api\/history\/h1$/, (route) => route.fulfill({ json: { ok: true, data: { scan: SCAN } } }))
+    await page.route(/\/api\/history\/h1$/, (route) =>
+      route.fulfill({ json: { ok: true, data: { scan: SCAN } } }),
+    )
     await page.goto('/history')
     await openFirst(page)
     await page.getByTestId('history-replay').first().click()
@@ -53,9 +89,13 @@ test.describe('history list', () => {
 })
 
 test.describe('deleting', () => {
-  test('delete asks first, then removes the scan; with nothing left of that medicine, back to the list', async ({ page }) => {
+  test('delete asks first, then removes the scan; with nothing left of that medicine, back to the list', async ({
+    page,
+  }) => {
     await mockHistory(page)
-    await page.route(/\/api\/history\/h1$/, (route) => route.fulfill({ json: { ok: true, data: {} } }))
+    await page.route(/\/api\/history\/h1$/, (route) =>
+      route.fulfill({ json: { ok: true, data: {} } }),
+    )
     await page.goto('/history')
     await openFirst(page)
     await page.getByTestId('history-delete').first().click()
@@ -99,7 +139,9 @@ test('a saved scan can no longer be shared', async ({ page }) => {
   await expect(page.getByRole('button', { name: 'Share' })).toHaveCount(0)
 })
 
-test('the list and a medicine with its scans have no axe problems, day or night @a11y', async ({ page }) => {
+test('the list and a medicine with its scans have no axe problems, day or night @a11y', async ({
+  page,
+}) => {
   await mockHistory(page)
   await page.goto('/history')
   await expect(page.getByTestId('history-row')).toContainText('Metformin')
@@ -109,7 +151,9 @@ test('the list and a medicine with its scans have no axe problems, day or night 
   await expectNoAxeViolationsDayAndNight(page)
 })
 
-test('the delete pop-up works by keyboard: Esc keeps the scan and focus goes back to Delete @a11y', async ({ page }) => {
+test('the delete pop-up works by keyboard: Esc keeps the scan and focus goes back to Delete @a11y', async ({
+  page,
+}) => {
   await mockHistory(page)
   let deleted = false
   await page.route(/\/api\/history\/h1$/, (route) => {

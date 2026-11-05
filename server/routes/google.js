@@ -5,13 +5,29 @@ import { connectDb, withDb } from '../db.js'
 import { requireAuth } from '../middleware/requireAuth.js'
 import { GoogleLink } from '../models/GoogleLink.js'
 import {
-  GoogleError, LANGS, authUrl, checkEntries, doseCount, encrypt, exchangeCode, isConfigured, readState, removeAllEvents, decrypt, revoke, signState, syncSchedule,
+  GoogleError,
+  LANGS,
+  authUrl,
+  checkEntries,
+  doseCount,
+  encrypt,
+  exchangeCode,
+  isConfigured,
+  readState,
+  removeAllEvents,
+  decrypt,
+  revoke,
+  signState,
+  syncSchedule,
 } from '../services/google.js'
 
 const router = Router()
 
 // Only a plain path on our own site (like /account or /schedule), so the callback cannot be used to send people elsewhere.
-const safeNext = (next) => (typeof next === 'string' && /^\/[a-z0-9/-]*$/i.test(next) && !next.startsWith('//') ? next : '/account')
+const safeNext = (next) =>
+  typeof next === 'string' && /^\/[a-z0-9/-]*$/i.test(next) && !next.startsWith('//')
+    ? next
+    : '/account'
 const back = (res, next, result) => res.redirect(`${safeNext(next)}?google=${result}`)
 
 // Google errors become our envelope; "access removed" also forgets the dead token, so the page shows Connect again.
@@ -25,7 +41,11 @@ async function google(res, userId, work) {
   }
 }
 
-router.use((req, res, next) => (isConfigured() ? next() : sendError(res, 503, 'GOOGLE_UNAVAILABLE', 'Google Calendar is not set up on this server')))
+router.use((req, res, next) =>
+  isConfigured()
+    ? next()
+    : sendError(res, 503, 'GOOGLE_UNAVAILABLE', 'Google Calendar is not set up on this server'),
+)
 
 // 1. Pressed "Connect Google Calendar": answer with Google's permission page. The page then goes there itself
 // (a page visit can't carry our login token, which is why this is not a redirect).
@@ -38,12 +58,17 @@ router.post('/connect', requireAuth, (req, res) => {
 router.get('/callback', async (req, res) => {
   const state = readState(req.query.state)
   if (!state) return back(res, null, 'failed')
-  if (req.query.error || typeof req.query.code !== 'string') return back(res, state.next, 'cancelled')
+  if (req.query.error || typeof req.query.code !== 'string')
+    return back(res, state.next, 'cancelled')
   try {
     const refreshToken = await exchangeCode(req.query.code)
     await connectDb()
     // Reconnecting keeps the events we made, so the next sync updates them instead of making copies.
-    await GoogleLink.updateOne({ userId: state.sub }, { $set: { refreshToken: encrypt(refreshToken) } }, { upsert: true })
+    await GoogleLink.updateOne(
+      { userId: state.sub },
+      { $set: { refreshToken: encrypt(refreshToken) } },
+      { upsert: true },
+    )
     back(res, state.next, 'connected')
   } catch (err) {
     console.error('Google connect failed:', err.code ?? err.message) // never the token or the code
@@ -66,7 +91,9 @@ router.post('/sync', requireAuth, (req, res) => {
   return withDb(res, async () => {
     const link = await GoogleLink.findOne({ userId: req.userId }).catch(() => null)
     if (!link) return sendError(res, 409, 'GOOGLE_NOT_CONNECTED', 'Connect Google Calendar first')
-    return google(res, req.userId, async () => res.json({ ok: true, data: await syncSchedule(link, entries, lang) }))
+    return google(res, req.userId, async () =>
+      res.json({ ok: true, data: await syncSchedule(link, entries, lang) }),
+    )
   })
 })
 

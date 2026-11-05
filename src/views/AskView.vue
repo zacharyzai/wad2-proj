@@ -47,7 +47,19 @@ async function ask(text, chip = 'typed', msg = null) {
   if (!q || loading.value) return
   stopReading()
   if (!msg) {
-    msg = reactive({ id: nextId++, q, chip, lang: locale.value, qLang: locale.value, state: 'loading', reply: null, error: null, stage: 0, shown: undefined, fresh: false })
+    msg = reactive({
+      id: nextId++,
+      q,
+      chip,
+      lang: locale.value,
+      qLang: locale.value,
+      state: 'loading',
+      reply: null,
+      error: null,
+      stage: 0,
+      shown: undefined,
+      fresh: false,
+    })
     messages.push(msg)
     if (chip === 'typed') question.value = ''
   } else {
@@ -64,25 +76,34 @@ async function ask(text, chip = 'typed', msg = null) {
     .slice(-HISTORY)
     .map((m) => ({ q: m.q, a: m.reply.answer }))
   // Only what the question needs goes to the AI (src/rules/askFacts.js): the medicine it is about, or a compact list of what is taken now.
-  const list = factsFor(medicines, q, { previousQuestion: history.at(-1)?.q, finished: isFinished }).map(({ source, medication }) => ({ source, medication: toRaw(medication) }))
+  const list = factsFor(medicines, q, {
+    previousQuestion: history.at(-1)?.q,
+    finished: isFinished,
+  }).map(({ source, medication }) => ({ source, medication: toRaw(medication) }))
   const res = await askMedicine(list, q, msg.lang, history)
   stages.forEach(clearTimeout)
   // On error the question stays in the bubble, so "Try again" resends it.
-  Object.assign(msg, res.ok ? { state: 'done', reply: res.data } : { state: 'error', error: res.error.code })
+  Object.assign(
+    msg,
+    res.ok ? { state: 'done', reply: res.data } : { state: 'error', error: res.error.code },
+  )
   if (isAnswer(msg)) reveal(msg)
   scrollTo(msg, 'start')
 }
 
 // A typed medicine was added: if the last question was waiting for it, ask it again straight away (one less step for seniors).
 function onAdded() {
-  if (latest.value?.reply?.type === 'NEED_MEDICINE') ask(latest.value.q, latest.value.chip, latest.value)
+  if (latest.value?.reply?.type === 'NEED_MEDICINE')
+    ask(latest.value.q, latest.value.chip, latest.value)
 }
 
 // New answer: show it from its first line. Instant when the user asked for less motion.
 async function scrollTo(msg, block) {
   await nextTick()
   const smooth = !matchMedia('(prefers-reduced-motion: reduce)').matches
-  thread.value?.querySelector(`[data-reply="${msg.id}"]`)?.scrollIntoView({ block, behavior: smooth ? 'smooth' : 'auto' })
+  thread.value
+    ?.querySelector(`[data-reply="${msg.id}"]`)
+    ?.scrollIntoView({ block, behavior: smooth ? 'smooth' : 'auto' })
 }
 
 // Start over. The last few turns are sent with each question, so an old topic could steer new answers.
@@ -108,15 +129,28 @@ function undoClear() {
 // The empty page: hello by name and time of day, and questions about their own medicines first (then the usual ones).
 const hour = new Date().getHours()
 const greet = hour < 12 ? 'morning' : hour < 18 ? 'afternoon' : 'evening'
-const hello = computed(() => (authStore.user?.name ? t('ask.hello', { greet: t(`home.greet.${greet}`), name: authStore.user.name }) : t(`home.greet.${greet}`)))
+const hello = computed(() =>
+  authStore.user?.name
+    ? t('ask.hello', { greet: t(`home.greet.${greet}`), name: authStore.user.name })
+    : t(`home.greet.${greet}`),
+)
 const nameOf = (e) => e.medication.name
 const starters = computed(() => {
   const mine = medicines.slice(0, 2)
-  const own = mine.length === 1
-    ? [{ text: t('ask.personal.when', { name: nameOf(mine[0]) }), chip: 'when' }, { text: t('ask.personal.food', { name: nameOf(mine[0]) }), chip: 'food' }]
-    : mine.map((e, i) => ({ text: t(`ask.personal.${i ? 'food' : 'when'}`, { name: nameOf(e) }), chip: i ? 'food' : 'when' }))
+  const own =
+    mine.length === 1
+      ? [
+          { text: t('ask.personal.when', { name: nameOf(mine[0]) }), chip: 'when' },
+          { text: t('ask.personal.food', { name: nameOf(mine[0]) }), chip: 'food' },
+        ]
+      : mine.map((e, i) => ({
+          text: t(`ask.personal.${i ? 'food' : 'when'}`, { name: nameOf(e) }),
+          chip: i ? 'food' : 'when',
+        }))
   const general = ['missed', 'store'].map((c) => ({ text: t(`ask.chips.${c}`), chip: c }))
-  return own.length ? [...own.map((x) => ({ ...x, mine: true })), ...general] : CHIPS.map((c) => ({ text: t(`ask.chips.${c}`), chip: c }))
+  return own.length
+    ? [...own.map((x) => ({ ...x, mine: true })), ...general]
+    : CHIPS.map((c) => ({ text: t(`ask.chips.${c}`), chip: c }))
 })
 
 // "Latest answer": a button to jump back down when the newest answer is out of view in a long conversation.
@@ -158,34 +192,94 @@ onBeforeUnmount(() => {
       <img v-else src="/logo-192.png" alt="" class="logo-tile intro-logo" />
       <h1>{{ t('ask.title') }}</h1>
       <!-- The disclaimer, once for the whole page. -->
-      <p class="safety"><AppIcon name="shield" :size="20" /><span>{{ t('ask.safety') }}</span></p>
+      <p class="safety">
+        <AppIcon name="shield" :size="20" /><span>{{ t('ask.safety') }}</span>
+      </p>
     </header>
 
     <AskMedicines ref="medsPanel" @added="onAdded" />
 
     <div v-if="messages.length" class="thread-tools">
-      <button type="button" class="btn btn-ghost btn-sm" :disabled="loading" data-testid="ask-new" @click="newChat"><AppIcon name="plus" :size="20" />{{ t('ask.newChat') }}</button>
+      <button
+        type="button"
+        class="btn btn-ghost btn-sm"
+        :disabled="loading"
+        data-testid="ask-new"
+        @click="newChat"
+      >
+        <AppIcon name="plus" :size="20" />{{ t('ask.newChat') }}
+      </button>
     </div>
 
     <!-- The log role goes on a wrapper: on the <ol> itself it would hide the list from screen readers. -->
-    <div v-if="messages.length" ref="thread" role="log" aria-live="polite" :aria-label="t('ask.title')" data-testid="ask-thread">
-    <ol class="thread">
-      <li v-for="m in messages" :key="m.id" class="turn">
-        <div class="you rise" :lang="m.qLang ?? m.lang"><span class="visually-hidden">{{ t('ask.you') }}: </span>{{ m.q }}</div>
-        <AskReply :m="m" :latest="m === latest" :loading="loading" :listening="listening" @ask="ask" @add-medicine="medsPanel.openForm()" />
-      </li>
-    </ol>
+    <div
+      v-if="messages.length"
+      ref="thread"
+      role="log"
+      aria-live="polite"
+      :aria-label="t('ask.title')"
+      data-testid="ask-thread"
+    >
+      <ol class="thread">
+        <li v-for="m in messages" :key="m.id" class="turn">
+          <div class="you rise" :lang="m.qLang ?? m.lang">
+            <span class="visually-hidden">{{ t('ask.you') }}: </span>{{ m.q }}
+          </div>
+          <AskReply
+            :m="m"
+            :latest="m === latest"
+            :loading="loading"
+            :listening="listening"
+            @ask="ask"
+            @add-medicine="medsPanel.openForm()"
+          />
+        </li>
+      </ol>
     </div>
 
     <!-- Starter questions until there is an answer with its own follow-ups (under the composer on the empty page). -->
-    <div v-if="messages.length && !isAnswer(latest)" class="starters" role="group" :aria-label="t('ask.chipsLabel')">
-      <button v-for="c in CHIPS" :key="c" type="button" class="chip" :disabled="loading" @click="ask(t(`ask.chips.${c}`), c)">{{ t(`ask.chips.${c}`) }}</button>
+    <div
+      v-if="messages.length && !isAnswer(latest)"
+      class="starters"
+      role="group"
+      :aria-label="t('ask.chipsLabel')"
+    >
+      <button
+        v-for="c in CHIPS"
+        :key="c"
+        type="button"
+        class="chip"
+        :disabled="loading"
+        @click="ask(t(`ask.chips.${c}`), c)"
+      >
+        {{ t(`ask.chips.${c}`) }}
+      </button>
     </div>
 
-    <AskComposer v-model="question" v-model:listening="listening" :loading="loading" @send="ask(question)" @add-medicine="medsPanel.openForm()">
+    <AskComposer
+      v-model="question"
+      v-model:listening="listening"
+      :loading="loading"
+      @send="ask(question)"
+      @add-medicine="medsPanel.openForm()"
+    >
       <!-- Empty page: questions about their own medicines first (a pill on them), then the usual ones. -->
-      <div v-if="!messages.length" class="starters stagger" role="group" :aria-label="t('ask.chipsLabel')" data-testid="ask-starters">
-        <button v-for="s in starters" :key="s.text" type="button" class="chip" :class="{ mine: s.mine }" :disabled="loading" @click="ask(s.text, s.chip)">
+      <div
+        v-if="!messages.length"
+        class="starters stagger"
+        role="group"
+        :aria-label="t('ask.chipsLabel')"
+        data-testid="ask-starters"
+      >
+        <button
+          v-for="s in starters"
+          :key="s.text"
+          type="button"
+          class="chip"
+          :class="{ mine: s.mine }"
+          :disabled="loading"
+          @click="ask(s.text, s.chip)"
+        >
           <AppIcon v-if="s.mine" name="pill" :size="18" />{{ s.text }}
         </button>
       </div>
@@ -193,14 +287,22 @@ onBeforeUnmount(() => {
 
     <!-- A long conversation scrolled up: one tap back down to the newest answer. -->
     <Transition name="jump">
-      <button v-if="messages.length > 1 && !latestInView" type="button" class="btn btn-primary btn-sm jump" data-testid="ask-jump" @click="scrollTo(latest, 'start')">
+      <button
+        v-if="messages.length > 1 && !latestInView"
+        type="button"
+        class="btn btn-primary btn-sm jump"
+        data-testid="ask-jump"
+        @click="scrollTo(latest, 'start')"
+      >
         <AppIcon name="down" :size="20" />{{ t('ask.jump') }}
       </button>
     </Transition>
 
     <div v-if="cleared" class="toast-ahma toast-undo rise" role="status" data-testid="ask-cleared">
       <span>{{ t('ask.cleared') }}</span>
-      <button ref="undoClearButton" type="button" class="btn btn-on-hero btn-sm" @click="undoClear">{{ t('ask.toast.undo') }}</button>
+      <button ref="undoClearButton" type="button" class="btn btn-on-hero btn-sm" @click="undoClear">
+        {{ t('ask.toast.undo') }}
+      </button>
     </div>
   </div>
 </template>

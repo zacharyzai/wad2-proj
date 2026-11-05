@@ -18,7 +18,8 @@ let mongo, server, base
 // Two accounts. The routes trust the signed token, so no User documents are needed.
 const alice = signToken(new mongoose.Types.ObjectId().toString(), true)
 const bob = signToken(new mongoose.Types.ObjectId().toString(), true)
-const day = (offset) => new Date(Date.now() + 8 * 3_600_000 + offset * 86_400_000).toISOString().slice(0, 10) // Singapore
+const day = (offset) =>
+  new Date(Date.now() + 8 * 3_600_000 + offset * 86_400_000).toISOString().slice(0, 10) // Singapore
 const TODAY = day(0)
 const YESTERDAY = day(-1)
 
@@ -36,13 +37,19 @@ afterAll(async () => {
   await mongo?.stop()
 })
 
-const request = (method, { body, query = '', token } = {}) => fetch(`${base}${query}`, {
-  method, headers: { 'content-type': 'application/json', ...(token ? { authorization: `Bearer ${token}` } : {}) },
-  ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
-})
+const request = (method, { body, query = '', token } = {}) =>
+  fetch(`${base}${query}`, {
+    method,
+    headers: {
+      'content-type': 'application/json',
+      ...(token ? { authorization: `Bearer ${token}` } : {}),
+    },
+    ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
+  })
 const tick = (token, doseId, date = TODAY) => request('POST', { token, body: { doseId, date } })
 const untick = (token, doseId, date = TODAY) => request('DELETE', { token, body: { doseId, date } })
-const taken = async (token, date = TODAY) => (await (await request('GET', { token, query: `?date=${date}` })).json()).data.taken
+const taken = async (token, date = TODAY) =>
+  (await (await request('GET', { token, query: `?date=${date}` })).json()).data.taken
 async function error(response, status, code) {
   assert.equal(response.status, status)
   const body = await response.json()
@@ -76,7 +83,10 @@ test('tick, then tick again: one record, the first time kept, never cached', asy
 
 test('the same tick arriving several times at once still makes one record', async () => {
   const answers = await Promise.all(Array.from({ length: 5 }, () => tick(alice, 'm1-bedtime')))
-  assert.deepEqual(answers.map((r) => r.status), [200, 200, 200, 200, 200])
+  assert.deepEqual(
+    answers.map((r) => r.status),
+    [200, 200, 200, 200, 200],
+  )
   assert.equal(await Dose.countDocuments({ doseId: 'm1-bedtime' }), 1)
 })
 
@@ -91,7 +101,7 @@ test('untick, and untick something not ticked: both 200', async () => {
   assert.equal((await missing.json()).ok, true)
 })
 
-test('GET returns only that date and only that user, and nobody can untick someone else\'s dose', async () => {
+test("GET returns only that date and only that user, and nobody can untick someone else's dose", async () => {
   await Dose.deleteMany({})
   await tick(alice, 'm1-morning')
   await tick(alice, 'm1-bedtime')
@@ -107,16 +117,28 @@ test('GET returns only that date and only that user, and nobody can untick someo
   await untick(bob, 'm1-morning')
   assert.deepEqual(await taken(alice), ['m1-bedtime', 'm1-morning'])
   const res = await request('GET', { token: alice, query: `?date=${TODAY}` })
-  assert.deepEqual(await res.json(), { ok: true, data: { date: TODAY, taken: ['m1-bedtime', 'm1-morning'] } })
+  assert.deepEqual(await res.json(), {
+    ok: true,
+    data: { date: TODAY, taken: ['m1-bedtime', 'm1-morning'] },
+  })
 })
 
 test('ticking cancels the "Not ticked yet" Calendar alert, unticking brings it back, and a Google failure never fails the tick', async () => {
-  const keys = { GOOGLE_CLIENT_ID: 'id', GOOGLE_CLIENT_SECRET: 'secret', GOOGLE_REDIRECT_URI: 'http://localhost/cb', GOOGLE_TOKEN_KEY: randomBytes(32).toString('base64') }
+  const keys = {
+    GOOGLE_CLIENT_ID: 'id',
+    GOOGLE_CLIENT_SECRET: 'secret',
+    GOOGLE_REDIRECT_URI: 'http://localhost/cb',
+    GOOGLE_TOKEN_KEY: randomBytes(32).toString('base64'),
+  }
   Object.assign(process.env, keys)
   const { encrypt } = await import('../services/google.js')
   const { GoogleLink } = await import('../models/GoogleLink.js')
   const userId = new mongoose.Types.ObjectId()
-  await GoogleLink.create({ userId, refreshToken: encrypt('1//rt'), events: new Map([['m1-morning:late', { eventId: 'evL', hash: 'h', time: '08:00' }]]) })
+  await GoogleLink.create({
+    userId,
+    refreshToken: encrypt('1//rt'),
+    events: new Map([['m1-morning:late', { eventId: 'evL', hash: 'h', time: '08:00' }]]),
+  })
   const token = signToken(userId.toString(), true)
 
   const realFetch = globalThis.fetch
@@ -124,19 +146,30 @@ test('ticking cancels the "Not ticked yet" Calendar alert, unticking brings it b
   let tokenStatus = 200
   globalThis.fetch = async (url, init) => {
     if (String(url).startsWith('http://127.0.0.1')) return realFetch(url, init) // our own server
-    if (String(url).startsWith('https://oauth2.googleapis.com/token')) return new Response(JSON.stringify({ access_token: 'at' }), { status: tokenStatus })
-    google.push(`${init.method} ${decodeURIComponent(String(url).replace('https://www.googleapis.com/calendar/v3/calendars/primary/events', ''))}${init.body ? ' ' + init.body : ''}`)
-    return init.method === 'GET' ? Response.json({ items: [{ id: 'evL_x', status: 'confirmed' }] }) : Response.json({})
+    if (String(url).startsWith('https://oauth2.googleapis.com/token'))
+      return new Response(JSON.stringify({ access_token: 'at' }), { status: tokenStatus })
+    google.push(
+      `${init.method} ${decodeURIComponent(String(url).replace('https://www.googleapis.com/calendar/v3/calendars/primary/events', ''))}${init.body ? ' ' + init.body : ''}`,
+    )
+    return init.method === 'GET'
+      ? Response.json({ items: [{ id: 'evL_x', status: 'confirmed' }] })
+      : Response.json({})
   }
   try {
     assert.equal((await tick(token, 'm1-morning')).status, 200)
-    assert.deepEqual(google.map((c) => c.split('?')[0]), ['GET /evL/instances', 'PATCH /evL_x {"status":"cancelled"}'])
+    assert.deepEqual(
+      google.map((c) => c.split('?')[0]),
+      ['GET /evL/instances', 'PATCH /evL_x {"status":"cancelled"}'],
+    )
     assert.ok(google[0].includes(`timeMin=${TODAY}T08:15:00+08:00`)) // today's alert only
 
     google.length = 0
     assert.equal((await untick(token, 'm1-morning')).status, 200)
     // The stubbed alert always reads "confirmed", so unticking has nothing to restore: it only asks.
-    assert.deepEqual(google.map((c) => c.split('?')[0]), ['GET /evL/instances'])
+    assert.deepEqual(
+      google.map((c) => c.split('?')[0]),
+      ['GET /evL/instances'],
+    )
 
     google.length = 0
     assert.equal((await tick(token, 'm1-night')).status, 200) // no follow-up stored for this dose: Google is not called
@@ -154,20 +187,51 @@ test('ticking cancels the "Not ticked yet" Calendar alert, unticking brings it b
 })
 
 test('bad dose ids and dates are 400', async () => {
-  for (const doseId of ['', 'm1 morning', 'm1_morning', 'm1-<script>', 'a'.repeat(81), 12, null, undefined, { $gt: '' }, ['m1']]) {
+  for (const doseId of [
+    '',
+    'm1 morning',
+    'm1_morning',
+    'm1-<script>',
+    'a'.repeat(81),
+    12,
+    null,
+    undefined,
+    { $gt: '' },
+    ['m1'],
+  ]) {
     await error(await tick(alice, doseId), 400, 'BAD_REQUEST')
     await error(await untick(alice, doseId), 400, 'BAD_REQUEST')
   }
   assert.equal((await tick(alice, 'a'.repeat(80))).status, 200)
-  for (const date of ['2026-02-30', '2026-13-01', '28-10-2026', '2026-1-5', '', null, 20261028, day(2), day(-366)]) {
+  for (const date of [
+    '2026-02-30',
+    '2026-13-01',
+    '28-10-2026',
+    '2026-1-5',
+    '',
+    null,
+    20261028,
+    day(2),
+    day(-366),
+  ]) {
     await error(await tick(alice, 'm1-morning', date), 400, 'BAD_REQUEST')
   }
-  for (const query of ['', '?date=', '?date=2026-02-30', `?date=${day(2)}`, `?date[$gt]=2000-01-01`]) {
+  for (const query of [
+    '',
+    '?date=',
+    '?date=2026-02-30',
+    `?date=${day(2)}`,
+    `?date[$gt]=2000-01-01`,
+  ]) {
     await error(await request('GET', { token: alice, query }), 400, 'BAD_REQUEST')
   }
   await error(await request('POST', { token: alice }), 400, 'BAD_REQUEST')
   // Malformed JSON gets the app-wide 400, not a crash.
-  const res = await fetch(base, { method: 'POST', headers: { 'content-type': 'application/json', authorization: `Bearer ${alice}` }, body: '{bad' })
+  const res = await fetch(base, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', authorization: `Bearer ${alice}` },
+    body: '{bad',
+  })
   await error(res, 400, 'BAD_REQUEST')
 })
 
@@ -185,7 +249,14 @@ test('dates: tomorrow and a year back are allowed, by the Singapore calendar', (
 
 test(`at most ${MAX_PER_DAY} different doses can be ticked on one day`, async () => {
   const date = day(-10)
-  await Dose.insertMany(Array.from({ length: MAX_PER_DAY }, (_, i) => ({ userId: JSON.parse(Buffer.from(alice.split('.')[1], 'base64url')).sub, doseId: `x-${i}`, date, takenAt: new Date() })))
+  await Dose.insertMany(
+    Array.from({ length: MAX_PER_DAY }, (_, i) => ({
+      userId: JSON.parse(Buffer.from(alice.split('.')[1], 'base64url')).sub,
+      doseId: `x-${i}`,
+      date,
+      takenAt: new Date(),
+    })),
+  )
   await error(await tick(alice, 'one-more', date), 400, 'BAD_REQUEST')
   assert.equal((await tick(alice, 'x-5', date)).status, 200) // already ticked: still fine
   assert.equal((await tick(bob, 'one-more', date)).status, 200) // the limit is per user
@@ -197,7 +268,11 @@ test('no database: 503 with the same answer the auth routes give, and a later re
   delete process.env.MONGODB_URI
   try {
     await error(await tick(alice, 'm1-morning'), 503, 'SERVER_ERROR')
-    await error(await request('GET', { token: alice, query: `?date=${TODAY}` }), 503, 'SERVER_ERROR')
+    await error(
+      await request('GET', { token: alice, query: `?date=${TODAY}` }),
+      503,
+      'SERVER_ERROR',
+    )
     await error(await untick(alice, 'm1-morning'), 503, 'SERVER_ERROR')
   } finally {
     process.env.MONGODB_URI = uri

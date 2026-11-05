@@ -23,7 +23,16 @@ const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 
-const form = reactive({role: route.query.role === 'caregiver' ? 'caregiver' : 'senior', name: '', email: '', password: '', dob: '', citizenship: '', citizenSince: '', income: '' })
+const form = reactive({
+  role: route.query.role === 'caregiver' ? 'caregiver' : 'senior',
+  name: '',
+  email: '',
+  password: '',
+  dob: '',
+  citizenship: '',
+  citizenSince: '',
+  income: '',
+})
 const remember = ref(true)
 const showPw = ref(false)
 const busy = ref(false)
@@ -44,7 +53,11 @@ const problems = computed(() => {
   if (!form.citizenship) p.citizenship = t('auth.need.citizenship')
   const year = Number(form.citizenSince)
   const born = Number(form.dob.slice(0, 4)) || 1900
-  if (form.citizenship === 'became' && !(Number.isInteger(year) && year >= born && year <= thisYear)) p.citizenSince = t('auth.need.citizenSince', { max: thisYear })
+  if (
+    form.citizenship === 'became' &&
+    !(Number.isInteger(year) && year >= born && year <= thisYear)
+  )
+    p.citizenSince = t('auth.need.citizenSince', { max: thisYear })
   if (isCitizen(form.citizenship) && !form.income) p.income = t('auth.need.citizenship')
   return p
 })
@@ -69,11 +82,19 @@ async function submit() {
   const res = await signup(
     form.email.trim(),
     form.password,
-    {role: form.role, name: form.name.trim(), dob: form.dob, citizenship: form.citizenship, citizenSince: form.citizenship === 'became' ? Number(form.citizenSince) : null, income: isCitizen(form.citizenship) ? form.income : null },
+    {
+      role: form.role,
+      name: form.name.trim(),
+      dob: form.dob,
+      citizenship: form.citizenship,
+      citizenSince: form.citizenship === 'became' ? Number(form.citizenSince) : null,
+      income: isCitizen(form.citizenship) ? form.income : null,
+    },
     remember.value,
   )
   busy.value = false
-  if (res.ok) enterApp(router, destination()) // one calm fade into the app
+  if (res.ok)
+    enterApp(router, destination()) // one calm fade into the app
   else errorCode.value = res.error.code
 }
 </script>
@@ -82,15 +103,34 @@ async function submit() {
   <AuthShell active="signup">
     <form ref="formEl" class="d-flex flex-column gap-3" novalidate @submit.prevent="submit">
       <ErrorBanner v-if="errorCode" :code="errorCode" data-testid="signup-error" />
-      <p v-if="tried && Object.keys(problems).length" class="auth-warn m-0" role="alert" data-testid="signup-missing">
+      <p
+        v-if="tried && Object.keys(problems).length"
+        class="auth-warn m-0"
+        role="alert"
+        data-testid="signup-missing"
+      >
         <AppIcon name="alert" :size="20" />{{ t('auth.missingFields') }}
       </p>
       <!-- Who is this account for? Chosen once: a person who is both makes two accounts. -->
       <fieldset class="auth-roles">
         <legend class="auth-label">{{ t('auth.role') }}</legend>
-        <label v-for="r in ['senior', 'caregiver']" :key="r" class="auth-role" :class="{ on: form.role === r }">
-          <input v-model="form.role" type="radio" name="role" :value="r" :data-testid="`signup-role-${r}`" />
-          <span><strong>{{ t(`auth.roles.${r}`) }}</strong><span class="auth-help d-block mt-1">{{ t(`auth.roleHelp.${r}`) }}</span></span>
+        <label
+          v-for="r in ['senior', 'caregiver']"
+          :key="r"
+          class="auth-role"
+          :class="{ on: form.role === r }"
+        >
+          <input
+            v-model="form.role"
+            type="radio"
+            name="role"
+            :value="r"
+            :data-testid="`signup-role-${r}`"
+          />
+          <span
+            ><strong>{{ t(`auth.roles.${r}`) }}</strong
+            ><span class="auth-help d-block mt-1">{{ t(`auth.roleHelp.${r}`) }}</span></span
+          >
         </label>
       </fieldset>
 
@@ -98,7 +138,17 @@ async function submit() {
         <label for="signup-name" class="auth-label">{{ t('auth.name') }}</label>
         <div class="auth-field" :class="{ bad: show('name') }">
           <AppIcon name="user" :size="22" />
-          <input id="signup-name" v-model="form.name" type="text" autocomplete="name" maxlength="80" required :aria-invalid="!!show('name')" aria-describedby="signup-name-err" data-testid="signup-name" />
+          <input
+            id="signup-name"
+            v-model="form.name"
+            type="text"
+            autocomplete="name"
+            maxlength="80"
+            required
+            :aria-invalid="!!show('name')"
+            aria-describedby="signup-name-err"
+            data-testid="signup-name"
+          />
         </div>
         <span v-if="show('name')" id="signup-name-err" class="auth-warn">{{ problems.name }}</span>
       </div>
@@ -107,9 +157,20 @@ async function submit() {
         <label for="signup-email" class="auth-label">{{ t('auth.email') }}</label>
         <div class="auth-field" :class="{ bad: show('email') }">
           <AppIcon name="mail" :size="22" />
-          <input id="signup-email" v-model="form.email" type="email" autocomplete="email" required :aria-invalid="!!show('email')" aria-describedby="signup-email-err" data-testid="signup-email" />
+          <input
+            id="signup-email"
+            v-model="form.email"
+            type="email"
+            autocomplete="email"
+            required
+            :aria-invalid="!!show('email')"
+            aria-describedby="signup-email-err"
+            data-testid="signup-email"
+          />
         </div>
-        <span v-if="show('email')" id="signup-email-err" class="auth-warn">{{ problems.email }}</span>
+        <span v-if="show('email')" id="signup-email-err" class="auth-warn">{{
+          problems.email
+        }}</span>
       </div>
 
       <div>
@@ -117,25 +178,61 @@ async function submit() {
         <div class="auth-field" :class="{ bad: show('password') }">
           <AppIcon name="lock" :size="22" />
           <input
-            id="signup-password" v-model="form.password" :type="showPw ? 'text' : 'password'"
-            autocomplete="new-password" :aria-describedby="show('password') ? 'signup-pw-warn signup-hint' : 'signup-hint'" :aria-invalid="!!show('password')" required data-testid="signup-password"
+            id="signup-password"
+            v-model="form.password"
+            :type="showPw ? 'text' : 'password'"
+            autocomplete="new-password"
+            :aria-describedby="show('password') ? 'signup-pw-warn signup-hint' : 'signup-hint'"
+            :aria-invalid="!!show('password')"
+            required
+            data-testid="signup-password"
           />
-          <button type="button" class="auth-eye" :aria-pressed="showPw" :aria-label="showPw ? t('auth.hide') : t('auth.show')" data-testid="signup-toggle" @click="showPw = !showPw">
+          <button
+            type="button"
+            class="auth-eye"
+            :aria-pressed="showPw"
+            :aria-label="showPw ? t('auth.hide') : t('auth.show')"
+            data-testid="signup-toggle"
+            @click="showPw = !showPw"
+          >
             <AppIcon :name="showPw ? 'blur' : 'eye'" :size="22" />
           </button>
         </div>
         <!-- A password that misses a rule, after Create account: a warning in words, with an icon (colour never carries meaning
              alone), and no account until a new password meets every rule. -->
-        <p v-if="show('password')" id="signup-pw-warn" class="auth-warn m-0" data-testid="signup-pw-warn"><AppIcon name="alert" :size="18" />{{ problems.password }}</p>
+        <p
+          v-if="show('password')"
+          id="signup-pw-warn"
+          class="auth-warn m-0"
+          data-testid="signup-pw-warn"
+        >
+          <AppIcon name="alert" :size="18" />{{ problems.password }}
+        </p>
         <!-- The rules, each ticked off as it is met: a tick and "done" once met; after Create account, a cross and "not yet". -->
-        <PasswordRules id="signup-hint" :checks="pwChecks" :tried="tried" data-testid="signup-hint" />
+        <PasswordRules
+          id="signup-hint"
+          :checks="pwChecks"
+          :tried="tried"
+          data-testid="signup-hint"
+        />
       </div>
 
       <div>
         <label for="signup-dob" class="auth-label">{{ t('auth.dob') }}</label>
         <div class="auth-field" :class="{ bad: show('dob') }">
           <AppIcon name="calendar" :size="22" />
-          <input id="signup-dob" v-model="form.dob" type="date" min="1900-01-01" :max="today" autocomplete="bday" required :aria-invalid="!!show('dob')" aria-describedby="signup-dob-help" data-testid="signup-dob" />
+          <input
+            id="signup-dob"
+            v-model="form.dob"
+            type="date"
+            min="1900-01-01"
+            :max="today"
+            autocomplete="bday"
+            required
+            :aria-invalid="!!show('dob')"
+            aria-describedby="signup-dob-help"
+            data-testid="signup-dob"
+          />
         </div>
         <span v-if="show('dob')" id="signup-dob-help" class="auth-warn">{{ problems.dob }}</span>
         <span v-else id="signup-dob-help" class="auth-help">{{ t('auth.dobHelp') }}</span>
@@ -145,21 +242,44 @@ async function submit() {
         <label for="signup-citizenship" class="auth-label">{{ t('bill.q.citizen') }}</label>
         <div class="auth-field" :class="{ bad: show('citizenship') }">
           <AppIcon name="globe" :size="22" />
-          <select id="signup-citizenship" v-model="form.citizenship" required :aria-invalid="!!show('citizenship')" aria-describedby="signup-citizenship-err" data-testid="signup-citizenship">
+          <select
+            id="signup-citizenship"
+            v-model="form.citizenship"
+            required
+            :aria-invalid="!!show('citizenship')"
+            aria-describedby="signup-citizenship-err"
+            data-testid="signup-citizenship"
+          >
             <option value="" disabled>{{ t('auth.citizenshipPick') }}</option>
-            <option v-for="c in CITIZENSHIPS" :key="c" :value="c">{{ t(`bill.q.status.${c}`) }}</option>
+            <option v-for="c in CITIZENSHIPS" :key="c" :value="c">
+              {{ t(`bill.q.status.${c}`) }}
+            </option>
           </select>
         </div>
-        <span v-if="show('citizenship')" id="signup-citizenship-err" class="auth-warn">{{ problems.citizenship }}</span>
+        <span v-if="show('citizenship')" id="signup-citizenship-err" class="auth-warn">{{
+          problems.citizenship
+        }}</span>
       </div>
 
       <div v-if="form.citizenship === 'became'">
         <label for="signup-citizen-year" class="auth-label">{{ t('bill.q.citizenYear') }}</label>
         <div class="auth-field" :class="{ bad: show('citizenSince') }">
           <AppIcon name="calendar" :size="22" />
-          <input id="signup-citizen-year" v-model="form.citizenSince" inputmode="numeric" maxlength="4" :placeholder="t('bill.q.yearExample')" required :aria-invalid="!!show('citizenSince')" aria-describedby="signup-year-err" data-testid="signup-citizen-year" />
+          <input
+            id="signup-citizen-year"
+            v-model="form.citizenSince"
+            inputmode="numeric"
+            maxlength="4"
+            :placeholder="t('bill.q.yearExample')"
+            required
+            :aria-invalid="!!show('citizenSince')"
+            aria-describedby="signup-year-err"
+            data-testid="signup-citizen-year"
+          />
         </div>
-        <span v-if="show('citizenSince')" id="signup-year-err" class="auth-warn">{{ problems.citizenSince }}</span>
+        <span v-if="show('citizenSince')" id="signup-year-err" class="auth-warn">{{
+          problems.citizenSince
+        }}</span>
       </div>
 
       <!-- CHAS is for citizens: their income band sets the card colour shown on the Bill page. -->
@@ -167,23 +287,40 @@ async function submit() {
         <label for="signup-income" class="auth-label">{{ t('bill.q.income') }}</label>
         <div class="auth-field" :class="{ bad: show('income') }">
           <AppIcon name="wallet" :size="22" />
-          <select id="signup-income" v-model="form.income" required :aria-invalid="!!show('income')" aria-describedby="signup-income-help" data-testid="signup-income">
+          <select
+            id="signup-income"
+            v-model="form.income"
+            required
+            :aria-invalid="!!show('income')"
+            aria-describedby="signup-income-help"
+            data-testid="signup-income"
+          >
             <option value="" disabled>{{ t('auth.citizenshipPick') }}</option>
-            <option v-for="(key, value) in INCOMES" :key="value" :value="value">{{ t(`bill.q.incomes.${key}`) }}</option>
+            <option v-for="(key, value) in INCOMES" :key="value" :value="value">
+              {{ t(`bill.q.incomes.${key}`) }}
+            </option>
           </select>
         </div>
-        <span v-if="show('income')" id="signup-income-help" class="auth-warn">{{ problems.income }}</span>
+        <span v-if="show('income')" id="signup-income-help" class="auth-warn">{{
+          problems.income
+        }}</span>
         <span v-else id="signup-income-help" class="auth-help">{{ t('bill.q.incomeHelp') }}</span>
       </div>
 
       <label class="auth-check">
-        <input v-model="remember" type="checkbox" aria-describedby="signup-remember-help" data-testid="signup-remember" />
+        <input
+          v-model="remember"
+          type="checkbox"
+          aria-describedby="signup-remember-help"
+          data-testid="signup-remember"
+        />
         {{ t('auth.remember') }}
       </label>
       <span id="signup-remember-help" class="auth-help mt-0">{{ t('auth.rememberHelp') }}</span>
 
-      <BigButton type="submit" :busy="busy" data-testid="signup-submit">{{ busy ? t('auth.working') : t('auth.signup') }}</BigButton>
+      <BigButton type="submit" :busy="busy" data-testid="signup-submit">{{
+        busy ? t('auth.working') : t('auth.signup')
+      }}</BigButton>
     </form>
   </AuthShell>
 </template>
-

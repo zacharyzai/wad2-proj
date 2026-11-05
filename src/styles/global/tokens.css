@@ -18,13 +18,27 @@
   --color-link: #1a5490;
   --color-link-bg: #eaf1fa;
   --color-link-border: #bcd2ec;
-  --color-warning: #f77f00; --color-warning-text: #9a4a00; --color-warning-bg: #fff4e8; --color-warning-border: #f8c48c;
-  --color-success: #06a77d; --color-success-text: #04785a; --color-success-bg: #e7f6f1; --color-success-border: #a6dccb;
-  --color-danger: #e63946; --color-danger-text: #c1272f; --color-danger-bg: #fdedee; --color-danger-border: #f4b8bc;
+  --color-warning: #f77f00;
+  --color-warning-text: #9a4a00;
+  --color-warning-bg: #fff4e8;
+  --color-warning-border: #f8c48c;
+  --color-success: #06a77d;
+  --color-success-text: #04785a;
+  --color-success-bg: #e7f6f1;
+  --color-success-border: #a6dccb;
+  --color-danger: #e63946;
+  --color-danger-text: #c1272f;
+  --color-danger-bg: #fdedee;
+  --color-danger-border: #f4b8bc;
   --color-sos: #c62b36; /* white text 5.6:1 */
   /* Bill categories only (BillLine): tests and scans, MediSave */
-  --color-purple-text: #5b3f94; --color-purple-bg: #f1ecfa; --color-purple-border: #d3c6ec;
-  --color-rose: #c2417f; --color-rose-text: #9d2463; --color-rose-bg: #fbeaf2; --color-rose-border: #efbcd5; /* rose: the MediSave bar */
+  --color-purple-text: #5b3f94;
+  --color-purple-bg: #f1ecfa;
+  --color-purple-border: #d3c6ec;
+  --color-rose: #c2417f;
+  --color-rose-text: #9d2463;
+  --color-rose-bg: #fbeaf2;
+  --color-rose-border: #efbcd5; /* rose: the MediSave bar */
   --color-sos-pressed: #a31f2a; /* pressed SOS, red words on white, and failure toasts: stays this dark in night mode so white text reads */
   --color-on-primary: #ffffff;
 
@@ -32,7 +46,8 @@
   --gradient-result: linear-gradient(160deg, #e0f7f5 0%, #ffffff 75%);
 
   /* Elevation */
-  --shadow-card: 0 1px 2px rgba(74, 52, 30, 0.08), 0 6px 16px -4px rgba(74, 52, 30, 0.1); /* warm-tinted, one light source from above */
+  --shadow-card:
+    0 1px 2px rgba(74, 52, 30, 0.08), 0 6px 16px -4px rgba(74, 52, 30, 0.1); /* warm-tinted, one light source from above */
   --shadow-hover: 0 2px 6px rgba(74, 52, 30, 0.08), 0 18px 36px -10px rgba(74, 52, 30, 0.2);
   --shadow-glow: 0 4px 14px rgba(26, 112, 112, 0.35);
   --shadow-sos: 0 6px 20px rgba(198, 43, 54, 0.35);
@@ -41,28 +56,67 @@
   /* Radii */
   /* sm: small tiles · field: inputs · tile: choices, segments, rows, large tiles · btn: buttons, alerts · panel: blocks inside a card
      (stats, bill lines, samples) · card · hero: the hero and the camera frame · pill */
-  --r-sm: 12px; --r-field: 14px; --r-tile: 16px; --r-btn: 18px; --r-panel: 20px; --r-card: 24px; --r-hero: 28px; --r-pill: 999px;
+  --r-sm: 12px;
+  --r-field: 14px;
+  --r-tile: 16px;
+  --r-btn: 18px;
+  --r-panel: 20px;
+  --r-card: 24px;
+  --r-hero: 28px;
+  --r-pill: 999px;
 
   /* Spacing (4px base) */
-  --s-1: 4px; --s-2: 8px; --s-3: 12px; --s-4: 16px; --s-5: 20px; --s-6: 24px; --s-8: 32px; --s-10: 40px; --s-12: 48px;
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 20px;
+  --s-6: 24px;
+  --s-8: 32px;
+  --s-10: 40px;
+  --s-12: 48px;
   --gutter: 20px;
 
   /* Type: nothing below 16px */
   /* Chinese and Tamil use the phone's own fonts (no download: on an English page the web versions cost 170KB, in Chinese 660KB). */
-  --font-sans: 'Atkinson Hyperlegible Next', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans CJK SC', 'Noto Sans SC', 'Tamil Sangam MN', 'Nirmala UI', 'Noto Sans Tamil', system-ui, sans-serif;
-  --font-display: 'Young Serif', 'Songti SC', 'STSong', 'Noto Serif CJK SC', 'Noto Serif SC', 'SimSun', 'Tamil Sangam MN', 'Nirmala UI', 'Noto Sans Tamil', Georgia, serif; /* page titles and big numbers, as on the welcome page */
+  --font-sans:
+    'Atkinson Hyperlegible Next', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei',
+    'Noto Sans CJK SC', 'Noto Sans SC', 'Tamil Sangam MN', 'Nirmala UI', 'Noto Sans Tamil',
+    system-ui, sans-serif;
+  --font-display:
+    'Young Serif', 'Songti SC', 'STSong', 'Noto Serif CJK SC', 'Noto Serif SC', 'SimSun',
+    'Tamil Sangam MN', 'Nirmala UI', 'Noto Sans Tamil', Georgia, serif; /* page titles and big numbers, as on the welcome page */
   --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .3 0 0 0 0 .2 0 0 0 0 .1 0 0 0 .06 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  --fs-hero: 52px; --fs-display: 30px; --fs-h1: 28px; --fs-h2: 22px; --fs-h3: 20px;
-  --fs-lead: 19px; --fs-body: 18px; --fs-small: 16px;
-  --lh-tight: 1.2; --lh-body: 1.55;
+  --fs-hero: 52px;
+  --fs-display: 30px;
+  --fs-h1: 28px;
+  --fs-h2: 22px;
+  --fs-h3: 20px;
+  --fs-lead: 19px;
+  --fs-body: 18px;
+  --fs-small: 16px;
+  --lh-tight: 1.2;
+  --lh-body: 1.55;
 
   /* Sizes */
-  --h-btn: 64px; --h-btn-sm: 48px; --h-field: 56px; --hit: 48px; --tile: 40px; --tile-lg: 56px;
+  --h-btn: 64px;
+  --h-btn-sm: 48px;
+  --h-field: 56px;
+  --hit: 48px;
+  --tile: 40px;
+  --tile-lg: 56px;
 
   /* Motion */
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
-  --ease-settle: cubic-bezier(0.16, 1, 0.3, 1); /* a long, soft landing with no overshoot; calm, never bouncy */
-  --dur-fast: 120ms; --dur: 320ms; --stagger: 60ms;
+  --ease-settle: cubic-bezier(
+    0.16,
+    1,
+    0.3,
+    1
+  ); /* a long, soft landing with no overshoot; calm, never bouncy */
+  --dur-fast: 120ms;
+  --dur: 320ms;
+  --stagger: 60ms;
 
   color-scheme: light;
 }
@@ -72,12 +126,42 @@
 @media (min-width: 992px) {
   :root {
     --gutter: 28px;
-    --s-5: 16px; --s-6: 20px; --s-8: 24px; --s-10: 32px; --s-12: 40px;
-    --fs-hero: 36px; --fs-display: 32px; --fs-h1: 28px; --fs-h2: 19px; --fs-h3: 17px; --fs-lead: 16px; --fs-body: 16px;
-    --h-btn: 48px; --h-btn-sm: 48px; --h-field: 48px; --hit: 48px; --tile: 32px; --tile-lg: 42px; /* tap targets stay 48px */
-    --r-btn: 15px; --r-panel: 18px; --r-card: 20px; --r-hero: 24px;
-    --t19: 16px; --t20: 16px; --t21: 17px; --t22: 17px; --t23: 18px; --t24: 19px; --t26: 20px; --t28: 22px; --t34: 26px; --t60: 44px;
-    --z52: 48px; --z56: 48px; --z64: 48px; --z72: 54px;
+    --s-5: 16px;
+    --s-6: 20px;
+    --s-8: 24px;
+    --s-10: 32px;
+    --s-12: 40px;
+    --fs-hero: 36px;
+    --fs-display: 32px;
+    --fs-h1: 28px;
+    --fs-h2: 19px;
+    --fs-h3: 17px;
+    --fs-lead: 16px;
+    --fs-body: 16px;
+    --h-btn: 48px;
+    --h-btn-sm: 48px;
+    --h-field: 48px;
+    --hit: 48px;
+    --tile: 32px;
+    --tile-lg: 42px; /* tap targets stay 48px */
+    --r-btn: 15px;
+    --r-panel: 18px;
+    --r-card: 20px;
+    --r-hero: 24px;
+    --t19: 16px;
+    --t20: 16px;
+    --t21: 17px;
+    --t22: 17px;
+    --t23: 18px;
+    --t24: 19px;
+    --t26: 20px;
+    --t28: 22px;
+    --t34: 26px;
+    --t60: 44px;
+    --z52: 48px;
+    --z56: 48px;
+    --z64: 48px;
+    --z72: 54px;
   }
 }
 
@@ -94,12 +178,28 @@
   --color-tint: #173431;
   --color-tint-strong: #24524c;
   --color-tint-text: #8fdcd5;
-  --color-link: #93bdeb; --color-link-bg: #16243a; --color-link-border: #2b4566;
-  --color-warning: #f78f1e; --color-warning-text: #ffb46b; --color-warning-bg: #2d2114; --color-warning-border: #6a4416;
-  --color-success: #2bc495; --color-success-text: #6bd9b4; --color-success-bg: #122a22; --color-success-border: #255544;
-  --color-danger: #f05a65; --color-danger-text: #ff9097; --color-danger-bg: #2f1618; --color-danger-border: #6b2b30;
-  --color-purple-text: #c8b6f0; --color-purple-bg: #241d33; --color-purple-border: #4a3d6b;
-  --color-rose: #e07aab; --color-rose-text: #f3a3c8; --color-rose-bg: #2e1622; --color-rose-border: #6b2e4b;
+  --color-link: #93bdeb;
+  --color-link-bg: #16243a;
+  --color-link-border: #2b4566;
+  --color-warning: #f78f1e;
+  --color-warning-text: #ffb46b;
+  --color-warning-bg: #2d2114;
+  --color-warning-border: #6a4416;
+  --color-success: #2bc495;
+  --color-success-text: #6bd9b4;
+  --color-success-bg: #122a22;
+  --color-success-border: #255544;
+  --color-danger: #f05a65;
+  --color-danger-text: #ff9097;
+  --color-danger-bg: #2f1618;
+  --color-danger-border: #6b2b30;
+  --color-purple-text: #c8b6f0;
+  --color-purple-bg: #241d33;
+  --color-purple-border: #4a3d6b;
+  --color-rose: #e07aab;
+  --color-rose-text: #f3a3c8;
+  --color-rose-bg: #2e1622;
+  --color-rose-border: #6b2e4b;
   --gradient-hero: linear-gradient(160deg, #0b3634 0%, #135555 55%, #0a6b61 100%);
   --gradient-result: linear-gradient(160deg, #173431 0%, #1b2322 75%);
   --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.45), 0 4px 12px rgba(0, 0, 0, 0.35);
@@ -110,7 +210,8 @@
 }
 
 /* Bootstrap bridge: Bootstrap components pick up the same colours and font. */
-:root, :root[data-theme='dark'] {
+:root,
+:root[data-theme='dark'] {
   --bs-body-bg: var(--color-page);
   --bs-body-color: var(--color-text);
   --bs-body-font-family: var(--font-sans);

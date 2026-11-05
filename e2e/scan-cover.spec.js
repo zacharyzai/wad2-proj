@@ -3,17 +3,32 @@
 import { test, expect } from './fixtures.js'
 import { mockImageScan } from './helpers/mockImageScan.js'
 
-const TINY_PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', 'base64')
+const TINY_PNG = Buffer.from(
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
+  'base64',
+)
 const upload = async (page) => {
-  await page.getByTestId('upload-input').setInputFiles({ name: 'label.png', mimeType: 'image/png', buffer: TINY_PNG })
+  await page
+    .getByTestId('upload-input')
+    .setInputFiles({ name: 'label.png', mimeType: 'image/png', buffer: TINY_PNG })
   await page.getByRole('button', { name: 'Scan', exact: true }).click()
 }
 
-test('only the covered photo is sent, and Confirm shows that same covered photo', async ({ page }) => {
+test('only the covered photo is sent, and Confirm shows that same covered photo', async ({
+  page,
+}) => {
   await mockImageScan(page)
   const COVERED = 'data:image/jpeg;base64,/9j/covered'
   // Overrides the helper's fake (init scripts run in order) so the covered photo is recognisable.
-  await page.addInitScript((covered) => (window.__redactForTests = async () => ({ dataUrl: covered, keep: [{ text: 'TAKE 1 TABLET' }], hits: [] })), COVERED)
+  await page.addInitScript(
+    (covered) =>
+      (window.__redactForTests = async () => ({
+        dataUrl: covered,
+        keep: [{ text: 'TAKE 1 TABLET' }],
+        hits: [],
+      })),
+    COVERED,
+  )
   const sent = page.waitForRequest('**/api/scan')
   await page.goto('/scan?type=medication')
   await upload(page)
@@ -22,20 +37,31 @@ test('only the covered photo is sent, and Confirm shows that same covered photo'
   await expect(page.locator(`img[src="${COVERED}"]`).first()).toBeAttached()
 })
 
-test('several pages are each covered; a blank page is left out, the rest are sent', async ({ page }) => {
+test('several pages are each covered; a blank page is left out, the rest are sent', async ({
+  page,
+}) => {
   await mockImageScan(page)
   // The 2nd page has nothing that looks like a bill (e.g. a blank back page).
   await page.addInitScript(() => {
     let call = 0
-    window.__redactForTests = async (dataUrl) => ({ dataUrl: `data:image/jpeg;base64,/9j/page${++call}`, keep: call === 2 ? [] : [{ text: 'TOTAL' }], hits: [] })
+    window.__redactForTests = async (dataUrl) => ({
+      dataUrl: `data:image/jpeg;base64,/9j/page${++call}`,
+      keep: call === 2 ? [] : [{ text: 'TOTAL' }],
+      hits: [],
+    })
   })
   const sent = page.waitForRequest('**/api/scan')
   await page.goto('/scan?type=bill')
   const photo = (name) => ({ name, mimeType: 'image/png', buffer: TINY_PNG })
-  await page.getByTestId('upload-input').setInputFiles([photo('1.png'), photo('2.png'), photo('3.png')])
+  await page
+    .getByTestId('upload-input')
+    .setInputFiles([photo('1.png'), photo('2.png'), photo('3.png')])
   await page.getByRole('button', { name: 'Scan', exact: true }).click()
   await expect(page.getByText(/Covering your personal details on page \d of 3/)).toBeVisible()
-  expect((await sent).postDataJSON().images).toEqual(['data:image/jpeg;base64,/9j/page1', 'data:image/jpeg;base64,/9j/page3'])
+  expect((await sent).postDataJSON().images).toEqual([
+    'data:image/jpeg;base64,/9j/page1',
+    'data:image/jpeg;base64,/9j/page3',
+  ])
 })
 
 test('if covering fails, nothing is sent and Try again covers again', async ({ page }) => {
@@ -44,15 +70,26 @@ test('if covering fails, nothing is sent and Try again covers again', async ({ p
   page.on('request', (r) => r.url().includes('/api/scan') && apiCalls++)
   await page.goto('/scan?type=medication')
   await upload(page)
-  await expect(page.getByRole('alert')).toContainText("We couldn't cover your personal details on this device, so nothing was sent.")
+  await expect(page.getByRole('alert')).toContainText(
+    "We couldn't cover your personal details on this device, so nothing was sent.",
+  )
   // The reader works now: Try again covers and sends.
-  await page.evaluate(() => (window.__redactForTests = async (dataUrl) => ({ dataUrl, keep: [{ text: 'TAKE 1 TABLET' }], hits: [] })))
+  await page.evaluate(
+    () =>
+      (window.__redactForTests = async (dataUrl) => ({
+        dataUrl,
+        keep: [{ text: 'TAKE 1 TABLET' }],
+        hits: [],
+      })),
+  )
   await page.getByRole('button', { name: 'Try again' }).click()
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Check what we read')
   expect(apiCalls).toBe(1)
 })
 
-test('a photo with nothing that looks like a label is not sent (it would be all black)', async ({ page }) => {
+test('a photo with nothing that looks like a label is not sent (it would be all black)', async ({
+  page,
+}) => {
   await mockImageScan(page, { cover: 'none' })
   let apiCalls = 0
   page.on('request', (r) => r.url().includes('/api/scan') && apiCalls++)
@@ -63,7 +100,9 @@ test('a photo with nothing that looks like a label is not sent (it would be all 
   expect(apiCalls).toBe(0)
 })
 
-test('covering that never finishes stops at 12 s with "taking too long", and Try again covers again', async ({ page }) => {
+test('covering that never finishes stops at 12 s with "taking too long", and Try again covers again', async ({
+  page,
+}) => {
   await mockImageScan(page, { cover: 'hang' })
   let apiCalls = 0
   page.on('request', (r) => r.url().includes('/api/scan') && apiCalls++)
@@ -75,14 +114,23 @@ test('covering that never finishes stops at 12 s with "taking too long", and Try
   await page.clock.runFor(12_500)
   await expect(page.getByRole('alert')).toContainText('This is taking too long, so we stopped.')
   expect(apiCalls).toBe(0)
-  await page.evaluate(() => (window.__redactForTests = async (dataUrl) => ({ dataUrl, keep: [{ text: 'TAKE 1 TABLET' }], hits: [] })))
+  await page.evaluate(
+    () =>
+      (window.__redactForTests = async (dataUrl) => ({
+        dataUrl,
+        keep: [{ text: 'TAKE 1 TABLET' }],
+        hits: [],
+      })),
+  )
   await page.getByRole('button', { name: 'Try again' }).click()
   await page.clock.runFor(2_000) // the cover reveal
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Check what we read')
   expect(apiCalls).toBe(1)
 })
 
-test('while reading, step 2 is shown, and a slow read says so and when it will stop', async ({ page }) => {
+test('while reading, step 2 is shown, and a slow read says so and when it will stop', async ({
+  page,
+}) => {
   await mockImageScan(page)
   await page.route('**/api/scan', () => {}) // the server never answers
   await page.clock.install()
@@ -94,7 +142,9 @@ test('while reading, step 2 is shown, and a slow read says so and when it will s
   await expect(steps.nth(0)).toHaveClass(/done/)
   await expect(page.getByTestId('scan-wait')).toHaveText('This usually takes about 10 seconds.')
   await page.clock.runFor(14_000)
-  await expect(page.getByTestId('scan-wait')).toHaveText('This is taking longer than usual. We will stop after 30 seconds so you can try again.')
+  await expect(page.getByTestId('scan-wait')).toHaveText(
+    'This is taking longer than usual. We will stop after 30 seconds so you can try again.',
+  )
 })
 
 // utils/photoCheck.js looks at the photo on the device first; the check itself is unit-tested (photoCheck.test.js), faked here.
@@ -103,7 +153,9 @@ for (const [problem, message] of [
   ['blurry', 'This photo is blurry. Hold your device steady and let it focus, then try again.'],
   ['glare', 'There is too much glare on the paper.'],
 ]) {
-  test(`a ${problem} photo says why, sends nothing, and "Scan it anyway" still reads it`, async ({ page }) => {
+  test(`a ${problem} photo says why, sends nothing, and "Scan it anyway" still reads it`, async ({
+    page,
+  }) => {
     await mockImageScan(page)
     await page.addInitScript((p) => (window.__photoCheckForTests = async () => p), problem)
     let apiCalls = 0

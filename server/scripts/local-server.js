@@ -15,7 +15,12 @@ try {
   await writeFile(secretPath, process.env.JWT_SECRET, { mode: 0o600, flag: 'wx' })
 }
 const mongo = await MongoMemoryServer.create({
-  instance: { ip: '127.0.0.1', port: 27017, dbPath: `${directory}mongodb`, storageEngine: 'wiredTiger' },
+  instance: {
+    ip: '127.0.0.1',
+    port: 27017,
+    dbPath: `${directory}mongodb`,
+    storageEngine: 'wiredTiger',
+  },
 })
 process.env.MONGODB_URI = mongo.getUri('wad2_local')
 console.log('Local MongoDB ready; accounts are saved in .local/mongodb')

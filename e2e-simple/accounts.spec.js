@@ -18,7 +18,9 @@ test('a wrong password shows an error and stays on Log in', async ({ page }) => 
   const email = await signUp(page)
   await logOut(page)
   await logIn(page, email, 'not-the-password-1!')
-  await expect(page.getByTestId('login-error')).toContainText('That email or password is not right.')
+  await expect(page.getByTestId('login-error')).toContainText(
+    'That email or password is not right.',
+  )
   await expect(page).toHaveURL(/\/login$/)
 })
 

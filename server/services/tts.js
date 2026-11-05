@@ -24,7 +24,11 @@ function ttsAttempt(model, text, key, i) {
         signal,
       }),
     // The audio is the last content block with data (base64 WAV).
-    text: (json) => (json.steps ?? []).flatMap((s) => s.content ?? []).filter((c) => c?.data).at(-1)?.data,
+    text: (json) =>
+      (json.steps ?? [])
+        .flatMap((s) => s.content ?? [])
+        .filter((c) => c?.data)
+        .at(-1)?.data,
   }
 }
 
@@ -39,8 +43,12 @@ export const forgetSpeech = () => cache.clear() // tests
 // Resolves to base64 WAV. Throws ScanError: AI_UNAVAILABLE (no key, every model failed, or no audio came back) or RATE_LIMITED.
 export async function synthesize(text, lang) {
   if (!geminiKeys().length) return firstReply([]) // throws AI_UNAVAILABLE: no key
-  const models = list(process.env.GEMINI_TTS_MODELS ?? 'gemini-3.8-flash-lite-tts,gemini-3.8-flash-tts')
-  const reply = await firstReply(geminiKeys().flatMap((key, i) => models.map((m) => ttsAttempt(m, text, key, i))))
+  const models = list(
+    process.env.GEMINI_TTS_MODELS ?? 'gemini-3.8-flash-lite-tts,gemini-3.8-flash-tts',
+  )
+  const reply = await firstReply(
+    geminiKeys().flatMap((key, i) => models.map((m) => ttsAttempt(m, text, key, i))),
+  )
   if (!reply) throw new ScanError(503, 'AI_UNAVAILABLE', 'The speech model returned no audio')
   const audio = shrink(reply)
   cache.delete(key(text, lang)) // re-insert as newest
@@ -55,11 +63,19 @@ export function shrink(base64) {
   if (wav.length < 44) return base64 // not a WAV we know how to read
   const rate = wav.readUInt32LE(24)
   const data = wav.indexOf('data', 12)
-  if (wav.toString('ascii', 0, 4) !== 'RIFF' || rate <= SAMPLE_RATE || wav.readUInt16LE(22) !== 1 || wav.readUInt16LE(34) !== 16 || data < 0) return base64
+  if (
+    wav.toString('ascii', 0, 4) !== 'RIFF' ||
+    rate <= SAMPLE_RATE ||
+    wav.readUInt16LE(22) !== 1 ||
+    wav.readUInt16LE(34) !== 16 ||
+    data < 0
+  )
+    return base64
   const pcm = wav.subarray(data + 8, data + 8 + wav.readUInt32LE(data + 4))
   const pairs = Math.floor(pcm.length / 4)
   const out = Buffer.alloc(44 + pairs * 2)
-  for (let i = 0; i < pairs; i++) out.writeInt16LE((pcm.readInt16LE(i * 4) + pcm.readInt16LE(i * 4 + 2)) >> 1, 44 + i * 2)
+  for (let i = 0; i < pairs; i++)
+    out.writeInt16LE((pcm.readInt16LE(i * 4) + pcm.readInt16LE(i * 4 + 2)) >> 1, 44 + i * 2)
   header(out, rate / 2, pairs)
   return out.toString('base64')
 }

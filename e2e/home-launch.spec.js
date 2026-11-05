@@ -37,7 +37,9 @@ test('reduced motion: no picture, the card opens at once', async ({ page }) => {
   await expect(page.getByTestId('card-launch')).toHaveCount(0)
 })
 
-test('the Ask card shows a little chat, and the greeting is one centred column around the capsule', async ({ page }) => {
+test('the Ask card shows a little chat, and the greeting is one centred column around the capsule', async ({
+  page,
+}) => {
   await page.goto('/')
   await expect(page.getByTestId('home-ask')).toContainText('Can I take it with food?')
   await expect(page.getByTestId('home-ask')).toContainText('Yes. Take it after your meal.')
@@ -51,7 +53,9 @@ test('the Ask card shows a little chat, and the greeting is one centred column a
   expect(title.y).toBeGreaterThan(capsule.y + capsule.height - 4) // the question below it
 })
 
-test('behind Home: faint drawings of medicine, bills and people, never in the way', async ({ page }) => {
+test('behind Home: faint drawings of medicine, bills and people, never in the way', async ({
+  page,
+}) => {
   await page.goto('/')
   const backdrop = page.locator('.backdrop')
   await expect(backdrop).toHaveAttribute('aria-hidden', 'true')

@@ -1,29 +1,123 @@
 /* Scoped styles for AskView.vue. One reading column, centred like a chat app. */
-.chat { display: flex; flex-direction: column; gap: 22px; max-width: 800px; margin: 0 auto; }
+.chat {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  max-width: 800px;
+  margin: 0 auto;
+}
 
-.intro { display: flex; flex-direction: column; gap: 12px; }
-.intro-logo { width: var(--z56, 56px); height: var(--z56, 56px); }
+.intro {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.intro-logo {
+  width: var(--z56, 56px);
+  height: var(--z56, 56px);
+}
 /* Empty page: the capsule waving hello, then "Good morning, Tan Mei Ling!" above the title. */
-.hello { margin: -4px 0 0; font-size: var(--t20, 20px); font-weight: 700; color: var(--color-primary-text); }
-.empty .intro { align-items: center; text-align: center; padding-top: 8px; }
-.safety { display: flex; gap: 10px; align-items: flex-start; color: var(--color-text-muted); font-size: 16px; line-height: 1.5; text-align: left; }
-.safety .icon { margin-top: 2px; color: var(--color-primary-text); }
+.hello {
+  margin: -4px 0 0;
+  font-size: var(--t20, 20px);
+  font-weight: 700;
+  color: var(--color-primary-text);
+}
+.empty .intro {
+  align-items: center;
+  text-align: center;
+  padding-top: 8px;
+}
+.safety {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  color: var(--color-text-muted);
+  font-size: 16px;
+  line-height: 1.5;
+  text-align: left;
+}
+.safety .icon {
+  margin-top: 2px;
+  color: var(--color-primary-text);
+}
 
 /* Conversation: the user's words in a soft bubble on the right, answers as plain text beside the logo. */
-.thread { display: flex; flex-direction: column; gap: 28px; margin: 0; padding: 0; list-style: none; }
-.turn { display: flex; flex-direction: column; gap: 18px; }
-.you { align-self: flex-end; max-width: 82%; padding: 14px 18px; border-radius: var(--r-card) var(--r-card) 6px var(--r-card); background: var(--color-tint); color: var(--color-text); font-size: var(--t19, 19px); line-height: 1.5; overflow-wrap: anywhere; }
-.chip:disabled { opacity: 0.5; cursor: not-allowed; }
-.starters { display: flex; flex-wrap: wrap; gap: 8px; }
+.thread {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.turn {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.you {
+  align-self: flex-end;
+  max-width: 82%;
+  padding: 14px 18px;
+  border-radius: var(--r-card) var(--r-card) 6px var(--r-card);
+  background: var(--color-tint);
+  color: var(--color-text);
+  font-size: var(--t19, 19px);
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.chip:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.starters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
 /* Questions about their own medicines: filled, with a pill. */
-.chip.mine { background: var(--color-tint); border-color: var(--color-primary); font-weight: 700; }
-.chip.mine .icon { color: var(--color-primary-text); }
-.empty .starters { justify-content: center; }
+.chip.mine {
+  background: var(--color-tint);
+  border-color: var(--color-primary);
+  font-weight: 700;
+}
+.chip.mine .icon {
+  color: var(--color-primary-text);
+}
+.empty .starters {
+  justify-content: center;
+}
 /* "New conversation": top right of the thread, out of the way of the answers. */
-.thread-tools { display: flex; justify-content: flex-end; }
+.thread-tools {
+  display: flex;
+  justify-content: flex-end;
+}
 
 /* "Latest answer": floats above the composer when the newest answer is scrolled out of view. */
-.jump { position: fixed; left: 50%; bottom: calc(190px + env(safe-area-inset-bottom)); z-index: 15; translate: -50% 0; border-radius: var(--r-pill); box-shadow: var(--shadow-hover); }
-@media (min-width: 992px) { .jump { bottom: 150px; left: calc(50% + 140px); } }
-.jump-enter-active, .jump-leave-active { transition: opacity 220ms var(--ease-out), transform 220ms var(--ease-out); }
-.jump-enter-from, .jump-leave-to { opacity: 0; transform: translateY(10px); }
+.jump {
+  position: fixed;
+  left: 50%;
+  bottom: calc(190px + env(safe-area-inset-bottom));
+  z-index: 15;
+  translate: -50% 0;
+  border-radius: var(--r-pill);
+  box-shadow: var(--shadow-hover);
+}
+@media (min-width: 992px) {
+  .jump {
+    bottom: 150px;
+    left: calc(50% + 140px);
+  }
+}
+.jump-enter-active,
+.jump-leave-active {
+  transition:
+    opacity 220ms var(--ease-out),
+    transform 220ms var(--ease-out);
+}
+.jump-enter-from,
+.jump-leave-to {
+  opacity: 0;
+  transform: translateY(10px);
+}
