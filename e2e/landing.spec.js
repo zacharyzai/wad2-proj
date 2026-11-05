@@ -99,11 +99,11 @@ test('every "Try me out" goes to Create an account; there is no separate Log in 
     page.getByTestId('landing-nav').getByRole('link', { name: /^log in$/i }),
   ).toHaveCount(0)
   await page.getByTestId('landing-nav').locator('.cta').click()
-  await expect(page).toHaveURL(/\/signup$/)
+  await expect(page).toHaveURL(/\/start$/)
 
   await page.goto('/welcome')
   await page.getByTestId('landing-cta-hero').click()
-  await expect(page).toHaveURL(/\/signup$/)
+  await expect(page).toHaveURL(/\/start$/)
 
   await page.goto('/welcome')
   // It lands at the very end of the page. Retry: the router's scroll-to-top can still run just after load and undo one scroll.
@@ -111,7 +111,7 @@ test('every "Try me out" goes to Create an account; there is no separate Log in 
     .poll(() => page.evaluate(() => (window.scrollTo(0, document.body.scrollHeight), scrollY > 0)))
     .toBe(true)
   await page.getByTestId('landing-cta-final').click()
-  await expect(page).toHaveURL(/\/signup$/)
+  await expect(page).toHaveURL(/\/start$/)
 })
 
 test('the headline changes language on its own; tapping a language stops it and switches the page', async ({
@@ -469,7 +469,7 @@ test('the hero and tunnel scroll freely; from Scan on, one wheel gesture moves a
   // Leaving the page (a link, not a reload) takes the snapping away: Create an account scrolls normally.
   await page.evaluate(() => window.scrollTo(0, 0))
   await page.getByTestId('landing-cta-hero').click()
-  await expect(page).toHaveURL(/\/signup$/)
+  await expect(page).toHaveURL(/\/start$/)
   await expect(html).not.toHaveClass(/snap-sections/)
 })
 

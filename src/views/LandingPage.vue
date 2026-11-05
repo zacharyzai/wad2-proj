@@ -496,7 +496,7 @@ onBeforeUnmount(() => {
       </nav>
       <div class="lnav-acts">
         <!-- One way in for a first-time visitor: Try me out, to Create an account (Log in is a link there). -->
-        <RouterLink :to="{ name: 'signup' }" class="cta sm"
+        <RouterLink :to="{ name: 'start' }" class="cta sm"
           ><HandLabel>{{ t('landing.try') }}</HandLabel></RouterLink
         >
       </div>
@@ -535,7 +535,7 @@ onBeforeUnmount(() => {
             </div>
             <p class="lede">{{ t('landing.hero.lead') }}</p>
             <div class="ctas">
-              <RouterLink :to="{ name: 'signup' }" class="cta" data-testid="landing-cta-hero"
+              <RouterLink :to="{ name: 'start' }" class="cta" data-testid="landing-cta-hero"
                 ><HandLabel>{{ t('landing.try') }}</HandLabel></RouterLink
               >
             </div>
@@ -1006,7 +1006,7 @@ onBeforeUnmount(() => {
       </div>
       <div class="final" data-testid="landing-final">
         <RouterLink
-          :to="{ name: 'signup' }"
+          :to="{ name: 'start' }"
           class="big-cta"
           data-fall="5"
           data-a="0.45"

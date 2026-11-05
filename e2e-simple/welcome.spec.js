@@ -9,13 +9,13 @@ test('a first visit opens the welcome page', async ({ page }) => {
   await expect(page).toHaveURL(/\/welcome$/)
 })
 
-test('Try me out leads to sign-up', async ({ page }) => {
+test('Try me out leads to Start', async ({ page }) => {
   await page.goto('/welcome')
   await page
     .getByRole('link', { name: /Try me out/ })
     .first()
     .click()
-  await expect(page).toHaveURL(/\/signup$/)
+  await expect(page).toHaveURL(/\/start$/)
 })
 
 test('tapping a language switches the page', async ({ page }) => {
