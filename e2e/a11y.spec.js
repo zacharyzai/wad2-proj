@@ -2,8 +2,7 @@
 import { test, expect } from './fixtures.js'
 import { switchLanguage } from './helpers/auth.js'
 
-test('skip link jumps past the navigation @a11y', async ({ page, browserName }) => {
-  test.skip(browserName === 'webkit', 'Safari only tabs to links with a system setting')
+test('skip link jumps past the navigation @a11y', async ({ page }) => {
   await page.goto('/')
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible() // the app shows once the first page has loaded
   await page.keyboard.press('Tab')
