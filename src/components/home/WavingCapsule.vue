@@ -1,3 +1,4 @@
+<!-- The animated capsule mascot on Home. -->
 <script setup>
 import { onBeforeUnmount, onMounted, ref, useId } from 'vue'
 import { capsuleBeat } from '../../composables/useCapsuleBeat'

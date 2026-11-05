@@ -1,3 +1,4 @@
+<!-- List of pages taken for one scan, with retake, add and remove. -->
 <script setup>
 import { computed, nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'

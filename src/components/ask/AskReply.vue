@@ -1,3 +1,4 @@
+<!-- One reply in the Ask conversation: waiting, error, emergency notice, "which medicine?" or the answer card. -->
 <script setup>
 import { useI18n } from 'vue-i18n'
 import { useMedicinesStore } from '../../stores/medicines'

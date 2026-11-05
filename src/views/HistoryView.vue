@@ -1,3 +1,4 @@
+<!-- History page: saved scans by medicine and bills by month, with replay. -->
 <script setup>
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'

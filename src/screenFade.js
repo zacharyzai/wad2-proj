@@ -1,3 +1,4 @@
+// Cross-fade between screens using the browser's view transitions.
 import { nextTick } from 'vue'
 
 const reduceMotion =

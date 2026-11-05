@@ -1,3 +1,4 @@
+// Shared logic for showing and reading aloud an Ask answer word by word.
 import { markRaw, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useSpeechStore } from '../stores/speech'

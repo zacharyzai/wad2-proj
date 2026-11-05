@@ -1,3 +1,4 @@
+/* Imports every global stylesheet in order. */
 @import './global/tokens.css';
 @import './global/base.css';
 @import './global/buttons.css';

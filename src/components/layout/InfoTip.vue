@@ -1,3 +1,4 @@
+<!-- Small "i" button that opens a short explanation on hover or tap. -->
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import AppIcon from './AppIcon.vue'

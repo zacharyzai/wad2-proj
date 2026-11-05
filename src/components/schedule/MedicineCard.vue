@@ -1,3 +1,4 @@
+<!-- One medicine on Schedule's "My medicines" tab, with Change and Stop. -->
 <script setup>
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'

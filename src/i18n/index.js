@@ -1,3 +1,4 @@
+// Sets up vue-i18n and loads each language's messages the first time it is needed.
 import { createI18n } from 'vue-i18n'
 import { fadeScreen } from '../screenFade'
 import en from './locales/en.json'

@@ -1,3 +1,4 @@
+// Shared state and start function for the card-launch animation.
 import { reactive } from 'vue'
 
 export const LAUNCH_MS = 1000

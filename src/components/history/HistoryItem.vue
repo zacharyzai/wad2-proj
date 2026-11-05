@@ -1,3 +1,4 @@
+<!-- One saved scan in History, with Listen again and Delete. -->
 <script setup>
 import { computed, nextTick, ref } from 'vue'
 import { useI18n } from 'vue-i18n'

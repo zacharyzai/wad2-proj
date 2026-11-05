@@ -1,3 +1,4 @@
+// Pinia store for today's ticked doses and the Singapore clock.
 import { reactive, ref } from 'vue'
 import { defineStore } from 'pinia'
 import { dosesTaken, setDoseTaken } from '../api/client'

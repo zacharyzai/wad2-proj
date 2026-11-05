@@ -1,3 +1,4 @@
+<!-- Small coloured icon that tells a medicine label from a bill. -->
 <script setup>
 import { computed } from 'vue'
 

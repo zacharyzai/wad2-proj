@@ -1,3 +1,4 @@
+<!-- Ask page input: the question box, microphone and the "Type a medicine" button. -->
 <script setup>
 import { onBeforeUnmount, ref } from 'vue'
 import { useI18n } from 'vue-i18n'

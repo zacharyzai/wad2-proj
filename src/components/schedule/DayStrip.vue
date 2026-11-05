@@ -1,3 +1,4 @@
+<!-- Schedule's week at a glance, drawn as a weekly pill box. -->
 <script setup>
 import { computed, watch } from 'vue'
 import { storeToRefs } from 'pinia'

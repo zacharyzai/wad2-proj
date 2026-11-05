@@ -1,3 +1,4 @@
+// All page routes, plus the navigation guard that sends logged-out users to log in.
 import { nextTick } from 'vue'
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '../stores/auth'

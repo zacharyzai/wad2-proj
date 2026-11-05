@@ -1,3 +1,4 @@
+<!-- Frame shared by Log in, Create account, Forgot and Reset pages. -->
 <script setup>
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'

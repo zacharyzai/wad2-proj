@@ -1,3 +1,4 @@
+<!-- The standard card container with an optional title. -->
 <script setup>
 defineProps({
   title: { type: String, default: '' },

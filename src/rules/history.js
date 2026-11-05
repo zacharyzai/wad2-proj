@@ -1,3 +1,4 @@
+// Groups saved scans for History: by medicine, and bills by month.
 import { todayInSingapore } from './schedule.js'
 
 // Lower-cases and collapses spaces so the same medicine written two ways matches.

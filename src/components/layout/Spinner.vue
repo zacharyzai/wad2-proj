@@ -1,3 +1,4 @@
+<!-- The turning ring shown while something loads. -->
 <script setup>
 defineProps({
   size: { type: Number, default: 30 },

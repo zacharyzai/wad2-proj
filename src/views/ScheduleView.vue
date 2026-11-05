@@ -1,3 +1,4 @@
+<!-- Schedule page: Today, My medicines and the week, with edit, stop and undo. -->
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'

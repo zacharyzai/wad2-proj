@@ -1,3 +1,4 @@
+<!-- Bill page: colour-coded breakdown, subsidy questionnaire and estimate. -->
 <script setup>
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'

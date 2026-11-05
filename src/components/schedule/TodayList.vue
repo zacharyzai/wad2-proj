@@ -1,3 +1,4 @@
+<!-- Schedule's Today tab: missed-dose warning, what is due now, progress and the day's doses. -->
 <script setup>
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'

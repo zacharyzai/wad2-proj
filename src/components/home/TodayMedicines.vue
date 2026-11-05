@@ -1,3 +1,4 @@
+<!-- Home card showing the next medicine to take today, with a tick button. -->
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'

@@ -1,3 +1,4 @@
+<!-- Account page: details, theme, caregivers, language and log out. -->
 <script setup>
 import { computed, onBeforeUnmount, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'

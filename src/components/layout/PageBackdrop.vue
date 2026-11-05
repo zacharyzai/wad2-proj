@@ -1,3 +1,4 @@
+<!-- Faint line-drawing background behind every page. -->
 <script setup>
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 

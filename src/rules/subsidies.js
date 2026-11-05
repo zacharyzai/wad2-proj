@@ -1,3 +1,4 @@
+// Subsidy eligibility rules from official MOH sources, checked against the questionnaire answers.
 import { sumCents } from './billCheck.js'
 
 export const UNKNOWN = 'unknown'

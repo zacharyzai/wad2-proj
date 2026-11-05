@@ -1,3 +1,4 @@
+<!-- Start page for visitors: what the app gives them, with Join and Log in. -->
 <script setup>
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'

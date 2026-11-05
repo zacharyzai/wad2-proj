@@ -1,3 +1,4 @@
+<!-- Scan start page for one kind of document: take a photo, upload, or try a sample. -->
 <script setup>
 import { useI18n } from 'vue-i18n'
 import AppIcon from '../layout/AppIcon.vue'

@@ -1,3 +1,4 @@
+/* Cards, hero, icon tiles and photo frames. */
 .card {
   --bs-card-bg: var(--color-card);
   --bs-card-border-color: var(--color-border);

@@ -1,3 +1,4 @@
+// Keeps the medicine list on this device and in the account in step.
 import { watch } from 'vue'
 import { loadMedicines, saveMedicines } from '../api/client'
 import { useAuthStore } from './auth'

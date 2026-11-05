@@ -1,3 +1,4 @@
+/* Design tokens (colours, spacing, type); night mode swaps the same names. */
 :root {
   /* Colour: light */
   --color-page: #faf7f2; /* warm paper, matching the welcome page */

@@ -1,3 +1,4 @@
+<!-- Notice shown when the user leaves Scan while a scan is still in progress. -->
 <script setup>
 import { computed, watch } from 'vue'
 import { useRoute } from 'vue-router'

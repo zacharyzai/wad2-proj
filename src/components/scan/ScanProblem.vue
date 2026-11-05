@@ -1,3 +1,4 @@
+<!-- Error screen for an unclear photo or an unavailable service, with a way forward. -->
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'

@@ -1,3 +1,4 @@
+<!-- Switch between English, 中文, Bahasa Melayu and தமிழ். -->
 <script setup>
 import { useI18n } from 'vue-i18n'
 import { LOCALES, chooseLocale } from '../../i18n'

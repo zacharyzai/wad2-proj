@@ -1,3 +1,4 @@
+<!-- Explain page: plain-language explanation from templates, read aloud, with an understanding check. -->
 <script setup>
 import { computed, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'

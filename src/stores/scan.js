@@ -1,3 +1,4 @@
+// Pinia store for the scan being confirmed and explained.
 import { ref, watch } from 'vue'
 import { defineStore } from 'pinia'
 

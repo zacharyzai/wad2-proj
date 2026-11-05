@@ -1,3 +1,4 @@
+<!-- Caregiver view of one senior's doses today and their medicine details. -->
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import { useRoute } from 'vue-router'

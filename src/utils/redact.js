@@ -1,3 +1,4 @@
+// Covers personal details in a photo on this device (OCR) before it is sent anywhere.
 import { createWorker } from 'tesseract.js'
 import { baselineAt, planRedaction } from './sensitive.js'
 import { loadImage } from './images.js'

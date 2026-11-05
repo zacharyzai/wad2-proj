@@ -1,3 +1,4 @@
+<!-- Account page card for a senior: who can see their doses, and inviting or removing a caregiver. -->
 <script setup>
 import { computed, nextTick, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'

@@ -1,3 +1,4 @@
+<!-- Large button or link for the main action on a page; can show a busy state. -->
 <script setup>
 defineProps({
   to: { type: [String, Object], default: null },

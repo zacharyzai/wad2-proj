@@ -1,3 +1,4 @@
+<!-- Developer test bench for the photo redaction; not part of the app. -->
 <script setup>
 import { reactive, ref } from 'vue'
 import { redactImage } from '../../utils/redact'

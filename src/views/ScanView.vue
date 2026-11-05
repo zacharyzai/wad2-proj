@@ -1,3 +1,4 @@
+<!-- Scan page: camera, upload and samples, then sends the photo for reading. -->
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router'

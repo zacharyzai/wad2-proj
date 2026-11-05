@@ -1,3 +1,4 @@
+<!-- The capsule mascot as an SVG, in moods such as idle, thinking, listening, speaking and happy. -->
 <script setup>
 defineProps({
   mood: { type: String, default: 'idle' }, // 'idle' | 'thinking' | 'listening' | 'speaking' | 'happy'

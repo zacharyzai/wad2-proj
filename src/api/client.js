@@ -1,3 +1,4 @@
+// The only place the frontend calls the backend (Axios). Every function resolves to { ok, data } or { ok: false, error }.
 import axios from 'axios'
 
 export const TOKEN_KEY = 'token'

@@ -1,3 +1,4 @@
+<!-- Home page: greeting, today's medicines and tiles for the main things to do. -->
 <script setup>
 import { computed, onBeforeUnmount } from 'vue'
 import { useI18n } from 'vue-i18n'

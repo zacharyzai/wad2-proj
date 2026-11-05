@@ -1,3 +1,4 @@
+<!-- Google Calendar card on Schedule: connect, disconnect and keep the calendar in step. -->
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'

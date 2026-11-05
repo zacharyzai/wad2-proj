@@ -1,3 +1,4 @@
+<!-- The app shell: top bar, bottom tabs, desktop sidebar and the page area that every view renders into. -->
 <script setup>
 import { computed, nextTick, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'

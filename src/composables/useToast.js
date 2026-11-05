@@ -1,3 +1,4 @@
+// A short message ("Saved", "Not saved") that hides itself after a few seconds.
 import { onBeforeUnmount, ref } from 'vue'
 
 // A short message ("Saved", "Not saved") that appears and hides itself after `ms`.

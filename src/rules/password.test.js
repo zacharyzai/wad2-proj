@@ -1,3 +1,4 @@
+// Tests for the password rules.
 import { describe, expect, test } from 'vitest'
 import { passwordChecks, passwordOk } from './password.js'
 

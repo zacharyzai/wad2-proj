@@ -1,3 +1,4 @@
+// Pinia store for read-aloud: device voice first, server audio as fallback, and the chosen speed.
 import { ref, watch } from 'vue'
 import { defineStore } from 'pinia'
 import { readAloudAudio } from '../api/client'

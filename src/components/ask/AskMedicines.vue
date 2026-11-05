@@ -1,3 +1,4 @@
+<!-- Ask page panel listing the medicines the user has checked or typed in, with add, remove and undo. -->
 <script setup>
 import { computed, nextTick, onBeforeUnmount, ref } from 'vue'
 import { useI18n } from 'vue-i18n'

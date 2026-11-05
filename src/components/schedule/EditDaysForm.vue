@@ -1,3 +1,4 @@
+<!-- Form to change one medicine's number of days and dose times. -->
 <script setup>
 import { computed, nextTick, onMounted, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'

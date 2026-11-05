@@ -1,3 +1,4 @@
+<!-- Short animation after a card is picked on the Scan question. -->
 <script setup>
 import { computed } from 'vue'
 

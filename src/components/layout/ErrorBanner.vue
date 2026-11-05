@@ -1,3 +1,4 @@
+<!-- Shows an error from the API in the user's language, with an optional Try again button. -->
 <script setup>
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'

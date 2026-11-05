@@ -1,3 +1,4 @@
+// Pinia store for the user's medicines and their schedules.
 import { reactive, toRaw, watch } from 'vue'
 import { defineStore } from 'pinia'
 import { addDays, labelLimitDays, supplyDays, todayInSingapore } from '../rules/schedule.js'

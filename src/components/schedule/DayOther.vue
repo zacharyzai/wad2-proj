@@ -1,3 +1,4 @@
+<!-- Schedule view of a day other than today, picked on the week strip. -->
 <script setup>
 import { computed } from 'vue'
 import { storeToRefs } from 'pinia'

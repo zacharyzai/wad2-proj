@@ -1,3 +1,4 @@
+// Pinia store holding the Ask conversation for this visit.
 import { reactive } from 'vue'
 import { defineStore } from 'pinia'
 

@@ -1,3 +1,4 @@
+<!-- Top bar before logging in: logo, language switch and a slot for buttons. -->
 <script setup>
 import LanguageSwitch from './LanguageSwitch.vue'
 </script>

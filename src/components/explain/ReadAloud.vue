@@ -1,3 +1,4 @@
+<!-- Read-aloud player with play, pause, replay and speed control. -->
 <script setup>
 import { onBeforeUnmount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'

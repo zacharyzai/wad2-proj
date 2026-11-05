@@ -1,3 +1,4 @@
+<!-- Medicines that could not be scheduled and need a pharmacist's advice. -->
 <script setup>
 import { useI18n } from 'vue-i18n'
 import { useScheduleText } from '../../composables/useScheduleText'

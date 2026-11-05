@@ -1,3 +1,4 @@
+<!-- Drag-and-drop and file picker for photos and PDFs. -->
 <script setup>
 import { computed, onBeforeUnmount, ref } from 'vue'
 import { useI18n } from 'vue-i18n'

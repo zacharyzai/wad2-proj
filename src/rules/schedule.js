@@ -1,3 +1,4 @@
+// Rule-based medicine timetable (never AI): builds doses, dates and the Today / week states.
 import { TIMINGS } from '../../server/services/normalizeScan.js'
 
 export const MAX_DAYS = 366 // same limit as Google sync

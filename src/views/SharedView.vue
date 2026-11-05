@@ -1,3 +1,4 @@
+<!-- Page a caregiver opens from an invite link to accept it. -->
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'

@@ -1,3 +1,4 @@
+<!-- Progress display while a photo is covered and read. -->
 <script setup>
 import { onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'

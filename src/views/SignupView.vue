@@ -1,3 +1,4 @@
+<!-- Create account page. -->
 <script setup>
 import { computed, nextTick, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'

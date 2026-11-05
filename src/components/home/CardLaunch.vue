@@ -1,3 +1,4 @@
+<!-- Full-screen animation that plays when a Home tile is tapped, before the next page opens. -->
 <script setup>
 import { computed } from 'vue'
 import { cardLaunch } from '../../composables/useCardLaunch'

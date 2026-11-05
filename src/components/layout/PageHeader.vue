@@ -1,3 +1,4 @@
+<!-- Page title area with optional back link and subtitle. -->
 <script setup>
 import { useI18n } from 'vue-i18n'
 

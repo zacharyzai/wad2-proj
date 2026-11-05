@@ -1,3 +1,4 @@
+/* Entry motion and loading states; all respect prefers-reduced-motion. */
 @keyframes ahma-rise {
   from {
     opacity: 0;

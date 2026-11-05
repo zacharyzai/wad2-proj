@@ -1,3 +1,4 @@
+<!-- The beginner's guide: a step-by-step tour that points at parts of the app and can read aloud. -->
 <script setup>
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'

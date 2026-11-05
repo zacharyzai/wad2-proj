@@ -1,3 +1,4 @@
+// Pinia store for the beginner's guide: which step is showing and whether it has been seen.
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import { useAuthStore } from './auth'

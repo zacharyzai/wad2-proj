@@ -1,3 +1,4 @@
+<!-- Checklist that ticks off each password rule as the user types. -->
 <script setup>
 import { useI18n } from 'vue-i18n'
 import AppIcon from './AppIcon.vue'

@@ -1,3 +1,4 @@
+<!-- Choose a new password from the emailed link. -->
 <script setup>
 import { computed, nextTick, ref } from 'vue'
 import { useRouter } from 'vue-router'

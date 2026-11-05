@@ -1,3 +1,4 @@
+// Wording helpers so every Schedule component words times, amounts and purposes the same way.
 import { useI18n } from 'vue-i18n'
 import { useMedicinesStore } from '../stores/medicines'
 import { doseSlots, labelLimitDays, packDays, supplyDays } from '../rules/schedule'

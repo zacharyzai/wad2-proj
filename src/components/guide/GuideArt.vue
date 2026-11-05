@@ -1,3 +1,4 @@
+<!-- Pictures for the steps of the beginner's guide, including the language choice. -->
 <script setup>
 import { useI18n } from 'vue-i18n'
 import { chooseLocale } from '../../i18n'

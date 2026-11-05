@@ -1,3 +1,4 @@
+<!-- One tappable bill line that opens to a plain-language explanation with read-aloud. -->
 <script setup>
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'

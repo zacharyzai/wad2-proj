@@ -1,3 +1,4 @@
+<!-- One-time question asking for day, night or the device's setting. -->
 <script setup>
 import { nextTick, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'

@@ -1,3 +1,4 @@
+<!-- Shown for an address that does not exist. -->
 <script setup>
 import { useI18n } from 'vue-i18n'
 import EmptyState from '../components/layout/EmptyState.vue'

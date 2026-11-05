@@ -1,3 +1,4 @@
+// Day / night / device theme: the saved choice and what is currently showing.
 import { ref } from 'vue'
 import { readToken } from './api/client'
 import { canFade, fadeScreen } from './screenFade'

@@ -1,3 +1,4 @@
+<!-- Welcome page shown before logging in, explaining what the app does. -->
 <script setup>
 import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'

@@ -1,3 +1,4 @@
+// Pinia store for who is logged in: login, signup, logout and account changes.
 import { ref, watch } from 'vue'
 import { defineStore } from 'pinia'
 import { useScanStore } from './scan'

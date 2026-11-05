@@ -1,3 +1,4 @@
+<!-- Welcome page text with a hand-drawn underline. -->
 <template>
   <span class="hand-label">
     <slot />

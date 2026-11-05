@@ -1,3 +1,4 @@
+<!-- Ask page: a chat that answers questions about the user's medicines. -->
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, toRaw, watch } from 'vue'
 import { useI18n } from 'vue-i18n'

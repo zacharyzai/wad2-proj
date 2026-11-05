@@ -1,3 +1,4 @@
+<!-- Welcome page "keep scrolling" cue with two down arrows. -->
 <script setup>
 import AppIcon from '../layout/AppIcon.vue'
 

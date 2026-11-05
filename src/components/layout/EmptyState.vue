@@ -1,3 +1,4 @@
+<!-- Message shown when a list has nothing in it yet. -->
 <script setup>
 import AppIcon from './AppIcon.vue'
 import KindIcon from './KindIcon.vue'

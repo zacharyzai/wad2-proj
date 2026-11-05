@@ -1,3 +1,4 @@
+<!-- Log in page. -->
 <script setup>
 import { ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'

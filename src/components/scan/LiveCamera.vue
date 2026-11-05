@@ -1,3 +1,4 @@
+<!-- Live camera view for taking a photo of a label or bill. -->
 <script setup>
 import { onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
