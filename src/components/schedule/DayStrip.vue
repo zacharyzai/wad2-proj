@@ -129,7 +129,7 @@ const dayName = (date) => dateText(date, { weekday: 'long', day: 'numeric', mont
   font-weight: 800;
 }
 .back-today {
-  min-height: 44px;
+  min-height: var(--hit);
   padding: 6px 14px;
   border: 0;
   border-radius: var(--r-pill);

@@ -1090,6 +1090,25 @@ test('Today and My medicines: big targets and text, no sideways scroll @a11y', a
   await expectSeniorFriendly(page, 'main', wholeCard)
 })
 
+// The README promises 48px for anything that looks tappable; the shared check above only asks for 44px.
+test('Today: the dose pills and the "Today" button are at least 48px tall @a11y', async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' }) // cards rise in slightly scaled down: measure them at rest
+  await mockDoses(page)
+  await seed(page, [SCHEDULED])
+  await page.goto('/schedule')
+  const pills = page.getByTestId('schedule-today').locator('.pill')
+  await expect(pills.first()).toBeVisible()
+  for (const pill of await pills.all())
+    expect((await pill.boundingBox()).height).toBeGreaterThanOrEqual(47.5)
+
+  await page.locator('[data-testid^="day-2"]:not([aria-current="date"])').first().click() // another day of the week
+  const backToToday = page.getByTestId('strip-today')
+  await expect(backToToday).toBeVisible()
+  expect((await backToToday.boundingBox()).height).toBeGreaterThanOrEqual(47.5)
+})
+
 test('the calendar card is readable in every state: Reconnect, connected and not connected @a11y', async ({
   page,
 }) => {

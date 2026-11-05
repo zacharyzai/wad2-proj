@@ -94,7 +94,7 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  min-height: 40px;
+  min-height: var(--hit); /* "Tap when taken" looks like a button, so it gets a button's size */
   padding: 6px 14px;
   border-radius: var(--r-pill);
   font-size: 16px;
