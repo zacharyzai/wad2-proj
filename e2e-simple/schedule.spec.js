@@ -1,4 +1,4 @@
-// Schedule: 5 E2E tests, written the Week 10 way (set up, act, assert).
+// Schedule: 6 E2E tests, written the Week 10 way (set up, act, assert).
 import { test, expect } from '@playwright/test'
 import { signUp, openSample } from './helpers.js'
 
@@ -48,4 +48,17 @@ test('delete can be undone', async ({ page }) => {
   await expect(page.getByRole('button', { name: 'Change Metformin 500 mg' })).toHaveCount(0)
   await page.getByRole('button', { name: 'Undo' }).click()
   await expect(page.getByRole('button', { name: 'Change Metformin 500 mg' })).toBeVisible()
+})
+
+test('a dose can be ticked off and unticked', async ({ page }) => {
+  await signUp(page)
+  await addToSchedule(page, 'Metformin label')
+  await page.getByTestId('tab-today').click()
+  const dose = page.locator('[data-tick]').first()
+  await dose.click()
+  await page.getByRole('button', { name: 'Yes, I took it' }).click()
+  await expect(dose).toHaveAttribute('aria-pressed', 'true')
+  await expect(page.getByTestId('schedule-take-ask')).toBeHidden() // the pop-up has closed
+  await dose.click() // tapping a taken dose takes the tick back
+  await expect(dose).toHaveAttribute('aria-pressed', 'false')
 })

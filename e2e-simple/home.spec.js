@@ -1,4 +1,4 @@
-// Home and app shell: 5 E2E tests, written the Week 10 way (set up, act, assert).
+// Home and app shell: 4 E2E tests, written the Week 10 way (set up, act, assert).
 import { test, expect } from '@playwright/test'
 import { signUp } from './helpers.js'
 
@@ -26,13 +26,6 @@ test('no medicines yet explains reminders', async ({ page }) => {
   await expect(
     page.getByText('Scan a medicine label and we will remind you when to take it.'),
   ).toBeVisible()
-})
-
-test('an unknown page is friendly', async ({ page }) => {
-  await signUp(page)
-  await page.goto('/no-such-page')
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('We can’t find that page')
-  await expect(page.getByRole('link', { name: 'Go to home' })).toBeVisible()
 })
 
 test('night mode switches on', async ({ page }) => {

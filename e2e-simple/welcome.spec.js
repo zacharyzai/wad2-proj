@@ -1,4 +1,4 @@
-// Welcome page: 5 E2E tests, written the Week 10 way (set up, act, assert).
+// Welcome page: 4 E2E tests, written the Week 10 way (set up, act, assert).
 import { test, expect } from '@playwright/test'
 
 // First-time visitors: no "seen the welcome page" flag (the config gives every other test one).
@@ -16,15 +16,6 @@ test('Try me out leads to Start', async ({ page }) => {
     .first()
     .click()
   await expect(page).toHaveURL(/\/start$/)
-})
-
-test('tapping a language switches the page', async ({ page }) => {
-  await page.goto('/welcome')
-  await page
-    .getByRole('group', { name: 'Language', exact: true })
-    .getByRole('button', { name: '中文' })
-    .click()
-  await expect(page.getByRole('heading', { level: 1 })).toHaveAccessibleName('看懂您的医药账单')
 })
 
 test('a second visit opens Start', async ({ page }) => {

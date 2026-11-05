@@ -1,4 +1,4 @@
-// Bill and subsidies: 5 E2E tests, written the Week 10 way (set up, act, assert).
+// Bill and subsidies: 6 E2E tests, written the Week 10 way (set up, act, assert).
 import { test, expect } from '@playwright/test'
 import { signUp } from './helpers.js'
 
@@ -48,4 +48,15 @@ test('you can get back to the list of bills', async ({ page }) => {
   await openBill(page, BEDOK)
   await page.getByTestId('bill-done').click() // "Close this bill"
   await expect(page.getByRole('heading', { name: 'No bill to show yet' })).toBeVisible()
+})
+
+test('the estimate uses the details from sign-up, and shows when it was checked', async ({
+  page,
+}) => {
+  await signUp(page) // born 1950, citizen: the Pioneer Generation questions are already answered
+  await openBill(page, BEDOK)
+  await expect(page.getByTestId('bill-basis')).toBeVisible()
+  await page.getByText('Press here to see more').click()
+  await expect(page.getByTestId('estimate')).toContainText('$')
+  await expect(page.getByTestId('subsidy-details')).toContainText('checked')
 })
