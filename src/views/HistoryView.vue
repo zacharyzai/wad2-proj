@@ -1,13 +1,3 @@
-<!-- Saved scans, arranged so a medicine or bill is found
-     without scrolling (our own rules: src/rules/history.js), all loaded at once (GET /api/history/all):
-       Medicines  one short row per medicine with all its scans inside, so monthly refills don't pile up. "Taking now"
-                  (still on the timetable) first; "No longer taking" folded away. A search box, and one-tap chips with
-                  the person's own medicines.
-       Bills      one short row per visit under its month ("This month", "October 2026"), chips to jump to a month, and
-                  what was paid at each clinic this year.
-     A row opens that medicine or bill (?open=), where Listen again and Delete live (HistoryItem.vue): the list stays
-     short and nothing is deleted by a stray tap. The list and the open item are in the address, so Back works.
-     API: docs/history-contract.md. -->
 <script setup>
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'

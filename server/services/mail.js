@@ -1,9 +1,3 @@
-// Sending email (password reset links). One function, so the provider can change without touching the routes.
-// MAIL_PROVIDER: 'console' (default) prints the email instead of sending it, for local work and tests; 'brevo' or 'resend'
-// send it through that service's web API (works on Vercel, no extra packages), with MAIL_API_KEY and MAIL_FROM
-// ("Ah Ma Ah Gong Can <sender@example.com>"; the sender must be verified with the service). docs/auth-contract.md.
-// On the live site, console mode never prints the link: anyone who can read the server logs could otherwise use it.
-
 const MAX_KEPT = 20
 // The last emails console mode "sent", newest last, so tests can read the link. Never used by a real provider.
 export const sentMail = []

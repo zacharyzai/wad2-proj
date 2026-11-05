@@ -1,5 +1,3 @@
-// One row per link: a senior has at most one pending invitation (caregiverId null) and any number of caregivers. Never store
-// the raw invite token.
 import mongoose from 'mongoose'
 
 const schema = new mongoose.Schema(

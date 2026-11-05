@@ -1,4 +1,3 @@
-<!-- From the Claude Design Explain screen (medicine card with big digits, read-aloud, quick check). All text comes from the human-checked templates in i18n, never from the AI. -->
 <script setup>
 import { computed, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'

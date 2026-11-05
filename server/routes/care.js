@@ -1,5 +1,3 @@
-// Invite/account linking, and a caregiver's read-only view of a
-// linked senior's doses today.
 import { Router } from 'express'
 import { createHash, randomBytes } from 'node:crypto'
 import mongoose from 'mongoose'

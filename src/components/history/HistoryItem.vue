@@ -1,5 +1,3 @@
-<!-- One saved scan in the History list: replay and delete (with a confirm step).
-     Delete is an inline panel, not a pop-up, so keyboard and screen-reader users never get trapped. -->
 <script setup>
 import { computed, nextTick, ref } from 'vue'
 import { useI18n } from 'vue-i18n'

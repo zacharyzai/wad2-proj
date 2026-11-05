@@ -1,10 +1,3 @@
-<!-- Home's "Today's medicines": a reminder for the one pill to take next, on a dark teal card. A bell
-     that rings whenever the greeting's capsule moves (and opens Schedule when tapped), its time, the pill and how much, its name and food, and one big
-     "I've taken it" when it is due. When several are due together, one shows at a time: tick it and the next one comes
-     (so one not taken is never ticked with another). Nothing due yet: what is next, and when. All taken: well done.
-     Under it, how many are taken today, and a gentle line for any earlier dose not ticked yet. The same size as the greeting
-     beside it on computers. Doses, ticks and words come from Schedule (src/rules/schedule.js, stores/doses.js,
-     schedule.*), so Home and Schedule always agree. A new reminder turns the card over (CSS 3D); still with reduced motion. -->
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'

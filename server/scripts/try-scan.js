@@ -1,5 +1,3 @@
-// Try the real Gemini extraction on a photo, no frontend needed. Uses your daily quota.
-// Usage: pnpm try:scan medication path/to/label.jpg
 import { readFile } from 'node:fs/promises'
 import { extname } from 'node:path'
 import { extractScan } from '../services/gemini.js'

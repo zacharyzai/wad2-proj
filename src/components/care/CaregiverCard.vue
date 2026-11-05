@@ -1,5 +1,3 @@
-<!-- On a senior's Account page: who can see my doses today, and "Invite a caregiver".
-     Says what a caregiver will see BEFORE the link is made, and anyone can be removed at any time. API: docs/care-contract.md (assumed). -->
 <script setup>
 import { computed, nextTick, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'

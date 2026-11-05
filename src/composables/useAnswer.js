@@ -1,6 +1,3 @@
-// Ask's answers: split into words, shown word by word, and read aloud with the word being said lit up.
-// The answer to the question being asked. The state below sits outside the function, so AskView and every AskReply share it:
-// only one answer reveals or reads aloud at a time.
 import { markRaw, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useSpeechStore } from '../stores/speech'

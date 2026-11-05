@@ -1,4 +1,3 @@
-// Add keys to all four locale files at the same time; English is the fallback.
 import { createI18n } from 'vue-i18n'
 import { fadeScreen } from '../screenFade'
 import en from './locales/en.json'

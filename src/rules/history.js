@@ -1,9 +1,3 @@
-// History, tidied (views/HistoryView.vue): the saved scans' summaries (GET /api/history/all) arranged so a medicine or bill
-// is found without scrolling. Our own rules, never AI.
-// Medicines: one group per medicine, its scans inside (newest first), so monthly refills don't pile up; the ones still
-// taken come first. Bills: one row per visit, under the month of the visit (or the day it was saved, when the bill has no
-// date), and what was paid at each clinic in a year. Search matches the name or clinic, ignoring case and extra spaces;
-// a medicine is also found by what it is for ("diabetes", "sugar", "darah tinggi", "高血压": medicineMatches).
 import { todayInSingapore } from './schedule.js'
 
 // Lower-cases and collapses spaces so the same medicine written two ways matches.

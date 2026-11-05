@@ -1,4 +1,3 @@
-/* Scoped styles for components/ask/AskComposer.vue. */
 /* Composer: one rounded card with its tools inside. Docks above the phone tab bar once the conversation starts. */
 .dock {
   display: flex;

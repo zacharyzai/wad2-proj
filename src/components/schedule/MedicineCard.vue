@@ -1,8 +1,3 @@
-<!-- Schedule, "My medicines": one medicine on the timetable, with
-     Change (the dose, pack and dates, then Days and times, Fix what we read, Remove), "I don't need this any more" and Start
-     again. A card shows only the name, what it is for and the times, so a long list stays short and every card has the same
-     shape. Which panel is open is the page's choice (one at a time across all cards), so it comes in as props; every button is
-     an emit. -->
 <script setup>
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'

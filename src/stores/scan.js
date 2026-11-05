@@ -1,6 +1,3 @@
-// The scan currently being confirmed/explained, shared by Scan → Confirm → Explain → Schedule/Bill.
-// Holds the contract's `data` object (docs/scan-contract.md). The extracted text (never the photo) is also kept for this tab,
-// so a refresh, or a visit to Ask, doesn't lose it: the Scan page offers it back. Cleared on log out. Saved scans live in History.
 import { ref, watch } from 'vue'
 import { defineStore } from 'pinia'
 

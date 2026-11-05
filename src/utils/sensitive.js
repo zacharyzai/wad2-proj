@@ -1,11 +1,3 @@
-// Decides what of an OCR'd photo (lines of words with boxes) may leave the phone. Pure logic, no browser APIs, so it is
-// unit-tested in sensitive.test.js. Used by redact.js.
-// Keep-list first: only lines that look like medicine or bill details are shown; everything else (including text the
-// reader could not read, and unlabelled names like "TAN AH KOW") stays black. findSensitive then covers labelled
-// personal details that sit on a kept line ("Date of Birth: 15/03/1948").
-// shortcut: a drug name printed alone on its line, with no strength or form ("PANADOL"), is covered too; the AI then
-// marks the name unclear and the user types it on Confirm. Add a drug-name list if that happens often.
-
 // Strips punctuation around an OCR word.
 const clean = (s) => s.replace(/^[^\p{L}\p{N}*•]+|[^\p{L}\p{N}*•]+$/gu, '')
 

@@ -1,11 +1,3 @@
-<!-- Scan, the question: "What would you like to scan today?" with two
-     big picture cards (Medicine label / Medical bill). Each is a dark card: a picture of its sample paper with what to do on
-     a tag at the top and a round arrow tucked into its corner, then the name, one line on what it tells you, and tags.
-     At rest, the things in each picture breathe and drift. With a mouse, both pictures rest in the app's teal; the one
-     under the mouse stops still and comes to life in full colour, tilts gently towards it, and its arrow turns coral; the
-     other steps back a little. Phones and tablets show both in colour. Picking one plays a short picture of its own
-     (ScanLaunch.vue: medicines, or bills and money) before its scan page opens. Above the cards: the last scan to carry
-     on with, or a photo picked on Home waiting to be told what it is. -->
 <script setup>
 import { computed, onBeforeUnmount, ref } from 'vue'
 import { useI18n } from 'vue-i18n'

@@ -1,5 +1,3 @@
-// Every app feature needs an account. Checks the signed login token, then sets req.userId.
-// A login made before the account's password last changed is refused, so a password reset logs out every other device.
 import { sendError } from '../errors.js'
 import { connectDb } from '../db.js'
 import { User } from '../models/User.js'

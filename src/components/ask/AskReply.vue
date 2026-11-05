@@ -1,7 +1,3 @@
-<!-- One reply in the Ask conversation, beside the capsule:
-     waiting (in words), an error with Try again, an emergency (Call 995), "which medicine?", or the answer card.
-     Under the newest answer: "Explain more simply" and the next questions. Every question goes back to
-     AskView through the `ask` event: ask(text, chip, message to re-ask). -->
 <script setup>
 import { useI18n } from 'vue-i18n'
 import { useMedicinesStore } from '../../stores/medicines'

@@ -1,5 +1,3 @@
-// Built by Zachary's Claude. Turns text into speech with Gemini, for devices
-// with no voice for the language (often Tamil and Malay). Uses the same model fallback and deadline as scans (firstReply).
 import { ScanError, firstReply, geminiKeys, keyed, list } from './gemini.js'
 
 const API = 'https://generativelanguage.googleapis.com/v1beta/interactions'

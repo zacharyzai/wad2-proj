@@ -1,10 +1,3 @@
-<!-- A button's words with a hand-drawn underline that is drawn from the middle outwards when the button is hovered, focused with
-     the keyboard, or pressed. Use it inside a link or button; the parent only needs to be one of the selectors listed below
-     (`.cta`, `.big-cta`), so the real action is never tied to hover.
-     - The line is one slightly uneven curve in an SVG, drawn in currentColor, so it always matches the button's text colour.
-     - It is absolutely placed under the words, so showing it never moves anything.
-     - Hover reveals it over 350ms and it retracts in 250ms. With reduced motion it only fades (no movement).
-     - On a touch screen there is no hover: it shows while the button is pressed or focused. It carries no information of its own. -->
 <template>
   <span class="hand-label">
     <slot />

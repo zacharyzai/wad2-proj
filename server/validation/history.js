@@ -1,4 +1,3 @@
-// Validate confirmed contract JSON, not raw AI output. Do not normalize bill cents as dollars.
 import {
   BILL_CATEGORIES,
   BILL_PLACES,

@@ -1,4 +1,3 @@
-// Contract: docs/history-contract.md. Queries are scoped to the authenticated owner.
 import { Router } from 'express'
 import mongoose from 'mongoose'
 import { connectDb } from '../db.js'

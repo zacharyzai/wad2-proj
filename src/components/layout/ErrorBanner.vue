@@ -1,4 +1,3 @@
-<!-- Shows an API error code in the chosen language. Unknown codes fall back to a generic message. -->
 <script setup>
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'

@@ -1,6 +1,3 @@
-<!-- Scan, a bill
-     photographed page by page: the pages so far, each with its own check, and one question: "Does this bill have another
-     page?". ScanView keeps the pages and does the work; every button is an emit. -->
 <script setup>
 import { computed, nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'

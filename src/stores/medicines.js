@@ -1,7 +1,3 @@
-// The user's medicines, so Ask can answer about what they actually take and Schedule can lay out their doses (a Pinia store).
-// Extracted text only (contract fields), never photos.
-// The list belongs to the account: stores/scheduleSync.js loads it from GET /api/schedule and saves every change. What is kept
-// in this browser is only a cache of the logged-in account's list.
 import { reactive, toRaw, watch } from 'vue'
 import { defineStore } from 'pinia'
 import { addDays, labelLimitDays, supplyDays, todayInSingapore } from '../rules/schedule.js'

@@ -1,6 +1,3 @@
-// Reading aloud for every player (Explain, Ask, the guide, the welcome page): this device's voice for the language when it has
-// one, otherwise audio made by our server (/api/tts, Gemini). Also the shared speed, remembered on this device. A Pinia store:
-// state = the speed and this device's voices; actions = speak, stop, pause, resume.
 import { ref, watch } from 'vue'
 import { defineStore } from 'pinia'
 import { readAloudAudio } from '../api/client'

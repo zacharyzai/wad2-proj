@@ -1,4 +1,3 @@
-<!-- One tappable bill line: category icon + colour + label, the amount, and a plain explanation that opens below with read-aloud. -->
 <script setup>
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'

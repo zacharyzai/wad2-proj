@@ -1,13 +1,3 @@
-<!-- Home, kept simple for seniors: a greeting with the app's capsule (the one that waves goodbye on log out), one
-     question, and three big choices that each go somewhere different: scan a medicine label, scan a bill, Ask. "Today's
-     medicines" (components/home/TodayMedicines.vue) shows what is due. The last bill checked, when there is one, is one
-     quiet line back to it. Phones: one column, Today's medicines under the greeting. Desktop (≥992px): the greeting and
-     Today's medicines side by side, the choices in one row under them.
-     The choices press in where touched and lean a little towards the mouse (CSS 3D); still with reduced motion.
-     The two scan choices show what they read: sample labels sliding past, and a bill feeding out of a printer slot; Ask
-     shows a short chat, a question and the capsule's answer (all loop while Home is open, pause on hover or focus, and stay
-     still with reduced motion). The greeting is one centred column: hello, the capsule, the question, its caption.
-     Each choice, and Today's "Open my schedule", opens with a short picture of its own (CardLaunch.vue). -->
 <script setup>
 import { computed, onBeforeUnmount } from 'vue'
 import { useI18n } from 'vue-i18n'

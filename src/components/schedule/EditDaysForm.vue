@@ -1,5 +1,3 @@
-<!-- Schedule, "Days and times" for one medicine: number of days, start
-     date, a time for each dose. Emits save({ startDate, days, times }) once every field is valid, or cancel. -->
 <script setup>
 import { computed, nextTick, onMounted, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'

@@ -1,8 +1,3 @@
-<!-- Schedule, today: what's due now,
-     the day's progress (a ring that fills and a % that counts up), and a card for every dose, grouped by time of day
-     ("Morning · 2 medicines"), with its state on the right: tap anywhere on the card when it is taken, and a pop-up asks
-     "Did you take it?" (Yes, I took it / Not yet) before anything is recorded; tapping a ticked one unticks it at once.
-     Card styles shared with other days: styles/components/DayCards.css. Ticks live in the doses store (stores/doses.js). -->
 <script setup>
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
@@ -46,6 +41,15 @@ const groups = computed(() => {
   )
   return list.map((g, i) => ({ ...g, state: states[i] }))
 })
+// Today's doses whose time has passed with no tick, oldest first: flagged at the top so none is overlooked.
+const missed = computed(() =>
+  ready.value
+    ? groups.value
+        .filter((g) => g.state === 'earlier')
+        .flatMap((g) => g.doses)
+        .filter((d) => !taken.value.has(d.id))
+    : [],
+)
 // True when every dose in a time group is ticked.
 const allTaken = (g) => g.doses.every((d) => taken.value.has(d.id))
 // The time that's due and not yet ticked: shown at the top with "I've taken it" for each of its doses.
@@ -193,6 +197,23 @@ const onBackdrop = (event) => event.target === askBox.value && answer(false)
       }}</RouterLink>
     </p>
     <template v-else>
+      <!-- Missed doses, flagged in words and an icon. Never a "take it now": what to do is the pharmacist's call. -->
+      <div
+        v-if="missed.length"
+        class="alert alert-warning"
+        role="alert"
+        data-testid="schedule-missed"
+      >
+        <AppIcon name="alert" />
+        <div class="d-flex flex-column gap-2">
+          <strong>{{ t('schedule.slot.missedTitle', { n: missed.length }, missed.length) }}</strong>
+          <ul class="m-0 ps-3">
+            <li v-for="d in missed" :key="d.id">{{ d.label }} · {{ timeText(d.time) }}</li>
+          </ul>
+          <span>{{ t('schedule.slot.missed') }}</span>
+        </div>
+      </div>
+
       <!-- What's due now: the one thing to do, with "I've taken it" for each dose of that time. Never for a missed dose. -->
       <section
         v-if="dueGroup"

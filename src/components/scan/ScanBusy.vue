@@ -1,5 +1,3 @@
-<!-- Scan, while working: the photo with personal details being
-     blacked out (or, for a sample, the turning pill), the two steps (covered on this phone, then read), and Cancel. -->
 <script setup>
 import { onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'

@@ -1,4 +1,3 @@
-// Every route is registered here up front so teammates only edit their own view files.
 import { nextTick } from 'vue'
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '../stores/auth'

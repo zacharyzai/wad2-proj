@@ -1,5 +1,3 @@
-// Words for the Schedule page and its components, in the page language: dates, times, doses, how long a pack lasts.
-// Wording helpers, so every Schedule component words things the same way.
 import { useI18n } from 'vue-i18n'
 import { useMedicinesStore } from '../stores/medicines'
 import { doseSlots, labelLimitDays, packDays, supplyDays } from '../rules/schedule'

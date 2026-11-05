@@ -1,4 +1,3 @@
-// Per-account creation limit shared by all serverless instances. Independent of link deletion/revocation.
 import mongoose from 'mongoose'
 
 const schema = new mongoose.Schema(

@@ -1,4 +1,3 @@
-/* Form fields: label always visible above. */
 .field {
   display: flex;
   flex-direction: column;

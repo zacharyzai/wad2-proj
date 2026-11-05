@@ -1,4 +1,3 @@
-// Deliberately prints no URI, credentials, signing secret or raw driver errors.
 import mongoose from 'mongoose'
 import { connectDb } from '../db.js'
 import { jwtSecret } from '../services/auth.js'

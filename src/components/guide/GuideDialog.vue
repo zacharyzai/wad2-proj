@@ -1,12 +1,3 @@
-<!-- Beginner's guide (Claude Design "Tour", extended into a walk through the real app). Steps come from stores/guide.js:
-     card  - a centred card (bottom sheet on phones) over a dimmed page: the welcome and the finish.
-     tap   - the real nav button glows; everything else is dimmed and blocked. Tapping it opens that page and moves on;
-             so does Next (for anyone who can't find it, or uses a keyboard).
-     look  - on the page just opened, points at one key button; Next moves on.
-     Every step that leads on has the same Next button, in the same place, so there is one thing to press throughout.
-     Every step but the first has Back, which also returns to that step's page.
-     The page can't be scrolled while the guide is open, so a glow never drifts off its button (pinch-zoom still works).
-     Skip / Esc end it any time (marked seen). Focus goes to each step's title; card steps keep focus inside. -->
 <script setup>
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'

@@ -1,8 +1,3 @@
-<!-- The day/night toggle in the sidebar (desktop) and the phone header, so night mode is one tap from every
-     page (the Account page still offers Day, Night or Same as my device). A capsule-shaped track (a faint seam down the
-     middle, like a pill): the knob carries the icon for what is showing and slides across; the other icon waits at the
-     far end. A real switch (role="switch", on = night), named "Night mode", with a 48px tap area. Pressing it cross-fades
-     the whole screen to the other colours (src/theme.js). -->
 <script setup>
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'

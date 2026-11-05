@@ -1,8 +1,3 @@
-<!-- Schedule: a day other than today, picked on the day strip (DayStrip.vue). Its medicines by time of day, in
-     the same cards as Today (TodayList.vue). An earlier day says what was taken and warns, plainly, about any dose that was
-     missed: that day is over, so it can no longer be ticked, and missed doses are a question for the pharmacist.
-     A later day shows what is coming, to be ticked on the day.
-     Earlier days' ticks: stores/doses.js. -->
 <script setup>
 import { computed } from 'vue'
 import { storeToRefs } from 'pinia'

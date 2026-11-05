@@ -1,6 +1,3 @@
-<!-- Welcome page: "keep scrolling" cue, two down arrows that
-     cascade downwards, with optional words above them. Used under the hero, in the tunnel and at the foot of each feature.
-     Decoration only (aria-hidden): the top bar's links reach every section. Reduced motion: the arrows stay still. -->
 <script setup>
 import AppIcon from '../layout/AppIcon.vue'
 

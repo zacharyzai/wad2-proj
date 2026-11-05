@@ -1,4 +1,3 @@
-<!-- Calls POST /api/auth/login (docs/auth-contract.md). Every page needs an account, so this is where logged-out people land. -->
 <script setup>
 import { ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'

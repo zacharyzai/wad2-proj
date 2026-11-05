@@ -1,4 +1,3 @@
-/* Buttons use Bootstrap's own .btn variables, so hover, press, focus and disabled all follow the design. Labels wrap; never fixed width. */
 .btn {
   --bs-btn-padding-x: 24px;
   --bs-btn-padding-y: 14px;

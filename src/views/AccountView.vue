@@ -1,5 +1,3 @@
-<!-- The details the person gave when they signed up, with Edit and Log out. The password is never shown.
-     Date of birth and citizenship fill in the Bill page's subsidy questions, so a mistake here changes the estimate there. -->
 <script setup>
 import { computed, onBeforeUnmount, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'

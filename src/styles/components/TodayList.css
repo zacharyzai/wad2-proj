@@ -1,4 +1,3 @@
-/* Scoped styles for components/schedule/TodayList.vue (time-of-day colours: views/ScheduleSlots.css). */
 /* What's due now: in the time of day's own colour, so it reads as "this compartment, now". */
 .due {
   display: flex;

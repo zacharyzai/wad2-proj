@@ -1,4 +1,3 @@
-<!-- One labelled field on Confirm. Flagged = amber, left empty and marked "Please check"; never guessed. -->
 <script setup>
 import { useI18n } from 'vue-i18n'
 import AppIcon from '../layout/AppIcon.vue'

@@ -1,5 +1,3 @@
-// One per dose the user ticked as taken on the Schedule page. Contract: docs/doses-contract.md
-// Holds only the dose id (medicine + slot, from src/rules/schedule.js) and the day: never the medicine's name or instructions.
 import mongoose from 'mongoose'
 
 const doseSchema = new mongoose.Schema(

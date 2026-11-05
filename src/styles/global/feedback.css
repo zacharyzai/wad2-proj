@@ -1,4 +1,3 @@
-/* Badges and alerts: always words (and usually an icon), never colour alone. */
 .badge {
   display: inline-flex;
   align-items: center;

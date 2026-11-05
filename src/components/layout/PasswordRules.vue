@@ -1,5 +1,3 @@
-<!-- A new password's rules (src/rules/password.js), ticked off as they are typed, on Sign up and Reset: a tick and "done" once met;
-     after the first try, a cross and "not yet". Styles: AuthShell.vue. -->
 <script setup>
 import { useI18n } from 'vue-i18n'
 import AppIcon from './AppIcon.vue'

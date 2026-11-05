@@ -1,10 +1,3 @@
-<!-- Medicine schedule in two tabs (?view=meds), so Back works:
-       Today        the week as a strip of days (DayStrip.vue); today below it: what's due, the day's progress and a card
-                    for every dose (TodayList.vue); another day: what was taken or is coming (DayOther.vue)
-       My medicines one card per medicine (MedicineCard.vue, EditDaysForm.vue), the pharmacist list (PharmacistList.vue),
-                    and Google Calendar reminders (CalendarSync.vue). Old links to This week or Reminders open these.
-     This page keeps what the tabs share: the header, which card has a panel open, Remove and Stop with Undo, and the toast.
-     Times come from src/rules/schedule.js (our own rules, never AI). Ticks are in stores/doses.js. -->
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'

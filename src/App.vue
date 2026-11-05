@@ -1,4 +1,3 @@
-<!-- From the Claude Design screens: phone header + bottom tabs, desktop sidebar (≥992px). One set of elements, re-laid out by CSS. -->
 <script setup>
 import { computed, nextTick, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'

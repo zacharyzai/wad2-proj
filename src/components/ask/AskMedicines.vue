@@ -1,6 +1,3 @@
-<!-- Ask's "My medicines": one row that opens (like a chat's attached
-     context) to see the list, a few at a time, remove one (with Undo), add one by photo, or type one in. AskView opens the form with
-     openForm() (defineExpose) and hears `added` when a typed medicine is saved. -->
 <script setup>
 import { computed, nextTick, onBeforeUnmount, ref } from 'vue'
 import { useI18n } from 'vue-i18n'

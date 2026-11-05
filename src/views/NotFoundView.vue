@@ -1,4 +1,3 @@
-<!-- From the Claude Design 404 screen. -->
 <script setup>
 import { useI18n } from 'vue-i18n'
 import EmptyState from '../components/layout/EmptyState.vue'

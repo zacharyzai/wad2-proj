@@ -1,4 +1,3 @@
-// Shared authentication for the current profile/Remember me contract and existing Atlas accounts.
 import { createHmac, scrypt, timingSafeEqual } from 'node:crypto'
 import { promisify } from 'node:util'
 import argon2 from 'argon2'

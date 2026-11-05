@@ -1,6 +1,3 @@
-<!-- A scan carries on when the person taps away from Scan mid-way (views/ScanView.vue). This small notice,
-     above the phone tabs (bottom right on desktop), says it is still reading, then that it is ready to check, or that it
-     could not finish, with one button to it. Gone once they are on Scan or Confirm, which show the scan themselves. -->
 <script setup>
 import { computed, watch } from 'vue'
 import { useRoute } from 'vue-router'

@@ -1,7 +1,3 @@
-// The only way the client calls the backend (Axios). Always resolves to { ok, data } or
-// { ok: false, error: { code, message } }. Show errors with t(`errors.${error.code}`).
-// Logged-in users send their token (server/middleware/requireAuth.js reads "Authorization: Bearer <token>").
-// It is in localStorage with "Remember me", otherwise in sessionStorage (stores/auth.js decides).
 import axios from 'axios'
 
 export const TOKEN_KEY = 'token'

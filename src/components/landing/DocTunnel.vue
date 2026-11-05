@@ -1,9 +1,3 @@
-<!-- Welcome page: real labels and bills fly towards you through a 3D tunnel as you scroll, with the plain
-     words the app turns them into, in all four languages. Between the hero and "Snap a photo".
-     Driven by the page's own scrolling (the section stays pinned while the papers fly), so touch, keyboard and scrollbars
-     all work and scrolling is never taken over. Desktop: the papers lean towards the mouse. Phones: fewer papers, a shorter
-     flight. Reduced motion: no pinning or flying, just a still fan of the papers. The papers are decoration (aria-hidden):
-     the heading and sentence say it in words. Styles are written into the papers directly, not through Vue, every frame. -->
 <script setup>
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'

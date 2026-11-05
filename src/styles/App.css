@@ -1,4 +1,3 @@
-/* Scoped styles for App.vue. Phones and tablets (<992): header, fixed bottom tabs. Desktop (≥992): white sidebar. Content max 1040px. */
 .shell {
   min-height: 100vh;
   min-height: 100dvh;

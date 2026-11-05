@@ -1,11 +1,3 @@
-<!-- The short picture each Home card plays before its page opens (composables/useCardLaunch.js). It grows
-     out of the card that was tapped and settles in the middle of the screen, over a soft wash of the card's colour:
-       med       a capsule; camera corners close in around it and a scan line sweeps across
-       bill      a receipt prints downwards, line by line, and a green dollar stamps onto it
-       ask       chat bubbles pop up one after another, the last one typing
-       schedule  a calendar with a clock; the hand goes round once and a big tick draws over it
-     About a second (LAUNCH_MS). Decoration (aria-hidden): the page that opens says where you are. Covers the screen, so a
-     second tap can't land on another card. Never shown with reduced motion (the link just opens). -->
 <script setup>
 import { computed } from 'vue'
 import { cardLaunch } from '../../composables/useCardLaunch'

@@ -1,5 +1,3 @@
-<!-- Calls POST /api/auth/signup (docs/auth-contract.md). We never ask for an NRIC number.
-     Date of birth and citizenship fill in the Bill page's subsidy questions, so they use the same choices. -->
 <script setup>
 import { computed, nextTick, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'

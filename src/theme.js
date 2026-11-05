@@ -1,8 +1,3 @@
-// Day/night mode. Three choices: day ('light'), night ('dark') or the same as this phone or computer ('system').
-// Day mode unless the person picked another (the sidebar toggle, Sign up's question or the Account page); the pick is
-// remembered on this device and saved to the account (stores/auth.js). index.html sets the first value before the app
-// loads, so the page never flashes. Night mode belongs to an account: logged out (no saved login), it is always day mode,
-// and logging out goes back to day (resetTheme).
 import { ref } from 'vue'
 import { readToken } from './api/client'
 import { canFade, fadeScreen } from './screenFade'

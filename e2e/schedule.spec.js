@@ -785,11 +785,13 @@ test('in the evening: an untaken morning dose says "Not ticked yet" and to ask t
   await expect(morningBand.getByTestId('slot-state')).toHaveText('Not ticked yet')
   await expect(morningBand).toContainText('If you missed a dose, ask your pharmacist what to do.')
   await expect(band(page, '18:00').getByTestId('slot-state')).toHaveText('Take now')
+  await expect(page.getByTestId('schedule-missed')).toContainText('You missed 1 dose today') // flagged at the top
 
   await tick(page, 'Metformin 500 mg', '8:00\\sAM').click() // earlier in the day: the usual question
   await page.getByRole('button', { name: 'Yes, I took it' }).click() // "Did you take it?" first
   await expect(morningBand.getByTestId('slot-state')).toHaveText('All taken')
   await expect(morningBand).not.toContainText('ask your pharmacist')
+  await expect(page.getByTestId('schedule-missed')).toHaveCount(0) // nothing missed any more
 })
 
 test('ticking a dose more than 2 hours early asks first; "Not yet" leaves it unticked', async ({

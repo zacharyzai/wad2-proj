@@ -1,5 +1,3 @@
-<!-- One primary per screen (variant "main"); "alt" for the quieter choice.
-     Pass `to` for a link that looks like a button; otherwise it is a <button> (type, @click, data-testid fall through). -->
 <script setup>
 defineProps({
   to: { type: [String, Object], default: null },

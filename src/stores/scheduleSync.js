@@ -1,8 +1,3 @@
-// Makes the medicine list belong to the account, not the browser: loaded from the account at login and on every page load
-// (GET /api/schedule), and saved there after every change (PUT), so each device shows the same Schedule and the linked
-// caregiver sees the same doses. The copy in this browser (stores/medicines.js) is only a cache of the logged-in account's list.
-// Kept out of medicines.js because the unit tests use that store on its own, and this needs the logged-in user and the server.
-// App.vue starts it once: syncMedicinesWithAccount().
 import { watch } from 'vue'
 import { loadMedicines, saveMedicines } from '../api/client'
 import { useAuthStore } from './auth'

@@ -1,6 +1,3 @@
-<!-- Scan, the live camera: its own screen, so the picture is big and
-     Capture is the only thing to press. ScanView opens the camera (getUserMedia) and passes the stream in; Capture emits the
-     frame as a JPEG. Laptops ignore `capture` on file inputs, so this is the only way to reach their webcam. -->
 <script setup>
 import { onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'

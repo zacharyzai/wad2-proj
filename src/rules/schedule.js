@@ -1,13 +1,3 @@
-// Schedule rules: a saved medicine becomes the dose times shown on the Schedule page and sent to Google Calendar.
-// Pure functions with no Vue, so server/test/schedule.test.js can test them. Our own rules, never AI.
-// Only "daily" medicines are scheduled. Anything else (when necessary, weekly, tapering, other, unknown) is flagged for the
-// pharmacist and gets no times: we never guess a timetable the label doesn't give.
-//
-// buildSchedule(medicine, { startDate, days, times }) returns one ScheduleEntry (docs/google-contract.md):
-//   { medicineId, label, instruction: { count, unit, food }, doses: [{ id, time }], startDate, endDate, flagged }
-//
-// Dates are 'YYYY-MM-DD' strings in Singapore time and times are 'HH:MM'. Date maths runs on UTC midnights, so the
-// computer's own time zone can never shift a day.
 import { TIMINGS } from '../../server/services/normalizeScan.js'
 
 export const MAX_DAYS = 366 // same limit as Google sync

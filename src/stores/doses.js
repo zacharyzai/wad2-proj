@@ -1,5 +1,3 @@
-// Today's ticks ("I've taken it"), shared by the Today and This week tabs of Schedule.
-// Ticks are saved to the account: docs/doses-contract.md. The day is a Singapore calendar day.
 import { reactive, ref } from 'vue'
 import { defineStore } from 'pinia'
 import { dosesTaken, setDoseTaken } from '../api/client'

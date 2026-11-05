@@ -1,5 +1,3 @@
-// An account. Never holds scans, photos or NRIC numbers.
-// Citizenship and income use the subsidy rules' values (src/rules/subsidies.js), so the Bill page can use them as-is.
 import mongoose from 'mongoose'
 
 export const CITIZENSHIP = ['birth', 'became', 'pr', 'other'] // citizen by birth, became a citizen (citizenSince = year), PR, other

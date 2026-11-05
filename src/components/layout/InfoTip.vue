@@ -1,7 +1,3 @@
-<!-- A small "i" button that keeps a line of help out of the way until it is wanted. Mouse: hover shows it, click keeps it open.
-     Touch and keyboard: tap or Enter/Space toggles. Esc, or a tap anywhere else, closes it. The text is also the described-by
-     of whatever `id` points at, so a screen reader reads it with the field. The text opens across the nearest positioned
-     ancestor (give the row it belongs to `position: relative`), so it never runs off a narrow screen. -->
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import AppIcon from './AppIcon.vue'

@@ -1,4 +1,3 @@
-// Protects the free AI quota. Only real image scans and chat questions count; sample scans are exempt.
 import { rateLimit } from 'express-rate-limit'
 
 // Builds an express-rate-limit middleware that answers with our { ok: false, error } envelope when the limit is hit.

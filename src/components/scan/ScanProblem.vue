@@ -1,6 +1,3 @@
-<!-- Scan, when it didn't work: what went wrong (read aloud on request),
-     tips or the photo, and what to do next. A bill scanned as a label (or the other way round) is a question instead:
-     "Was this meant to be a bill?". Every button is an emit; ScanView does the work. -->
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'

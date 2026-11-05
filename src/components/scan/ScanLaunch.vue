@@ -1,10 +1,3 @@
-<!-- The short picture after a card is picked on Scan's question (ScanPicker.vue), so the scan page doesn't
-     just appear. From the card that was tapped, a soft wash of its colour spreads over the screen while things of its kind
-     burst out and settle around the middle, then drift gently up as the scan page opens:
-       medication  capsules, tablets, a blister pack, a syrup bottle and a cream tube, round a big medicine bottle
-       bill        receipts, notes and coins, round a big receipt with a coin stamped on it
-     About 1.7 seconds (ScanPicker's SLOW stretches every time below by k). Decoration (aria-hidden): the scan page says where you are. Covers the screen, so a second
-     tap can't land on the other card. Never shown with reduced motion (the card opens at once). -->
 <script setup>
 import { computed } from 'vue'
 

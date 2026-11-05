@@ -1,6 +1,3 @@
-// The medicine list saved to an account (PUT /api/schedule, src/stores/medicines.js shape). Checked field by field, so only
-// contract fields, sizes and our own enums are stored: never a photo or anything else a client adds.
-// Lenient where Confirm is: a medicine typed in Ask has only a name and instructions.
 import {
   DOSE_UNITS,
   FREQUENCY_TYPES,

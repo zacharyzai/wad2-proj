@@ -1,13 +1,3 @@
-<!-- The first page for anyone not logged in: what the app does in one sentence, "Join for free" (Create
-     account) and "Log in", and a picture of it working: a real sample label behind a phone showing what the app makes of it.
-     Two choices only, both big and in words. The welcome page (/welcome) tells the longer story.
-     Motion: on the first visit in this tab the words rise in one after another; the picture then tells its story once
-     (the label slides in, a scan line reads it, the phone fills in, the morning dose is ticked), under 5 seconds so
-     nothing keeps moving by itself (WCAG 2.2.2), and the three promises rise in as they scroll into view. All of this
-     plays once per page load, never again on hover or on coming back from Log in. With a mouse, the picture tilts a
-     little towards it. Behind it all, faint pills and tablets fall slowly through the teal like a waterfall (no pause
-     button, by the team's choice, as on the welcome page). With reduced motion everything is shown landed, at once,
-     and the pills don't fall. -->
 <script setup>
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'

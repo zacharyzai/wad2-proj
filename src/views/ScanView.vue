@@ -1,12 +1,3 @@
-<!-- From the Claude Design Scan screens. One page, six screens (components/scan/):
-       ScanPicker    "What would you like to scan today?" (no kind in the address yet, or a photo from Home waiting)
-       ScanKindPage  that kind's page: camera, upload, tips, samples (?type=medication | bill, so Back returns to the question)
-       LiveCamera    the live camera
-       ScanPages     a bill photographed page by page: each page checked as it is taken, then "another page?"
-       ScanBusy      covering personal details on this phone, then reading
-       ScanProblem   an unclear photo, the wrong paper, or a service error
-     This page runs the scan itself: photo → shrink (utils/images.js) → check (utils/photoCheck.js) → cover details
-     (utils/redact.js) → send (/api/scan) → Confirm. Bills have no tab of their own: they start here. -->
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router'

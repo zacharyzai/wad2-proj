@@ -1,7 +1,3 @@
-<!-- Welcome page for first-time visitors on this device (router sends "/" here once; see WELCOME_KEY).
-     From the Claude Design "medicine falling from the sky" page: each section's items fall in as you scroll and become the feature.
-     Motion is tied to scroll. A few demos also loop on their own (headline, scan card, reminder phone, chat); all but the
-     chat have a control that stops them, and the phone and chat wait while off screen. Under 1024px items just fade and settle; with reduced motion everything is shown landed. -->
 <script setup>
 import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'

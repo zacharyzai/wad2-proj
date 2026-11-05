@@ -1,6 +1,3 @@
-<!-- Pick or drop photos, check them, then Scan.
-     A long bill can be several photos (one per page, up to 4) or one PDF. Emits the chosen Files as 'select'; ScanView
-     compresses, covers and sends them as the pages of one scan. -->
 <script setup>
 import { computed, onBeforeUnmount, ref } from 'vue'
 import { useI18n } from 'vue-i18n'

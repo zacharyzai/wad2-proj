@@ -1,12 +1,3 @@
-<!-- "Ask about my medicine" (feature 6): open any time. Answers use the user's own medicines (checked labels
-     or typed in); if a question is about a medicine we don't know, the reply asks for its label or its name and instructions.
-     Contract: docs/chat-contract.md
-     The chat feel: the app's capsule (CapsuleBuddy) is the bot's face and shows what it's doing (thinking, listening, reading
-     aloud); while waiting it says what it's doing in words ("Checking your Metformin label…"); answers appear word by word
-     on a card, the first sentence first and larger, with the medicine it's about; read aloud lights up each word as it's said;
-     under the newest answer: the next questions and "Explain more simply". The empty page greets the person by name, with questions about their own medicines.
-     The pieces: components/ask/AskMedicines.vue (My medicines), AskReply.vue (one reply), AskComposer.vue (the question box),
-     composables/useAnswer.js (word by word and read aloud). This page keeps the conversation and sends the questions. -->
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, toRaw, watch } from 'vue'
 import { useI18n } from 'vue-i18n'

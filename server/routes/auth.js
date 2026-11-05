@@ -1,4 +1,3 @@
-// Contract: docs/auth-contract.md
 import { createHash } from 'node:crypto'
 import { Router } from 'express'
 import { sendError } from '../errors.js'

@@ -1,6 +1,3 @@
-// Turns raw AI output into the contract shape (docs/scan-contract.md).
-// AI output is untrusted: anything missing, invalid or out of range becomes null and its path goes in `unclear`.
-// Only known fields are copied, so anything extra the model returns (e.g. a patient name) is dropped.
 import { billGap } from '../../src/rules/billCheck.js'
 
 export const DOSE_UNITS = ['tablet', 'capsule', 'ml', 'puff', 'drop', 'other']

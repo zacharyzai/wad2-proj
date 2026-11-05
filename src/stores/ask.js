@@ -1,5 +1,3 @@
-// The Ask conversation for this visit, so leaving the Ask page and coming back keeps the answers.
-// Cleared on log out (stores/auth.js), so the next person on a shared device never sees it. Not saved anywhere.
 import { reactive } from 'vue'
 import { defineStore } from 'pinia'
 

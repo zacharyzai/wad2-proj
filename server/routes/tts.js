@@ -1,6 +1,3 @@
-// Built by Zachary's Claude. POST /api/tts { text, lang } → { ok, data: { audio } } (base64 WAV).
-// The app only calls it when the device has no voice for the language. Open without an account, because the welcome
-// page's demo speaker uses it too; the per-IP limit and the daily cap protect the quota.
 import { Router } from 'express'
 import { sendError } from '../errors.js'
 import { ttsRateLimit, takeDailyQuota } from '../middleware/rateLimit.js'

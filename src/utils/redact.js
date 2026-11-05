@@ -1,8 +1,3 @@
-// Reads a photo on the phone (Tesseract.js) and sends only the medicine and bill lines: the image starts all black and
-// just those lines are copied back in, with labelled personal details on them blacked out again. Black, not blur: a blur
-// can still be read. The rules live in sensitive.js.
-// shortcut: Tesseract downloads its engine and English data (~5 MB, cached) from the jsDelivr CDN on first use;
-// self-host them in public/ before shipping so it works offline and no third party is involved.
 import { createWorker } from 'tesseract.js'
 import { baselineAt, planRedaction } from './sensitive.js'
 import { loadImage } from './images.js'

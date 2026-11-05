@@ -1,11 +1,3 @@
-// Who is logged in. Login, sign up, log out and account changes are its actions.
-// "Remember me": the token lives in localStorage (kept for 30 days, renewed on every visit). Without it, in sessionStorage,
-// so closing the browser logs you out. api/client.js sends the token with every request.
-// A copy of the account details is kept next to the token, so a returning user opens the app instantly
-// while restore() checks with the server in the background. Logging out removes both.
-// The app language is part of the account: logging in on any device uses it, and changing it anywhere saves it.
-// A language picked while logged out (Login, Sign up, welcome page) wins at login and becomes the account's.
-// Day/night mode is part of the account too: asked once after signing up (ThemePrompt), changed on the Account page.
 import { ref, watch } from 'vue'
 import { defineStore } from 'pinia'
 import { useScanStore } from './scan'
