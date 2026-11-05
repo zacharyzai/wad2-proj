@@ -3,18 +3,28 @@ import { test, expect } from './fixtures.js'
 import { DEMO_USER, signIn } from './helpers/auth.js'
 import AxeBuilder from '@axe-core/playwright'
 
-const answer = (text) => ({ ok: true, data: { type: 'ANSWER', answer: text, askPharmacist: false } })
-const fail = (code) => ({ ok: false, error: { code, message: 'technical detail the user must not see' } })
+const answer = (text) => ({
+  ok: true,
+  data: { type: 'ANSWER', answer: text, askPharmacist: false },
+})
+const fail = (code) => ({
+  ok: false,
+  error: { code, message: 'technical detail the user must not see' },
+})
 
 // WCAG 2.1 A + AA only; best-practice rules are advice, not failures.
 async function expectNoA11yViolations(page) {
   // The dev server adds page styles a moment after load; check colours only once they have all arrived (as in landing.spec.js).
   await page.waitForLoadState('networkidle')
-  const { violations } = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze()
+  const { violations } = await new AxeBuilder({ page })
+    .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
+    .analyze()
   expect(violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target).join(' | ')}`)).toEqual([])
 }
 
-test('a "Thinking…" state shows while the answer is on its way, and Ask is disabled', async ({ page }) => {
+test('a "Thinking…" state shows while the answer is on its way, and Ask is disabled', async ({
+  page,
+}) => {
   let release
   const held = new Promise((resolve) => (release = resolve))
   await page.route('**/api/chat', async (route) => {
@@ -31,7 +41,9 @@ test('a "Thinking…" state shows while the answer is on its way, and Ask is dis
   await expect(page.getByTestId('ask-loading')).toBeHidden()
 })
 
-test('a failed question shows a plain message with Try again, never the technical error', async ({ page }) => {
+test('a failed question shows a plain message with Try again, never the technical error', async ({
+  page,
+}) => {
   const replies = [fail('BAD_REQUEST'), answer('Keep them in a cool, dry place.')]
   await page.route('**/api/chat', (route) => route.fulfill({ json: replies.shift() }))
   await page.goto('/ask')
@@ -71,7 +83,9 @@ for (const theme of ['light', 'dark']) {
   test(`Ask has no WCAG A/AA violations (${theme}) @a11y`, async ({ page }) => {
     await page.emulateMedia({ colorScheme: theme, reducedMotion: 'reduce' })
     await signIn(page, { ...DEMO_USER, theme }) // night mode is the account's choice, not the device's
-    await page.route('**/api/chat', (route) => route.fulfill({ json: answer('Keep them in a cool, dry place.') }))
+    await page.route('**/api/chat', (route) =>
+      route.fulfill({ json: answer('Keep them in a cool, dry place.') }),
+    )
     await page.goto('/ask')
     await expect(page.locator('html')).toHaveAttribute('data-theme', theme)
     await expectNoA11yViolations(page) // empty page with starters

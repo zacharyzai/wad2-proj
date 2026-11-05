@@ -1,6 +1,6 @@
 # E2E report: Ah Ma Ah Gong Can
 
-4 Nov 2026, `zac` branch. Playwright, Chromium. Each test runs twice: desktop Chrome and iPhone 6 (375px).
+4 Nov 2026, `zac` branch (updated 5 Nov). Playwright, Chromium. Each test runs twice: desktop Chrome and iPhone 6 (375px).
 AI, TTS, Google Calendar and the chatbot are mocked (`USE_MOCK_AI=true` and `page.route`). Most tests use a fake
 login (a signed test token plus a faked `/api/auth`) and need no database. The `*-api` specs use a throwaway in-memory
 MongoDB. The test server has no `MONGODB_URI` and never reuses a running `pnpm server`, so tests cannot reach the real database.
@@ -8,20 +8,31 @@ MongoDB. The test server has no `MONGODB_URI` and never reuses a running `pnpm s
 ## Results
 
 **770 test runs (385 tests × 2 viewports): 751 passed, 15 skipped by design, 4 failed.** Full suite: 8.2 min on 4 workers.
-The 4 failures are the two app issues below, each on both viewports. `pnpm test`: 234 passed. `pnpm build`: passed.
+The 4 failures were the two app issues below, each on both viewports. `pnpm test`: 234 passed. `pnpm build`: passed.
+
+**5 Nov:** both app issues are fixed, a sidebar and top bar size test was added (`shell.spec.js`), and the code was
+reformatted with Prettier. Full run: everything passed except one test that failed once under load and passed on its own
+(`auth.spec.js` "links to Account to change the details", 10 of 10 alone, 40 of 40 with 8 workers).
+
+The 15 skipped runs are tests that only make sense on one device (keyboard and hover on desktop; the tab bar and phone
+layouts on iPhone). Each one runs and passes on its own device.
 
 Every feature has at least 5 tests, covering function and senior usability: Accounts, Forgot password, Scan, Photo checks
 and privacy, Confirm, Explain and quick check, Read-aloud, Languages, Bill breakdown, Subsidy checker, Schedule, Google
 Calendar, Ask, History, Account page, Caregiver, Home, Landing, Beginner's guide, App shell and theme.
 
-## App issues found (app code not changed)
+## App issues found (both fixed by 5 Nov)
 
 1. **Schedule > Today: text under 16px, and day buttons under 44px wide on phones.** Test: `schedule.spec.js` "Today and My medicines: big targets and text".
    - [DayStrip.vue:101](../src/components/schedule/DayStrip.vue#L101): `.lid` weekday letters are 15px, and the `.badge-dot` mark is also under 16px.
    - [TodayList.css:22](../src/styles/components/TodayList.css#L22): `.pc-stats small` ("Doses today", "Taken") is 15px.
    - [DayCards.css:14](../src/styles/components/DayCards.css#L14): `.tag` (the dose time) is 14px.
    - `.comp` day buttons are narrower than 44px at 375px, because seven share the row.
+   - **Fixed:** all four are 16px now, and on phones under 400px the gaps shrink so each day is 44px wide. The progress
+     ring's small "done" label (about 12px) was removed, and the desktop sidebar's language label went from 15px to 16px.
+     On 360px Android phones the days are still about 42px (passed to Lokesh).
 2. **History: the delete question ignores Esc.** [HistoryItem.vue:64](../src/components/history/HistoryItem.vue#L64) has `role="alertdialog"` but no Esc handling, and focus does not move into it. Test: `history.spec.js` "the delete pop-up works by keyboard".
+   - **Fixed:** Esc closes it, and focus moves onto "Keep it", then back to Delete.
 
 ## Test limits
 
@@ -29,6 +40,9 @@ Calendar, Ask, History, Account page, Caregiver, Home, Landing, Beginner's guide
 - `expectSeniorFriendly` skips `.dose-btn` (its tap area is the whole card) and, on Landing, the decorative papers.
 - Logged-out pages are always day mode, so their "(dark)" axe tests repeat the day check. Night mode is checked on logged-in pages.
 - Under load, 3 tests failed once in a partial run, then passed 18 of 18 repeats and the full run.
+- Parallel tests all come from one address, so they share the server's 60 changes a minute limit on doses and the
+  schedule. A run can hit it (a 429 in the trace); if one-off failures keep happening, raise `DOSE_RATE_LIMIT` for the
+  test server in `playwright.config.js`.
 
 ## Not built, so not tested
 

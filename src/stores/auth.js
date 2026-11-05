@@ -1,11 +1,4 @@
-// Who is logged in (a Pinia store, Week 11). Login, sign up, log out and account changes are its actions.
-// "Remember me": the token lives in localStorage (kept for 30 days, renewed on every visit). Without it, in sessionStorage,
-// so closing the browser logs you out. api/client.js sends the token with every request.
-// A copy of the account details is kept next to the token, so a returning user opens the app instantly
-// while restore() checks with the server in the background. Logging out removes both.
-// The app language is part of the account: logging in on any device uses it, and changing it anywhere saves it.
-// A language picked while logged out (Login, Sign up, welcome page) wins at login and becomes the account's.
-// Day/night mode is part of the account too: asked once after signing up (ThemePrompt), changed on the Account page.
+// Pinia store for who is logged in: login, signup, logout and account changes.
 import { ref, watch } from 'vue'
 import { defineStore } from 'pinia'
 import { useScanStore } from './scan'
@@ -18,9 +11,11 @@ import { fadeScreen } from '../screenFade'
 
 const USER_KEY = 'user'
 
+// Stores the token and user in localStorage ("Remember me") or sessionStorage, and clears the other.
 function save(token, remember, user) {
   try {
-    for (const s of [localStorage, sessionStorage]) s.removeItem(TOKEN_KEY), s.removeItem(USER_KEY)
+    for (const s of [localStorage, sessionStorage])
+      (s.removeItem(TOKEN_KEY), s.removeItem(USER_KEY))
     if (!token) return
     const store = remember ? localStorage : sessionStorage
     store.setItem(TOKEN_KEY, token)
@@ -40,6 +35,7 @@ function savedUser() {
   }
 }
 
+// True when the saved login is the "Remember me" kind.
 const isRemembered = () => {
   try {
     return Boolean(localStorage.getItem(TOKEN_KEY))
@@ -49,7 +45,7 @@ const isRemembered = () => {
 }
 
 export const useAuthStore = defineStore('auth', () => {
-  // state
+  // Login state
   const user = ref(savedUser()) // { name, email, dob, citizenship, citizenSince, income } once we know who this is
   const checked = ref(false) // true once we have asked the server (or found no token to ask with)
 
@@ -66,24 +62,31 @@ export const useAuthStore = defineStore('auth', () => {
       checked.value = true
       return Promise.resolve()
     }
-    pending ??= api('/auth/me').then((res) => {
-      if (res.ok) {
-        user.value = res.data.user
-        useAccountLanguage(res.data.user)
-        useAccountTheme(res.data.user)
-        // Remembered logins get a fresh 30 days from today; either way the saved copy is updated.
-        save(res.data.token ?? readToken(), Boolean(res.data.token) || isRemembered(), res.data.user)
-      } else if (res.error.code === 'NOT_LOGGED_IN') {
-        // Only a bad token logs you out, not a network blip (then the saved copy keeps working).
-        save(null)
-        user.value = null
-        resetTheme()
-      }
-      checked.value = true
-    })
+    // Only the first call asks the server; every later call gets the same request back (`pending`).
+    if (!pending)
+      pending = api('/auth/me').then((res) => {
+        if (res.ok) {
+          user.value = res.data.user
+          useAccountLanguage(res.data.user)
+          useAccountTheme(res.data.user)
+          // Remembered logins get a fresh 30 days from today; either way the saved copy is updated.
+          save(
+            res.data.token ?? readToken(),
+            Boolean(res.data.token) || isRemembered(),
+            res.data.user,
+          )
+        } else if (res.error.code === 'NOT_LOGGED_IN') {
+          // Only a bad token logs you out, not a network blip (then the saved copy keeps working).
+          save(null)
+          user.value = null
+          resetTheme()
+        }
+        checked.value = true
+      })
     return pending
   }
 
+  // Signup and login both end here: sends the details and keeps the token and user. The account's language and colours wait for enterApp.
   async function start(path, body, remember) {
     const res = await api(path, { method: 'POST', body: { ...body, remember } })
     if (res.ok) {
@@ -111,16 +114,24 @@ export const useAuthStore = defineStore('auth', () => {
       await router.push(to)
     }, 'enter')
 
-  const login = (email, password, remember = true) => start('/auth/login', { email, password }, remember)
+  // Logs in with an email and password.
+  const login = (email, password, remember = true) =>
+    start('/auth/login', { email, password }, remember)
   // Forgot your password? Emails a reset link if an account uses this address (the answer is the same either way).
   // The language in use picks the email's language for accounts that haven't chosen one.
-  const requestReset = (email) => api('/auth/forgot', { method: 'POST', body: { email, language: i18n.global.locale.value } })
+  const requestReset = (email) =>
+    api('/auth/forgot', { method: 'POST', body: { email, language: i18n.global.locale.value } })
   // The new password from an emailed link: logs this device in (and every other device out).
-  const resetPassword = (token, password, remember = true) => start('/auth/reset', { token, password }, remember)
+  const resetPassword = (token, password, remember = true) =>
+    start('/auth/reset', { token, password }, remember)
   // profile = { name, dob, citizenship, citizenSince }
   // The language in use when they sign up (picked on the welcome page or above the form) becomes the account's language.
   const signup = (email, password, profile, remember = true) =>
-    start('/auth/signup', { ...profile, email, password, language: i18n.global.locale.value }, remember)
+    start(
+      '/auth/signup',
+      { ...profile, email, password, language: i18n.global.locale.value },
+      remember,
+    )
 
   // Saves account changes (PATCH /api/auth/me) and keeps the saved copy in step.
   async function patchMe(changes) {
@@ -140,6 +151,7 @@ export const useAuthStore = defineStore('auth', () => {
     user.value = { ...user.value, language }
     return patchMe({ language })
   }
+  // Saves the day/night choice to the account.
   function saveTheme(theme) {
     if (!user.value) return null
     user.value = { ...user.value, theme }
@@ -153,7 +165,8 @@ export const useAuthStore = defineStore('auth', () => {
   // Logged in: switch to the account's language, unless they just picked one on the way in (then that one is saved).
   // Accounts from before languages were saved get this device's language.
   function useAccountLanguage(account, keepPicked = false) {
-    if (!account.language || (keepPicked && account.language !== i18n.global.locale.value)) saveLanguage(i18n.global.locale.value)
+    if (!account.language || (keepPicked && account.language !== i18n.global.locale.value))
+      saveLanguage(i18n.global.locale.value)
     else if (account.language !== i18n.global.locale.value) setLocale(account.language)
   }
 
@@ -187,5 +200,19 @@ export const useAuthStore = defineStore('auth', () => {
     }, 'enter')
   }
 
-  return { user, checked, restore, enterApp, login, requestReset, resetPassword, signup, updateProfile, saveLanguage, saveTheme, logout, leaveApp }
+  return {
+    user,
+    checked,
+    restore,
+    enterApp,
+    login,
+    requestReset,
+    resetPassword,
+    signup,
+    updateProfile,
+    saveLanguage,
+    saveTheme,
+    logout,
+    leaveApp,
+  }
 })

@@ -9,8 +9,8 @@ Canonical route: **`/api/history`**, using the already mounted route. The build 
 | Method | Path | Success |
 | --- | --- | --- |
 | POST | `/api/history` | 201, `{ id, createdAt, scan }` |
-| GET | `/api/history?page=1` | 200, `{ items, page, pageSize: 10, pages, total, hasMore }`; each item `{ id, type, source, title, createdAt, totalPayableCents (bills, else null), shareToken, shareExpiresAt (null unless a link is live) }` |
-| GET | `/api/history/all` | 200, `{ items, total, capped }`; every summary at once (the newest 500), each list item plus `visitDate` (bills, else null) |
+| GET | `/api/history?page=1` | 200, `{ items, page, pageSize: 10, pages, total, hasMore }`; each item `{ id, type, source, title, purpose (medicines, else null), createdAt, totalPayableCents (bills, else null) }`. The app uses `/all` below; this paged route is kept for the API tests |
+| GET | `/api/history/all` | 200, `{ items, total, capped }`; every summary at once (the newest 500), each list item plus `visitDate` (bills, else null). The History page uses this one. Scan sharing was removed, so there are no share links |
 | GET | `/api/history/:id` | 200, `{ id, createdAt, scan }` |
 | DELETE | `/api/history/:id` | 200, `{ id }` |
 

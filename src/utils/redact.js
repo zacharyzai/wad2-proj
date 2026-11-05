@@ -1,19 +1,17 @@
-// Reads a photo on the phone (Tesseract.js) and sends only the medicine and bill lines: the image starts all black and
-// just those lines are copied back in, with labelled personal details on them blacked out again. Black, not blur: a blur
-// can still be read. The rules live in sensitive.js.
-// shortcut: Tesseract downloads its engine and English data (~5 MB, cached) from the jsDelivr CDN on first use;
-// self-host them in public/ before shipping so it works offline and no third party is involved.
+// Covers personal details in a photo on this device (OCR) before it is sent anywhere.
 import { createWorker } from 'tesseract.js'
 import { baselineAt, planRedaction } from './sensitive.js'
 import { loadImage } from './images.js'
 
 let worker = null
+// The shared OCR worker, started on first use.
 function getWorker() {
   // A failed start (e.g. offline) is forgotten, so the next photo tries again.
-  worker ??= createWorker('eng').catch((err) => {
-    worker = null
-    throw err
-  })
+  if (!worker)
+    worker = createWorker('eng').catch((err) => {
+      worker = null
+      throw err
+    })
   return worker
 }
 
@@ -29,6 +27,7 @@ const READ_SIDE = 2400
 const NORMAL = 'grayscale(1) contrast(1.5)'
 // Light text on a dark box (a "Balance Due" bar, a coloured header) is invisible to the reader; inverted, it is dark on light.
 const INVERTED = 'grayscale(1) invert(1)' // no contrast boost: it washes a mid-dark box (purple, teal) out to blank
+// Draws the photo to a canvas at a size the OCR can read, with an optional contrast filter.
 function forReading(img, filter = NORMAL) {
   const scale = Math.min(2, Math.max(1, READ_SIDE / Math.max(img.naturalWidth, img.naturalHeight)))
   const canvas = document.createElement('canvas')
@@ -52,7 +51,8 @@ function hasDarkAreas(img) {
   ctx.drawImage(img, 0, 0, w, h)
   const px = ctx.getImageData(0, 0, w, h).data
   let dark = 0
-  for (let i = 0; i < px.length; i += 4) if (0.3 * px[i] + 0.59 * px[i + 1] + 0.11 * px[i + 2] < 110) dark++
+  for (let i = 0; i < px.length; i += 4)
+    if (0.3 * px[i] + 0.59 * px[i + 1] + 0.11 * px[i + 2] < 110) dark++
   return dark / (w * h) > 0.01
 }
 
@@ -61,7 +61,11 @@ async function readLines(img, filter = NORMAL) {
   const { canvas, scale } = forReading(img, filter)
   const ocr = await getWorker()
   const { data } = await ocr.recognize(canvas, {}, { blocks: true, text: true })
-  return { lines: (data.blocks ?? []).flatMap((block) => block.paragraphs.flatMap((p) => p.lines)), text: data.text, scale }
+  return {
+    lines: (data.blocks ?? []).flatMap((block) => block.paragraphs.flatMap((p) => p.lines)),
+    text: data.text,
+    scale,
+  }
 }
 
 /**
@@ -77,7 +81,9 @@ export async function redactImage(dataUrl) {
   const first = await readLines(img)
   const { scale, text } = first
   const a = planRedaction(first.lines)
-  const b = hasDarkAreas(img) ? planRedaction((await readLines(img, INVERTED)).lines) : { keep: [], hits: [] }
+  const b = hasDarkAreas(img)
+    ? planRedaction((await readLines(img, INVERTED)).lines)
+    : { keep: [], hits: [] }
   const keep = [...a.keep, ...b.keep]
   const hits = [...a.hits, ...b.hits]
 
@@ -107,9 +113,20 @@ export async function redactImage(dataUrl) {
     // Personal details on a shown row are blacked out again, only inside the strip (so they never cut into the next row).
     for (const { bbox } of hits) {
       const pad = Math.max(4, (bbox.y1 - bbox.y0) * 0.2)
-      ctx.fillRect(bbox.x0 - pad, bbox.y0 - pad, bbox.x1 - bbox.x0 + 2 * pad, bbox.y1 - bbox.y0 + 2 * pad)
+      ctx.fillRect(
+        bbox.x0 - pad,
+        bbox.y0 - pad,
+        bbox.x1 - bbox.x0 + 2 * pad,
+        bbox.y1 - bbox.y0 + 2 * pad,
+      )
     }
     ctx.restore()
   }
-  return { dataUrl: canvas.toDataURL('image/jpeg', 0.8), keep, hits, text, ms: Math.round(performance.now() - started) }
+  return {
+    dataUrl: canvas.toDataURL('image/jpeg', 0.8),
+    keep,
+    hits,
+    text,
+    ms: Math.round(performance.now() - started),
+  }
 }

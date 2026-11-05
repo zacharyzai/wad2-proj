@@ -16,7 +16,9 @@ const mockForgot = (page, answer = { json: { ok: true, data: { minutes: 30 } } }
   return sent
 }
 
-test('Forgot your password? on Log in carries the email over and says to check it, whether or not an account uses it', async ({ page }) => {
+test('Forgot your password? on Log in carries the email over and says to check it, whether or not an account uses it', async ({
+  page,
+}) => {
   const sent = mockForgot(page)
   await page.goto('/login')
   await page.getByTestId('login-email').fill('mei@example.com')
@@ -33,14 +35,21 @@ test('Forgot your password? on Log in carries the email over and says to check i
   expect(sent).toEqual([{ email: 'mei@example.com', language: 'en' }])
 
   await page.getByTestId('forgot-again').click()
-  await expect(page.getByTestId('forgot-again-done')).toHaveText('Sent again. Use the newest email.')
+  await expect(page.getByTestId('forgot-again-done')).toHaveText(
+    'Sent again. Use the newest email.',
+  )
   expect(sent).toHaveLength(2)
   await page.getByTestId('forgot-back').click()
   await expect(page).toHaveURL(/\/login$/)
 })
 
-test('Forgot: a typo is caught before sending, and too many links for one email says to wait an hour', async ({ page }) => {
-  const sent = mockForgot(page, { status: 429, json: { ok: false, error: { code: 'RATE_LIMITED', message: '' } } })
+test('Forgot: a typo is caught before sending, and too many links for one email says to wait an hour', async ({
+  page,
+}) => {
+  const sent = mockForgot(page, {
+    status: 429,
+    json: { ok: false, error: { code: 'RATE_LIMITED', message: '' } },
+  })
   await page.goto('/forgot')
   await page.getByTestId('forgot-email').fill('mei@example')
   await page.getByTestId('forgot-submit').click()
@@ -48,16 +57,24 @@ test('Forgot: a typo is caught before sending, and too many links for one email 
   expect(sent).toHaveLength(0)
   await page.getByTestId('forgot-email').fill('mei@example.com')
   await page.getByTestId('forgot-submit').click()
-  await expect(page.getByTestId('forgot-error')).toHaveText('We’ve already sent several links to this email. Please wait an hour, then try again.')
+  await expect(page.getByTestId('forgot-error')).toHaveText(
+    'We’ve already sent several links to this email. Please wait an hour, then try again.',
+  )
 })
 
-test('Reset: the link is taken out of the address, the new password logs this device in, then Continue goes Home', async ({ page }) => {
+test('Reset: the link is taken out of the address, the new password logs this device in, then Continue goes Home', async ({
+  page,
+}) => {
   let body
   await page.route('**/api/auth/reset', (route) => {
     body = route.request().postDataJSON()
-    return route.fulfill({ json: { ok: true, data: { token: testToken(), user: { ...DEMO_USER, role: 'senior' } } } })
+    return route.fulfill({
+      json: { ok: true, data: { token: testToken(), user: { ...DEMO_USER, role: 'senior' } } },
+    })
   })
-  await page.route('**/api/auth/me', (route) => route.fulfill({ json: { ok: true, data: { user: { ...DEMO_USER, role: 'senior' } } } }))
+  await page.route('**/api/auth/me', (route) =>
+    route.fulfill({ json: { ok: true, data: { user: { ...DEMO_USER, role: 'senior' } } } }),
+  )
   await page.goto('/reset#token=link.from.email')
   await expect(page).toHaveURL(/\/reset$/) // single-use link: not left in history
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Choose a new password.')
@@ -65,7 +82,10 @@ test('Reset: the link is taken out of the address, the new password logs this de
   await page.getByTestId('reset-password').fill('short')
   await page.getByTestId('reset-submit').click()
   await expect(page.getByTestId('reset-pw-warn')).toContainText('not safe enough')
-  await expect(page.getByTestId('reset-hint').locator('[data-rule="special"]')).toHaveAttribute('data-ok', 'false')
+  await expect(page.getByTestId('reset-hint').locator('[data-rule="special"]')).toHaveAttribute(
+    'data-ok',
+    'false',
+  )
   expect(body).toBeUndefined()
 
   await page.getByTestId('reset-password').fill('brand-new-pass-7')
@@ -78,12 +98,21 @@ test('Reset: the link is taken out of the address, the new password logs this de
   await expect(page).toHaveURL(/localhost:5173\/$/)
 })
 
-test('Reset: an expired or used link, or none, offers a new link instead of a dead end', async ({ page }) => {
-  await page.route('**/api/auth/reset', (route) => route.fulfill({ status: 400, json: { ok: false, error: { code: 'RESET_LINK_INVALID', message: '' } } }))
+test('Reset: an expired or used link, or none, offers a new link instead of a dead end', async ({
+  page,
+}) => {
+  await page.route('**/api/auth/reset', (route) =>
+    route.fulfill({
+      status: 400,
+      json: { ok: false, error: { code: 'RESET_LINK_INVALID', message: '' } },
+    }),
+  )
   await page.goto('/reset#token=old.used.link')
   await page.getByTestId('reset-password').fill('brand-new-pass-7')
   await page.getByTestId('reset-submit').click()
-  await expect(page.getByTestId('reset-bad')).toContainText('This link has expired or was already used')
+  await expect(page.getByTestId('reset-bad')).toContainText(
+    'This link has expired or was already used',
+  )
   await page.goto('/reset') // no link at all
   await expect(page.getByTestId('reset-bad')).toBeVisible()
   await page.getByTestId('reset-new-link').click()
@@ -96,7 +125,9 @@ test('Forgot and Reset have no missing translations in any language @i18n', asyn
     await page.goto(path)
     for (const language of ['中文', 'BM', 'தமிழ்', 'EN']) {
       await page.getByRole('button', { name: new RegExp(`^${language}( |$)`) }).click() // "BM Bahasa Melayu", "EN English": the short name, then the full one
-      await expect(page.locator('main')).not.toContainText(/\b(auth|common|errors|pages)\.[A-Za-z.]+/)
+      await expect(page.locator('main')).not.toContainText(
+        /\b(auth|common|errors|pages)\.[A-Za-z.]+/,
+      )
     }
   }
 })
@@ -108,8 +139,12 @@ for (const colorScheme of ['light', 'dark']) {
     mockForgot(page)
     const bad = []
     const check = async (where) => {
-      const { violations } = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze()
-      bad.push(...violations.map((v) => `${where} ${v.id}: ${v.nodes.map((n) => n.target).join(' | ')}`))
+      const { violations } = await new AxeBuilder({ page })
+        .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
+        .analyze()
+      bad.push(
+        ...violations.map((v) => `${where} ${v.id}: ${v.nodes.map((n) => n.target).join(' | ')}`),
+      )
     }
     await page.goto('/forgot')
     await check('forgot')
@@ -125,7 +160,9 @@ for (const colorScheme of ['light', 'dark']) {
   })
 }
 
-test('Reset: a long password with no special character is refused, and the missing rule is named', async ({ page }) => {
+test('Reset: a long password with no special character is refused, and the missing rule is named', async ({
+  page,
+}) => {
   let sent = false
   await page.route('**/api/auth/reset', (route) => {
     sent = true
@@ -135,8 +172,14 @@ test('Reset: a long password with no special character is refused, and the missi
   await page.getByTestId('reset-password').fill('tehtarik1952')
   await page.getByTestId('reset-submit').click()
   await expect(page.getByTestId('reset-pw-warn')).toBeVisible()
-  await expect(page.getByTestId('reset-hint').locator('[data-rule="length"]')).toHaveAttribute('data-ok', 'true')
-  await expect(page.getByTestId('reset-hint').locator('[data-rule="special"]')).toHaveAttribute('data-ok', 'false')
+  await expect(page.getByTestId('reset-hint').locator('[data-rule="length"]')).toHaveAttribute(
+    'data-ok',
+    'true',
+  )
+  await expect(page.getByTestId('reset-hint').locator('[data-rule="special"]')).toHaveAttribute(
+    'data-ok',
+    'false',
+  )
   expect(sent).toBe(false)
 })
 

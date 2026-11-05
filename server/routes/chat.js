@@ -1,9 +1,16 @@
-// Owner: Zachary. Contract: docs/chat-contract.md
 import { Router } from 'express'
 import { sendError } from '../errors.js'
 import { chatRateLimit, takeDailyQuota } from '../middleware/rateLimit.js'
 import { normalizeMedication } from '../services/normalizeScan.js'
-import { askAboutMedicine, isRedFlag, mockReply, LANGS, MAX_ANSWER, MAX_HISTORY, MAX_QUESTION } from '../services/chat.js'
+import {
+  askAboutMedicine,
+  isRedFlag,
+  mockReply,
+  LANGS,
+  MAX_ANSWER,
+  MAX_HISTORY,
+  MAX_QUESTION,
+} from '../services/chat.js'
 import { ScanError } from '../services/gemini.js'
 
 // A real label is a few hundred characters; more means someone is stuffing the prompt.
@@ -16,32 +23,67 @@ const router = Router()
 router.post('/', chatRateLimit, async (req, res) => {
   const { medicines = [], question, lang, history = [] } = req.body ?? {}
 
-  if (!Object.hasOwn(LANGS, lang)) return sendError(res, 400, 'BAD_REQUEST', 'lang must be en, zh, ms or ta')
+  if (!Object.hasOwn(LANGS, lang))
+    return sendError(res, 400, 'BAD_REQUEST', 'lang must be en, zh, ms or ta')
   const q = typeof question === 'string' ? question.trim() : ''
-  if (!q || q.length > MAX_QUESTION) return sendError(res, 400, 'BAD_REQUEST', `question must be 1 to ${MAX_QUESTION} characters`)
+  if (!q || q.length > MAX_QUESTION)
+    return sendError(res, 400, 'BAD_REQUEST', `question must be 1 to ${MAX_QUESTION} characters`)
   // The user's medicines (may be empty). Only contract fields survive, so a name or NRIC added to the body never reaches the AI.
   if (!Array.isArray(medicines) || medicines.length > MAX_MEDICINES) {
-    return sendError(res, 400, 'BAD_REQUEST', `medicines must be a list of at most ${MAX_MEDICINES}`)
+    return sendError(
+      res,
+      400,
+      'BAD_REQUEST',
+      `medicines must be a list of at most ${MAX_MEDICINES}`,
+    )
   }
-  const facts = medicines.map((m) => ({ source: SOURCES.includes(m?.source) ? m.source : null, ...normalizeMedication(m?.medication ?? {}).medication }))
+  const facts = medicines.map((m) => ({
+    source: SOURCES.includes(m?.source) ? m.source : null,
+    ...normalizeMedication(m?.medication ?? {}).medication,
+  }))
   if (facts.some((f) => !f.source || !f.name)) {
-    return sendError(res, 400, 'BAD_REQUEST', 'each medicine needs a source (label or typed) and a name')
+    return sendError(
+      res,
+      400,
+      'BAD_REQUEST',
+      'each medicine needs a source (label or typed) and a name',
+    )
   }
   if (JSON.stringify(facts).length > MAX_FACTS) {
-    return sendError(res, 400, 'BAD_REQUEST', `too much medicine text at once (over ${MAX_FACTS} characters): send only the medicines the question is about`)
+    return sendError(
+      res,
+      400,
+      'BAD_REQUEST',
+      `too much medicine text at once (over ${MAX_FACTS} characters): send only the medicines the question is about`,
+    )
   }
 
   // Earlier turns, oldest first: plain strings within the same limits the server itself uses.
-  const turnOk = (h) => typeof h?.q === 'string' && typeof h?.a === 'string' && h.q.length <= MAX_QUESTION && h.a.length <= MAX_ANSWER
+  const turnOk = (h) =>
+    typeof h?.q === 'string' &&
+    typeof h?.a === 'string' &&
+    h.q.length <= MAX_QUESTION &&
+    h.a.length <= MAX_ANSWER
   if (!Array.isArray(history) || history.length > MAX_HISTORY || !history.every(turnOk)) {
-    return sendError(res, 400, 'BAD_REQUEST', `history must be at most ${MAX_HISTORY} turns of { q, a }`)
+    return sendError(
+      res,
+      400,
+      'BAD_REQUEST',
+      `history must be at most ${MAX_HISTORY} turns of { q, a }`,
+    )
   }
   const turns = history.map(({ q, a }) => ({ q, a })) // drop any extra fields
 
   // Emergencies get a fixed answer from our code, never from the AI.
   if (isRedFlag(q)) return res.json({ ok: true, data: { type: 'URGENT' } })
 
-  if (!takeDailyQuota('chat')) return sendError(res, 429, 'RATE_LIMITED', 'Daily question limit reached, please try again tomorrow')
+  if (!takeDailyQuota('chat'))
+    return sendError(
+      res,
+      429,
+      'RATE_LIMITED',
+      'Daily question limit reached, please try again tomorrow',
+    )
   if (process.env.USE_MOCK_AI === 'true') return res.json({ ok: true, data: mockReply(facts, q) })
 
   try {

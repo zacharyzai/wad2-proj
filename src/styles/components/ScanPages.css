@@ -1,18 +1,91 @@
-/* Scoped styles for components/scan/ScanPages.vue. */
-.privacy { display: flex; align-items: center; gap: 10px; margin: 0; padding: 0 4px; color: var(--color-text-muted); font-size: 16px; line-height: 1.45; }
+/* Styles for the list of scan pages. */
+.privacy {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  padding: 0 4px;
+  color: var(--color-text-muted);
+  font-size: 16px;
+  line-height: 1.45;
+}
 
 /* Numbered pages, each with its own check, then "Does this bill have another page?". */
-.shots { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 0; padding: 0; list-style: none; }
-.shot { gap: 10px; padding: 12px; border: 2px solid transparent; }
-.shot.bad { border-color: var(--color-warning); }
-.shot-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 18px; font-weight: 800; }
-.shot-ok { color: var(--color-success-text); }
-.shot-warn { color: var(--color-warning-text); }
-.shot-img { display: block; width: 100%; aspect-ratio: 3 / 4; object-fit: cover; object-position: top; border: 1px solid var(--color-border); border-radius: 12px; background: var(--color-surface-2); }
-.shot-state { margin: 0; font-size: 16px; font-weight: 600; line-height: 1.35; color: var(--color-text-muted); }
-.shot-state.warn { color: var(--color-warning-text); font-weight: 700; }
-.shot-acts { display: flex; flex-direction: column; gap: 6px; }
-.more-card { padding: 20px; }
-.more-q { margin: 0; font-family: var(--font-display); font-size: var(--t22, 22px); font-weight: 400; line-height: 1.3; text-wrap: balance; }
-:lang(ta) .more-q { font-family: var(--font-sans); font-weight: 800; font-size: var(--t20, 20px); }
-.fix-first { margin: 0; font-size: 16px; font-weight: 700; color: var(--color-warning-text); }
+.shots {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.shot {
+  gap: 10px;
+  padding: 12px;
+  border: 2px solid transparent;
+}
+.shot.bad {
+  border-color: var(--color-warning);
+}
+.shot-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 18px;
+  font-weight: 800;
+}
+.shot-ok {
+  color: var(--color-success-text);
+}
+.shot-warn {
+  color: var(--color-warning-text);
+}
+.shot-img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  object-position: top;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: var(--color-surface-2);
+}
+.shot-state {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--color-text-muted);
+}
+.shot-state.warn {
+  color: var(--color-warning-text);
+  font-weight: 700;
+}
+.shot-acts {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.more-card {
+  padding: 20px;
+}
+.more-q {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--t22, 22px);
+  font-weight: 400;
+  line-height: 1.3;
+  text-wrap: balance;
+}
+:lang(ta) .more-q {
+  font-family: var(--font-sans);
+  font-weight: 800;
+  font-size: var(--t20, 20px);
+}
+.fix-first {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-warning-text);
+}

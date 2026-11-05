@@ -1,8 +1,4 @@
-// Day/night mode. Three choices: day ('light'), night ('dark') or the same as this phone or computer ('system').
-// Day mode unless the person picked another (the sidebar toggle, Sign up's question or the Account page); the pick is
-// remembered on this device and saved to the account (stores/auth.js). index.html sets the first value before the app
-// loads, so the page never flashes. Night mode belongs to an account: logged out (no saved login), it is always day mode,
-// and logging out goes back to day (resetTheme).
+// Day / night / device theme: the saved choice and what is currently showing.
 import { ref } from 'vue'
 import { readToken } from './api/client'
 import { canFade, fadeScreen } from './screenFade'
@@ -11,6 +7,7 @@ const STORAGE_KEY = 'theme'
 export const THEMES = ['light', 'dark', 'system']
 export const THEME_ICONS = { light: 'sun', dark: 'moon', system: 'smartphone' }
 
+// The saved day/night choice; guests always get day.
 function saved() {
   if (!readToken()) return 'light'
   try {
@@ -21,13 +18,17 @@ function saved() {
   }
 }
 
-const deviceDark = typeof matchMedia === 'function' ? matchMedia('(prefers-color-scheme: dark)') : null
-const reduceMotion = typeof matchMedia === 'function' ? matchMedia('(prefers-reduced-motion: reduce)') : null
+const deviceDark =
+  typeof matchMedia === 'function' ? matchMedia('(prefers-color-scheme: dark)') : null
+const reduceMotion =
+  typeof matchMedia === 'function' ? matchMedia('(prefers-reduced-motion: reduce)') : null
 export const themeChoice = ref(saved()) // what they picked
 export const shownTheme = ref('light') // what is showing: always 'light' or 'dark' ('system' resolved)
 
 // What shows is always 'light' or 'dark' (tokens.css): 'system' becomes whichever the device is using now.
-const resolve = () => (themeChoice.value === 'system' ? (deviceDark?.matches ? 'dark' : 'light') : themeChoice.value)
+const resolve = () =>
+  themeChoice.value === 'system' ? (deviceDark?.matches ? 'dark' : 'light') : themeChoice.value
+// Puts the current theme on the page.
 function apply() {
   shownTheme.value = resolve()
   document.documentElement.dataset.theme = shownTheme.value
@@ -39,7 +40,8 @@ function apply() {
 const FADE_MS = 500
 function applyChange(pressed) {
   const root = document.documentElement
-  if (!pressed || reduceMotion?.matches || document.hidden || root.dataset.theme === resolve()) return apply()
+  if (!pressed || reduceMotion?.matches || document.hidden || root.dataset.theme === resolve())
+    return apply()
   if (canFade()) return fadeScreen(apply, 'theme')
   root.classList.add('theme-fade')
   apply()

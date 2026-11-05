@@ -7,24 +7,28 @@ import mongoose from 'mongoose'
 import { sentMail } from '../server/services/mail.js'
 
 const test = base.extend({
-  authBackend: [async ({}, use) => {
-    process.env.JWT_SECRET = randomBytes(48).toString('hex')
-    process.env.USE_MOCK_AI = 'true'
-    for (const name of ['APP_URL', 'MAIL_PROVIDER', 'VERCEL', 'NODE_ENV']) delete process.env[name] // console mail: links to localhost:5173
-    const mongo = await MongoMemoryServer.create()
-    process.env.MONGODB_URI = mongo.getUri('auth_browser_test')
-    let server
-    try {
-      const { default: app } = await import('../server/app.js')
-      server = app.listen(0, '127.0.0.1')
-      await once(server, 'listening')
-      await use(`http://127.0.0.1:${server.address().port}`)
-    } finally {
-      if (server) await new Promise((resolve) => server.close(resolve))
-      await mongoose.disconnect()
-      await mongo.stop()
-    }
-  }, { scope: 'worker' }],
+  authBackend: [
+    async ({}, use) => {
+      process.env.JWT_SECRET = randomBytes(48).toString('hex')
+      process.env.USE_MOCK_AI = 'true'
+      for (const name of ['APP_URL', 'MAIL_PROVIDER', 'VERCEL', 'NODE_ENV'])
+        delete process.env[name] // console mail: links to localhost:5173
+      const mongo = await MongoMemoryServer.create()
+      process.env.MONGODB_URI = mongo.getUri('auth_browser_test')
+      let server
+      try {
+        const { default: app } = await import('../server/app.js')
+        server = app.listen(0, '127.0.0.1')
+        await once(server, 'listening')
+        await use(`http://127.0.0.1:${server.address().port}`)
+      } finally {
+        if (server) await new Promise((resolve) => server.close(resolve))
+        await mongoose.disconnect()
+        await mongo.stop()
+      }
+    },
+    { scope: 'worker' },
+  ],
 })
 
 async function fillSignup(page, email, password) {
@@ -37,11 +41,16 @@ async function fillSignup(page, email, password) {
   await page.getByTestId('signup-submit').click()
 }
 
-test('real profile signup, account editing, session restoration and protected scan', async ({ page, authBackend }) => {
+test('real profile signup, account editing, session restoration and protected scan', async ({
+  page,
+  authBackend,
+}) => {
   // Redirect transport only: authentication, MongoDB and every API handler remain real.
   await page.route('http://localhost:5173/api/**', async (route) => {
     const original = new URL(route.request().url())
-    const response = await route.fetch({ url: `${authBackend}${original.pathname}${original.search}` })
+    const response = await route.fetch({
+      url: `${authBackend}${original.pathname}${original.search}`,
+    })
     await route.fulfill({ response })
   })
   const email = `browser-${randomUUID()}@example.com`
@@ -75,7 +84,12 @@ test('real profile signup, account editing, session restoration and protected sc
   await page.getByTestId('login-remember').uncheck()
   await page.getByTestId('login-submit').click()
   await expect(page).toHaveURL('http://localhost:5173/scan')
-  expect(await page.evaluate(() => [Boolean(localStorage.getItem('token')), Boolean(sessionStorage.getItem('token'))])).toEqual([false, true])
+  expect(
+    await page.evaluate(() => [
+      Boolean(localStorage.getItem('token')),
+      Boolean(sessionStorage.getItem('token')),
+    ]),
+  ).toEqual([false, true])
   await page.reload()
   await expect(page).toHaveURL('http://localhost:5173/scan')
   // A new account is asked day or night once, on its first Scan or Home (e2e/theme.spec.js); keep day mode and go on.
@@ -91,12 +105,32 @@ test('real profile signup, account editing, session restoration and protected sc
 async function useRealBackend(page, authBackend) {
   await page.route('http://localhost:5173/api/**', async (route) => {
     const original = new URL(route.request().url())
-    await route.fulfill({ response: await route.fetch({ url: `${authBackend}${original.pathname}${original.search}` }) })
+    await route.fulfill({
+      response: await route.fetch({ url: `${authBackend}${original.pathname}${original.search}` }),
+    })
   })
 }
 
-test('real forgotten password: emailed link, new password, every other device logged out', async ({ browser, authBackend }) => {
-  const fresh = () => browser.newContext({ storageState: { cookies: [], origins: [{ origin: 'http://localhost:5173', localStorage: [{ name: 'seenWelcome', value: '1' }, { name: 'amag.tour', value: 'seen' }, { name: 'theme', value: 'light' }] }] } })
+test('real forgotten password: emailed link, new password, every other device logged out', async ({
+  browser,
+  authBackend,
+}) => {
+  const fresh = () =>
+    browser.newContext({
+      storageState: {
+        cookies: [],
+        origins: [
+          {
+            origin: 'http://localhost:5173',
+            localStorage: [
+              { name: 'seenWelcome', value: '1' },
+              { name: 'amag.tour', value: 'seen' },
+              { name: 'theme', value: 'light' },
+            ],
+          },
+        ],
+      },
+    })
   const email = `reset-${randomUUID()}@example.com`
   const oldPassword = 'old-teh-tarik-1952'
   const newPassword = 'new-password456'

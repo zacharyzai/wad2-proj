@@ -1,11 +1,4 @@
-<!-- Owner: Lokesh (redesigned by Claude from the Claude Design "Schedule" screens, declared in README.txt; Today and This week
-     made one view, Reminders folded into My medicines, by Asher). Medicine schedule in two tabs (?view=meds), so Back works:
-       Today        the week as a strip of days (DayStrip.vue); today below it: what's due, the day's progress and a card
-                    for every dose (TodayList.vue); another day: what was taken or is coming (DayOther.vue)
-       My medicines one card per medicine (MedicineCard.vue, EditDaysForm.vue), the pharmacist list (PharmacistList.vue),
-                    and Google Calendar reminders (CalendarSync.vue). Old links to This week or Reminders open these.
-     This page keeps what the tabs share: the header, which card has a panel open, Remove and Stop with Undo, and the toast.
-     Times come from src/rules/schedule.js (our own rules, never AI). Ticks are in stores/doses.js. -->
+<!-- Schedule page: Today, My medicines and the week, with edit, stop and undo. -->
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -42,31 +35,45 @@ const route = useRoute()
 const VIEWS = ['today', 'meds']
 const OLD = { week: 'today', reminders: 'meds' }
 // Back from Google (?google=connected) opens My medicines, where the calendar card is; CalendarSync then tidies the address.
-const view = computed(() => (route.query.google !== undefined ? 'meds' : OLD[route.query.view] ?? (VIEWS.includes(route.query.view) ? route.query.view : 'today')))
+const view = computed(() =>
+  route.query.google !== undefined
+    ? 'meds'
+    : (OLD[route.query.view] ?? (VIEWS.includes(route.query.view) ? route.query.view : 'today')),
+)
 
 // The day shown under the strip: today, unless another day is picked. Back to today when the day changes.
 const day = ref(today.value)
 watch(today, (now) => (day.value = now))
 // The day's list slides in from the side of the day picked (later days from the right).
 const slide = ref('later')
+// Chooses a day on the week strip and sets the slide direction.
 function pickDay(date) {
   slide.value = date > day.value ? 'later' : 'earlier'
   day.value = date
 }
+// Link for a Schedule tab.
 const viewLink = (v) => ({ query: v === 'today' ? {} : { view: v } })
 // Keyboard users never lose their place: after the page updates, focus moves to the element that now matters.
-const pageEl = ref(null) // template ref (Week 4): look only inside this page, never the whole document
+const pageEl = ref(null) // look only inside this page, never the whole document
+// After the page updates, moves focus to the element matching the selector.
 const focusAfterUpdate = async (selector) => {
   await nextTick()
   pageEl.value?.querySelector(selector)?.focus()
 }
 
 // Every medicine with its ScheduleEntry. Flagged ones (no daily timetable) go to the pharmacist section.
-const rows = computed(() => medicines.map((medicine) => ({ medicine, entry: buildSchedule(medicine, medicine.schedule ?? {}) })))
+const rows = computed(() =>
+  medicines.map((medicine) => ({
+    medicine,
+    entry: buildSchedule(medicine, medicine.schedule ?? {}),
+  })),
+)
 const entries = computed(() => rows.value.map((r) => r.entry)) // the whole schedule, as Google sync gets it
 // Finished and stopped courses sit at the bottom, so what you are taking now comes first.
 const finishedRow = (r) => Boolean(r.entry.endDate && r.entry.endDate < today.value)
-const timetable = computed(() => rows.value.filter((r) => !r.entry.flagged).sort((a, b) => finishedRow(a) - finishedRow(b)))
+const timetable = computed(() =>
+  rows.value.filter((r) => !r.entry.flagged).sort((a, b) => finishedRow(a) - finishedRow(b)),
+)
 const flagged = computed(() => rows.value.filter((r) => r.entry.flagged))
 const needDays = computed(() => timetable.value.filter((r) => !r.entry.endDate).length)
 
@@ -80,6 +87,7 @@ onMounted(() => {
 const managing = ref(null) // id of the medicine whose options are open
 const editing = ref(null) // id of the medicine whose Days and times form is open
 const stopAsk = ref(null) // id of the medicine whose "Stop taking it?" is open
+// Opens or closes the Change/Stop choices for a medicine.
 function toggleManage(id) {
   managing.value = managing.value === id ? null : id
   editing.value = null
@@ -98,6 +106,7 @@ const spot = computed(() => {
   const id = wide.value ? (managing.value ?? editing.value ?? stopAsk.value) : null
   return timetable.value.some((r) => r.medicine.id === id) ? id : null // the pharmacist list keeps its own panel
 })
+// Closes the open choice and returns focus to the button that opened it.
 function closeSpot() {
   const id = spot.value
   const from = stopAsk.value ? 'data-stop' : 'data-change' // back to the button that opened it
@@ -108,15 +117,18 @@ function closeSpot() {
 }
 // Esc puts the card back, unless it is answering the stop question (which has its own Esc).
 const onEsc = (e) => spot.value && !e.target.closest('[role="alertdialog"]') && closeSpot()
+// Opens the edit form for a medicine.
 function openEdit(id) {
   managing.value = null
   editing.value = id // the form puts focus in its first field
 }
+// Saves a medicine's edited days and times.
 function save(id, schedule) {
   setSchedule(id, schedule)
   closeEdit(id)
   notify(t('schedule.saved'))
 }
+// Closes the edit form and returns focus to its Change button.
 function closeEdit(id) {
   editing.value = null
   focusAfterUpdate(`[data-change="${id}"]`) // back to its Change button
@@ -124,7 +136,12 @@ function closeEdit(id) {
 
 // --- Fix what we read: the saved details open on Confirm (no photo, no rescan); Looks correct brings them back here -------------
 function fix(medicine) {
-  Object.assign(scanStore, { current: scanFromMedicine(medicine), photos: [], pdfPages: null, confirmed: false })
+  Object.assign(scanStore, {
+    current: scanFromMedicine(medicine),
+    photos: [],
+    pdfPages: null,
+    confirmed: false,
+  })
   router.push({ name: 'confirm' })
 }
 // Back from Confirm: say it worked, and put focus back on the medicine that was fixed.
@@ -144,6 +161,7 @@ async function welcomeBackFromFix() {
 const removed = ref(null)
 const undoButton = ref(null)
 let undoTimer = 0
+// Removes a medicine, keeping it for a moment so Undo can bring it back.
 async function remove(medicine) {
   clearTimeout(undoTimer)
   if (editing.value === medicine.id) editing.value = null
@@ -153,6 +171,7 @@ async function remove(medicine) {
   await nextTick()
   undoButton.value?.focus()
 }
+// Puts the last removed medicine back.
 function undo() {
   clearTimeout(undoTimer)
   const { id } = removed.value.entry
@@ -165,16 +184,19 @@ function undo() {
 const stopped = ref(null) // { id, name, previous } for the Undo bar
 const stopUndoButton = ref(null)
 let stopTimer = 0
+// Asks whether to stop a medicine's course.
 function askStop(id) {
   managing.value = null
   editing.value = null
   stopAsk.value = id
   focusAfterUpdate(`[data-stop-yes="${id}"]`) // into the question, like the other pop-ups
 }
+// Closes the stop question and returns focus to its button.
 function cancelStop(id) {
   stopAsk.value = null
   focusAfterUpdate(`[data-stop="${id}"]`)
 }
+// Ends a course today and keeps it as finished, or takes the medicine off the list if it only started today. Undo restores either.
 async function confirmStop(medicine) {
   const previous = JSON.parse(JSON.stringify(medicine.schedule ?? null)) // a plain copy: the page's own data is wrapped and can't be stored as it is
   const next = stopCourse(previous, today.value)
@@ -194,6 +216,7 @@ async function confirmStop(medicine) {
   await nextTick()
   stopUndoButton.value?.focus()
 }
+// Undoes the last stop.
 function undoStop() {
   clearTimeout(stopTimer)
   const { id, previous, gone } = stopped.value
@@ -206,7 +229,10 @@ function undoStop() {
 function startAgain(medicine) {
   const days = supplyDays(medicine.medication)
   const times = JSON.parse(JSON.stringify(medicine.schedule?.times ?? {}))
-  setSchedule(medicine.id, days ? { startDate: today.value, days, times } : { startDate: today.value, times })
+  setSchedule(
+    medicine.id,
+    days ? { startDate: today.value, days, times } : { startDate: today.value, times },
+  )
   notify(t('schedule.stop.back', { name: nameOf(medicine.medication) }))
 }
 
@@ -221,26 +247,53 @@ onBeforeUnmount(() => {
   <div ref="pageEl" class="page schedule">
     <header class="head head-row">
       <div class="d-flex flex-column gap-1">
-        <span class="date" data-testid="schedule-date">{{ dateText(today, { weekday: 'long', day: 'numeric', month: 'long' }) }}</span>
+        <span class="date" data-testid="schedule-date">{{
+          dateText(today, { weekday: 'long', day: 'numeric', month: 'long' })
+        }}</span>
         <h1>{{ t(`schedule.title.${view}`) }}</h1>
       </div>
       <div class="head-acts">
-        <RouterLink :to="{ name: 'scan', query: { type: 'medication' } }" class="btn btn-primary btn-sm"><AppIcon name="plus" />{{ t('schedule.add') }}</RouterLink>
+        <RouterLink
+          :to="{ name: 'scan', query: { type: 'medication' } }"
+          class="btn btn-primary btn-sm"
+          ><AppIcon name="plus" />{{ t('schedule.add') }}</RouterLink
+        >
       </div>
     </header>
     <!-- The four views are pages of their own (links, so Back and a shared link work), drawn as one segmented control. -->
     <nav v-if="medicines.length" class="tabs" :aria-label="t('pages.schedule')">
-      <RouterLink v-for="v in VIEWS" :key="v" :to="viewLink(v)" class="tab" :aria-current="view === v ? 'page' : null" :data-testid="`tab-${v}`">{{ t(`schedule.tab.${v}`) }}</RouterLink>
+      <RouterLink
+        v-for="v in VIEWS"
+        :key="v"
+        :to="viewLink(v)"
+        class="tab"
+        :aria-current="view === v ? 'page' : null"
+        :data-testid="`tab-${v}`"
+        >{{ t(`schedule.tab.${v}`) }}</RouterLink
+      >
     </nav>
-    <EmptyState v-if="!medicines.length" :title="t('schedule.empty.title')" :text="t('schedule.empty.text')" icon="calendar">
-      <RouterLink :to="{ name: 'scan', query: { type: 'medication' } }" class="btn btn-primary"><AppIcon name="scan" />{{ t('soon.scanMed') }}</RouterLink>
+    <EmptyState
+      v-if="!medicines.length"
+      :title="t('schedule.empty.title')"
+      :text="t('schedule.empty.text')"
+      icon="calendar"
+    >
+      <RouterLink :to="{ name: 'scan', query: { type: 'medication' } }" class="btn btn-primary"
+        ><AppIcon name="scan" />{{ t('soon.scanMed') }}</RouterLink
+      >
     </EmptyState>
 
     <!-- Each tab's parts rise into place when it opens (tab-in, styles/global/motion.css). -->
     <div v-else-if="view === 'today'" class="tab-in d-flex flex-column gap-4">
       <DayStrip :entries="entries" :selected="day" @select="pickDay" />
       <Transition :name="`day-${slide}`" mode="out-in">
-        <TodayList v-if="day === today" key="today" :entries="entries" :need-days="needDays" @notify="notify" />
+        <TodayList
+          v-if="day === today"
+          key="today"
+          :entries="entries"
+          :need-days="needDays"
+          @notify="notify"
+        />
         <DayOther v-else :key="day" :entries="entries" :date="day" />
       </Transition>
     </div>
@@ -250,30 +303,48 @@ onBeforeUnmount(() => {
         <h2 id="meds-title" class="visually-hidden">{{ t('schedule.meds.title') }}</h2>
         <ul class="med-grid" @keydown.esc="onEsc">
           <template v-for="r in timetable" :key="r.medicine.id">
-          <li v-if="spot === r.medicine.id" class="med-ghost" aria-hidden="true" data-testid="med-ghost"></li>
-          <MedicineCard
-            :class="{ 'is-spot': spot === r.medicine.id }"
-            :medicine="r.medicine"
-            :entry="r.entry"
-            :managing="managing === r.medicine.id"
-            :editing="editing === r.medicine.id"
-            :asking-stop="stopAsk === r.medicine.id"
-            @manage="toggleManage(r.medicine.id)"
-            @edit="openEdit(r.medicine.id)"
-            @fix="fix(r.medicine)"
-            @remove="remove(r.medicine)"
-            @ask-stop="askStop(r.medicine.id)"
-            @stop="confirmStop(r.medicine)"
-            @cancel-stop="cancelStop(r.medicine.id)"
-            @again="startAgain(r.medicine)"
-            @save="save(r.medicine.id, $event)"
-            @cancel-edit="closeEdit(r.medicine.id)"
-          />
+            <li
+              v-if="spot === r.medicine.id"
+              class="med-ghost"
+              aria-hidden="true"
+              data-testid="med-ghost"
+            ></li>
+            <MedicineCard
+              :class="{ 'is-spot': spot === r.medicine.id }"
+              :medicine="r.medicine"
+              :entry="r.entry"
+              :managing="managing === r.medicine.id"
+              :editing="editing === r.medicine.id"
+              :asking-stop="stopAsk === r.medicine.id"
+              @manage="toggleManage(r.medicine.id)"
+              @edit="openEdit(r.medicine.id)"
+              @fix="fix(r.medicine)"
+              @remove="remove(r.medicine)"
+              @ask-stop="askStop(r.medicine.id)"
+              @stop="confirmStop(r.medicine)"
+              @cancel-stop="cancelStop(r.medicine.id)"
+              @again="startAgain(r.medicine)"
+              @save="save(r.medicine.id, $event)"
+              @cancel-edit="closeEdit(r.medicine.id)"
+            />
           </template>
         </ul>
-        <div v-if="spot" class="med-scrim" aria-hidden="true" data-testid="med-scrim" @click="closeSpot"></div>
+        <div
+          v-if="spot"
+          class="med-scrim"
+          aria-hidden="true"
+          data-testid="med-scrim"
+          @click="closeSpot"
+        ></div>
       </section>
-      <PharmacistList v-if="flagged.length" :rows="flagged" :managing="managing" @manage="toggleManage" @fix="fix" @remove="remove" />
+      <PharmacistList
+        v-if="flagged.length"
+        :rows="flagged"
+        :managing="managing"
+        @manage="toggleManage"
+        @fix="fix"
+        @remove="remove"
+      />
     </div>
 
     <!-- Reminders on the phone's own calendar, under My medicines. One card, always mounted (hidden on Today): every edit
@@ -286,20 +357,39 @@ onBeforeUnmount(() => {
     <!-- Always in the page, so screen readers announce what appears in it. -->
     <div class="toast-slot" role="status" aria-live="polite">
       <Transition name="toast">
-        <p v-if="toast" class="toast-ahma m-0" :class="{ bad: toast.bad }" data-testid="schedule-toast">
+        <p
+          v-if="toast"
+          class="toast-ahma m-0"
+          :class="{ bad: toast.bad }"
+          data-testid="schedule-toast"
+        >
           <AppIcon :name="toast.bad ? 'alert' : 'checkCircle'" :size="22" />{{ toast.text }}
         </p>
       </Transition>
     </div>
 
-    <div v-if="stopped" class="toast-ahma toast-undo rise" role="status" data-testid="schedule-stop-undo">
+    <div
+      v-if="stopped"
+      class="toast-ahma toast-undo rise"
+      role="status"
+      data-testid="schedule-stop-undo"
+    >
       <span>{{ t('schedule.stop.done', { name: stopped.name }) }}</span>
-      <button ref="stopUndoButton" type="button" class="btn btn-on-hero btn-sm" @click="undoStop">{{ t('schedule.undo') }}</button>
+      <button ref="stopUndoButton" type="button" class="btn btn-on-hero btn-sm" @click="undoStop">
+        {{ t('schedule.undo') }}
+      </button>
     </div>
 
-    <div v-if="removed" class="toast-ahma toast-undo rise" role="status" data-testid="schedule-undo">
+    <div
+      v-if="removed"
+      class="toast-ahma toast-undo rise"
+      role="status"
+      data-testid="schedule-undo"
+    >
       <span>{{ t('schedule.removed', { name: nameOf(removed.entry.medication) }) }}</span>
-      <button ref="undoButton" type="button" class="btn btn-on-hero btn-sm" @click="undo">{{ t('schedule.undo') }}</button>
+      <button ref="undoButton" type="button" class="btn btn-on-hero btn-sm" @click="undo">
+        {{ t('schedule.undo') }}
+      </button>
     </div>
   </div>
 </template>

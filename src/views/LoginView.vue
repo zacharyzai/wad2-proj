@@ -1,4 +1,4 @@
-<!-- Owner: Isaac. Calls POST /api/auth/login (docs/auth-contract.md). Every page needs an account, so this is where logged-out people land. -->
+<!-- Log in page. -->
 <script setup>
 import { ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -28,10 +28,12 @@ function destination() {
   return typeof next === 'string' && next.startsWith('/') && !next.startsWith('//') ? next : '/'
 }
 
+// Goes to Forgot password with the typed email filled in.
 function forgot() {
   router.push({ name: 'forgot', state: { email: email.value.trim() } })
 }
 
+// Logs in, or shows why it could not.
 async function submit() {
   if (busy.value) return
   if (!email.value.trim() || !password.value) return (errorCode.value = 'WRONG_LOGIN')
@@ -39,7 +41,8 @@ async function submit() {
   errorCode.value = null
   const res = await login(email.value.trim(), password.value, remember.value)
   busy.value = false
-  if (res.ok) enterApp(router, destination()) // one calm fade into the app, colours and language included
+  if (res.ok)
+    enterApp(router, destination()) // one calm fade into the app, colours and language included
   else errorCode.value = res.error.code
 }
 </script>
@@ -53,7 +56,14 @@ async function submit() {
         <label for="login-email" class="auth-label">{{ t('auth.email') }}</label>
         <div class="auth-field">
           <AppIcon name="mail" :size="22" />
-          <input id="login-email" v-model="email" type="email" autocomplete="email" required data-testid="login-email" />
+          <input
+            id="login-email"
+            v-model="email"
+            type="email"
+            autocomplete="email"
+            required
+            data-testid="login-email"
+          />
         </div>
       </div>
 
@@ -61,8 +71,22 @@ async function submit() {
         <label for="login-password" class="auth-label">{{ t('auth.password') }}</label>
         <div class="auth-field" :class="{ bad: errorCode === 'WRONG_LOGIN' }">
           <AppIcon name="lock" :size="22" />
-          <input id="login-password" v-model="password" :type="showPw ? 'text' : 'password'" autocomplete="current-password" required data-testid="login-password" />
-          <button type="button" class="auth-eye" :aria-pressed="showPw" :aria-label="showPw ? t('auth.hide') : t('auth.show')" data-testid="login-toggle" @click="showPw = !showPw">
+          <input
+            id="login-password"
+            v-model="password"
+            :type="showPw ? 'text' : 'password'"
+            autocomplete="current-password"
+            required
+            data-testid="login-password"
+          />
+          <button
+            type="button"
+            class="auth-eye"
+            :aria-pressed="showPw"
+            :aria-label="showPw ? t('auth.hide') : t('auth.show')"
+            data-testid="login-toggle"
+            @click="showPw = !showPw"
+          >
             <AppIcon :name="showPw ? 'blur' : 'eye'" :size="22" />
           </button>
         </div>
@@ -70,15 +94,28 @@ async function submit() {
 
       <!-- H9/H10: a forgotten password is not a dead end: a reset link by email (ForgotView). The email typed so far goes
            along in the history state, not the address, so it never lands in server logs. -->
-      <RouterLink :to="{ name: 'forgot' }" class="auth-forgot-link" data-testid="login-forgot" @click.prevent="forgot">{{ t('auth.forgot.title') }}</RouterLink>
+      <RouterLink
+        :to="{ name: 'forgot' }"
+        class="auth-forgot-link"
+        data-testid="login-forgot"
+        @click.prevent="forgot"
+        >{{ t('auth.forgot.title') }}</RouterLink
+      >
 
       <label class="auth-check">
-        <input v-model="remember" type="checkbox" aria-describedby="login-remember-help" data-testid="login-remember" />
+        <input
+          v-model="remember"
+          type="checkbox"
+          aria-describedby="login-remember-help"
+          data-testid="login-remember"
+        />
         {{ t('auth.remember') }}
       </label>
       <span id="login-remember-help" class="auth-help mt-0">{{ t('auth.rememberHelp') }}</span>
 
-      <BigButton type="submit" :busy="busy" data-testid="login-submit">{{ busy ? t('auth.working') : t('auth.login') }}</BigButton>
+      <BigButton type="submit" :busy="busy" data-testid="login-submit">{{
+        busy ? t('auth.working') : t('auth.login')
+      }}</BigButton>
     </form>
   </AuthShell>
 </template>

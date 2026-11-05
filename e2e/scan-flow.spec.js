@@ -5,7 +5,10 @@ import { readFileSync } from 'node:fs'
 import { mockImageScan } from './helpers/mockImageScan.js'
 import { switchLanguage } from './helpers/auth.js'
 
-const TINY_PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', 'base64')
+const TINY_PNG = Buffer.from(
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
+  'base64',
+)
 
 async function openSample(page, name, path = '/scan?type=medication') {
   await page.goto(path)
@@ -27,9 +30,16 @@ test('medication sample: confirm, explain and quick check @smoke', async ({ page
   await expect(page.getByRole('link', { name: 'Add to schedule' })).toBeVisible()
 })
 
-test('going back from Explain and pressing Looks correct again is the same medicine: no duplicate question, one History entry', async ({ page }) => {
+test('going back from Explain and pressing Looks correct again is the same medicine: no duplicate question, one History entry', async ({
+  page,
+}) => {
   const saves = []
-  await page.route('**/api/history', (route) => (route.request().method() === 'POST' ? (saves.push(route.request().postDataJSON()), route.fulfill({ status: 201, json: { ok: true, data: { id: 's1' } } })) : route.fallback()))
+  await page.route('**/api/history', (route) =>
+    route.request().method() === 'POST'
+      ? (saves.push(route.request().postDataJSON()),
+        route.fulfill({ status: 201, json: { ok: true, data: { id: 's1' } } }))
+      : route.fallback(),
+  )
   await openSample(page, 'Metformin label')
   await page.getByRole('button', { name: 'Looks correct' }).click()
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Take 1 tablet, 2 times a day.')
@@ -44,7 +54,12 @@ test('going back from Explain and pressing Looks correct again is the same medic
 test('the before or after food boxes are all the same size', async ({ page }) => {
   await openSample(page, 'Metformin label')
   await expect(page.getByTestId('confirm-food')).toBeVisible()
-  const boxes = await page.getByTestId('confirm-food').locator('.choice').evaluateAll((els) => els.map((el) => [Math.round(el.offsetWidth), Math.round(el.offsetHeight)].join('x')))
+  const boxes = await page
+    .getByTestId('confirm-food')
+    .locator('.choice')
+    .evaluateAll((els) =>
+      els.map((el) => [Math.round(el.offsetWidth), Math.round(el.offsetHeight)].join('x')),
+    )
   expect(boxes.length).toBeGreaterThan(1)
   expect(new Set(boxes).size).toBe(1)
 })
@@ -75,10 +90,14 @@ test('edits on Confirm change the explanation', async ({ page }) => {
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Take 2 tablets, 2 times a day.')
 })
 
-test('when-needed medicine is flagged for the pharmacist, and Add to schedule lands it under "Check with your pharmacist"', async ({ page }) => {
+test('when-needed medicine is flagged for the pharmacist, and Add to schedule lands it under "Check with your pharmacist"', async ({
+  page,
+}) => {
   await openSample(page, 'Cough syrup label')
   await page.getByRole('button', { name: 'Looks correct' }).click()
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Ask your pharmacist how to take this medicine.')
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(
+    'Ask your pharmacist how to take this medicine.',
+  )
   await expect(page.getByText('Only when needed')).toBeVisible()
   await page.getByRole('link', { name: 'Add to schedule' }).click() // same button as any medicine
   await expect(page).toHaveURL(/\/schedule/)
@@ -93,9 +112,14 @@ test('bill sample shows what you pay @smoke', async ({ page }) => {
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('You pay $14.00.')
 })
 
-test('Scan first asks label or bill with two picture cards; picking one opens its camera, upload and tips', async ({ page, isMobile }) => {
+test('Scan first asks label or bill with two picture cards; picking one opens its camera, upload and tips', async ({
+  page,
+  isMobile,
+}) => {
   await page.goto('/scan')
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('What would you like to scan today?')
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(
+    'What would you like to scan today?',
+  )
   await expect(page.getByTestId('scan-take')).toHaveCount(0) // nothing else until they pick
   await expect(page.getByTestId('upload-input')).toHaveCount(0)
   const [label, bill] = [page.getByTestId('choose-medication'), page.getByTestId('choose-bill')]
@@ -119,19 +143,35 @@ test('Scan first asks label or bill with two picture cards; picking one opens it
 
   // Back (the round button, or the browser's) returns to the question.
   await page.getByTestId('scan-back').click()
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('What would you like to scan today?')
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(
+    'What would you like to scan today?',
+  )
   await label.click()
   await expect(page.getByRole('button', { name: 'Take a photo of the label' })).toBeVisible()
   await expect(page.getByTestId('scan-tips')).toContainText('Label facing you')
   await page.goBack()
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('What would you like to scan today?')
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(
+    'What would you like to scan today?',
+  )
 })
 
-test('the picture cards breathe at rest; with a mouse they rest in teal, and the one under it stops still in full colour, its arrow coral', async ({ page, isMobile }) => {
+test('the picture cards breathe at rest; with a mouse they rest in teal, and the one under it stops still in full colour, its arrow coral', async ({
+  page,
+  isMobile,
+}) => {
   await page.goto('/scan')
   const [label, bill] = [page.getByTestId('choose-medication'), page.getByTestId('choose-bill')]
-  const tint = (card) => card.locator('.pick-scene').evaluate((e) => getComputedStyle(e, '::after').opacity)
-  const breathing = (card) => card.locator('.pick-paper').evaluate((e) => [getComputedStyle(e).animationName.split('-')[0], getComputedStyle(e).animationPlayState].join(' ')) // scoped keyframes get a suffix: float-4a99…)
+  const tint = (card) =>
+    card.locator('.pick-scene').evaluate((e) => getComputedStyle(e, '::after').opacity)
+  const breathing = (card) =>
+    card
+      .locator('.pick-paper')
+      .evaluate((e) =>
+        [
+          getComputedStyle(e).animationName.split('-')[0],
+          getComputedStyle(e).animationPlayState,
+        ].join(' '),
+      ) // scoped keyframes get a suffix: float-4a99…)
   expect(await breathing(label)).toBe('float running')
   expect(await breathing(bill)).toBe('float running')
   if (isMobile) {
@@ -143,7 +183,10 @@ test('the picture cards breathe at rest; with a mouse they rest in teal, and the
   await expect(label.locator('.pick-chip')).toHaveText(['Tablets', 'Syrups', 'Creams'])
   await expect(bill.locator('.pick-chip')).toHaveText(['Clinic', 'Hospital', 'Subsidies'])
   expect([await tint(label), await tint(bill)]).toEqual(['0.88', '0.88'])
-  for (const [on, off] of [[label, bill], [bill, label]]) {
+  for (const [on, off] of [
+    [label, bill],
+    [bill, label],
+  ]) {
     await on.hover()
     await expect.poll(() => tint(on)).toBe('0')
     expect(await breathing(on)).toBe('float paused') // still under the mouse
@@ -160,8 +203,13 @@ test('the picture cards breathe at rest; with a mouse they rest in teal, and the
   await expect.poll(() => tint(bill)).toBe('0')
 })
 
-for (const [kind, picture, url] of [['medication', 'med', /\/scan\?type=medication$/], ['bill', 'bill', /\/scan\?type=bill$/]]) {
-  test(`picking ${kind}: Home's own picture for it plays first, then its scan page opens under it`, async ({ page }) => {
+for (const [kind, picture, url] of [
+  ['medication', 'med', /\/scan\?type=medication$/],
+  ['bill', 'bill', /\/scan\?type=bill$/],
+]) {
+  test(`picking ${kind}: Home's own picture for it plays first, then its scan page opens under it`, async ({
+    page,
+  }) => {
     await page.goto('/scan')
     await page.getByTestId(`choose-${kind}`).click()
     const launch = page.getByTestId('card-launch')
@@ -173,7 +221,9 @@ for (const [kind, picture, url] of [['medication', 'med', /\/scan\?type=medicati
   })
 }
 
-test('reduced motion: picking a card opens its scan page at once, with no picture', async ({ page }) => {
+test('reduced motion: picking a card opens its scan page at once, with no picture', async ({
+  page,
+}) => {
   await page.emulateMedia({ reducedMotion: 'reduce' })
   await page.goto('/scan')
   await page.getByTestId('choose-bill').click()
@@ -184,7 +234,10 @@ test('reduced motion: picking a card opens its scan page at once, with no pictur
 
 test('the privacy line sits right under the photo buttons', async ({ page }) => {
   await page.goto('/scan?type=medication')
-  const [upload, privacy] = await Promise.all([page.locator('.dz-card').boundingBox(), page.getByText('blacked out on this device').boundingBox()])
+  const [upload, privacy] = await Promise.all([
+    page.locator('.dz-card').boundingBox(),
+    page.getByText('blacked out on this device').boundingBox(),
+  ])
   expect(privacy.y).toBeGreaterThan(upload.y + upload.height - 1)
   expect(privacy.y - (upload.y + upload.height)).toBeLessThan(40)
 })
@@ -196,7 +249,8 @@ test('"Try an example" opens a short list of samples for that kind', async ({ pa
   await expect(page.getByRole('button', { name: 'Metformin label' })).toBeHidden()
   await toggle.click()
   await expect(toggle).toHaveAttribute('aria-expanded', 'true')
-  for (const name of ['Metformin label', 'Amlodipine label', 'Cough syrup label']) await expect(page.getByRole('button', { name })).toBeVisible()
+  for (const name of ['Metformin label', 'Amlodipine label', 'Cough syrup label'])
+    await expect(page.getByRole('button', { name })).toBeVisible()
   await expect(page.getByRole('button', { name: 'Medical bill' })).toHaveCount(0)
   await page.goto('/scan?type=bill')
   await page.getByTestId('scan-examples').click()
@@ -232,13 +286,17 @@ test('unclear fields block Confirm until filled', async ({ page }) => {
   await expect(page.getByTestId('all-filled')).toBeHidden()
   await page.getByRole('button', { name: 'After food' }).click()
   await expect(ok).toBeEnabled()
-  await expect(page.getByTestId('all-filled')).toHaveText(/Everything is filled in.*press Looks correct/)
+  await expect(page.getByTestId('all-filled')).toHaveText(
+    /Everything is filled in.*press Looks correct/,
+  )
 })
 
 test('uploaded photo is compressed, sent and shown on Confirm', async ({ page }) => {
   await mockImageScan(page)
   await page.goto('/scan?type=medication')
-  await page.getByTestId('upload-input').setInputFiles({ name: 'label.png', mimeType: 'image/png', buffer: TINY_PNG })
+  await page
+    .getByTestId('upload-input')
+    .setInputFiles({ name: 'label.png', mimeType: 'image/png', buffer: TINY_PNG })
   await page.getByRole('button', { name: 'Scan', exact: true }).click()
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Check what we read')
   // Compressed to JPEG on the client before upload.
@@ -247,7 +305,10 @@ test('uploaded photo is compressed, sent and shown on Confirm', async ({ page })
 
 test('scan service errors offer retry and samples', async ({ page }) => {
   await page.route('**/api/scan', (route) =>
-    route.fulfill({ status: 503, json: { ok: false, error: { code: 'AI_UNAVAILABLE', message: 'down' } } }),
+    route.fulfill({
+      status: 503,
+      json: { ok: false, error: { code: 'AI_UNAVAILABLE', message: 'down' } },
+    }),
   )
   await openSample(page, 'Metformin label')
   await expect(page.getByRole('alert')).toContainText('Scanning is not available right now.')
@@ -256,16 +317,34 @@ test('scan service errors offer retry and samples', async ({ page }) => {
   await expect(page.getByRole('button', { name: 'Metformin label' })).toBeVisible()
 })
 
-test('a clear photo that is not a medical bill says so, not "retake in good light"', async ({ page }) => {
-  await page.addInitScript(() => (window.__redactForTests = async (dataUrl) => ({ dataUrl, keep: [{ text: 'TOTAL' }], hits: [] })))
+test('a clear photo that is not a medical bill says so, not "retake in good light"', async ({
+  page,
+}) => {
+  await page.addInitScript(
+    () =>
+      (window.__redactForTests = async (dataUrl) => ({
+        dataUrl,
+        keep: [{ text: 'TOTAL' }],
+        hits: [],
+      })),
+  )
   await page.route('**/api/scan', (route) =>
-    route.fulfill({ status: 422, json: { ok: false, error: { code: 'WRONG_DOCUMENT', message: 'This is not a medical bill' } } }),
+    route.fulfill({
+      status: 422,
+      json: { ok: false, error: { code: 'WRONG_DOCUMENT', message: 'This is not a medical bill' } },
+    }),
   )
   await page.goto('/bill/scan')
-  await page.getByTestId('upload-input').setInputFiles({ name: 'holiday-photo.png', mimeType: 'image/png', buffer: TINY_PNG })
+  await page
+    .getByTestId('upload-input')
+    .setInputFiles({ name: 'holiday-photo.png', mimeType: 'image/png', buffer: TINY_PNG })
   await page.getByRole('button', { name: 'Scan', exact: true }).click()
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('This doesn’t look like a medical bill')
-  await expect(page.getByRole('alert')).toContainText('it doesn’t look like a bill from a clinic, hospital or pharmacy')
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(
+    'This doesn’t look like a medical bill',
+  )
+  await expect(page.getByRole('alert')).toContainText(
+    'it doesn’t look like a bill from a clinic, hospital or pharmacy',
+  )
   await expect(page.getByText('good light')).toHaveCount(0) // no lighting advice for a clear photo
   await expect(page.locator('.tips')).toHaveCount(0)
   await expect(page.getByRole('button', { name: 'Upload a different photo' })).toBeVisible()
@@ -276,25 +355,44 @@ test('a clear photo that is not a medical bill says so, not "retake in good ligh
 
 // Medicine scan given a bill photo: the server answers LOOKS_LIKE_BILL; read as a bill, it answers with a bill.
 async function mockBillSentAsLabel(page) {
-  await page.addInitScript(() => (window.__redactForTests = async (dataUrl) => ({ dataUrl, keep: [{ text: 'TOTAL' }], hits: [] })))
+  await page.addInitScript(
+    () =>
+      (window.__redactForTests = async (dataUrl) => ({
+        dataUrl,
+        keep: [{ text: 'TOTAL' }],
+        hits: [],
+      })),
+  )
   const sent = []
   await page.route('**/api/scan', async (route) => {
     const body = route.request().postDataJSON()
     if (body.sampleId) return route.continue()
     sent.push(body.type)
-    if (body.type === 'medication') return route.fulfill({ status: 422, json: { ok: false, error: { code: 'LOOKS_LIKE_BILL', message: 'looks like a bill' } } })
-    const bill = await (await route.fetch({ postData: JSON.stringify({ sampleId: 'bill-1' }) })).json()
+    if (body.type === 'medication')
+      return route.fulfill({
+        status: 422,
+        json: { ok: false, error: { code: 'LOOKS_LIKE_BILL', message: 'looks like a bill' } },
+      })
+    const bill = await (
+      await route.fetch({ postData: JSON.stringify({ sampleId: 'bill-1' }) })
+    ).json()
     return route.fulfill({ json: { ok: true, data: { ...bill.data, source: 'ai' } } })
   })
   await page.goto('/scan?type=medication')
-  await page.getByTestId('upload-input').setInputFiles({ name: 'bill.png', mimeType: 'image/png', buffer: TINY_PNG })
+  await page
+    .getByTestId('upload-input')
+    .setInputFiles({ name: 'bill.png', mimeType: 'image/png', buffer: TINY_PNG })
   await page.getByRole('button', { name: 'Scan', exact: true }).click()
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('This looks like a medical bill')
-  await expect(page.getByTestId('scan-other-question')).toHaveText('You chose a medicine label. Was this meant for a medical bill?')
+  await expect(page.getByTestId('scan-other-question')).toHaveText(
+    'You chose a medicine label. Was this meant for a medical bill?',
+  )
   return sent
 }
 
-test('a bill photo on the medicine Scan asks "Was this meant for a medical bill?"; Yes reads the same photo as a bill', async ({ page }) => {
+test('a bill photo on the medicine Scan asks "Was this meant for a medical bill?"; Yes reads the same photo as a bill', async ({
+  page,
+}) => {
   const sent = await mockBillSentAsLabel(page)
   await page.getByTestId('scan-other-yes').click()
   await expect(page).toHaveURL(/\/scan\/confirm$/)
@@ -302,17 +400,23 @@ test('a bill photo on the medicine Scan asks "Was this meant for a medical bill?
   expect(sent).toEqual(['medication', 'bill']) // no new photo: the same one, sent again as a bill
 })
 
-test('… and No says the photo doesn\'t match a medicine label, with ways to fix it', async ({ page }) => {
+test("… and No says the photo doesn't match a medicine label, with ways to fix it", async ({
+  page,
+}) => {
   await mockBillSentAsLabel(page)
   await expect(page.getByTestId('scan-other-no')).toHaveText('No, it’s a medicine label') // says what "No" means (H2)
   await page.getByTestId('scan-other-no').click()
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('This photo doesn’t match a medicine label')
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(
+    'This photo doesn’t match a medicine label',
+  )
   await expect(page.getByRole('alert')).toContainText('Take a photo of the medicine label instead.')
   await expect(page.getByRole('button', { name: 'Upload a different photo' })).toBeVisible()
   await expect(page.getByTestId('scan-other-yes')).toHaveCount(0)
 })
 
-test('Confirm: leaving with corrections asks first; Keep checking stays, Throw away leaves (H3, H5)', async ({ page }) => {
+test('Confirm: leaving with corrections asks first; Keep checking stays, Throw away leaves (H3, H5)', async ({
+  page,
+}) => {
   await openSample(page, 'Metformin label')
   await expect(page.locator('img[src="/samples/med-1.svg"]').first()).toBeAttached() // the sample's picture, to check against (H6)
   await page.getByLabel('Medicine name').fill('Metformin XR')
@@ -339,7 +443,9 @@ test('Confirm: no question when nothing changed, or after Looks correct', async 
   await expect(page).toHaveURL(/\/scan\/explain$/)
 })
 
-test('Confirm: impossible doses are flagged with what to fix, and block Looks correct (H5)', async ({ page }) => {
+test('Confirm: impossible doses are flagged with what to fix, and block Looks correct (H5)', async ({
+  page,
+}) => {
   await openSample(page, 'Metformin label')
   const ok = page.getByRole('button', { name: 'Looks correct' })
   await page.locator('#f-amount').fill('0')
@@ -359,7 +465,12 @@ test('Confirm: impossible doses are flagged with what to fix, and block Looks co
 })
 
 test('Scan errors can be read aloud (H10)', async ({ page }) => {
-  await page.route('**/api/scan', (route) => route.fulfill({ status: 503, json: { ok: false, error: { code: 'AI_UNAVAILABLE', message: 'down' } } }))
+  await page.route('**/api/scan', (route) =>
+    route.fulfill({
+      status: 503,
+      json: { ok: false, error: { code: 'AI_UNAVAILABLE', message: 'down' } },
+    }),
+  )
   await openSample(page, 'Metformin label')
   await expect(page.getByRole('button', { name: 'Read aloud' })).toBeVisible()
 })
@@ -380,29 +491,41 @@ test('explain without a confirmed scan goes back to Scan', async ({ page }) => {
 test('the photo is shown before scanning; Change photo picks another', async ({ page }) => {
   await mockImageScan(page)
   await page.goto('/scan?type=medication')
-  await page.getByTestId('upload-input').setInputFiles({ name: 'label.png', mimeType: 'image/png', buffer: TINY_PNG })
+  await page
+    .getByTestId('upload-input')
+    .setInputFiles({ name: 'label.png', mimeType: 'image/png', buffer: TINY_PNG })
   await expect(page.getByRole('img', { name: 'The photo you chose' })).toBeVisible()
   await expect(page.getByText('label.png')).toBeVisible()
   await expect(page.getByRole('button', { name: 'Change photo' })).toBeVisible()
-  await page.getByTestId('upload-input').setInputFiles({ name: 'other.png', mimeType: 'image/png', buffer: TINY_PNG })
+  await page
+    .getByTestId('upload-input')
+    .setInputFiles({ name: 'other.png', mimeType: 'image/png', buffer: TINY_PNG })
   await expect(page.getByText('other.png')).toBeVisible()
   await page.getByRole('button', { name: 'Scan', exact: true }).click()
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Check what we read')
 })
 
-test('wrong file types and photos over 10MB are refused before anything is sent', async ({ page }) => {
+test('wrong file types and photos over 10MB are refused before anything is sent', async ({
+  page,
+}) => {
   let apiCalls = 0
   await page.route('**/api/scan', (route) => (apiCalls++, route.continue()))
   await page.goto('/scan?type=medication')
   await page.getByTestId('upload-input').setInputFiles('public/samples/med-1.svg')
   await expect(page.getByRole('alert')).toHaveText('Please choose a PNG, JPG, HEIC or PDF file.')
-  await page.getByTestId('upload-input').setInputFiles({ name: 'big.jpg', mimeType: 'image/jpeg', buffer: Buffer.alloc(10 * 1024 * 1024 + 1) })
+  await page.getByTestId('upload-input').setInputFiles({
+    name: 'big.jpg',
+    mimeType: 'image/jpeg',
+    buffer: Buffer.alloc(10 * 1024 * 1024 + 1),
+  })
   await expect(page.getByRole('alert')).toHaveText('Please choose a photo under 10MB.')
   await expect(page.getByRole('button', { name: 'Scan', exact: true })).toHaveCount(0)
   expect(apiCalls).toBe(0)
 })
 
-test('a photo can be dropped on the upload box, which also opens with the keyboard', async ({ page }) => {
+test('a photo can be dropped on the upload box, which also opens with the keyboard', async ({
+  page,
+}) => {
   await mockImageScan(page)
   await page.goto('/scan?type=medication')
   const zone = page.getByRole('button', { name: 'Tap to upload or drop a photo' })
@@ -412,7 +535,11 @@ test('a photo can be dropped on the upload box, which also opens with the keyboa
   await chooser
   const drop = await page.evaluateHandle((b64) => {
     const dt = new DataTransfer()
-    dt.items.add(new File([Uint8Array.from(atob(b64), (c) => c.charCodeAt(0))], 'dropped.png', { type: 'image/png' }))
+    dt.items.add(
+      new File([Uint8Array.from(atob(b64), (c) => c.charCodeAt(0))], 'dropped.png', {
+        type: 'image/png',
+      }),
+    )
     return dt
   }, TINY_PNG.toString('base64'))
   await zone.dispatchEvent('drop', { dataTransfer: drop })
@@ -423,18 +550,30 @@ test('a file the browser cannot open says so, without asking the server', async 
   let apiCalls = 0
   await page.route('**/api/scan', (route) => (apiCalls++, route.continue()))
   await page.goto('/scan?type=medication')
-  await page.getByTestId('upload-input').setInputFiles({ name: 'notes.png', mimeType: 'image/png', buffer: Buffer.from('not an image') })
+  await page.getByTestId('upload-input').setInputFiles({
+    name: 'notes.png',
+    mimeType: 'image/png',
+    buffer: Buffer.from('not an image'),
+  })
   await page.getByRole('button', { name: 'Scan', exact: true }).click()
   await expect(page.getByRole('alert')).toContainText('This file can’t be used.')
   await expect(page.getByRole('button', { name: 'Upload a different photo' })).toBeVisible()
   expect(apiCalls).toBe(0)
 })
 
-test('Confirm: "Add more details" shows the empty optional fields and "Show fewer details" puts them away again', async ({ page }) => {
+test('Confirm: "Add more details" shows the empty optional fields and "Show fewer details" puts them away again', async ({
+  page,
+}) => {
   await page.route('**/api/scan', async (route) => {
     const res = await route.fetch()
     const body = await res.json()
-    Object.assign(body.data.medication, { strength: null, quantity: null, withFood: null, timing: null, warnings: [] })
+    Object.assign(body.data.medication, {
+      strength: null,
+      quantity: null,
+      withFood: null,
+      timing: null,
+      warnings: [],
+    })
     body.data.unclear = []
     await route.fulfill({ response: res, json: body })
   })
@@ -464,14 +603,20 @@ const PDF = Buffer.from(
   ].join('\n'),
 )
 
-test('a bill saved as a PDF is drawn to pictures on this device, then scanned like a photo', async ({ page }) => {
+test('a bill saved as a PDF is drawn to pictures on this device, then scanned like a photo', async ({
+  page,
+}) => {
   await mockImageScan(page)
   const sent = page.waitForRequest('**/api/scan')
   await page.goto('/scan?type=medication')
-  await page.getByTestId('upload-input').setInputFiles({ name: 'label.pdf', mimeType: 'application/pdf', buffer: PDF })
+  await page
+    .getByTestId('upload-input')
+    .setInputFiles({ name: 'label.pdf', mimeType: 'application/pdf', buffer: PDF })
   await expect(page.getByText('label.pdf')).toBeVisible()
   await page.getByRole('button', { name: 'Scan', exact: true }).click()
-  expect((await sent).postDataJSON().images).toEqual([expect.stringMatching(/^data:image\/jpeg;base64,/)]) // never the PDF itself
+  expect((await sent).postDataJSON().images).toEqual([
+    expect.stringMatching(/^data:image\/jpeg;base64,/),
+  ]) // never the PDF itself
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Check what we read')
 })
 
@@ -481,7 +626,9 @@ const PDF5 = Buffer.from(
     '%PDF-1.4',
     '1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj',
     '2 0 obj<</Type/Pages/Kids[3 0 R 4 0 R 5 0 R 6 0 R 7 0 R]/Count 5>>endobj',
-    ...[3, 4, 5, 6, 7].map((n) => `${n} 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 300 400]>>endobj`), // five real pages (pdf.js refuses one page used five times past the 3rd)
+    ...[3, 4, 5, 6, 7].map(
+      (n) => `${n} 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 300 400]>>endobj`,
+    ), // five real pages (pdf.js refuses one page used five times past the 3rd)
     'trailer<</Root 1 0 R/Size 8>>',
     '%%EOF',
   ].join('\n'),
@@ -490,25 +637,47 @@ const PDF5 = Buffer.from(
 test('a PDF with several pages tells the person which pages were read', async ({ page }) => {
   await mockImageScan(page)
   await page.goto('/scan?type=bill')
-  await page.getByTestId('upload-input').setInputFiles({ name: 'long.pdf', mimeType: 'application/pdf', buffer: PDF5 })
+  await page
+    .getByTestId('upload-input')
+    .setInputFiles({ name: 'long.pdf', mimeType: 'application/pdf', buffer: PDF5 })
   await page.getByRole('button', { name: 'Scan', exact: true }).click()
-  await expect(page.getByTestId('pdf-pages')).toContainText('This PDF has 5 pages. We read 4 of them', { timeout: 15_000 }) // 4 pages, each covered in turn
+  await expect(page.getByTestId('pdf-pages')).toContainText(
+    'This PDF has 5 pages. We read 4 of them',
+    { timeout: 15_000 },
+  ) // 4 pages, each covered in turn
 })
 
 test('each page of a long PDF goes as its own picture, at full width', async ({ page }) => {
   await mockImageScan(page)
   const sent = page.waitForRequest('**/api/scan')
   await page.goto('/scan?type=bill')
-  await page.getByTestId('upload-input').setInputFiles({ name: 'long.pdf', mimeType: 'application/pdf', buffer: PDF5 })
+  await page
+    .getByTestId('upload-input')
+    .setInputFiles({ name: 'long.pdf', mimeType: 'application/pdf', buffer: PDF5 })
   await page.getByRole('button', { name: 'Scan', exact: true }).click()
   const { images } = (await sent).postDataJSON()
   expect(images).toHaveLength(4) // pages 1, 2, 3 and the last
-  const widths = await page.evaluate((urls) => Promise.all(urls.map((src) => new Promise((done) => { const img = new Image(); img.onload = () => done(img.naturalWidth); img.src = src }))), images)
+  const widths = await page.evaluate(
+    (urls) =>
+      Promise.all(
+        urls.map(
+          (src) =>
+            new Promise((done) => {
+              const img = new Image()
+              img.onload = () => done(img.naturalWidth)
+              img.src = src
+            }),
+        ),
+      ),
+    images,
+  )
   expect(widths).toEqual([1600, 1600, 1600, 1600])
   await expect(page.locator('[data-testid="confirm-pages"] img')).toHaveCount(4) // beside the fields (behind "Show photo" on phones)
 })
 
-test('several photos of one bill are scanned together, in the order picked; Add another page adds to them', async ({ page }) => {
+test('several photos of one bill are scanned together, in the order picked; Add another page adds to them', async ({
+  page,
+}) => {
   await mockImageScan(page)
   const sent = page.waitForRequest('**/api/scan')
   await page.goto('/scan?type=bill')
@@ -526,20 +695,32 @@ test('several photos of one bill are scanned together, in the order picked; Add 
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Check your bill items')
 })
 
-test('more than 4 photos, or a PDF with photos, are refused before anything is sent', async ({ page }) => {
+test('more than 4 photos, or a PDF with photos, are refused before anything is sent', async ({
+  page,
+}) => {
   await page.goto('/scan?type=bill')
   const photo = (name) => ({ name, mimeType: 'image/png', buffer: TINY_PNG })
-  await page.getByTestId('upload-input').setInputFiles(['1', '2', '3', '4', '5'].map((n) => photo(`${n}.png`)))
+  await page
+    .getByTestId('upload-input')
+    .setInputFiles(['1', '2', '3', '4', '5'].map((n) => photo(`${n}.png`)))
   await expect(page.getByRole('alert')).toHaveText('You can scan up to 4 pages at a time.')
-  await page.getByTestId('upload-input').setInputFiles([photo('1.png'), { name: 'bill.pdf', mimeType: 'application/pdf', buffer: PDF }])
-  await expect(page.getByRole('alert')).toHaveText('A PDF already has its pages. Scan it on its own, or choose up to 4 photos.')
+  await page
+    .getByTestId('upload-input')
+    .setInputFiles([photo('1.png'), { name: 'bill.pdf', mimeType: 'application/pdf', buffer: PDF }])
+  await expect(page.getByRole('alert')).toHaveText(
+    'A PDF already has its pages. Scan it on its own, or choose up to 4 photos.',
+  )
 })
 
 test('a damaged PDF says the file cannot be used and sends nothing', async ({ page }) => {
   let apiCalls = 0
   await page.route('**/api/scan', (route) => (apiCalls++, route.continue()))
   await page.goto('/scan?type=medication')
-  await page.getByTestId('upload-input').setInputFiles({ name: 'broken.pdf', mimeType: 'application/pdf', buffer: Buffer.from('%PDF-1.4 this is not a real pdf') })
+  await page.getByTestId('upload-input').setInputFiles({
+    name: 'broken.pdf',
+    mimeType: 'application/pdf',
+    buffer: Buffer.from('%PDF-1.4 this is not a real pdf'),
+  })
   await page.getByRole('button', { name: 'Scan', exact: true }).click()
   await expect(page.getByRole('alert')).toContainText('This file can’t be used.')
   expect(apiCalls).toBe(0)
@@ -547,7 +728,9 @@ test('a damaged PDF says the file cannot be used and sends nothing', async ({ pa
 
 test('a PDF shows a preview of its first page, like a photo', async ({ page }) => {
   await page.goto('/scan?type=medication')
-  await page.getByTestId('upload-input').setInputFiles({ name: 'label.pdf', mimeType: 'application/pdf', buffer: PDF })
+  await page
+    .getByTestId('upload-input')
+    .setInputFiles({ name: 'label.pdf', mimeType: 'application/pdf', buffer: PDF })
   const preview = page.getByRole('img', { name: 'The photo you chose' })
   await expect(preview).toBeVisible()
   await expect(preview).toHaveAttribute('src', /^data:image\/jpeg;base64,/)
@@ -558,9 +741,18 @@ test('a PDF shows a preview of its first page, like a photo', async ({ page }) =
 // The scan answer is made here, so these tests need no AI and no real server.
 const MED1 = JSON.parse(readFileSync('server/fixtures/med-1.json', 'utf8'))
 const answerWith = (page, medication) =>
-  page.route('**/api/scan', (route) => route.fulfill({ json: { ok: true, data: { ...MED1, source: 'sample', medication: { ...MED1.medication, ...medication } } } }))
+  page.route('**/api/scan', (route) =>
+    route.fulfill({
+      json: {
+        ok: true,
+        data: { ...MED1, source: 'sample', medication: { ...MED1.medication, ...medication } },
+      },
+    }),
+  )
 
-test('purpose: checked on Confirm, then shown beside the medicine name on Explain, in our own words', async ({ page }) => {
+test('purpose: checked on Confirm, then shown beside the medicine name on Explain, in our own words', async ({
+  page,
+}) => {
   await answerWith(page, { purpose: 'diabetes' })
   await openSample(page, 'Metformin label')
   await expect(page.getByTestId('confirm-purpose')).toHaveValue('diabetes')
@@ -571,7 +763,9 @@ test('purpose: checked on Confirm, then shown beside the medicine name on Explai
   await expect(page.getByText('Metformin', { exact: true }).first()).toBeVisible() // the professional name stays
 })
 
-test('purpose: the person can correct it on Confirm, and the correction is what Explain shows', async ({ page }) => {
+test('purpose: the person can correct it on Confirm, and the correction is what Explain shows', async ({
+  page,
+}) => {
   await answerWith(page, { purpose: 'diabetes' })
   await openSample(page, 'Metformin label')
   await page.getByTestId('confirm-purpose').selectOption('pain')
@@ -579,7 +773,9 @@ test('purpose: the person can correct it on Confirm, and the correction is what 
   await expect(page.getByTestId('explain-purpose')).toContainText('pain and swelling')
 })
 
-test('purpose: when the AI was not sure, nothing is shown, and the field waits under "Add more details"', async ({ page }) => {
+test('purpose: when the AI was not sure, nothing is shown, and the field waits under "Add more details"', async ({
+  page,
+}) => {
   await answerWith(page, { purpose: null })
   await openSample(page, 'Metformin label')
   await expect(page.getByTestId('confirm-purpose')).toHaveCount(0)
@@ -589,7 +785,9 @@ test('purpose: when the AI was not sure, nothing is shown, and the field waits u
   await expect(page.getByTestId('explain-purpose')).toHaveCount(0)
 })
 
-test('the help under "Amount in the pack" hides behind an "i" button: tap or key opens it, Esc and tapping elsewhere close it', async ({ page }) => {
+test('the help under "Amount in the pack" hides behind an "i" button: tap or key opens it, Esc and tapping elsewhere close it', async ({
+  page,
+}) => {
   await answerWith(page, {})
   await openSample(page, 'Metformin label')
   const tip = page.getByTestId('info-tip')
@@ -613,7 +811,10 @@ test('the help under "Amount in the pack" hides behind an "i" button: tap or key
   await expect(text).toBeHidden()
 })
 
-test('the "i" help opens on mouse hover too, and closes when the mouse leaves', async ({ page, isMobile }) => {
+test('the "i" help opens on mouse hover too, and closes when the mouse leaves', async ({
+  page,
+  isMobile,
+}) => {
   test.skip(isMobile, 'hover is a mouse thing')
   await answerWith(page, {})
   await openSample(page, 'Metformin label')
@@ -624,25 +825,55 @@ test('the "i" help opens on mouse hover too, and closes when the mouse leaves', 
 })
 
 // The list holds 10 medicines. When an 11th arrives, a finished course goes first, never one you are still taking.
-test('a full list makes room by dropping a finished course, not the oldest medicine still being taken', async ({ page }) => {
+test('a full list makes room by dropping a finished course, not the oldest medicine still being taken', async ({
+  page,
+}) => {
   const TODAY = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Singapore' }).format(new Date())
-  const ago = (n) => new Date(new Date(`${TODAY}T00:00:00Z`).getTime() - n * 864e5).toISOString().slice(0, 10)
-  const med = (i, name, schedule) => ({ id: `m${i}`, source: 'label', sample: false, medication: { name, strength: '5 mg', doseAmount: 1, doseUnit: 'tablet', timesPerDay: 1, timing: null, withFood: null, frequencyType: 'daily', rawInstruction: null, warnings: [] }, ...(schedule ? { schedule } : {}) })
+  const ago = (n) =>
+    new Date(new Date(`${TODAY}T00:00:00Z`).getTime() - n * 864e5).toISOString().slice(0, 10)
+  const med = (i, name, schedule) => ({
+    id: `m${i}`,
+    source: 'label',
+    sample: false,
+    medication: {
+      name,
+      strength: '5 mg',
+      doseAmount: 1,
+      doseUnit: 'tablet',
+      timesPerDay: 1,
+      timing: null,
+      withFood: null,
+      frequencyType: 'daily',
+      rawInstruction: null,
+      warnings: [],
+    },
+    ...(schedule ? { schedule } : {}),
+  })
   // Newest first: Med0 ... Med9 (the oldest, still running); a finished course sits in the middle.
-  const list = Array.from({ length: 10 }, (_, i) => (i === 4 ? med(i, 'Finished4', { startDate: ago(20), days: 5, times: {} }) : med(i, `Med${i}`, { startDate: ago(1), days: 30, times: {} })))
+  const list = Array.from({ length: 10 }, (_, i) =>
+    i === 4
+      ? med(i, 'Finished4', { startDate: ago(20), days: 5, times: {} })
+      : med(i, `Med${i}`, { startDate: ago(1), days: 30, times: {} }),
+  )
   await page.addInitScript((list) => localStorage.setItem('medicines', JSON.stringify(list)), list)
   await answerWith(page, {})
   await openSample(page, 'Metformin label')
   await page.getByRole('button', { name: 'Looks correct' }).click()
-  await expect(page.getByTestId('explain-purpose').or(page.getByRole('heading', { level: 1 }))).toBeVisible()
-  const names = await page.evaluate(() => JSON.parse(localStorage.getItem('medicines')).map((m) => m.medication.name))
+  await expect(
+    page.getByTestId('explain-purpose').or(page.getByRole('heading', { level: 1 })),
+  ).toBeVisible()
+  const names = await page.evaluate(() =>
+    JSON.parse(localStorage.getItem('medicines')).map((m) => m.medication.name),
+  )
   expect(names).toHaveLength(10)
   expect(names[0]).toBe('Metformin') // the new one, first
   expect(names).not.toContain('Finished4') // the finished course made room...
   expect(names).toContain('Med9') // ...so the oldest medicine still being taken is kept
 })
 
-test('Confirm: the unit dropdown has room for "capsules", and strength is not asked for or shown', async ({ page }) => {
+test('Confirm: the unit dropdown has room for "capsules", and strength is not asked for or shown', async ({
+  page,
+}) => {
   await answerWith(page, { doseUnit: 'capsule', strength: '90MG' })
   await openSample(page, 'Metformin label')
   const unit = page.getByRole('combobox', { name: 'Unit' })
@@ -654,7 +885,9 @@ test('Confirm: the unit dropdown has room for "capsules", and strength is not as
   await expect(page.locator('.main-card')).not.toContainText('90MG') // the name says what it is; the strength is clutter
 })
 
-test('after Explain and a visit to Ask, the Scan page offers the last scan back; a refresh and Back keep it too', async ({ page }) => {
+test('after Explain and a visit to Ask, the Scan page offers the last scan back; a refresh and Back keep it too', async ({
+  page,
+}) => {
   await answerWith(page, { purpose: 'diabetes' })
   await openSample(page, 'Metformin label')
   await page.getByRole('button', { name: 'Looks correct' }).click()
@@ -675,7 +908,9 @@ test('after Explain and a visit to Ask, the Scan page offers the last scan back;
   await expect(page.getByTestId('explain-purpose')).toBeVisible()
 })
 
-test('the last scan is kept as text only (never the photo), and is forgotten when you log out', async ({ page }) => {
+test('the last scan is kept as text only (never the photo), and is forgotten when you log out', async ({
+  page,
+}) => {
   await answerWith(page, {})
   await openSample(page, 'Metformin label')
   await page.getByRole('button', { name: 'Looks correct' }).click()
@@ -696,20 +931,33 @@ test('an unchecked scan is offered back as "Carry on", at the Confirm page', asy
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Check what we read')
   await page.getByRole('link', { name: 'Scan', exact: true }).first().click({ force: true })
   const leave = page.getByTestId('confirm-discard')
-  if (await leave.isVisible().catch(() => false)) await leave.getByRole('button', { name: /leave|throw/i }).first().click()
+  if (await leave.isVisible().catch(() => false))
+    await leave
+      .getByRole('button', { name: /leave|throw/i })
+      .first()
+      .click()
   await page.goto('/scan')
   await expect(page.getByTestId('scan-resume')).toContainText('Not checked yet.')
 })
 
-test('the scan error screen is as readable as the normal page: no axe problems, big targets @a11y', async ({ page }) => {
-  await page.route('**/api/scan', (route) => route.fulfill({ status: 503, json: { ok: false, error: { code: 'AI_UNAVAILABLE', message: 'down' } } }))
+test('the scan error screen is as readable as the normal page: no axe problems, big targets @a11y', async ({
+  page,
+}) => {
+  await page.route('**/api/scan', (route) =>
+    route.fulfill({
+      status: 503,
+      json: { ok: false, error: { code: 'AI_UNAVAILABLE', message: 'down' } },
+    }),
+  )
   await openSample(page, 'Metformin label')
   await expect(page.getByRole('alert')).toContainText('Scanning is not available right now.')
   await expectNoAxeViolationsDayAndNight(page)
   await expectSeniorFriendly(page)
 })
 
-test('Confirm with an unclear field showing has no axe problems, day or night @a11y', async ({ page }) => {
+test('Confirm with an unclear field showing has no axe problems, day or night @a11y', async ({
+  page,
+}) => {
   await page.route('**/api/scan', async (route) => {
     const res = await route.fetch()
     const body = await res.json()

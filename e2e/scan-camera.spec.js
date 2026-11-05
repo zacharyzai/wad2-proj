@@ -3,7 +3,10 @@ import { test, expect } from './fixtures.js'
 import { mockImageScan } from './helpers/mockImageScan.js'
 
 // Chromium's fake webcam, with the permission prompt auto-accepted.
-test.use({ launchOptions: { args: ['--use-fake-device-for-media-stream', '--use-fake-ui-for-media-stream'] }, permissions: ['camera'] })
+test.use({
+  launchOptions: { args: ['--use-fake-device-for-media-stream', '--use-fake-ui-for-media-stream'] },
+  permissions: ['camera'],
+})
 
 test('Take photo opens the camera and Capture sends the frame', async ({ page }) => {
   await mockImageScan(page)
@@ -15,7 +18,9 @@ test('Take photo opens the camera and Capture sends the frame', async ({ page })
   await expect(page.locator('img[src^="data:image/jpeg"]').first()).toBeAttached()
 })
 
-test('a bill is photographed page by page: Add next page, Retake keeps its place, then every page is read as one bill', async ({ page }) => {
+test('a bill is photographed page by page: Add next page, Retake keeps its place, then every page is read as one bill', async ({
+  page,
+}) => {
   await mockImageScan(page)
   await page.goto('/scan?type=bill')
   await page.getByTestId('scan-take').click()
@@ -23,7 +28,9 @@ test('a bill is photographed page by page: Add next page, Retake keeps its place
   await page.getByRole('button', { name: 'Capture' }).click()
   // Not sent yet: the pages so far, and one question.
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Your bill pages')
-  await expect(page.getByRole('heading', { name: 'Does this bill have another page?' })).toBeVisible()
+  await expect(
+    page.getByRole('heading', { name: 'Does this bill have another page?' }),
+  ).toBeVisible()
   await page.getByTestId('scan-add-page').click()
   await expect(page.getByTestId('scan-page-n')).toHaveText('Taking page 2')
   await page.getByRole('button', { name: 'Capture' }).click()
@@ -38,7 +45,9 @@ test('a bill is photographed page by page: Add next page, Retake keeps its place
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Check your bill items')
 })
 
-test('a blurry bill page is flagged as soon as it is taken: retake it, or use it anyway', async ({ page }) => {
+test('a blurry bill page is flagged as soon as it is taken: retake it, or use it anyway', async ({
+  page,
+}) => {
   await mockImageScan(page)
   await page.addInitScript(() => (window.__photoCheckForTests = async () => 'blurry'))
   await page.goto('/scan?type=bill')
@@ -71,7 +80,8 @@ test('Cancel with two or more bill pages asks before throwing them away', async 
 test('blocked camera points to Upload photo', async ({ page, context }) => {
   await context.clearPermissions()
   await page.addInitScript(() => {
-    navigator.mediaDevices.getUserMedia = () => Promise.reject(new DOMException('denied', 'NotAllowedError'))
+    navigator.mediaDevices.getUserMedia = () =>
+      Promise.reject(new DOMException('denied', 'NotAllowedError'))
   })
   await page.goto('/scan?type=medication')
   await page.getByTestId('scan-take').click()

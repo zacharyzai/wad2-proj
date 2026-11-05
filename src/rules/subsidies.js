@@ -1,16 +1,4 @@
-// Owner: Lokesh. Subsidy rules behind the bill questionnaire. Pure functions with no Vue, so server/test/subsidies.test.js can test them.
-// Every figure must be on the official page in `sourceUrl` on the date in `checkedOn`. If a figure is unclear, `discount` stays null
-// and the page only links to the source. Never invent a percentage or amount.
-//
-// answers (from the questionnaire; any of them may be missing):
-//   birthYear     number
-//   residency     'citizen' | 'pr' | 'other'
-//   citizenSince  number (year) | 'birth'   (only used when residency is 'citizen')
-//   income        'upTo1500' | '1501to2300' | 'above2300' | 'unsure'   (household monthly income per person, for CHAS)
-//
-// rule.eligible(normalizeAnswers(answers)) returns true, false, or 'unknown' when an answer it needs is missing.
-// checkRules(answers) does both steps for every rule.
-
+// Subsidy eligibility rules from official MOH sources, checked against the questionnaire answers.
 import { sumCents } from './billCheck.js'
 
 export const UNKNOWN = 'unknown'
@@ -33,12 +21,17 @@ export function normalizeAnswers(raw = {}, thisYear = new Date().getFullYear()) 
   let citizenYear = null
   if (residency === 'citizen') {
     if (raw.citizenSince === 'birth') citizenYear = birthYear
-    else if (validYear(raw.citizenSince, thisYear) && (birthYear === null || raw.citizenSince >= birthYear)) citizenYear = raw.citizenSince
+    else if (
+      validYear(raw.citizenSince, thisYear) &&
+      (birthYear === null || raw.citizenSince >= birthYear)
+    )
+      citizenYear = raw.citizenSince
   }
   const income = ['upTo1500', '1501to2300', 'above2300'].includes(raw.income) ? raw.income : null
   return { birthYear, residency, citizenYear, income }
 }
 
+// Pioneer Generation check from year of birth and citizenship; UNKNOWN until both are answered.
 const isPioneer = (a) => {
   if (a.residency === null) return UNKNOWN
   if (a.residency !== 'citizen') return false
@@ -48,6 +41,7 @@ const isPioneer = (a) => {
   return a.citizenYear <= 1986
 }
 
+// Merdeka Generation check from year of birth and citizenship; UNKNOWN until both are answered.
 const isMerdeka = (a) => {
   if (a.residency === null) return UNKNOWN
   if (a.residency !== 'citizen') return false
@@ -60,8 +54,10 @@ const isMerdeka = (a) => {
   return a.birthYear >= 1950 || a.citizenYear > 1986
 }
 
+// Residency checks used by the rules below; UNKNOWN until the question is answered.
 const isCitizen = (a) => (a.residency === null ? UNKNOWN : a.residency === 'citizen')
-const isResident = (a) => (a.residency === null ? UNKNOWN : a.residency === 'citizen' || a.residency === 'pr')
+const isResident = (a) =>
+  a.residency === null ? UNKNOWN : a.residency === 'citizen' || a.residency === 'pr'
 
 export const RULES = [
   {
@@ -71,7 +67,8 @@ export const RULES = [
     explainKey: 'bill.rules.pioneer',
     appliesAt: ['polyclinic', 'chasClinic'],
     eligible: isPioneer,
-    sourceUrl: 'https://www.moh.gov.sg/managing-expenses/schemes-and-subsidies/pioneer-generation-package/',
+    sourceUrl:
+      'https://www.moh.gov.sg/managing-expenses/schemes-and-subsidies/pioneer-generation-package/',
     checkedOn: CHECKED_ON,
     // "Additional 50% off remaining bill for subsidised services and medications" at polyclinics and public SOCs.
     // The page doesn't say which bill lines count as subsidised, so the app shows this figure as text and never recalculates a total.
@@ -85,7 +82,8 @@ export const RULES = [
     explainKey: 'bill.rules.merdeka',
     appliesAt: ['polyclinic', 'chasClinic'],
     eligible: isMerdeka,
-    sourceUrl: 'https://www.moh.gov.sg/managing-expenses/schemes-and-subsidies/merdeka-generation-package/',
+    sourceUrl:
+      'https://www.moh.gov.sg/managing-expenses/schemes-and-subsidies/merdeka-generation-package/',
     checkedOn: CHECKED_ON,
     // "Additional 25% off remaining bill for subsidised services and medications" at polyclinics and public SOCs. Shown as text only.
     discount: 25,
@@ -112,7 +110,8 @@ export const RULES = [
     explainKey: 'bill.rules.polyclinic',
     appliesAt: ['polyclinic'],
     eligible: isResident,
-    sourceUrl: 'https://www.moh.gov.sg/managing-expenses/keeping-healthcare-affordable/outpatient-treatment/',
+    sourceUrl:
+      'https://www.moh.gov.sg/managing-expenses/keeping-healthcare-affordable/outpatient-treatment/',
     checkedOn: CHECKED_ON,
     // MOH gives no polyclinic subsidy percentage on this page.
     discount: null,
@@ -143,10 +142,10 @@ export function billPlace(bill) {
   return /polyclinic/i.test(bill.clinic ?? '') ? 'polyclinic' : 'chasClinic'
 }
 
-
 // The bill after subsidies. MediSave is only a way of paying it, so it is not taken off here.
 // A subsidy already inside net line amounts (includedInItems) isn't taken off again.
-const remainingCents = (bill) => Math.max(0, sumCents(bill.items) - sumCents(bill.subsidies.filter((s) => !s.includedInItems)))
+const remainingCents = (bill) =>
+  Math.max(0, sumCents(bill.items) - sumCents(bill.subsidies.filter((s) => !s.includedInItems)))
 
 // "X% off remaining bill": a percent of the bill after subsidies. Integer cents, rounded to the nearest cent.
 export function discountCents(bill, percent) {
@@ -163,19 +162,28 @@ export function discountCents(bill, percent) {
 export function compareWithBill(bill, raw, thisYear) {
   const place = billPlace(bill)
   const checks = checkRules(raw, thisYear)
+  // The eligibility result for one scheme, if it has been checked.
   const resultFor = (scheme) => checks.find(({ rule }) => rule.scheme === scheme)
   const schemesOnBill = new Set(bill.subsidies.map((s) => s.scheme))
 
   const onBill = bill.subsidies.map((s) => {
     const check = resultFor(s.scheme)
-    return { scheme: s.scheme, amountCents: s.amountCents, rule: check?.rule ?? null, result: check?.result ?? UNKNOWN }
+    return {
+      scheme: s.scheme,
+      amountCents: s.amountCents,
+      rule: check?.rule ?? null,
+      result: check?.result ?? UNKNOWN,
+    }
   })
 
   const mayQualify = checks
     .filter(({ rule, result }) => result !== false && !schemesOnBill.has(rule.scheme))
     .map(({ rule, result }) => {
       const here = rule.appliesAt.includes(place)
-      const amountCents = result === true && rule.discount !== null && rule.discountAt === place ? discountCents(bill, rule.discount) : null
+      const amountCents =
+        result === true && rule.discount !== null && rule.discountAt === place
+          ? discountCents(bill, rule.discount)
+          : null
       return { rule, result, here, amountCents }
     })
     .sort((a, b) => Number(b.here) - Number(a.here))

@@ -7,8 +7,15 @@ import { billGap, sectionsOff } from '../../src/rules/billCheck.js'
 
 test('medication: clean label has nothing unclear and drops unknown fields', () => {
   const scan = normalizeMedication({
-    name: ' Metformin ', doseAmount: 1, doseUnit: 'tablet', timesPerDay: 2, timing: ['morning', 'bedtime'],
-    withFood: 'after', frequencyType: 'daily', warnings: ['Avoid alcohol', ''], patientName: 'Tan Ah Kow',
+    name: ' Metformin ',
+    doseAmount: 1,
+    doseUnit: 'tablet',
+    timesPerDay: 2,
+    timing: ['morning', 'bedtime'],
+    withFood: 'after',
+    frequencyType: 'daily',
+    warnings: ['Avoid alcohol', ''],
+    patientName: 'Tan Ah Kow',
   })
   assert.deepEqual(scan.unclear, [])
   assert.equal(scan.medication.name, 'Metformin')
@@ -17,13 +24,27 @@ test('medication: clean label has nothing unclear and drops unknown fields', () 
 })
 
 test('medication: invalid values become null and are flagged, never guessed', () => {
-  const scan = normalizeMedication({ name: '', doseAmount: 'two', timesPerDay: 1.5, doseUnit: 'spoon', frequencyType: 'daily' })
+  const scan = normalizeMedication({
+    name: '',
+    doseAmount: 'two',
+    timesPerDay: 1.5,
+    doseUnit: 'spoon',
+    frequencyType: 'daily',
+  })
   assert.equal(scan.medication.doseUnit, null)
-  assert.deepEqual(scan.unclear, ['medication.name', 'medication.doseAmount', 'medication.timesPerDay'])
+  assert.deepEqual(scan.unclear, [
+    'medication.name',
+    'medication.doseAmount',
+    'medication.timesPerDay',
+  ])
 })
 
 test('medication: as-needed does not require timesPerDay', () => {
-  const scan = normalizeMedication({ name: 'Paracetamol', doseAmount: 2, frequencyType: 'as_needed' })
+  const scan = normalizeMedication({
+    name: 'Paracetamol',
+    doseAmount: 2,
+    frequencyType: 'as_needed',
+  })
   assert.deepEqual(scan.unclear, [])
 })
 
@@ -37,28 +58,43 @@ test('bill: GST the government absorbs is left out, whichever way the model gave
       { description: 'GST absorbed by Govt', category: 'tax', amount: -610.13 },
     ],
     // Cut down to two lines: insurance, MediSave and what was paid cover the rest of the $5,831.95.
-    subsidies: [{ scheme: 'insurance', amount: 4295.59 }, { scheme: 'paid', amount: 540.54 }, { scheme: 'government', amount: 9991.23, includedInItems: true }],
+    subsidies: [
+      { scheme: 'insurance', amount: 4295.59 },
+      { scheme: 'paid', amount: 540.54 },
+      { scheme: 'government', amount: 9991.23, includedInItems: true },
+    ],
     medisave: 995.82,
     totalPayable: 0,
     gstAbsorbed: true,
   }
   const scan = normalizeBill(raw)
-  assert.deepEqual(scan.bill.items.map((i) => i.description), ['Surgical Procedure', 'Implants'])
+  assert.deepEqual(
+    scan.bill.items.map((i) => i.description),
+    ['Surgical Procedure', 'Implants'],
+  )
   assert.equal(addsUp(scan), true)
   // Without the absorbed line printed, GST stays a charge as before.
-  assert.ok(normalizeBill({ ...raw, gstAbsorbed: false }).bill.items.some((i) => i.category === 'tax'))
+  assert.ok(
+    normalizeBill({ ...raw, gstAbsorbed: false }).bill.items.some((i) => i.category === 'tax'),
+  )
 })
 
 test('bill: dollars become integer cents, and totals that do not add up keep the printed total (with the gap)', () => {
   const raw = {
-    items: [{ description: 'Consultation', category: 'consultation', amount: 14.5 }, { description: 'Meds', category: 'medication', amount: 8.2 }],
+    items: [
+      { description: 'Consultation', category: 'consultation', amount: 14.5 },
+      { description: 'Meds', category: 'medication', amount: 8.2 },
+    ],
     subsidies: [{ scheme: 'government', amount: 8.7 }],
     medisave: 0,
     totalPayable: 14,
   }
   const ok = normalizeBill(raw)
   assert.deepEqual(ok.unclear, [])
-  assert.deepEqual(ok.bill.items.map((i) => i.amountCents), [1450, 820])
+  assert.deepEqual(
+    ok.bill.items.map((i) => i.amountCents),
+    [1450, 820],
+  )
 
   const wrong = normalizeBill({ ...raw, totalPayable: 99 })
   assert.deepEqual(wrong.unclear, []) // not unclear: Confirm and the Bill page say how far off the lines are
@@ -69,10 +105,19 @@ test('bill: dollars become integer cents, and totals that do not add up keep the
 })
 
 test('bill: unreadable lines are flagged and unknown enums fall back to other', () => {
-  const scan = normalizeBill({ items: [{ description: null, category: 'x', amount: null }], subsidies: [], medisave: 0, totalPayable: 5 })
+  const scan = normalizeBill({
+    items: [{ description: null, category: 'x', amount: null }],
+    subsidies: [],
+    medisave: 0,
+    totalPayable: 5,
+  })
   assert.equal(scan.bill.items[0].category, 'other')
   assert.deepEqual(scan.unclear, ['bill.items.0.description', 'bill.items.0.amountCents'])
-  assert.deepEqual(normalizeBill({}).unclear, ['bill.items', 'bill.medisaveCents', 'bill.totalPayableCents'])
+  assert.deepEqual(normalizeBill({}).unclear, [
+    'bill.items',
+    'bill.medisaveCents',
+    'bill.totalPayableCents',
+  ])
 })
 
 // Eastwater General Hospital (01_public_hospital_inpatient): lines printed as Gross / Subsidy / Net.
@@ -84,7 +129,11 @@ const NET_BILL = {
     { description: 'Surgery — Hemiarthroplasty', category: 'procedure', amount: 1487.5 },
     { description: 'Implant — Bipolar Hip Prosthesis', category: 'procedure', amount: 1092 },
     { description: 'Anaesthesia', category: 'procedure', amount: 336 },
-    { description: 'Investigations (Lab / X-Ray / ECG)', category: 'investigation', amount: 249.38 },
+    {
+      description: 'Investigations (Lab / X-Ray / ECG)',
+      category: 'investigation',
+      amount: 249.38,
+    },
     { description: 'Medications & Consumables', category: 'medication', amount: 188.41 },
     { description: 'Rehabilitation (PT x4, OT x2)', category: 'procedure', amount: 147 },
     { description: 'GST 9%', category: 'tax', amount: 358.5 },
@@ -101,9 +150,19 @@ const NET_BILL = {
 test('bill with net lines: the subsidy inside them is kept but not subtracted again, so the total checks out', () => {
   const { bill, unclear } = normalizeBill(NET_BILL)
   assert.deepEqual(unclear, []) // 4341.79 − 2850 − 217.09 − 1094.70 = 180.00
-  assert.deepEqual(bill.subsidies.map((s) => [s.scheme, s.includedInItems]), [['government', true], ['insurance', false], ['merdeka', false]])
+  assert.deepEqual(
+    bill.subsidies.map((s) => [s.scheme, s.includedInItems]),
+    [
+      ['government', true],
+      ['insurance', false],
+      ['merdeka', false],
+    ],
+  )
   // Taking the government subsidy off again would not add up: the gap says so.
-  const twice = normalizeBill({ ...NET_BILL, subsidies: NET_BILL.subsidies.map((s) => ({ ...s, includedInItems: false })) })
+  const twice = normalizeBill({
+    ...NET_BILL,
+    subsidies: NET_BILL.subsidies.map((s) => ({ ...s, includedInItems: false })),
+  })
   assert.equal(billGap(twice.bill), -739751)
 })
 
@@ -112,16 +171,56 @@ test('bill with net lines: the subsidy inside them is kept but not subtracted ag
 const HMI = (fexofen = 14.5) => ({
   clinic: 'HMI Managed Healthcare Clinic',
   items: [
-    { description: 'Tele - Consultation with [HMI Managed Healthcare Clinic]', category: 'consultation', amount: 8, section: 'Consultation Fees' },
+    {
+      description: 'Tele - Consultation with [HMI Managed Healthcare Clinic]',
+      category: 'consultation',
+      amount: 8,
+      section: 'Consultation Fees',
+    },
     { description: 'Surcharge', category: 'other', amount: 20, section: 'Consultation Fees' },
     { description: 'Subtotal', category: 'other', amount: 28, section: 'Consultation Fees' }, // a subtotal listed as a charge
-    { description: 'PROCEPTIN-20 CAPSULE 20MG', category: 'medication', amount: 9.57, section: 'Medications List' },
-    { description: 'ETORICOXIB ALVOGEN FILM-COATED TABLET 90MG', category: 'medication', amount: 23.14, section: 'Medications List' },
-    { description: 'MAC-EXTRA LOZENGE (HEXYLRESORCINOL)', category: 'medication', amount: 6.7, section: 'Medications List' },
-    { description: 'ILIADIN ADULT NASAL DROPS 0.05% (10ML) (NON CLAIMABLE )', category: 'medication', amount: 12.6, section: 'Medications List' },
-    { description: 'FEXOFEN FILM-COATED TABLET 180MG', category: 'medication', amount: fexofen, section: 'Medications List' },
-    { description: 'HELIXIR COUGH SYRUP (100ML)', category: 'medication', amount: 9.75, section: 'Medications List' },
-    { description: 'STENAC 600MG (ACETYLCYSTEINE)', category: 'medication', amount: 7.5, section: 'Medications List' },
+    {
+      description: 'PROCEPTIN-20 CAPSULE 20MG',
+      category: 'medication',
+      amount: 9.57,
+      section: 'Medications List',
+    },
+    {
+      description: 'ETORICOXIB ALVOGEN FILM-COATED TABLET 90MG',
+      category: 'medication',
+      amount: 23.14,
+      section: 'Medications List',
+    },
+    {
+      description: 'MAC-EXTRA LOZENGE (HEXYLRESORCINOL)',
+      category: 'medication',
+      amount: 6.7,
+      section: 'Medications List',
+    },
+    {
+      description: 'ILIADIN ADULT NASAL DROPS 0.05% (10ML) (NON CLAIMABLE )',
+      category: 'medication',
+      amount: 12.6,
+      section: 'Medications List',
+    },
+    {
+      description: 'FEXOFEN FILM-COATED TABLET 180MG',
+      category: 'medication',
+      amount: fexofen,
+      section: 'Medications List',
+    },
+    {
+      description: 'HELIXIR COUGH SYRUP (100ML)',
+      category: 'medication',
+      amount: 9.75,
+      section: 'Medications List',
+    },
+    {
+      description: 'STENAC 600MG (ACETYLCYSTEINE)',
+      category: 'medication',
+      amount: 7.5,
+      section: 'Medications List',
+    },
     { description: 'GST (9%)', category: 'tax', amount: 10.06, section: null },
     { description: 'Corporate Benefit', category: 'other', amount: '(86.29)', section: null },
   ],
@@ -136,8 +235,13 @@ test('HMI bill: adds up when read right; "NON CLAIMABLE" stays a charge; printed
   assert.deepEqual(scan.unclear, [])
   assert.equal(scan.bill.items.length, 10) // the subtotal and the corporate benefit are not charges
   assert.ok(scan.bill.items.some((i) => /NON CLAIMABLE/.test(i.description))) // "claim" inside a word is not a deduction
-  assert.deepEqual(scan.bill.subsidies, [{ scheme: 'other', amountCents: 8629, includedInItems: false }])
-  assert.deepEqual(scan.bill.subtotals, [{ section: 'Medications List', amountCents: 8376 }, { section: 'Consultation Fees', amountCents: 2800 }])
+  assert.deepEqual(scan.bill.subsidies, [
+    { scheme: 'other', amountCents: 8629, includedInItems: false },
+  ])
+  assert.deepEqual(scan.bill.subtotals, [
+    { section: 'Medications List', amountCents: 8376 },
+    { section: 'Consultation Fees', amountCents: 2800 },
+  ])
   assert.equal(billGap(scan.bill), 0)
   assert.deepEqual(sectionsOff(scan.bill), [])
   assert.equal(addsUp(scan), true)
@@ -148,17 +252,24 @@ test('HMI bill misread ($14.50 as $14.00): the printed total stays, the gap and 
   assert.deepEqual(scan.unclear, [])
   assert.equal(scan.bill.totalPayableCents, 3553)
   assert.equal(billGap(scan.bill), -50) // the lines come to 50 cents less than the bill's total
-  assert.deepEqual(sectionsOff(scan.bill), [{ section: 'Medications List', printedCents: 8376, linesCents: 8326 }])
+  assert.deepEqual(sectionsOff(scan.bill), [
+    { section: 'Medications List', printedCents: 8376, linesCents: 8326 },
+  ])
   assert.equal(addsUp(scan), false)
 })
 
 // The Orchid Crest statement (fictional private hospital): 8 charges + GST = 33,194.86; MediShield Life, the Integrated
 // Plan and MediSave take off 31,694.86, leaving 1,500.00.
 const CHARGES = [
-  ['Room & Board', 'ward', 3140], ["Surgeon's Fee", 'procedure', 9800], ["Anaesthetist's Fee", 'procedure', 2400],
-  ['Cath Lab & Operating Facility', 'procedure', 6850], ['Drug-Eluting Stent', 'procedure', 4200],
-  ['Investigations (Echo, Troponin, Labs)', 'investigation', 1845.6], ['Pharmacy', 'medication', 1236.4],
-  ['Nursing & Consumables', 'procedure', 982], ['GST 9%', 'tax', 2740.86],
+  ['Room & Board', 'ward', 3140],
+  ["Surgeon's Fee", 'procedure', 9800],
+  ["Anaesthetist's Fee", 'procedure', 2400],
+  ['Cath Lab & Operating Facility', 'procedure', 6850],
+  ['Drug-Eluting Stent', 'procedure', 4200],
+  ['Investigations (Echo, Troponin, Labs)', 'investigation', 1845.6],
+  ['Pharmacy', 'medication', 1236.4],
+  ['Nursing & Consumables', 'procedure', 982],
+  ['GST 9%', 'tax', 2740.86],
 ].map(([description, category, amount]) => ({ description, category, amount }))
 
 test('deductions copied as printed (minus signs, brackets, strings, among the charges) are taken off, not added', () => {
@@ -178,14 +289,22 @@ test('deductions copied as printed (minus signs, brackets, strings, among the ch
   })
   assert.deepEqual(unclear, [])
   assert.equal(bill.items.length, 9)
-  assert.deepEqual(bill.subsidies.map((s) => [s.scheme, s.amountCents]).sort(), [['insurance', 2407486], ['insurance', 612000]])
+  assert.deepEqual(bill.subsidies.map((s) => [s.scheme, s.amountCents]).sort(), [
+    ['insurance', 2407486],
+    ['insurance', 612000],
+  ])
   assert.equal(bill.medisaveCents, 150000)
   assert.equal(bill.totalPayableCents, 150000)
 })
 
 test('a positive deduction among the charges still counts as a deduction; a MediSave line given twice counts once', () => {
   const { bill, unclear } = normalizeBill({
-    items: [...CHARGES, { description: 'MediShield Life claim', amount: 6120 }, { description: 'Integrated Shield payout', amount: 24074.86 }, { description: 'MediSave', amount: 1500 }],
+    items: [
+      ...CHARGES,
+      { description: 'MediShield Life claim', amount: 6120 },
+      { description: 'Integrated Shield payout', amount: 24074.86 },
+      { description: 'MediSave', amount: 1500 },
+    ],
     subsidies: [],
     medisave: 1500,
     totalPayable: 1500,
@@ -211,13 +330,22 @@ test('GST already included is not added again, and a deposit already paid comes 
   })
   assert.deepEqual(unclear, [])
   assert.equal(bill.items.length, 2) // the total line and the included GST are gone
-  assert.deepEqual(bill.subsidies, [{ scheme: 'paid', amountCents: 1500000, includedInItems: false }])
+  assert.deepEqual(bill.subsidies, [
+    { scheme: 'paid', amountCents: 1500000, includedInItems: false },
+  ])
   assert.equal(bill.totalPayableCents, 9569813)
 })
 
 test('purpose: only a value from the fixed list is kept; anything else, or nothing, is null and never flagged as unclear', () => {
-  const base = { name: 'Metformin', doseAmount: 1, doseUnit: 'tablet', timesPerDay: 2, frequencyType: 'daily' }
-  for (const purpose of PURPOSES) assert.equal(normalizeMedication({ ...base, purpose }).medication.purpose, purpose)
+  const base = {
+    name: 'Metformin',
+    doseAmount: 1,
+    doseUnit: 'tablet',
+    timesPerDay: 2,
+    frequencyType: 'daily',
+  }
+  for (const purpose of PURPOSES)
+    assert.equal(normalizeMedication({ ...base, purpose }).medication.purpose, purpose)
   for (const purpose of ['for the heart and some other things', 'DIABETES', '', 7, undefined]) {
     const scan = normalizeMedication({ ...base, purpose })
     assert.equal(scan.medication.purpose, null)
@@ -226,19 +354,44 @@ test('purpose: only a value from the fixed list is kept; anything else, or nothi
 })
 
 test('purpose is accepted on a checked scan and on the account medicine list, and an invented one is refused', () => {
-  const med = { name: 'Metformin', strength: '500 mg', doseAmount: 1, doseUnit: 'tablet', quantity: null, timesPerDay: 2, timing: null, withFood: null, frequencyType: 'daily', rawInstruction: null, warnings: [] }
-  const scan = (purpose) => ({ scan: { type: 'medication', source: 'ai', unclear: [], medication: { ...med, purpose } } })
+  const med = {
+    name: 'Metformin',
+    strength: '500 mg',
+    doseAmount: 1,
+    doseUnit: 'tablet',
+    quantity: null,
+    timesPerDay: 2,
+    timing: null,
+    withFood: null,
+    frequencyType: 'daily',
+    rawInstruction: null,
+    warnings: [],
+  }
+  const scan = (purpose) => ({
+    scan: { type: 'medication', source: 'ai', unclear: [], medication: { ...med, purpose } },
+  })
   assert.equal(checkConfirmedScan(scan('diabetes')).scan.medication.purpose, 'diabetes')
   assert.equal(checkConfirmedScan(scan(null)).scan.medication.purpose, null)
-  assert.equal(checkConfirmedScan({ scan: { type: 'medication', source: 'ai', unclear: [], medication: med } }).scan.medication.purpose, null) // old clients
+  assert.equal(
+    checkConfirmedScan({ scan: { type: 'medication', source: 'ai', unclear: [], medication: med } })
+      .scan.medication.purpose,
+    null,
+  ) // old clients
   assert.ok(checkConfirmedScan(scan('cures cancer')).error)
-  const entry = (purpose) => [{ id: 'm1', source: 'label', sample: false, medication: { ...med, purpose } }]
+  const entry = (purpose) => [
+    { id: 'm1', source: 'label', sample: false, medication: { ...med, purpose } },
+  ]
   assert.equal(checkMedicines(entry('pain')).medicines[0].medication.purpose, 'pain')
   assert.ok(checkMedicines(entry('cures cancer')).error)
 })
 
 test('a wrapped description read as its own line is joined back, and a doubled amount is flagged', () => {
-  const row = (description, amount) => ({ description, category: 'medication', amount, section: 'Medications' })
+  const row = (description, amount) => ({
+    description,
+    category: 'medication',
+    amount,
+    section: 'Medications',
+  })
   const bill = (items) => normalizeBill({ items, totalPayable: 10, medisave: 0 })
   const joined = bill([row('PARACETAMOL 500MG', 5), row('Tablet (42mg)', null)])
   assert.equal(joined.bill.items.length, 1)

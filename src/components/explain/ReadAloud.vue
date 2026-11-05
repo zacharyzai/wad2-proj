@@ -1,5 +1,4 @@
-<!-- Owner: Asher. Read-aloud player card from the Claude Design Explain screen: the device's voice, or audio from /api/tts
-     (Gemini) when the device has none for the language (stores/speech.js). -->
+<!-- Read-aloud player with play, pause, replay and speed control. -->
 <script setup>
 import { onBeforeUnmount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -9,7 +8,14 @@ import AppIcon from '../layout/AppIcon.vue'
 import Spinner from '../layout/Spinner.vue'
 const speech = useSpeechStore()
 const { rate } = storeToRefs(speech)
-const { speak: say, stopSpeaking, pauseSpeaking, resumeSpeaking, setSpeakingRate, usesDeviceVoice } = speech
+const {
+  speak: say,
+  stopSpeaking,
+  pauseSpeaking,
+  resumeSpeaking,
+  setSpeakingRate,
+  usesDeviceVoice,
+} = speech
 
 const props = defineProps({ text: { type: String, required: true } })
 const { t, locale } = useI18n()
@@ -20,16 +26,21 @@ const failed = ref(false)
 
 let run = 0
 
+// Reads the explanation aloud. A newer press cancels an older one still loading.
 async function speak() {
   const id = ++run
   failed.value = false
   status.value = 'loading'
-  const result = await say(props.text, locale.value, { rate: rate.value, onPlaying: () => id === run && (status.value = 'playing') })
+  const result = await say(props.text, locale.value, {
+    rate: rate.value,
+    onPlaying: () => id === run && (status.value = 'playing'),
+  })
   if (id !== run) return // a newer reading (or stop) took over
   status.value = 'idle'
   failed.value = result === 'failed'
 }
 
+// Pauses what is playing, or resumes it, or starts again.
 function toggle() {
   if (status.value === 'playing') {
     pauseSpeaking()
@@ -44,6 +55,7 @@ function toggle() {
   }
 }
 
+// Stops playback and returns to the start.
 function stop() {
   run++
   stopSpeaking()
@@ -51,25 +63,69 @@ function stop() {
 }
 
 // A device voice reads again at the new speed; downloaded audio just changes speed.
-watch(rate, (r) => status.value !== 'idle' && (usesDeviceVoice(locale.value) ? speak() : setSpeakingRate(r)))
+watch(
+  rate,
+  (r) => status.value !== 'idle' && (usesDeviceVoice(locale.value) ? speak() : setSpeakingRate(r)),
+)
 watch([locale, () => props.text], stop)
 onBeforeUnmount(stop)
 </script>
 
 <template>
   <section class="card player" :aria-label="t('player.reading')">
-    <div class="player-label"><AppIcon name="volume" :size="20" /><span class="section-label">{{ t('player.reading') }}</span></div>
-    <div class="d-flex align-items-center gap-3">
-      <button type="button" class="play" :class="{ on: status === 'playing', wait: status === 'loading' }" :aria-busy="status === 'loading'" @click="toggle">
-        <span class="play-btn"><Spinner v-if="status === 'loading'" :size="36" tone="light" /><AppIcon v-else :name="status === 'playing' ? 'pause' : 'play'" :size="30" /></span>
-        <span>{{ status === 'loading' ? t('player.preparing') : status === 'playing' ? t('player.pause') : t('player.play') }}</span>
-      </button>
-      <button type="button" class="btn btn-outline btn-icon replay" :aria-label="t('player.replay')" :title="t('player.replay')" @click="speak"><AppIcon name="replay" :size="22" /></button>
+    <div class="player-label">
+      <AppIcon name="volume" :size="20" /><span class="section-label">{{
+        t('player.reading')
+      }}</span>
     </div>
-    <div class="d-flex align-items-center gap-3 flex-wrap" role="group" :aria-label="t('player.speed')">
+    <div class="d-flex align-items-center gap-3">
+      <button
+        type="button"
+        class="play"
+        :class="{ on: status === 'playing', wait: status === 'loading' }"
+        :aria-busy="status === 'loading'"
+        @click="toggle"
+      >
+        <span class="play-btn"
+          ><Spinner v-if="status === 'loading'" :size="36" tone="light" /><AppIcon
+            v-else
+            :name="status === 'playing' ? 'pause' : 'play'"
+            :size="30"
+        /></span>
+        <span>{{
+          status === 'loading'
+            ? t('player.preparing')
+            : status === 'playing'
+              ? t('player.pause')
+              : t('player.play')
+        }}</span>
+      </button>
+      <button
+        type="button"
+        class="btn btn-outline btn-icon replay"
+        :aria-label="t('player.replay')"
+        :title="t('player.replay')"
+        @click="speak"
+      >
+        <AppIcon name="replay" :size="22" />
+      </button>
+    </div>
+    <div
+      class="d-flex align-items-center gap-3 flex-wrap"
+      role="group"
+      :aria-label="t('player.speed')"
+    >
       <span class="speed-label">{{ t('player.speed') }}</span>
       <div class="segmented speeds">
-        <button v-for="speed in SPEEDS" :key="speed" type="button" :aria-pressed="rate === speed" @click="rate = speed">{{ speed }}×</button>
+        <button
+          v-for="speed in SPEEDS"
+          :key="speed"
+          type="button"
+          :aria-pressed="rate === speed"
+          @click="rate = speed"
+        >
+          {{ speed }}×
+        </button>
       </div>
     </div>
     <p v-if="failed" class="text-muted-a11y m-0" role="status">{{ t('player.failed') }}</p>

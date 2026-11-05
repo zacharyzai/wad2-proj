@@ -11,9 +11,7 @@
       { "description": "Lipid panel blood test", "category": "investigation", "amountCents": 1800 },
       { "description": "Metformin 500mg x 60", "category": "medication", "amountCents": 820 }
     ],
-    "subsidies": [
-      { "scheme": "government", "amountCents": 2100 }
-    ],
+    "subsidies": [{ "scheme": "government", "amountCents": 2100 }],
     "medisaveCents": 2500,
     "totalPayableCents": 1670
   }

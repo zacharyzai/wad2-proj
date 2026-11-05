@@ -1,5 +1,4 @@
-// Home's capsule (components/home/WavingCapsule.vue) counts each new thing it does here, so other things on Home can move
-// at the same moments: the reminder bell rings when the capsule moves (components/home/TodayMedicines.vue).
+// Counter that goes up each time the capsule moves, so the reminder bell on Home rings with it.
 import { ref } from 'vue'
 
 export const capsuleBeat = ref(0)

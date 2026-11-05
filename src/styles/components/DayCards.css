@@ -2,31 +2,142 @@
    One group per time of day: its name, its icon in the compartment's colour (views/ScheduleSlots.css) and how many;
    then a card per medicine: the pill logo, a small tag (its time), the name, the dose, and its state on the right.
    Cards rise in one after another when the day appears (--n: their place); still with reduced motion. */
-.slot-group { display: flex; flex-direction: column; gap: 10px; }
-.group-head { display: flex; align-items: center; gap: 10px; }
-.group-name { flex: 1; min-width: 0; margin: 0; font-size: var(--t20, 20px); font-weight: 800; }
-.group-count { font-size: 16px; font-weight: 600; color: var(--color-text-muted); white-space: nowrap; }
-.cards { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.slot-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.group-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.group-name {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  font-size: var(--t20, 20px);
+  font-weight: 800;
+}
+.group-count {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+.cards {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
 
-.dcard { position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: 'icon info state'; align-items: center; gap: 8px 14px; padding: 14px 14px 14px 16px; border-radius: var(--r-card); background: var(--color-card); border: 1px solid var(--color-border); box-shadow: var(--shadow-card); animation: card-in 420ms var(--ease-settle) both; animation-delay: calc(var(--n, 0) * 60ms + 60ms); }
-.dcard > :first-child { grid-area: icon; }
-.dcard-info { grid-area: info; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; }
-.tag { padding: 1px 10px; border-radius: var(--r-pill); background: var(--band); color: var(--ink); border: 1px solid var(--edge); font-size: 16px; font-weight: 700; line-height: 1.5; }
-.dcard-name { font-size: var(--t20, 20px); font-weight: 800; line-height: 1.25; overflow-wrap: anywhere; }
-.dcard-detail { font-size: 16px; line-height: 1.4; color: var(--color-text-muted); }
+.dcard {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas: 'icon info state';
+  align-items: center;
+  gap: 8px 14px;
+  padding: 14px 14px 14px 16px;
+  border-radius: var(--r-card);
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-card);
+  animation: card-in 420ms var(--ease-settle) both;
+  animation-delay: calc(var(--n, 0) * 60ms + 60ms);
+}
+.dcard > :first-child {
+  grid-area: icon;
+}
+.dcard-info {
+  grid-area: info;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+.tag {
+  padding: 1px 10px;
+  border-radius: var(--r-pill);
+  background: var(--band);
+  color: var(--ink);
+  border: 1px solid var(--edge);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.5;
+}
+.dcard-name {
+  font-size: var(--t20, 20px);
+  font-weight: 800;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+.dcard-detail {
+  font-size: 16px;
+  line-height: 1.4;
+  color: var(--color-text-muted);
+}
 
 /* States on the right, in words with an icon, never colour alone. */
-.dcard > .pill, .dcard > .day-acts { grid-area: state; justify-self: end; }
-.pill { flex: none; display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 40px; padding: 6px 14px; border-radius: var(--r-pill); font-size: 16px; font-weight: 700; white-space: nowrap; }
-.pill-ok { background: var(--color-primary); color: var(--color-on-primary); box-shadow: var(--shadow-glow); }
-.pill-later { background: var(--color-surface-2); color: var(--color-text-muted); }
-.pill-not { background: var(--color-warning-bg); color: var(--color-warning-text); border: 1px solid var(--color-warning-border); }
-.dcard.is-ok { border-color: color-mix(in srgb, var(--color-primary) 35%, var(--color-border)); }
+.dcard > .pill,
+.dcard > .day-acts {
+  grid-area: state;
+  justify-self: end;
+}
+.pill {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 6px 14px;
+  border-radius: var(--r-pill);
+  font-size: 16px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.pill-ok {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  box-shadow: var(--shadow-glow);
+}
+.pill-later {
+  background: var(--color-surface-2);
+  color: var(--color-text-muted);
+}
+.pill-not {
+  background: var(--color-warning-bg);
+  color: var(--color-warning-text);
+  border: 1px solid var(--color-warning-border);
+}
+.dcard.is-ok {
+  border-color: color-mix(in srgb, var(--color-primary) 35%, var(--color-border));
+}
 
 /* Rises into place at full strength: no fade, so the words are never too faint to read, even for a moment. */
-@keyframes card-in { from { transform: translateY(16px) scale(0.97); } }
-@media (max-width: 480px) {
-  .dcard { grid-template-columns: auto minmax(0, 1fr); grid-template-areas: 'icon info' 'icon state'; align-items: start; }
-  .dcard > .pill, .dcard > .day-acts { justify-self: start; }
+@keyframes card-in {
+  from {
+    transform: translateY(16px) scale(0.97);
+  }
 }
-@media (prefers-reduced-motion: reduce) { .dcard { animation: none; } }
+@media (max-width: 480px) {
+  .dcard {
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-areas: 'icon info' 'icon state';
+    align-items: start;
+  }
+  .dcard > .pill,
+  .dcard > .day-acts {
+    justify-self: start;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dcard {
+    animation: none;
+  }
+}

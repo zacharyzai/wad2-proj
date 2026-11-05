@@ -1,12 +1,11 @@
-// Today's ticks ("I've taken it"), shared by the Today and This week tabs of Schedule (a Pinia store, Week 11).
-// Ticks are saved to the account: docs/doses-contract.md. The day is a Singapore calendar day.
+// Pinia store for today's ticked doses and the Singapore clock.
 import { reactive, ref } from 'vue'
 import { defineStore } from 'pinia'
 import { dosesTaken, setDoseTaken } from '../api/client'
 import { todayInSingapore, timeInSingapore, tooEarly } from '../rules/schedule'
 
 export const useDosesStore = defineStore('doses', () => {
-  // state
+  // Today's ticks and the clock they depend on
   const today = ref(todayInSingapore())
   const nowTime = ref(timeInSingapore()) // 'HH:MM' in Singapore, kept current every minute
   const taken = reactive(new Set()) // dose ids ticked today
@@ -14,6 +13,7 @@ export const useDosesStore = defineStore('doses', () => {
   const ready = ref(false) // today's ticks have arrived
   const loadError = ref(null)
 
+  // Loads today's ticks from the account, ignoring the reply if the day changed meanwhile.
   async function loadTicks() {
     const date = today.value
     ready.value = false
@@ -59,11 +59,14 @@ export const useDosesStore = defineStore('doses', () => {
   // only: a day that is over can't be ticked any more.
   const past = reactive(new Map()) // 'YYYY-MM-DD' → Set of dose ids
   const pastError = ref(null)
+  // Loads ticks for earlier days this week that have not been loaded yet.
   async function loadPast(dates) {
     pastError.value = null
     const missing = dates.filter((date) => date < today.value && !past.has(date))
     const answers = await Promise.all(missing.map((date) => dosesTaken(date)))
-    answers.forEach((res, i) => (res.ok ? past.set(missing[i], new Set(res.data.taken)) : (pastError.value = res.error.code)))
+    answers.forEach((res, i) =>
+      res.ok ? past.set(missing[i], new Set(res.data.taken)) : (pastError.value = res.error.code),
+    )
   }
   // action: whoever is logged out takes their ticks with them.
   function forget() {
@@ -74,16 +77,35 @@ export const useDosesStore = defineStore('doses', () => {
 
   // Home's Today card and the Schedule page keep the day current while they are open.
   let clock = 0
+  // Re-checks the day when the tab comes back into view.
   const onVisible = () => document.visibilityState === 'visible' && newDay()
+  // Keeps the day and time current while a page that shows today's doses is open.
   function startClock() {
     stopClock() // never two clocks, if one page opens before the other has closed
     document.addEventListener('visibilitychange', onVisible)
     clock = setInterval(newDay, 60_000)
   }
+  // Stops the clock started by startClock.
   function stopClock() {
     clearInterval(clock)
     document.removeEventListener('visibilitychange', onVisible)
   }
 
-  return { today, nowTime, taken, busy, ready, loadError, loadTicks, newDay, toggle, startClock, stopClock, past, pastError, loadPast, forget }
+  return {
+    today,
+    nowTime,
+    taken,
+    busy,
+    ready,
+    loadError,
+    loadTicks,
+    newDay,
+    toggle,
+    startClock,
+    stopClock,
+    past,
+    pastError,
+    loadPast,
+    forget,
+  }
 })

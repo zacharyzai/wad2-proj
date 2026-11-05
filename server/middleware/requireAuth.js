@@ -1,5 +1,3 @@
-// Every app feature needs an account. Checks the signed login token, then sets req.userId.
-// A login made before the account's password last changed is refused, so a password reset logs out every other device.
 import { sendError } from '../errors.js'
 import { connectDb } from '../db.js'
 import { User } from '../models/User.js'
@@ -15,14 +13,19 @@ async function endedByPasswordChange({ sub, iat }) {
   } catch {
     return false
   }
-  const user = await User.findById(sub).select('passwordChangedAt').lean().catch(() => null)
+  const user = await User.findById(sub)
+    .select('passwordChangedAt')
+    .lean()
+    .catch(() => null)
   const changed = user?.passwordChangedAt
   return Boolean(changed) && !(Number.isInteger(iat) && iat >= Math.floor(changed.getTime() / 1000))
 }
 
+// Blocks the request with NOT_LOGGED_IN unless it carries a valid token, then puts the user id on req for the route.
 export async function requireAuth(req, res, next) {
   const payload = readToken(bearer(req))
-  if (!payload || (await endedByPasswordChange(payload))) return sendError(res, 401, 'NOT_LOGGED_IN', 'Please log in')
+  if (!payload || (await endedByPasswordChange(payload)))
+    return sendError(res, 401, 'NOT_LOGGED_IN', 'Please log in')
   req.userId = payload.sub
   req.remember = payload.rem
   next()

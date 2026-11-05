@@ -1,16 +1,45 @@
 // Feature 9 (Isaac): caregiver role at signup, caregiver-only tab and pages, the invite link, and "Your caregivers" on a senior's Account page.
 // The /api/care calls are mocked, so these tests need no database.
 import { test, expect } from './fixtures.js'
-import { expectNoAxeViolationsDayAndNight, expectSeniorFriendly, expectVisibleFocus } from './helpers/checks.js'
+import {
+  expectNoAxeViolationsDayAndNight,
+  expectSeniorFriendly,
+  expectVisibleFocus,
+} from './helpers/checks.js'
 import { DEMO_USER, signIn } from './helpers/auth.js'
 
 const CAREGIVER = { ...DEMO_USER, name: 'Wei Ling', role: 'caregiver' }
 const SENIOR = { ...DEMO_USER, role: 'senior' }
 const TOKEN = 'e'.repeat(32)
 
-const SENIORS = { seniors: [{ id: 'u2', name: 'Mei Ling Tan', today: { taken: 1, missed: 1, upcoming: 1 }, since: '2026-10-03T02:00:00Z', next: { time: '21:00', label: 'Metformin 500mg' }, medicines: 2 }] }
-const ALL_TAKEN = { id: 'u3', name: 'Ahmad Bin Ali', today: { taken: 2, missed: 0, upcoming: 0 }, since: '2026-11-01T02:00:00Z', next: null, medicines: 1 }
-const NOT_SHARED = { id: 'u4', name: '陈美玲', today: null, since: '2026-11-04T02:00:00Z', next: null, medicines: null }
+const SENIORS = {
+  seniors: [
+    {
+      id: 'u2',
+      name: 'Mei Ling Tan',
+      today: { taken: 1, missed: 1, upcoming: 1 },
+      since: '2026-10-03T02:00:00Z',
+      next: { time: '21:00', label: 'Metformin 500mg' },
+      medicines: 2,
+    },
+  ],
+}
+const ALL_TAKEN = {
+  id: 'u3',
+  name: 'Ahmad Bin Ali',
+  today: { taken: 2, missed: 0, upcoming: 0 },
+  since: '2026-11-01T02:00:00Z',
+  next: null,
+  medicines: 1,
+}
+const NOT_SHARED = {
+  id: 'u4',
+  name: '陈美玲',
+  today: null,
+  since: '2026-11-04T02:00:00Z',
+  next: null,
+  medicines: null,
+}
 const TODAY = {
   senior: { id: 'u2', name: 'Mei Ling Tan' },
   doses: [
@@ -19,8 +48,27 @@ const TODAY = {
     { doseId: 'm1-night', label: 'Metformin 500mg', time: '21:00', status: 'upcoming' },
   ],
 }
-const METFORMIN = { id: 'm1', purpose: 'diabetes', rawInstruction: 'Take 1 tablet 2 times a day', warnings: ['Do not skip meals'], entry: { label: 'Metformin 500mg', instruction: { count: 1, unit: 'tablet', food: 'after' }, doses: [{ id: 'm1-morning', time: '08:00' }, { id: 'm1-night', time: '21:00' }] } }
-const PANADOL = { id: 'm3', purpose: null, rawInstruction: 'Take when there is pain', warnings: [], entry: { label: 'Panadol', instruction: { count: null, unit: null, food: null }, doses: [] } }
+const METFORMIN = {
+  id: 'm1',
+  purpose: 'diabetes',
+  rawInstruction: 'Take 1 tablet 2 times a day',
+  warnings: ['Do not skip meals'],
+  entry: {
+    label: 'Metformin 500mg',
+    instruction: { count: 1, unit: 'tablet', food: 'after' },
+    doses: [
+      { id: 'm1-morning', time: '08:00' },
+      { id: 'm1-night', time: '21:00' },
+    ],
+  },
+}
+const PANADOL = {
+  id: 'm3',
+  purpose: null,
+  rawInstruction: 'Take when there is pain',
+  warnings: [],
+  entry: { label: 'Panadol', instruction: { count: null, unit: null, food: null }, doses: [] },
+}
 const ok = (data) => ({ json: { ok: true, data } })
 const fail = (status, code) => ({ status, json: { ok: false, error: { code, message: 'x' } } })
 
@@ -61,7 +109,9 @@ test.describe('caregiver-only tab', () => {
     await expect(page).not.toHaveURL(/\/care/)
   })
 
-  test('a caregiver sees the tab and the list of seniors with today at a glance', async ({ page }) => {
+  test('a caregiver sees the tab and the list of seniors with today at a glance', async ({
+    page,
+  }) => {
     await signIn(page, CAREGIVER)
     await page.route('**/api/care/seniors', (route) => route.fulfill(ok(SENIORS)))
     await page.goto('/care')
@@ -70,9 +120,13 @@ test.describe('caregiver-only tab', () => {
     await expect(page.getByTestId('care-senior')).toContainText('1 not ticked')
   })
 
-  test('My seniors: the whole picture in three tiles, then each senior in words, a bar, and the details a caregiver asks about', async ({ page }) => {
+  test('My seniors: the whole picture in three tiles, then each senior in words, a bar, and the details a caregiver asks about', async ({
+    page,
+  }) => {
     await signIn(page, CAREGIVER)
-    await page.route('**/api/care/seniors', (route) => route.fulfill(ok({ seniors: [...SENIORS.seniors, ALL_TAKEN, NOT_SHARED] })))
+    await page.route('**/api/care/seniors', (route) =>
+      route.fulfill(ok({ seniors: [...SENIORS.seniors, ALL_TAKEN, NOT_SHARED] })),
+    )
     await page.goto('/care')
     const tiles = page.getByTestId('care-overview')
     await expect(tiles).toContainText('3people linked')
@@ -93,12 +147,18 @@ test.describe('caregiver-only tab', () => {
     await expect(page).toHaveURL(/\/care\/u2$/)
   })
 
-  test("a senior's page opens with their card: name, how today is going, the counts, the next dose, and Refresh", async ({ page }) => {
+  test("a senior's page opens with their card: name, how today is going, the counts, the next dose, and Refresh", async ({
+    page,
+  }) => {
     await signIn(page, CAREGIVER)
-    await page.route('**/api/care/seniors/u2/today', (route) => route.fulfill(ok({ ...TODAY, medicines: [METFORMIN, PANADOL] })))
+    await page.route('**/api/care/seniors/u2/today', (route) =>
+      route.fulfill(ok({ ...TODAY, medicines: [METFORMIN, PANADOL] })),
+    )
     await page.goto('/care/u2')
     const hero = page.getByTestId('care-hero')
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Mei Ling TanToday’s medicines')
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText(
+      'Mei Ling TanToday’s medicines',
+    )
     await expect(page.getByTestId('care-hero-state')).toHaveText('Needs a check')
     await expect(page.getByTestId('care-hero-taken')).toHaveText('1Taken')
     await expect(page.getByTestId('care-hero-missed')).toHaveText('1Not ticked')
@@ -119,9 +179,13 @@ test.describe('caregiver-only tab', () => {
     await expect(page.getByRole('heading', { name: 'No one linked yet' })).toBeVisible()
   })
 
-  test("tapping a dose turns its card over to the medicine's details, with nothing to change them", async ({ page }) => {
+  test("tapping a dose turns its card over to the medicine's details, with nothing to change them", async ({
+    page,
+  }) => {
     await signIn(page, CAREGIVER)
-    await page.route('**/api/care/seniors/u2/today', (route) => route.fulfill(ok({ ...TODAY, medicines: [METFORMIN, PANADOL] })))
+    await page.route('**/api/care/seniors/u2/today', (route) =>
+      route.fulfill(ok({ ...TODAY, medicines: [METFORMIN, PANADOL] })),
+    )
     await page.goto('/care/u2')
     // The front of the dose card: when, what it is for, and how it went.
     const dose = page.getByTestId('care-dose').first()
@@ -149,7 +213,9 @@ test.describe('caregiver-only tab', () => {
     await expect(page.getByTestId('care-doses').locator('li.flip')).toHaveCount(4)
   })
 
-  test("a senior's doses show taken, not ticked and to come, with words, and flag what was not ticked", async ({ page }) => {
+  test("a senior's doses show taken, not ticked and to come, with words, and flag what was not ticked", async ({
+    page,
+  }) => {
     await signIn(page, CAREGIVER)
     await page.route('**/api/care/seniors/u2/today', (route) => route.fulfill(ok(TODAY)))
     await page.goto('/care/u2')
@@ -162,29 +228,43 @@ test.describe('caregiver-only tab', () => {
 
   test('after the senior removes the link the caregiver sees a plain message', async ({ page }) => {
     await signIn(page, CAREGIVER)
-    await page.route('**/api/care/seniors/u2/today', (route) => route.fulfill(fail(404, 'NOT_FOUND')))
+    await page.route('**/api/care/seniors/u2/today', (route) =>
+      route.fulfill(fail(404, 'NOT_FOUND')),
+    )
     await page.goto('/care/u2')
-    await expect(page.getByRole('heading', { name: 'You can no longer see this person' })).toBeVisible()
+    await expect(
+      page.getByRole('heading', { name: 'You can no longer see this person' }),
+    ).toBeVisible()
   })
 })
 
 test.describe('invite link', () => {
   test.use({ loggedIn: false })
-  const invite = (page) => page.route(`**/api/care/invites/${TOKEN}`, (route) => route.fulfill(ok({ senior: { name: 'Mei Ling Tan' }, expiresAt: '2026-11-05T00:00:00Z' })))
+  const invite = (page) =>
+    page.route(`**/api/care/invites/${TOKEN}`, (route) =>
+      route.fulfill(ok({ senior: { name: 'Mei Ling Tan' }, expiresAt: '2026-11-05T00:00:00Z' })),
+    )
 
-  test('logged out: says what the caregiver will and will not see, then offers log in or sign up', async ({ page }) => {
+  test('logged out: says what the caregiver will and will not see, then offers log in or sign up', async ({
+    page,
+  }) => {
     await invite(page)
     await page.goto(`/shared/${TOKEN}`)
     await expect(page.getByTestId('invite-title')).toContainText('Mei Ling Tan')
     await expect(page.getByText('Their scans, photos, bills or account details.')).toBeVisible()
-    await expect(page.getByTestId('invite-login')).toHaveAttribute('href', new RegExp(`next=.*${TOKEN}`))
+    await expect(page.getByTestId('invite-login')).toHaveAttribute(
+      'href',
+      new RegExp(`next=.*${TOKEN}`),
+    )
     await expect(page.getByTestId('invite-signup')).toHaveAttribute('href', /role=caregiver/)
   })
 
   test('a caregiver accepts and lands on that senior', async ({ page }) => {
     await signIn(page, CAREGIVER)
     await invite(page)
-    await page.route(`**/api/care/invites/${TOKEN}/accept`, (route) => route.fulfill(ok({ seniorId: 'u2' })))
+    await page.route(`**/api/care/invites/${TOKEN}/accept`, (route) =>
+      route.fulfill(ok({ seniorId: 'u2' })),
+    )
     await page.route('**/api/care/seniors/u2/today', (route) => route.fulfill(ok(TODAY)))
     await page.goto(`/shared/${TOKEN}`)
     await page.getByTestId('invite-accept').click()
@@ -202,31 +282,51 @@ test.describe('invite link', () => {
   test('an expired invite shows one friendly message', async ({ page }) => {
     await page.route(/\/api\/care\/invites\/f+$/, (route) => route.fulfill(fail(404, 'NOT_FOUND')))
     await page.goto(`/shared/${'f'.repeat(32)}`)
-    await expect(page.getByRole('heading', { name: 'This invitation is no longer available' })).toBeVisible()
+    await expect(
+      page.getByRole('heading', { name: 'This invitation is no longer available' }),
+    ).toBeVisible()
   })
 })
 
 test.describe("senior's Account page", () => {
   test.use({ loggedIn: false })
 
-  test('says what a caregiver will see before the link exists, then shows link and WhatsApp', async ({ page }) => {
+  test('says what a caregiver will see before the link exists, then shows link and WhatsApp', async ({
+    page,
+  }) => {
     await signIn(page, SENIOR)
     await page.route('**/api/care/caregivers', (route) => route.fulfill(ok({ caregivers: [] })))
-    await page.route('**/api/care/invites', (route) => route.fulfill(ok({ token: TOKEN, expiresAt: '2026-11-05T00:00:00Z' })))
+    await page.route('**/api/care/invites', (route) =>
+      route.fulfill(ok({ token: TOKEN, expiresAt: '2026-11-05T00:00:00Z' })),
+    )
     await page.goto('/account')
     await page.getByTestId('care-invite').click()
-    await expect(page.getByText('They will not see: your scans, photos, bills or account details.', { exact: false })).toBeVisible()
+    await expect(
+      page.getByText('They will not see: your scans, photos, bills or account details.', {
+        exact: false,
+      }),
+    ).toBeVisible()
     await expect(page.getByTestId('care-invite-link')).toHaveCount(0)
     await page.getByTestId('care-invite-create').click()
     await expect(page.getByTestId('care-invite-link')).toHaveValue(new RegExp(`/shared/${TOKEN}$`))
-    await expect(page.getByTestId('care-invite-whatsapp')).toHaveAttribute('href', /^https:\/\/wa\.me\/\?text=/)
+    await expect(page.getByTestId('care-invite-whatsapp')).toHaveAttribute(
+      'href',
+      /^https:\/\/wa\.me\/\?text=/,
+    )
   })
 
   test('lists caregivers and removes one after asking', async ({ page }) => {
     await signIn(page, SENIOR)
-    await page.route('**/api/care/caregivers', (route) => route.fulfill(ok({ caregivers: [{ id: 'l1', name: 'Wei Ling', since: '2026-10-01T00:00:00Z' }] })))
+    await page.route('**/api/care/caregivers', (route) =>
+      route.fulfill(
+        ok({ caregivers: [{ id: 'l1', name: 'Wei Ling', since: '2026-10-01T00:00:00Z' }] }),
+      ),
+    )
     let removed = false
-    await page.route('**/api/care/links/l1', (route) => { removed = true; return route.fulfill(ok({})) })
+    await page.route('**/api/care/links/l1', (route) => {
+      removed = true
+      return route.fulfill(ok({}))
+    })
     await page.goto('/account')
     await expect(page.getByTestId('care-caregivers')).toContainText('Wei Ling')
     await page.getByTestId('care-remove').click()
@@ -234,9 +334,15 @@ test.describe("senior's Account page", () => {
     await expect(page.getByTestId('care-caregivers')).toHaveCount(0)
     expect(removed).toBe(true)
   })
-    test('the Remove question moves focus inside, Esc closes it and focus returns to Remove', async ({ page }) => {
+  test('the Remove question moves focus inside, Esc closes it and focus returns to Remove', async ({
+    page,
+  }) => {
     await signIn(page, SENIOR)
-    await page.route('**/api/care/caregivers', (route) => route.fulfill(ok({ caregivers: [{ id: 'l1', name: 'Wei Ling', since: '2026-10-01T00:00:00Z' }] })))
+    await page.route('**/api/care/caregivers', (route) =>
+      route.fulfill(
+        ok({ caregivers: [{ id: 'l1', name: 'Wei Ling', since: '2026-10-01T00:00:00Z' }] }),
+      ),
+    )
     await page.goto('/account')
     const remove = page.getByTestId('care-remove')
     await remove.click()
@@ -246,7 +352,7 @@ test.describe("senior's Account page", () => {
     await expect(page.getByRole('alertdialog')).toHaveCount(0)
     await expect(remove).toBeFocused()
   })
-  
+
   test('a caregiver account has no caregiver card', async ({ page }) => {
     await signIn(page, CAREGIVER)
     await page.goto('/account')
@@ -260,7 +366,9 @@ test.describe('usable for a caregiver', () => {
   async function openSenior(page) {
     await signIn(page, CAREGIVER)
     await page.route('**/api/care/seniors', (route) => route.fulfill(ok(SENIORS)))
-    await page.route('**/api/care/seniors/u2/today', (route) => route.fulfill(ok({ ...TODAY, medicines: [METFORMIN, PANADOL] })))
+    await page.route('**/api/care/seniors/u2/today', (route) =>
+      route.fulfill(ok({ ...TODAY, medicines: [METFORMIN, PANADOL] })),
+    )
   }
   const firstDose = (page) => page.getByTestId('care-dose').first()
 
@@ -271,7 +379,9 @@ test.describe('usable for a caregiver', () => {
     await expectNoAxeViolationsDayAndNight(page)
   })
 
-  test("a senior's page with a card turned over has no axe problems, day or night @a11y", async ({ page }) => {
+  test("a senior's page with a card turned over has no axe problems, day or night @a11y", async ({
+    page,
+  }) => {
     await openSenior(page)
     await page.goto('/care/u2')
     await firstDose(page).getByTestId('care-medicine-open').click()
@@ -279,7 +389,9 @@ test.describe('usable for a caregiver', () => {
     await expectNoAxeViolationsDayAndNight(page)
   })
 
-  test('My seniors and a senior\'s page: big targets and text, no sideways scroll @a11y', async ({ page }) => {
+  test("My seniors and a senior's page: big targets and text, no sideways scroll @a11y", async ({
+    page,
+  }) => {
     await openSenior(page)
     await page.goto('/care')
     await expect(page.getByTestId('care-senior')).toBeVisible()
@@ -298,7 +410,9 @@ test.describe('usable for a caregiver', () => {
     await page.keyboard.press('Enter')
     const close = firstDose(page).getByTestId('care-medicine-close')
     await expect(close).toBeFocused()
-    await expect(firstDose(page).getByTestId('care-medicine-details')).toContainText('Do not skip meals')
+    await expect(firstDose(page).getByTestId('care-medicine-details')).toContainText(
+      'Do not skip meals',
+    )
     await page.keyboard.press('Enter')
     await expect(open).toBeFocused()
   })
@@ -308,15 +422,28 @@ test.describe('usable for a caregiver', () => {
     await openSenior(page)
     await page.goto('/care/u2')
     await firstDose(page).getByTestId('care-medicine-open').click()
-    await expect(firstDose(page).getByTestId('care-medicine-details')).toContainText('Do not skip meals')
+    await expect(firstDose(page).getByTestId('care-medicine-details')).toContainText(
+      'Do not skip meals',
+    )
     // Colours may still ease (motion.css); movement must not.
-    expect(await firstDose(page).locator('.flip-inner').evaluate((e) => getComputedStyle(e).transitionProperty)).not.toMatch(/transform|all/)
+    expect(
+      await firstDose(page)
+        .locator('.flip-inner')
+        .evaluate((e) => getComputedStyle(e).transitionProperty),
+    ).not.toMatch(/transform|all/)
   })
 
-  for (const [lang, script] of [['zh', /\p{Script=Han}/u], ['ms', /\S/], ['ta', /\p{Script=Tamil}/u]]) {
+  for (const [lang, script] of [
+    ['zh', /\p{Script=Han}/u],
+    ['ms', /\S/],
+    ['ta', /\p{Script=Tamil}/u],
+  ]) {
     test(`${lang}: My seniors and a senior's page are fully translated @i18n`, async ({ page }) => {
       const warnings = []
-      page.on('console', (m) => /\[intlify\] (Not found '|Fall back)/.test(m.text()) && warnings.push(m.text()))
+      page.on(
+        'console',
+        (m) => /\[intlify\] (Not found '|Fall back)/.test(m.text()) && warnings.push(m.text()),
+      )
       await page.addInitScript((l) => localStorage.setItem('locale', l), lang)
       await openSenior(page)
       for (const path of ['/care', '/care/u2']) {

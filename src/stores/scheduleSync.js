@@ -1,24 +1,33 @@
-// Makes the medicine list belong to the account, not the browser: loaded from the account at login and on every page load
-// (GET /api/schedule), and saved there after every change (PUT), so each device shows the same Schedule and the linked
-// caregiver sees the same doses. The copy in this browser (stores/medicines.js) is only a cache of the logged-in account's list.
-// Kept out of medicines.js because the unit tests use that store on its own, and this needs the logged-in user and the server.
-// App.vue starts it once: syncMedicinesWithAccount().
+// Keeps the medicine list on this device and in the account in step.
 import { watch } from 'vue'
 import { loadMedicines, saveMedicines } from '../api/client'
 import { useAuthStore } from './auth'
 import { useMedicinesStore } from './medicines'
 
 const OWNER_KEY = 'medicinesOwner' // whose list the browser's cache is
+// The account the locally saved medicines belong to.
 function owner() {
-  try { return localStorage.getItem(OWNER_KEY) } catch { return null }
+  try {
+    return localStorage.getItem(OWNER_KEY)
+  } catch {
+    return null
+  }
 }
+// Records which account the locally saved medicines belong to.
 function setOwner(email) {
-  try { email ? localStorage.setItem(OWNER_KEY, email) : localStorage.removeItem(OWNER_KEY) } catch { /* cache only */ }
+  try {
+    email ? localStorage.setItem(OWNER_KEY, email) : localStorage.removeItem(OWNER_KEY)
+  } catch {
+    /* cache only */
+  }
 }
+// Keeps the medicine list on this device and in the account in step: loads on login, saves a moment after each change.
 export function syncMedicinesWithAccount() {
   const authStore = useAuthStore()
   const { medicines } = useMedicinesStore()
+  // Swaps the whole list in place, so everything watching it updates.
   const replaceAll = (list) => medicines.splice(0, medicines.length, ...list)
+  // The list as text, to tell whether it changed.
   const snapshot = () => JSON.stringify(medicines)
 
   let ready = false // the account's list has arrived; nothing is saved before, so an old cached copy never overwrites it
@@ -44,14 +53,15 @@ export function syncMedicinesWithAccount() {
     if (res.data.medicines) {
       replaceAll(res.data.medicines)
       sent = snapshot()
-    // Never saved: this browser's list (from before lists were kept on accounts) goes up once. An empty one has nothing to
-    // bring over, and saving it would turn "not shared yet" into "no doses" for a linked caregiver.
+      // Never saved: this browser's list (from before lists were kept on accounts) goes up once. An empty one has nothing to
+      // bring over, and saving it would turn "not shared yet" into "no doses" for a linked caregiver.
     } else sent = medicines.length ? '' : snapshot()
     ready = true
     push()
   }
 
   let saving = null // the save on its way, so a reload waits for it
+  // Sends the list to the account unless it is unchanged.
   async function save() {
     timer = null
     const now = snapshot()
@@ -62,6 +72,7 @@ export function syncMedicinesWithAccount() {
     saving = null
     if (!res.ok) sent = '' // retried with the next change or page load
   }
+  // Schedules a save shortly after a change, so quick edits go as one request.
   function push() {
     if (!ready) return void (authStore.user && !loading && load(authStore.user.email)) // the last load failed: try again
     clearTimeout(timer)
@@ -82,5 +93,7 @@ export function syncMedicinesWithAccount() {
   })
 
   watch(medicines, push, { deep: true })
-  watch(() => authStore.user?.email ?? (authStore.checked ? '' : undefined), load, { immediate: true })
+  watch(() => authStore.user?.email ?? (authStore.checked ? '' : undefined), load, {
+    immediate: true,
+  })
 }

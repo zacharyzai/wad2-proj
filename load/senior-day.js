@@ -20,14 +20,30 @@ export const options = {
   },
 }
 
-const json = (token) => ({ headers: { 'Content-Type': 'application/json', ...(token && { Authorization: `Bearer ${token}` }) } })
+const json = (token) => ({
+  headers: {
+    'Content-Type': 'application/json',
+    ...(token && { Authorization: `Bearer ${token}` }),
+  },
+})
 const today = () => new Date().toISOString().slice(0, 10)
 let token = null // one account per virtual user, kept between its visits
 
 export default function () {
   if (!token) {
     const email = `load-${__VU}-${Date.now()}@example.com`
-    const res = http.post(`${API}/auth/signup`, JSON.stringify({ name: `Load Senior ${__VU}`, email, password: 'teh-tarik-1952', dob: '1950-01-01', citizenship: 'birth', income: 'unsure' }), json())
+    const res = http.post(
+      `${API}/auth/signup`,
+      JSON.stringify({
+        name: `Load Senior ${__VU}`,
+        email,
+        password: 'teh-tarik-1952',
+        dob: '1950-01-01',
+        citizenship: 'birth',
+        income: 'unsure',
+      }),
+      json(),
+    )
     check(res, { 'signup 201': (r) => r.status === 201 })
     token = res.json('data.token')
   }
@@ -35,12 +51,18 @@ export default function () {
 
   check(http.get(`${API}/auth/me`, auth), { 'home: who am I 200': (r) => r.status === 200 })
   check(http.get(`${API}/schedule`, auth), { 'schedule 200': (r) => r.status === 200 })
-  check(http.get(`${API}/doses?date=${today()}`, auth), { 'today ticks 200': (r) => r.status === 200 })
-  check(http.post(`${API}/doses`, JSON.stringify({ doseId: 'm1-morning', date: today() }), auth), { 'tick a dose 200': (r) => r.status === 200 })
+  check(http.get(`${API}/doses?date=${today()}`, auth), {
+    'today ticks 200': (r) => r.status === 200,
+  })
+  check(http.post(`${API}/doses`, JSON.stringify({ doseId: 'm1-morning', date: today() }), auth), {
+    'tick a dose 200': (r) => r.status === 200,
+  })
 
   const scan = http.post(`${API}/scan`, JSON.stringify({ sampleId: 'med-1' }), auth)
   check(scan, { 'sample label 200': (r) => r.status === 200 })
-  check(http.post(`${API}/history`, JSON.stringify({ scan: scan.json('data') }), auth), { 'save to history 2xx': (r) => r.status < 300 })
+  check(http.post(`${API}/history`, JSON.stringify({ scan: scan.json('data') }), auth), {
+    'save to history 2xx': (r) => r.status < 300,
+  })
   check(http.get(`${API}/history/all`, auth), { 'history list 200': (r) => r.status === 200 })
 
   sleep(1 + Math.random() * 2) // reading the screen

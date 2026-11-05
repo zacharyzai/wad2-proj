@@ -16,22 +16,40 @@ process.env.JWT_SECRET = randomBytes(48).toString('hex')
 process.env.USE_MOCK_AI = 'true'
 process.env.AUTH_RATE_LIMIT = '1000'
 const { default: app } = await import('../app.js')
-let mongo, server, api, sequence = 0, ipSequence = 0
+let mongo,
+  server,
+  api,
+  sequence = 0,
+  ipSequence = 0
 const profile = { name: 'Test Senior', dob: '1952-03-07', citizenship: 'birth', income: 'unsure' }
 const password = 'kopi-siew-dai-58'
 const digest = (t) => createHash('sha256').update(t).digest('hex')
-const request = (path, { method = 'GET', token, body, ip = `192.0.2.${(++ipSequence % 250) + 1}` } = {}) => fetch(`${api}${path}`, {
-  method, headers: { 'content-type': 'application/json', 'x-forwarded-for': ip, ...(token ? { authorization: `Bearer ${token}` } : {}) },
-  ...(body === undefined ? {} : { body: JSON.stringify(body) }),
-})
+const request = (
+  path,
+  { method = 'GET', token, body, ip = `192.0.2.${(++ipSequence % 250) + 1}` } = {},
+) =>
+  fetch(`${api}${path}`, {
+    method,
+    headers: {
+      'content-type': 'application/json',
+      'x-forwarded-for': ip,
+      ...(token ? { authorization: `Bearer ${token}` } : {}),
+    },
+    ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+  })
 const care = (path, options) => request(`/care${path}`, options)
 const invite = (user, body) => care('/invites', { method: 'POST', token: user.token, body })
 const preview = (t) => care(`/invites/${t}`)
-const accept = (user, t, body) => care(`/invites/${t}/accept`, { method: 'POST', token: user.token, body })
-const links = async (user) => (await (await care('/links', { token: user.token })).json()).data.links
+const accept = (user, t, body) =>
+  care(`/invites/${t}/accept`, { method: 'POST', token: user.token, body })
+const links = async (user) =>
+  (await (await care('/links', { token: user.token })).json()).data.links
 async function user(role = 'senior', name = 'Test User') {
   const email = `care-${++sequence}@example.com`
-  const r = await request('/auth/signup', { method: 'POST', body: { ...profile, name, role, email, password } })
+  const r = await request('/auth/signup', {
+    method: 'POST',
+    body: { ...profile, name, role, email, password },
+  })
   assert.equal(r.status, 201)
   const { data } = await r.json()
   const doc = await User.findOne({ email }).lean()
@@ -66,16 +84,39 @@ afterAll(async () => {
 test('signup persists and returns roles; login/me restore them; legacy accounts default to senior', async () => {
   const cg = await user('caregiver')
   assert.equal(cg.user.role, 'caregiver')
-  const login = await request('/auth/login', { method: 'POST', body: { email: cg.email, password } })
+  const login = await request('/auth/login', {
+    method: 'POST',
+    body: { email: cg.email, password },
+  })
   assert.equal((await login.json()).data.user.role, 'caregiver')
   const me = await request('/auth/me', { token: cg.token })
   assert.equal((await me.json()).data.user.role, 'caregiver')
   for (const role of ['admin', null, { $ne: 'senior' }]) {
-    await error(await request('/auth/signup', { method: 'POST', body: { ...profile, email: 'bad-role@example.com', password, role } }), 400, 'BAD_REQUEST')
+    await error(
+      await request('/auth/signup', {
+        method: 'POST',
+        body: { ...profile, email: 'bad-role@example.com', password, role },
+      }),
+      400,
+      'BAD_REQUEST',
+    )
   }
-  await error(await request('/auth/me', { method: 'PATCH', token: cg.token, body: { ...profile, role: 'senior' } }), 400, 'BAD_REQUEST')
+  await error(
+    await request('/auth/me', {
+      method: 'PATCH',
+      token: cg.token,
+      body: { ...profile, role: 'senior' },
+    }),
+    400,
+    'BAD_REQUEST',
+  )
   const oldId = new mongoose.Types.ObjectId()
-  await User.collection.insertOne({ _id: oldId, name: 'Legacy Senior', email: 'legacy-care@example.com', passwordHash: 'not-used' })
+  await User.collection.insertOne({
+    _id: oldId,
+    name: 'Legacy Senior',
+    email: 'legacy-care@example.com',
+    passwordHash: 'not-used',
+  })
   const token = signToken(oldId, false)
   assert.equal((await (await request('/auth/me', { token })).json()).data.user.role, 'senior')
   assert.equal((await care('/invites', { method: 'POST', token })).status, 201)
@@ -85,7 +126,15 @@ test('private endpoints require a real account and enforce roles from MongoDB', 
   const senior = await user()
   const cg = await user('caregiver')
   const t = randomBytes(32).toString('hex')
-  for (const [path, method] of [['/invites', 'POST'], ['/invites', 'DELETE'], [`/invites/${t}/accept`, 'POST'], ['/caregivers', 'GET'], ['/links', 'GET'], [`/links/${new mongoose.Types.ObjectId()}`, 'DELETE'], ['/seniors', 'GET']]) {
+  for (const [path, method] of [
+    ['/invites', 'POST'],
+    ['/invites', 'DELETE'],
+    [`/invites/${t}/accept`, 'POST'],
+    ['/caregivers', 'GET'],
+    ['/links', 'GET'],
+    [`/links/${new mongoose.Types.ObjectId()}`, 'DELETE'],
+    ['/seniors', 'GET'],
+  ]) {
     await error(await care(path, { method }), 401, 'NOT_LOGGED_IN')
   }
   await error(await invite(cg), 403, 'WRONG_ROLE')
@@ -112,10 +161,19 @@ test('invite is a seven-day random secret; only its hash is stored and public pr
   const response = await preview(data.token)
   assert.equal(response.status, 200)
   assert.equal(response.headers.get('cache-control'), 'no-store')
-  assert.deepEqual(await response.json(), { ok: true, data: { senior: { name: 'Sample Senior' }, expiresAt: data.expiresAt } })
+  assert.deepEqual(await response.json(), {
+    ok: true,
+    data: { senior: { name: 'Sample Senior' }, expiresAt: data.expiresAt },
+  })
   const indexes = await CareLink.collection.indexes()
-  assert.ok(indexes.some((i) => i.unique && JSON.stringify(i.key) === JSON.stringify({ seniorId: 1, caregiverId: 1 })))
-  assert.ok(!indexes.some((i) => i.unique && JSON.stringify(i.key) === JSON.stringify({ caregiverId: 1 })))
+  assert.ok(
+    indexes.some(
+      (i) => i.unique && JSON.stringify(i.key) === JSON.stringify({ seniorId: 1, caregiverId: 1 }),
+    ),
+  )
+  assert.ok(
+    !indexes.some((i) => i.unique && JSON.stringify(i.key) === JSON.stringify({ caregiverId: 1 })),
+  )
 })
 
 test('an existing caregiver can log in and accept; one caregiver may link several seniors', async () => {
@@ -144,64 +202,107 @@ test('an existing caregiver can log in and accept; one caregiver may link severa
 
 test('one invitation works for every caregiver it was sent to, until it expires; the link rows never hold the secret', async () => {
   const owner = await user()
-  const a = await user('caregiver'), b = await user('caregiver')
+  const a = await user('caregiver'),
+    b = await user('caregiver')
   const i = await issued(owner)
   const responses = await Promise.all([accept(a, i.token), accept(b, i.token)])
-  assert.deepEqual(responses.map((r) => r.status), [200, 200])
-  const stored = await CareLink.find({ seniorId: owner.id, caregiverId: { $ne: null } }).select('+tokenHash').lean()
+  assert.deepEqual(
+    responses.map((r) => r.status),
+    [200, 200],
+  )
+  const stored = await CareLink.find({ seniorId: owner.id, caregiverId: { $ne: null } })
+    .select('+tokenHash')
+    .lean()
   assert.deepEqual(stored.map((l) => String(l.caregiverId)).sort(), [a.id, b.id].sort())
-  for (const link of stored) assert.deepEqual([link.tokenHash, link.inviteExpiresAt], [undefined, undefined])
+  for (const link of stored)
+    assert.deepEqual([link.tokenHash, link.inviteExpiresAt], [undefined, undefined])
   assert.equal((await links(a)).length + (await links(b)).length, 2)
   // Past its date it stops for the next person; those already linked stay linked.
-  await CareLink.updateOne({ seniorId: owner.id, caregiverId: null }, { $set: { inviteExpiresAt: new Date(Date.now() - 1) } })
+  await CareLink.updateOne(
+    { seniorId: owner.id, caregiverId: null },
+    { $set: { inviteExpiresAt: new Date(Date.now() - 1) } },
+  )
   await error(await accept(await user('caregiver'), i.token), 404, 'NOT_FOUND')
   assert.equal((await links(owner)).length, 2)
 })
 
 test('a senior may link several caregivers; re-accepting a fresh invite never duplicates a link', async () => {
-  const owner = await user(), a = await user('caregiver', 'Daughter'), b = await user('caregiver', 'Son')
+  const owner = await user(),
+    a = await user('caregiver', 'Daughter'),
+    b = await user('caregiver', 'Son')
   assert.equal((await accept(a, (await issued(owner)).token)).status, 200)
   assert.equal((await accept(b, (await issued(owner)).token)).status, 200)
   const again = await issued(owner)
-  assert.deepEqual(await (await accept(a, again.token)).json(), { ok: true, data: { seniorId: owner.id } })
+  assert.deepEqual(await (await accept(a, again.token)).json(), {
+    ok: true,
+    data: { seniorId: owner.id },
+  })
   const { data } = await (await care('/caregivers', { token: owner.token })).json()
   assert.deepEqual(data.caregivers.map((c) => c.name).sort(), ['Daughter', 'Son'])
   assert.equal(await CareLink.countDocuments({ seniorId: owner.id, caregiverId: { $ne: null } }), 2)
   // Removing one caregiver leaves the other.
-  assert.equal((await care(`/links/${data.caregivers[0].id}`, { method: 'DELETE', token: owner.token })).status, 200)
+  assert.equal(
+    (await care(`/links/${data.caregivers[0].id}`, { method: 'DELETE', token: owner.token }))
+      .status,
+    200,
+  )
   assert.equal((await links(owner)).length, 1)
 })
 
 test('rotating/cancelling an invitation invalidates the old link; expiry is enforced without waiting for cleanup', async () => {
-  const owner = await user(), cg = await user('caregiver')
-  const first = await issued(owner), second = await issued(owner)
+  const owner = await user(),
+    cg = await user('caregiver')
+  const first = await issued(owner),
+    second = await issued(owner)
   assert.notEqual(first.token, second.token)
   const unknown = await error(await preview(randomBytes(32).toString('hex')), 404, 'NOT_FOUND')
   assert.deepEqual(await error(await preview(first.token), 404, 'NOT_FOUND'), unknown)
   await error(await accept(cg, first.token), 404, 'NOT_FOUND')
   assert.equal((await preview(second.token)).status, 200)
-  assert.deepEqual((await (await care('/invites', { method: 'DELETE', token: owner.token })).json()).data, { revoked: true })
+  assert.deepEqual(
+    (await (await care('/invites', { method: 'DELETE', token: owner.token })).json()).data,
+    { revoked: true },
+  )
   await error(await accept(cg, second.token), 404, 'NOT_FOUND')
   const third = await issued(owner)
-  await CareLink.updateOne({ seniorId: owner.id }, { $set: { inviteExpiresAt: new Date(Date.now() - 1) } })
+  await CareLink.updateOne(
+    { seniorId: owner.id },
+    { $set: { inviteExpiresAt: new Date(Date.now() - 1) } },
+  )
   assert.deepEqual(await error(await preview(third.token), 404, 'NOT_FOUND'), unknown)
   await error(await accept(cg, third.token), 404, 'NOT_FOUND')
   await error(await preview('bad'), 404, 'NOT_FOUND')
 })
 
 test('only the linked senior/caregiver can revoke; a removed caregiver cannot rejoin from the same invite', async () => {
-  const owner = await user(), cg = await user('caregiver'), stranger = await user('caregiver')
+  const owner = await user(),
+    cg = await user('caregiver'),
+    stranger = await user('caregiver')
   const first = await issued(owner)
   assert.equal((await accept(cg, first.token)).status, 200)
   const [link] = await links(owner)
   assert.equal((await care(`/seniors/${owner.id}/today`, { token: cg.token })).status, 200)
-  await error(await care(`/links/${link.id}`, { method: 'DELETE', token: stranger.token }), 404, 'NOT_FOUND')
-  await error(await care(`/links/not-an-id`, { method: 'DELETE', token: owner.token }), 404, 'NOT_FOUND')
+  await error(
+    await care(`/links/${link.id}`, { method: 'DELETE', token: stranger.token }),
+    404,
+    'NOT_FOUND',
+  )
+  await error(
+    await care(`/links/not-an-id`, { method: 'DELETE', token: owner.token }),
+    404,
+    'NOT_FOUND',
+  )
   // Cancelling a pending invitation never accidentally deletes the active caregiver.
-  assert.equal((await (await care('/invites', { method: 'DELETE', token: owner.token })).json()).data.revoked, true)
+  assert.equal(
+    (await (await care('/invites', { method: 'DELETE', token: owner.token })).json()).data.revoked,
+    true,
+  )
   assert.equal((await links(owner)).length, 1)
   const second = await issued(owner)
-  assert.equal((await care(`/links/${link.id}`, { method: 'DELETE', token: owner.token })).status, 200)
+  assert.equal(
+    (await care(`/links/${link.id}`, { method: 'DELETE', token: owner.token })).status,
+    200,
+  )
   assert.deepEqual(await links(cg), [])
   await error(await care(`/seniors/${owner.id}/today`, { token: cg.token }), 404, 'NOT_FOUND')
   await error(await preview(second.token), 404, 'NOT_FOUND') // removing someone also ends any open invite
@@ -210,19 +311,28 @@ test('only the linked senior/caregiver can revoke; a removed caregiver cannot re
   assert.equal((await accept(stranger, next.token)).status, 200)
   const [newLink] = await links(stranger)
   assert.notEqual(newLink.id, link.id)
-  assert.equal((await care(`/links/${newLink.id}`, { method: 'DELETE', token: stranger.token })).status, 200)
-  assert.equal((await (await care('/caregivers', { token: owner.token })).json()).data.caregivers.length, 0)
+  assert.equal(
+    (await care(`/links/${newLink.id}`, { method: 'DELETE', token: stranger.token })).status,
+    200,
+  )
+  assert.equal(
+    (await (await care('/caregivers', { token: owner.token })).json()).data.caregivers.length,
+    0,
+  )
 })
 
 test('a replaced invitation racing acceptance never installs two caregivers or overwrites an active one', async () => {
-  const owner = await user(), cg = await user('caregiver')
+  const owner = await user(),
+    cg = await user('caregiver')
   const first = await issued(owner)
   const [created, accepted] = await Promise.all([invite(owner), accept(cg, first.token)])
   assert.equal(created.status, 201)
   assert.ok([200, 404].includes(accepted.status))
   assert.equal(await CareLink.countDocuments({ seniorId: owner.id, caregiverId: null }), 1)
   assert.equal((await links(owner)).length, accepted.status === 200 ? 1 : 0)
-  const active = await CareLink.findOne({ seniorId: owner.id, caregiverId: { $ne: null } }).select('+tokenHash').lean()
+  const active = await CareLink.findOne({ seniorId: owner.id, caregiverId: { $ne: null } })
+    .select('+tokenHash')
+    .lean()
   if (active) assert.equal(active.tokenHash, undefined)
   const next = (await created.json()).data
   assert.equal((await accept(cg, next.token)).status, 200)
@@ -230,14 +340,22 @@ test('a replaced invitation racing acceptance never installs two caregivers or o
 })
 
 test('a deleted caregiver is hidden and never blocks a replacement invitation', async () => {
-  const owner = await user(), first = await user('caregiver'), replacement = await user('caregiver')
+  const owner = await user(),
+    first = await user('caregiver'),
+    replacement = await user('caregiver')
   const i = await issued(owner)
   assert.equal((await accept(first, i.token)).status, 200)
   await User.deleteOne({ _id: first.id })
-  assert.deepEqual((await (await care('/caregivers', { token: owner.token })).json()).data.caregivers, [])
+  assert.deepEqual(
+    (await (await care('/caregivers', { token: owner.token })).json()).data.caregivers,
+    [],
+  )
   const next = await issued(owner)
   assert.equal((await accept(replacement, next.token)).status, 200)
-  assert.deepEqual((await links(owner)).map((l) => l.caregiver.id), [replacement.id])
+  assert.deepEqual(
+    (await links(owner)).map((l) => l.caregiver.id),
+    [replacement.id],
+  )
 })
 
 test('quota is atomic and survives invite cancellation; concurrent creation is bounded across instances', async () => {
@@ -251,24 +369,32 @@ test('quota is atomic and survives invite cancellation; concurrent creation is b
   await care('/invites', { method: 'DELETE', token: owner.token })
   await error(await invite(owner), 429, 'RATE_LIMITED')
   // Leave the old row in place: a new hour gets a new budget without relying on the TTL monitor.
-  await CareInviteQuota.updateOne({ _id: quota._id }, { $set: { window: new Date(quota.window.getTime() - 3600_000) } })
+  await CareInviteQuota.updateOne(
+    { _id: quota._id },
+    { $set: { window: new Date(quota.window.getTime() - 3600_000) } },
+  )
   assert.equal((await invite(owner)).status, 201)
 })
 
 test('no client body can choose the senior/caregiver or silently change an account role', async () => {
-  const owner = await user(), cg = await user('caregiver')
+  const owner = await user(),
+    cg = await user('caregiver')
   await error(await invite(owner, { seniorId: cg.id }), 400, 'BAD_REQUEST')
   const i = await issued(owner)
   await error(await accept(cg, i.token, { caregiverId: owner.id }), 400, 'BAD_REQUEST')
   await error(await accept(owner, i.token), 403, 'WRONG_ROLE')
   assert.equal((await preview(i.token)).status, 200)
   // Even a database role change cannot let the same account claim its own outstanding invite.
-  await User.collection.updateOne({ _id: new mongoose.Types.ObjectId(owner.id) }, { $set: { role: 'caregiver' } })
+  await User.collection.updateOne(
+    { _id: new mongoose.Types.ObjectId(owner.id) },
+    { $set: { role: 'caregiver' } },
+  )
   await error(await accept(owner, i.token), 404, 'NOT_FOUND')
 })
 
 test('deleted senior invites cannot be previewed/accepted; today is only readable once linked', async () => {
-  const owner = await user(), cg = await user('caregiver')
+  const owner = await user(),
+    cg = await user('caregiver')
   const i = await issued(owner)
   await error(await care(`/seniors/${owner.id}/today`, { token: cg.token }), 404, 'NOT_FOUND')
   assert.equal((await accept(cg, i.token)).status, 200)
@@ -277,8 +403,14 @@ test('deleted senior invites cannot be previewed/accepted; today is only readabl
   assert.deepEqual(listed, { id: owner.id, name: 'Test User', today: null, since: listed.since, next: null, medicines: null })
   assert.ok(!Number.isNaN(Date.parse(listed.since))) // when the link was made
   const today = (await (await care(`/seniors/${owner.id}/today`, { token: cg.token })).json()).data
-  assert.deepEqual(today, { senior: { id: owner.id, name: 'Test User' }, shared: false, doses: [], medicines: [] })
-  const missing = await user(), t = await issued(missing)
+  assert.deepEqual(today, {
+    senior: { id: owner.id, name: 'Test User' },
+    shared: false,
+    doses: [],
+    medicines: [],
+  })
+  const missing = await user(),
+    t = await issued(missing)
   await User.deleteOne({ _id: missing.id })
   await error(await preview(t.token), 404, 'NOT_FOUND')
   await error(await accept(cg, t.token), 404, 'NOT_FOUND')
@@ -292,41 +424,74 @@ test('database failures are sanitized and recover on later requests', async () =
     delete process.env.MONGODB_URI
     const body = await error(await care('/links', { token: owner.token }), 503, 'SERVER_ERROR')
     assert.equal(body.error.message, 'Caregiver linking is not available right now')
-  } finally { process.env.MONGODB_URI = uri }
+  } finally {
+    process.env.MONGODB_URI = uri
+  }
   assert.equal((await care('/links', { token: owner.token })).status, 200)
   const original = CareLink.find
   try {
-    CareLink.find = () => { throw new mongoose.mongo.MongoServerError({ message: 'private connection details must not escape' }) }
+    CareLink.find = () => {
+      throw new mongoose.mongo.MongoServerError({
+        message: 'private connection details must not escape',
+      })
+    }
     const body = await error(await care('/links', { token: owner.token }), 503, 'SERVER_ERROR')
     assert.doesNotMatch(JSON.stringify(body), /private/)
-  } finally { CareLink.find = original }
+  } finally {
+    CareLink.find = original
+  }
 })
 
 test('public invitation probing is also limited by IP', async () => {
   let response
-  for (let i = 0; i < 61; i++) response = await request('/care/invites/unknown', { ip: '198.51.100.99' })
+  for (let i = 0; i < 61; i++)
+    response = await request('/care/invites/unknown', { ip: '198.51.100.99' })
   await error(response, 429, 'RATE_LIMITED')
 })
 
-test("the medicine list belongs to the account: any device loads it, and the caregiver sees the doses worked out from it", async () => {
-  const owner = await user('senior', 'Ah Ma'), cg = await user('caregiver'), stranger = await user('caregiver')
+test('the medicine list belongs to the account: any device loads it, and the caregiver sees the doses worked out from it', async () => {
+  const owner = await user('senior', 'Ah Ma'),
+    cg = await user('caregiver'),
+    stranger = await user('caregiver')
   assert.equal((await accept(cg, (await issued(owner)).token)).status, 200)
   const today = todayInSingapore()
-  const medicine = (id, frequencyType, schedule) => ({ id, source: 'label', sample: false, ...(schedule && { schedule }),
-    medication: { name: `Medicine ${id}`, strength: '500 mg', doseAmount: 1, doseUnit: 'tablet', quantity: null, timesPerDay: frequencyType === 'daily' ? 2 : null,
-      timing: frequencyType === 'daily' ? ['morning', 'bedtime'] : null, withFood: null, frequencyType, rawInstruction: null, purpose: null, warnings: [] } })
+  const medicine = (id, frequencyType, schedule) => ({
+    id,
+    source: 'label',
+    sample: false,
+    ...(schedule && { schedule }),
+    medication: {
+      name: `Medicine ${id}`,
+      strength: '500 mg',
+      doseAmount: 1,
+      doseUnit: 'tablet',
+      quantity: null,
+      timesPerDay: frequencyType === 'daily' ? 2 : null,
+      timing: frequencyType === 'daily' ? ['morning', 'bedtime'] : null,
+      withFood: null,
+      frequencyType,
+      rawInstruction: null,
+      purpose: null,
+      warnings: [],
+    },
+  })
   const medicines = [
     medicine('m1', 'daily', { startDate: today, days: 7, times: { bedtime: '21:30' } }),
     medicine('old', 'daily', { startDate: addDays(today, -9), days: 7, times: {} }), // course ended
     medicine('prn', 'as_needed'), // when needed: for the pharmacist, never on the timetable
   ]
   const save = (token, body) => request('/schedule', { method: 'PUT', token, body })
-  const load = async (token) => (await (await request('/schedule', { token })).json()).data.medicines
+  const load = async (token) =>
+    (await (await request('/schedule', { token })).json()).data.medicines
 
   assert.equal((await save(undefined, { medicines })).status, 401)
   assert.equal(await load(owner.token), null) // never saved: the app uploads its old browser list once
-  for (const bad of [{ ...medicines[0], photo: 'data:image/png;base64,AAAA' }, { ...medicines[0], id: 'no spaces' }, { ...medicines[0], schedule: { startDate: 'soon' } },
-    { ...medicines[0], medication: { ...medicines[0].medication, nric: 'S1234567A' } }]) {
+  for (const bad of [
+    { ...medicines[0], photo: 'data:image/png;base64,AAAA' },
+    { ...medicines[0], id: 'no spaces' },
+    { ...medicines[0], schedule: { startDate: 'soon' } },
+    { ...medicines[0], medication: { ...medicines[0].medication, nric: 'S1234567A' } },
+  ]) {
     assert.equal((await save(owner.token, { medicines: [bad] })).status, 400)
   }
   assert.equal((await save(owner.token, { medicines: [medicines[0], medicines[0]] })).status, 400) // duplicate ids
@@ -335,30 +500,66 @@ test("the medicine list belongs to the account: any device loads it, and the car
   assert.deepEqual(await load(owner.token), medicines)
   assert.equal(await load(stranger.token), null)
   // A medicine typed in Ask has only a name and instructions.
-  const typed = { id: 'typed-1', source: 'typed', medication: { name: 'Panadol', rawInstruction: 'when there is pain' } }
+  const typed = {
+    id: 'typed-1',
+    source: 'typed',
+    medication: { name: 'Panadol', rawInstruction: 'when there is pain' },
+  }
   assert.equal((await save(owner.token, { medicines: [...medicines, typed] })).status, 200)
   await Dose.create({ userId: owner.id, date: today, doseId: 'm1-morning', takenAt: new Date() })
 
   const body = (await (await care(`/seniors/${owner.id}/today`, { token: cg.token })).json()).data
   assert.equal(body.shared, true)
   // Only today's course, with the time the senior changed; the ended, "when needed" and typed ones are left out.
-  assert.deepEqual(body.doses.map((d) => [d.doseId, d.time, d.label]), [['m1-morning', '08:00', 'Medicine m1 500 mg'], ['m1-bedtime', '21:30', 'Medicine m1 500 mg']])
+  assert.deepEqual(
+    body.doses.map((d) => [d.doseId, d.time, d.label]),
+    [
+      ['m1-morning', '08:00', 'Medicine m1 500 mg'],
+      ['m1-bedtime', '21:30', 'Medicine m1 500 mg'],
+    ],
+  )
   assert.equal(body.doses[0].status, 'taken')
   // The details to read: what the label says, for the medicines still being taken. The finished course is left out, nothing else comes along.
-  assert.deepEqual(body.medicines.map((m) => m.entry.label).filter((l) => l.startsWith('Medicine m1') || l === 'Panadol').sort(), ['Medicine m1 500 mg', 'Panadol'])
+  assert.deepEqual(
+    body.medicines
+      .map((m) => m.entry.label)
+      .filter((l) => l.startsWith('Medicine m1') || l === 'Panadol')
+      .sort(),
+    ['Medicine m1 500 mg', 'Panadol'],
+  )
   // Every dose today finds its medicine by id: that is how a dose card turns over to its details.
-  for (const dose of body.doses) assert.ok(body.medicines.some((m) => m.entry.doses.some((d) => d.id === dose.doseId)), dose.doseId)
+  for (const dose of body.doses)
+    assert.ok(
+      body.medicines.some((m) => m.entry.doses.some((d) => d.id === dose.doseId)),
+      dose.doseId,
+    )
   const panadol = body.medicines.find((m) => m.id === 'typed-1')
   assert.equal(panadol.rawInstruction, 'when there is pain')
-  assert.deepEqual(Object.keys(panadol).sort(), ['entry', 'id', 'purpose', 'rawInstruction', 'warnings'])
+  assert.deepEqual(Object.keys(panadol).sort(), [
+    'entry',
+    'id',
+    'purpose',
+    'rawInstruction',
+    'warnings',
+  ])
   assert.ok(['missed', 'upcoming'].includes(body.doses[1].status))
   const [listed] = (await (await care('/seniors', { token: cg.token })).json()).data.seniors
-  assert.deepEqual(listed.today, { taken: 1, missed: Number(body.doses[1].status === 'missed'), upcoming: Number(body.doses[1].status === 'upcoming') })
+  assert.deepEqual(listed.today, {
+    taken: 1,
+    missed: Number(body.doses[1].status === 'missed'),
+    upcoming: Number(body.doses[1].status === 'upcoming'),
+  })
 
   // Removing every medicine on any device empties it for the caregiver too, and a caregiver who is not linked sees nothing.
   assert.equal((await save(owner.token, { medicines: [] })).status, 200)
   assert.deepEqual(await load(owner.token), [])
-  assert.deepEqual((await (await care(`/seniors/${owner.id}/today`, { token: cg.token })).json()).data.doses, [])
+  assert.deepEqual(
+    (await (await care(`/seniors/${owner.id}/today`, { token: cg.token })).json()).data.doses,
+    [],
+  )
   await error(await care(`/seniors/${owner.id}/today`, { token: stranger.token }), 404, 'NOT_FOUND')
-  assert.deepEqual((await (await care('/seniors', { token: stranger.token })).json()).data.seniors, [])
+  assert.deepEqual(
+    (await (await care('/seniors', { token: stranger.token })).json()).data.seniors,
+    [],
+  )
 })

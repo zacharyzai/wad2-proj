@@ -4,6 +4,7 @@ import { User } from './models/User.js'
 import { Dose } from './models/Dose.js'
 
 let pending
+// Opens the MongoDB connection once and reuses it across requests (serverless-friendly).
 export async function connectDb() {
   if (pending) return pending
   if (mongoose.connection.readyState === 1) return
@@ -11,7 +12,9 @@ export async function connectDb() {
   pending = (async () => {
     try {
       await mongoose.connect(process.env.MONGODB_URI, {
-        serverSelectionTimeoutMS: 5000, connectTimeoutMS: 5000, maxPoolSize: 10,
+        serverSelectionTimeoutMS: 5000,
+        connectTimeoutMS: 5000,
+        maxPoolSize: 10,
       })
       // Ensure concurrent signups cannot create duplicate emails, and a dose can't be ticked twice on the same day.
       await Promise.all([User.init(), Dose.init()])
@@ -20,7 +23,11 @@ export async function connectDb() {
       throw error
     }
   })()
-  try { await pending } finally { pending = null }
+  try {
+    await pending
+  } finally {
+    pending = null
+  }
 }
 
 // A database outage is our problem, not the user's: say so plainly instead of a 500 stack.

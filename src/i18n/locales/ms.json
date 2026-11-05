@@ -372,21 +372,13 @@
       "medication": {
         "title": "Label ubat",
         "text": "Untuk apa, dan bila perlu diambil.",
-        "tags": [
-          "Tablet",
-          "Sirap",
-          "Krim"
-        ],
+        "tags": ["Tablet", "Sirap", "Krim"],
         "go": "Imbas label"
       },
       "bill": {
         "title": "Bil perubatan",
         "text": "Jumlah bayaran, dan bantuan yang boleh didapati.",
-        "tags": [
-          "Klinik",
-          "Hospital",
-          "Subsidi"
-        ],
+        "tags": ["Klinik", "Hospital", "Subsidi"],
         "go": "Imbas bil"
       },
       "pending": "Gambar anda sudah sedia. Apakah ia? Ketik satu untuk mengimbasnya.",
@@ -1261,6 +1253,7 @@
       "now": "Ambil sekarang",
       "later": "Nanti hari ini",
       "earlier": "Belum ditanda",
+      "missedTitle": "Anda terlepas {n} dos hari ini",
       "done": "Semua sudah diambil",
       "missed": "Jika anda terlepas dos, tanya ahli farmasi apa yang perlu dibuat."
     },
@@ -1328,8 +1321,7 @@
     "plan": {
       "title": "Ubat hari ini",
       "total": "Dos hari ini",
-      "taken": "Sudah ambil",
-      "done": "siap"
+      "taken": "Sudah ambil"
     },
     "medsCount": "{n} ubat | {n} ubat",
     "noneOnDay": "Tiada ubat pada hari ini.",

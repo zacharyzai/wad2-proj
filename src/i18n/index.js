@@ -1,4 +1,4 @@
-// Owner: Asher. Add keys to all four locale files at the same time; English is the fallback.
+// Sets up vue-i18n and loads each language's messages the first time it is needed.
 import { createI18n } from 'vue-i18n'
 import { fadeScreen } from '../screenFade'
 import en from './locales/en.json'
@@ -6,6 +6,7 @@ import en from './locales/en.json'
 export const LOCALES = { en: 'English', zh: '中文', ms: 'Bahasa Melayu', ta: 'தமிழ்' }
 const STORAGE_KEY = 'locale'
 
+// The language chosen last time, or the default when none is saved.
 function savedLocale() {
   try {
     const saved = localStorage.getItem(STORAGE_KEY)
@@ -26,18 +27,27 @@ const i18n = createI18n({
 // Only English ships inside the first download. 中文, Bahasa Melayu and தமிழ் (about 55 kB each) are fetched the first time
 // someone uses them, then kept by the browser. main.js waits for the saved language before showing the app, so nobody
 // sees English flash first; a language that can't be fetched (offline) simply isn't switched to.
-const LOADERS = { zh: () => import('./locales/zh.json'), ms: () => import('./locales/ms.json'), ta: () => import('./locales/ta.json') }
+const LOADERS = {
+  zh: () => import('./locales/zh.json'),
+  ms: () => import('./locales/ms.json'),
+  ta: () => import('./locales/ta.json'),
+}
 const loading = {}
+// True once a language's translations have been loaded.
 const hasMessages = (code) => i18n.global.availableLocales.includes(code)
+// Loads a language's translations the first time it is needed, so unused languages are never downloaded.
 function loadMessages(code) {
   if (hasMessages(code) || !LOADERS[code]) return Promise.resolve()
-  loading[code] ??= LOADERS[code]()
-    .then((module) => i18n.global.setLocaleMessage(code, module.default))
-    .catch(() => delete loading[code]) // try again next time
+  // Only the first call downloads the language; later calls reuse the same request.
+  if (!loading[code])
+    loading[code] = LOADERS[code]()
+      .then((module) => i18n.global.setLocaleMessage(code, module.default))
+      .catch(() => delete loading[code]) // try again next time
   return loading[code]
 }
 export const localeReady = loadMessages(i18n.global.locale.value)
 
+// Switches the app (and the saved choice) to another language once its translations are ready.
 export async function setLocale(code) {
   await loadMessages(code)
   if (!hasMessages(code)) return // could not be fetched: stay in the language that is showing

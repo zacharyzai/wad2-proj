@@ -1,4 +1,3 @@
-// Run locally after creating your database user in Atlas. The password is never echoed.
 import { createInterface } from 'node:readline/promises'
 import { Writable } from 'node:stream'
 import { stdin, stdout } from 'node:process'
@@ -7,9 +6,14 @@ import { randomBytes } from 'node:crypto'
 import { parseEnv } from 'node:util'
 
 const username = process.argv[2] || 'wad2-shared'
-if (!/^[A-Za-z0-9_-]+$/.test(username)) throw new Error('Use a database username containing letters, digits, underscores or hyphens')
+if (!/^[A-Za-z0-9_-]+$/.test(username))
+  throw new Error('Use a database username containing letters, digits, underscores or hyphens')
 
-const muted = new Writable({ write(chunk, encoding, callback) { callback() } })
+const muted = new Writable({
+  write(chunk, encoding, callback) {
+    callback()
+  },
+})
 const prompt = createInterface({ input: stdin, output: muted, terminal: !!stdin.isTTY })
 let password
 try {
@@ -22,7 +26,9 @@ try {
 if (!password) throw new Error('Password is required; .env was not changed')
 
 let existing
-try { existing = await readFile('.env', 'utf8') } catch (error) {
+try {
+  existing = await readFile('.env', 'utf8')
+} catch (error) {
   if (error.code !== 'ENOENT') throw error
   existing = await readFile('.env.example', 'utf8')
 }
@@ -35,7 +41,8 @@ try {
 const uri = `mongodb+srv://${encodeURIComponent(username)}:${encodeURIComponent(password)}@cluster0.jotoksx.mongodb.net/wad2_dev?retryWrites=true&w=majority&authSource=admin`
 const parsed = parseEnv(existing)
 const settings = { MONGODB_URI: uri }
-if (Buffer.byteLength(parsed.JWT_SECRET || '') < 32) settings.JWT_SECRET = randomBytes(48).toString('hex')
+if (Buffer.byteLength(parsed.JWT_SECRET || '') < 32)
+  settings.JWT_SECRET = randomBytes(48).toString('hex')
 let updated = existing
 for (const [key, value] of Object.entries(settings)) {
   const line = `${key}=${JSON.stringify(value)}`

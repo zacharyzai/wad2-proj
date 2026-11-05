@@ -19,7 +19,9 @@ export async function mockImageScan(page, { cover = 'keep' } = {}) {
     expect(['medication', 'bill']).toContain(body.type)
     expect(body.images.length).toBeGreaterThan(0)
     for (const image of body.images) expect(image).toMatch(/^data:image\/jpeg;base64,/)
-    const sample = await route.fetch({ postData: JSON.stringify({ sampleId: body.type === 'bill' ? 'bill-1' : 'med-1' }) })
+    const sample = await route.fetch({
+      postData: JSON.stringify({ sampleId: body.type === 'bill' ? 'bill-1' : 'med-1' }),
+    })
     const json = await sample.json()
     await route.fulfill({ json: { ok: true, data: { ...json.data, source: 'mock' } } })
   })

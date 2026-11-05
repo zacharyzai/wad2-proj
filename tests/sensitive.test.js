@@ -1,9 +1,15 @@
 // Run: pnpm vitest run src/utils/sensitive.test.js
 import { describe, it, expect } from 'vitest'
-import { findSensitive, planRedaction } from './sensitive.js'
+import { findSensitive, planRedaction } from '../src/utils/sensitive.js'
 
 // Builds Tesseract-shaped lines from plain strings; each word gets a dummy box.
-const lines = (...rows) => rows.map((row, y) => ({ words: row.split(' ').filter(Boolean).map((text, x) => ({ text, bbox: { x0: x, y0: y, x1: x + 1, y1: y + 1 } })) }))
+const lines = (...rows) =>
+  rows.map((row, y) => ({
+    words: row
+      .split(' ')
+      .filter(Boolean)
+      .map((text, x) => ({ text, bbox: { x0: x, y0: y, x1: x + 1, y1: y + 1 } })),
+  }))
 const covered = (...rows) => findSensitive(lines(...rows)).map((h) => h.text)
 
 describe('sensitive: what of a photo may leave the phone', () => {
@@ -23,7 +29,14 @@ describe('sensitive: what of a photo may leave the phone', () => {
 
   it('whoever pays is covered too: account holder, payer, next of kin', () => {
     // Real reader output from a hospital bill (01_public_hospital_inpatient).
-    expect(covered('MediSave account holder: Ong Kok Leong (Son), NRIC S0000588)')).toEqual(['Ong', 'Kok', 'Leong', '(Son),', 'NRIC', 'S0000588)'])
+    expect(covered('MediSave account holder: Ong Kok Leong (Son), NRIC S0000588)')).toEqual([
+      'Ong',
+      'Kok',
+      'Leong',
+      '(Son),',
+      'NRIC',
+      'S0000588)',
+    ])
     expect(covered('Payer: Tan Mei Ling (Daughter)')).toEqual(['Tan', 'Mei', 'Ling', '(Daughter)'])
     expect(covered('Next of kin: Lim Ah Beng')).toEqual(['Lim', 'Ah', 'Beng'])
   })
@@ -44,20 +57,54 @@ describe('sensitive: what of a photo may leave the phone', () => {
     ]
     const hits = covered(...page)
     expect(hits.filter((w) => w === 'ALICIA').length).toBe(4)
-    for (const word of ['MEDISHIELD', 'LIFE', 'SHIELD', 'PLAN', 'TOTAL', 'AMOUNT', 'PAYABLE', 'GREAT', 'EASTERN']) expect(!hits.includes(word)).toBeTruthy()
+    for (const word of [
+      'MEDISHIELD',
+      'LIFE',
+      'SHIELD',
+      'PLAN',
+      'TOTAL',
+      'AMOUNT',
+      'PAYABLE',
+      'GREAT',
+      'EASTERN',
+    ])
+      expect(!hits.includes(word)).toBeTruthy()
     // Charges whose service and description repeat in other case, and a drug name repeated on a label (no money), stay.
-    expect(covered('MEDICAL SUPPLIES, CONSUMABLES Medical Supplies, Consumables 702.64', 'OTHERS Others 33.00')).toEqual([])
-    expect(covered('AMLODIPINE BESYLATE 5MG TABLET', 'AMLODIPINE BESYLATE: take 1 every morning')).toEqual([])
+    expect(
+      covered(
+        'MEDICAL SUPPLIES, CONSUMABLES Medical Supplies, Consumables 702.64',
+        'OTHERS Others 33.00',
+      ),
+    ).toEqual([])
+    expect(
+      covered('AMLODIPINE BESYLATE 5MG TABLET', 'AMLODIPINE BESYLATE: take 1 every morning'),
+    ).toEqual([])
   })
 
   it('a Payer or Name heading a table: the names in the rows below are covered, not the column headings', () => {
     // Real reader output from a Yishun Health interim bill (payer table).
     // "to" read as 10 in the last line
-    expect(covered('Payer Adjustment Payment Amount Due', 'LAU YOONG KEE 000 0.00 0.00', 'TAN AH KOW 0.00 15,000.00 95.698 13', 'Please note that the amount 10 be borne by the different parties have yet to be determined.')).toEqual(
-      ['LAU', 'YOONG', 'KEE', 'TAN', 'AH', 'KOW'],
-    )
-    expect(covered('Name Relationship', 'Ong Kok Leong Son')).toEqual(['Ong', 'Kok', 'Leong', 'Son'])
-    expect(covered('Payer Amount', 'Nur Aisyah binte Abdul Rahman 0.00')).toEqual(['Nur', 'Aisyah', 'binte', 'Abdul', 'Rahman'])
+    expect(
+      covered(
+        'Payer Adjustment Payment Amount Due',
+        'LAU YOONG KEE 000 0.00 0.00',
+        'TAN AH KOW 0.00 15,000.00 95.698 13',
+        'Please note that the amount 10 be borne by the different parties have yet to be determined.',
+      ),
+    ).toEqual(['LAU', 'YOONG', 'KEE', 'TAN', 'AH', 'KOW'])
+    expect(covered('Name Relationship', 'Ong Kok Leong Son')).toEqual([
+      'Ong',
+      'Kok',
+      'Leong',
+      'Son',
+    ])
+    expect(covered('Payer Amount', 'Nur Aisyah binte Abdul Rahman 0.00')).toEqual([
+      'Nur',
+      'Aisyah',
+      'binte',
+      'Abdul',
+      'Rahman',
+    ])
     // A label with its value on the same line is unchanged.
     expect(covered('Payer Tan Mei Ling')).toEqual(['Tan', 'Mei', 'Ling'])
   })
@@ -76,12 +123,21 @@ describe('sensitive: what of a photo may leave the phone', () => {
   it('phones and address lines', () => {
     expect(covered('Tel 6789 1234')).toEqual(['6789', '1234'])
     expect(covered('Call +6591234567 if unwell')).toEqual(['+6591234567'])
-    expect(covered('Blk 123 Bedok North Ave 3 #04-56')).toEqual(['Blk', '123', 'Bedok', 'North', 'Ave', '3', '#04-56'])
+    expect(covered('Blk 123 Bedok North Ave 3 #04-56')).toEqual([
+      'Blk',
+      '123',
+      'Bedok',
+      'North',
+      'Ave',
+      '3',
+      '#04-56',
+    ])
     expect(covered('Singapore 460123')).toEqual(['Singapore', '460123'])
   })
 
   it('leaves what the scan needs: medicine, dose, visit date, amounts', () => {
-    expect(covered(
+    expect(
+      covered(
         'POLYCLINIC PHARMACY',
         'Date: 01/09/2026',
         'METFORMIN 500 MG TABLET',
@@ -90,13 +146,15 @@ describe('sensitive: what of a photo may leave the phone', () => {
         'Patient payable 4.20',
         'Less: Government subsidy -8.70',
         'Consultation 14.50',
-      )).toEqual([])
+      ),
+    ).toEqual([])
   })
 
   const kept = (...rows) => planRedaction(lines(...rows)).keep.map((k) => k.text)
 
   it('keep-list: only medicine and bill lines are shown; names, addresses and unread text stay black', () => {
-    expect(kept(
+    expect(
+      kept(
         'POLYCLINIC PHARMACY',
         'TAN AH KOW', // unlabelled name: never found by findSensitive, but not on the keep-list either
         'Blk 123 Bedok North Ave 3',
@@ -110,8 +168,25 @@ describe('sensitive: what of a photo may leave the phone', () => {
         'Qty: 60 tablets',
         'FOR ALLERGY/RUNNING NOSE/ITCH',
         'For Mdm Tan', // "for" alone never keeps a line
-      )).toEqual(['POLYCLINIC PHARMACY', 'METFORMIN 500 MG TABLET', 'TAKE 1 TABLET 2 TIMES A DAY', 'AFTER FOOD', 'in the moming', 'Do not skip meals', 'Qty: 60 tablets', 'FOR ALLERGY/RUNNING NOSE/ITCH'])
-    expect(kept('Consultation 14.50', 'Less: Government subsidy -8.70', 'MediSave', 'Total payable $4.20')).toEqual([
+      ),
+    ).toEqual([
+      'POLYCLINIC PHARMACY',
+      'METFORMIN 500 MG TABLET',
+      'TAKE 1 TABLET 2 TIMES A DAY',
+      'AFTER FOOD',
+      'in the moming',
+      'Do not skip meals',
+      'Qty: 60 tablets',
+      'FOR ALLERGY/RUNNING NOSE/ITCH',
+    ])
+    expect(
+      kept(
+        'Consultation 14.50',
+        'Less: Government subsidy -8.70',
+        'MediSave',
+        'Total payable $4.20',
+      ),
+    ).toEqual([
       'Consultation 14.50',
       'Less: Government subsidy -8.70',
       'MediSave',
@@ -120,12 +195,25 @@ describe('sensitive: what of a photo may leave the phone', () => {
   })
 
   it('keep-list: amounts whose decimal point the reader lost, and implant lines, are shown (Yishun Health bill)', () => {
-    const { keep } = planRedaction(lines('Orthopaedic Services / Appliances 161', 'Implant 23.011 69', 'Non Standard Medications 504 70', 'LAU YOONG KEE', 'TO: Blk 123 Yishun'))
-    expect(keep.map((k) => k.text)).toEqual(['Orthopaedic Services / Appliances 161', 'Implant 23.011 69', 'Non Standard Medications 504 70'])
+    const { keep } = planRedaction(
+      lines(
+        'Orthopaedic Services / Appliances 161',
+        'Implant 23.011 69',
+        'Non Standard Medications 504 70',
+        'LAU YOONG KEE',
+        'TO: Blk 123 Yishun',
+      ),
+    )
+    expect(keep.map((k) => k.text)).toEqual([
+      'Orthopaedic Services / Appliances 161',
+      'Implant 23.011 69',
+      'Non Standard Medications 504 70',
+    ])
   })
 
   it('keep-list: hospital bill lines are shown; admission number, doctor and payer lines stay black', () => {
-    expect(kept(
+    expect(
+      kept(
         'MERLION VALLEY GENERAL HOSPITAL',
         'Bill No : MVGH-2026-0047812', // kept, as on every bill ("bill"): a bill number is not a personal detail
         'Admission No : IP26-0098341',
@@ -136,7 +224,15 @@ describe('sensitive: what of a photo may leave the phone', () => {
         'Less: MediShield Life Claim',
         'Payer: Tan Mei Ling (Daughter)',
         'Bedok North', // "bed" only as a whole word
-      )).toEqual(['MERLION VALLEY GENERAL HOSPITAL', 'Bill No : MVGH-2026-0047812', 'Ward / Class : Ward 7B / Class C (Subsidised)', 'Discharged : 22/10/2026 10:05', 'Radiology - Chest X-Ray PA', 'Less: MediShield Life Claim'])
+      ),
+    ).toEqual([
+      'MERLION VALLEY GENERAL HOSPITAL',
+      'Bill No : MVGH-2026-0047812',
+      'Ward / Class : Ward 7B / Class C (Subsidised)',
+      'Discharged : 22/10/2026 10:05',
+      'Radiology - Chest X-Ray PA',
+      'Less: MediShield Life Claim',
+    ])
   })
 
   it('keep-list: personal details on a kept line are still covered', () => {
@@ -147,7 +243,10 @@ describe('sensitive: what of a photo may leave the phone', () => {
 
   // Tesseract-shaped line with a baseline from (x0, by0) to (x1, by1) and letters 30px above it.
   const line = (texts, x0, by0, x1 = x0 + 400, by1 = by0) => ({
-    words: texts.map((text, i) => ({ text, bbox: { x0: x0 + i * 60, y0: by0 - 30, x1: x0 + i * 60 + 50, y1: by0 } })),
+    words: texts.map((text, i) => ({
+      text,
+      bbox: { x0: x0 + i * 60, y0: by0 - 30, x1: x0 + i * 60 + 50, y1: by0 },
+    })),
     bbox: { x0, y0: Math.min(by0, by1) - 30, x1, y1: Math.max(by0, by1) + 6 },
     baseline: { x0, y0: by0, x1, y1: by1 },
     rowAttributes: { rowHeight: 36, descenders: 6, ascenders: 8 },

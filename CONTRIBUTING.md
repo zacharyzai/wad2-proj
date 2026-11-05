@@ -3,7 +3,7 @@
 ## Workflow
 1. Pull the latest `main`: `git checkout main && git pull`
 2. Create a branch: `feat/<area>-<thing>` or `fix/<area>-<thing>` (e.g. `feat/schedule-tickoff`, `fix/scan-compression`)
-3. Commit small and often. Push and open a **Pull Request** into `main`.
+3. Commit small and often. Run `pnpm format` before each commit, so everyone's code is laid out the same way (Prettier). Push and open a **Pull Request** into `main`.
 4. At least **1 approval** is needed. `main` is protected: no direct pushes and no force-pushes.
 5. **Squash merge**, then delete the branch.
 
@@ -15,10 +15,10 @@ Edit your own files freely. Ask the owner before changing someone else's.
 | Area | Owner | Files |
 |---|---|---|
 | Repo, scan contract, `/api/scan`, Gemini, Ask chatbot | Zachary | `docs/{scan,chat}-contract.md`, `server/routes/{scan,chat}.js`, `src/views/AskView.vue`, `server/services/`, `server/fixtures/`, `server/middleware/rateLimit.js` |
-| DB, auth, history, cloud TTS, deploy, README.txt | Sheen Hern | `server/models/`, `server/routes/{auth,history,tts}.js`, deploy config |
+| DB, auth, history, caregivers, cloud TTS, deploy, README.txt | Sheen Hern | `server/models/`, `server/routes/{auth,history,care,tts}.js`, deploy config |
 | Upload/camera, confirm screen, explanations, i18n, read-aloud | Asher | `src/views/{Scan,Confirm,Explain}View.vue`, `src/components/{scan,explain}/`, `src/i18n/` |
 | Schedule, bill breakdown, subsidy questionnaire, samples | Lokesh | `src/views/{Schedule,Bill}View.vue`, `src/components/{schedule,bill}/`, `public/samples/` |
-| Design system, app shell, auth/history pages, Playwright helpers | Isaac | `src/App.vue`, `src/assets/`, `src/components/{layout,history}/`, `src/views/{Home,Login,Signup,History,Shared,NotFound}View.vue`, `playwright.config.js` |
+| Design system, app shell, auth/history pages, Playwright helpers | Isaac | `src/App.vue`, `src/assets/`, `src/components/{layout,history}/`, `src/views/{Home,Login,Signup,History,Shared,NotFound}View.vue` (Shared is the caregiver invite page), `playwright.config.js` |
 
 Shared files, where you add to them but don't restructure: `src/router/index.js` (all routes are already registered), `src/i18n/locales/*.json` (add your keys under your own section), `package.json`.
 

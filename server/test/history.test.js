@@ -14,14 +14,21 @@ import { signToken } from '../services/auth.js'
 process.env.JWT_SECRET = randomBytes(48).toString('hex')
 process.env.USE_MOCK_AI = 'true'
 const { default: app } = await import('../app.js')
-const fixture = async (id) => JSON.parse(await readFile(new URL(`../fixtures/${id}.json`, import.meta.url), 'utf8'))
+const fixture = async (id) =>
+  JSON.parse(await readFile(new URL(`../fixtures/${id}.json`, import.meta.url), 'utf8'))
 const med = await fixture('med-1')
 let mongo, server, base, alice, bob, aliceToken, bobToken
 beforeAll(async () => {
   mongo = await MongoMemoryServer.create()
   process.env.MONGODB_URI = mongo.getUri('history_test')
   await connectDb()
-  const profile = { name: 'Test User', dob: '1952-03-07', citizenship: 'birth', income: 'unsure', passwordHash: 'not-used-for-login' }
+  const profile = {
+    name: 'Test User',
+    dob: '1952-03-07',
+    citizenship: 'birth',
+    income: 'unsure',
+    passwordHash: 'not-used-for-login',
+  }
   alice = await User.create({ ...profile, email: 'alice@example.com' })
   bob = await User.create({ ...profile, email: 'bob@example.com' })
   aliceToken = signToken(alice.id, false)
@@ -35,10 +42,15 @@ afterAll(async () => {
   await mongoose.disconnect()
   await mongo?.stop()
 })
-const request = (path = '', { method = 'GET', token = aliceToken, body } = {}) => fetch(`${base}${path}`, {
-  method, headers: { 'content-type': 'application/json', ...(token ? { authorization: `Bearer ${token}` } : {}) },
-  ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
-})
+const request = (path = '', { method = 'GET', token = aliceToken, body } = {}) =>
+  fetch(`${base}${path}`, {
+    method,
+    headers: {
+      'content-type': 'application/json',
+      ...(token ? { authorization: `Bearer ${token}` } : {}),
+    },
+    ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
+  })
 const save = (scan, options = {}) => request('', { method: 'POST', body: { scan }, ...options })
 async function error(response, status, code, reachedRouter = true) {
   assert.equal(response.status, status)
@@ -53,14 +65,26 @@ async function error(response, status, code, reachedRouter = true) {
 test('all history operations require a valid token before touching the database', async () => {
   const id = new mongoose.Types.ObjectId()
   for (const token of [null, 'invalid']) {
-    for (const [path, method, body] of [['', 'GET'], ['', 'POST', { scan: med }], [`/${id}`, 'GET'], [`/${id}`, 'DELETE']]) {
+    for (const [path, method, body] of [
+      ['', 'GET'],
+      ['', 'POST', { scan: med }],
+      [`/${id}`, 'GET'],
+      [`/${id}`, 'DELETE'],
+    ]) {
       await error(await request(path, { method, body, token }), 401, 'NOT_LOGGED_IN')
     }
   }
 })
 
 test('new users have empty paginated history; only the owner can read and delete saved scans', async () => {
-  assert.deepEqual((await (await request()).json()).data, { items: [], page: 1, pageSize: 10, pages: 1, total: 0, hasMore: false })
+  assert.deepEqual((await (await request()).json()).data, {
+    items: [],
+    page: 1,
+    pageSize: 10,
+    pages: 1,
+    total: 0,
+    hasMore: false,
+  })
   const response = await save(med)
   assert.equal(response.status, 201)
   assert.equal(response.headers.get('cache-control'), 'no-store')
@@ -73,7 +97,14 @@ test('new users have empty paginated history; only the owner can read and delete
   const bobsList = await request('', { token: bobToken })
   assert.equal((await bobsList.json()).data.total, 0)
   const notFound = await error(await request(`/${data.id}`, { token: bobToken }), 404, 'NOT_FOUND')
-  assert.deepEqual(await error(await request(`/${new mongoose.Types.ObjectId()}`, { token: bobToken }), 404, 'NOT_FOUND'), notFound)
+  assert.deepEqual(
+    await error(
+      await request(`/${new mongoose.Types.ObjectId()}`, { token: bobToken }),
+      404,
+      'NOT_FOUND',
+    ),
+    notFound,
+  )
   await error(await request(`/${data.id}`, { method: 'DELETE', token: bobToken }), 404, 'NOT_FOUND')
   assert.deepEqual((await (await request(`/${data.id}`)).json()).data, data)
   assert.equal((await request(`/${data.id}`, { method: 'DELETE' })).status, 200)
@@ -91,18 +122,27 @@ test('confirmed medication and bill samples round-trip in cents and survive data
     if (sample.type === 'bill') {
       assert.equal(data.scan.bill.totalPayableCents, sample.bill.totalPayableCents)
       assert.deepEqual(data.scan.bill.items, sample.bill.items)
-      assert.deepEqual(data.scan.bill.subsidies, sample.bill.subsidies.map((s) => ({ ...s, includedInItems: s.includedInItems ?? false })))
+      assert.deepEqual(
+        data.scan.bill.subsidies,
+        sample.bill.subsidies.map((s) => ({ ...s, includedInItems: s.includedInItems ?? false })),
+      )
     } else assert.deepEqual(data.scan, sample)
     await mongoose.disconnect()
     assert.deepEqual((await (await request(`/${data.id}`)).json()).data, data)
   }
   const indexes = await Scan.collection.indexes()
-  assert.ok(indexes.some((i) => JSON.stringify(i.key) === JSON.stringify({ userId: 1, createdAt: -1, _id: -1 })))
+  assert.ok(
+    indexes.some(
+      (i) => JSON.stringify(i.key) === JSON.stringify({ userId: 1, createdAt: -1, _id: -1 }),
+    ),
+  )
 })
 
 test('bill subsidies included in net items are not deducted twice', async () => {
   const sample = await fixture('bill-1')
-  sample.bill.items = [{ description: 'Net consultation', category: 'consultation', amountCents: 1000 }]
+  sample.bill.items = [
+    { description: 'Net consultation', category: 'consultation', amountCents: 1000 },
+  ]
   sample.bill.subsidies = [{ scheme: 'government', amountCents: 500, includedInItems: true }]
   sample.bill.medisaveCents = 0
   sample.bill.totalPayableCents = 1000
@@ -112,12 +152,19 @@ test('bill subsidies included in net items are not deducted twice', async () => 
 test('history pages contain only summaries, newest first, with deterministic timestamp ties and no other user data', async () => {
   await Scan.deleteMany({})
   const time = new Date('2026-10-28T00:00:00Z')
-  const docs = await Scan.insertMany(Array.from({ length: 23 }, (_, i) => ({
-    userId: alice.id, type: med.type, source: med.source, medication: { ...med.medication, name: `Medicine ${i}` },
-    createdAt: i < 20 ? time : new Date(time.getTime() + i),
-  })))
+  const docs = await Scan.insertMany(
+    Array.from({ length: 23 }, (_, i) => ({
+      userId: alice.id,
+      type: med.type,
+      source: med.source,
+      medication: { ...med.medication, name: `Medicine ${i}` },
+      createdAt: i < 20 ? time : new Date(time.getTime() + i),
+    })),
+  )
   await save(med, { token: bobToken })
-  const expected = [...docs].sort((a, b) => b.createdAt - a.createdAt || b.id.localeCompare(a.id)).map((d) => d.id)
+  const expected = [...docs]
+    .sort((a, b) => b.createdAt - a.createdAt || b.id.localeCompare(a.id))
+    .map((d) => d.id)
   const pages = []
   for (const page of [1, 2, 3, 4]) {
     const { data } = await (await request(`?page=${page}`)).json()
@@ -128,7 +175,15 @@ test('history pages contain only summaries, newest first, with deterministic tim
     assert.equal(data.pages, 3)
     assert.equal(data.items.length, page < 3 ? 10 : page === 3 ? 3 : 0)
     for (const item of data.items) {
-      assert.deepEqual(Object.keys(item).sort(), ['createdAt', 'id', 'purpose', 'source', 'title', 'totalPayableCents', 'type'])
+      assert.deepEqual(Object.keys(item).sort(), [
+        'createdAt',
+        'id',
+        'purpose',
+        'source',
+        'title',
+        'totalPayableCents',
+        'type',
+      ])
       assert.match(item.title, /^Medicine \d+ 500 mg$/)
     }
     pages.push(...data.items.map((i) => i.id))
@@ -136,20 +191,44 @@ test('history pages contain only summaries, newest first, with deterministic tim
   assert.deepEqual(pages, expected)
 })
 
-test('/all gives every summary at once, newest first, with each bill\'s visit date, and only this user\'s', async () => {
+test("/all gives every summary at once, newest first, with each bill's visit date, and only this user's", async () => {
   await Scan.deleteMany({})
   const bill = await fixture('bill-1')
   const time = new Date('2026-10-28T00:00:00Z')
   const docs = await Scan.insertMany([
-    ...Array.from({ length: 12 }, (_, i) => ({ userId: alice.id, type: med.type, source: med.source, medication: med.medication, createdAt: new Date(time.getTime() + i) })),
-    { userId: alice.id, type: 'bill', source: bill.source, bill: { ...bill.bill, visitDate: '2026-10-15' }, createdAt: new Date(time.getTime() + 100) },
+    ...Array.from({ length: 12 }, (_, i) => ({
+      userId: alice.id,
+      type: med.type,
+      source: med.source,
+      medication: med.medication,
+      createdAt: new Date(time.getTime() + i),
+    })),
+    {
+      userId: alice.id,
+      type: 'bill',
+      source: bill.source,
+      bill: { ...bill.bill, visitDate: '2026-10-15' },
+      createdAt: new Date(time.getTime() + 100),
+    },
   ])
   await save(med, { token: bobToken })
   const { data } = await (await request('/all')).json()
   assert.equal(data.total, 13)
   assert.equal(data.capped, false)
-  assert.deepEqual(data.items.map((i) => i.id), [...docs].sort((a, b) => b.createdAt - a.createdAt).map((d) => d.id)) // more than one page's worth
-  assert.deepEqual(Object.keys(data.items[0]).sort(), ['createdAt', 'id', 'purpose', 'source', 'title', 'totalPayableCents', 'type', 'visitDate'])
+  assert.deepEqual(
+    data.items.map((i) => i.id),
+    [...docs].sort((a, b) => b.createdAt - a.createdAt).map((d) => d.id),
+  ) // more than one page's worth
+  assert.deepEqual(Object.keys(data.items[0]).sort(), [
+    'createdAt',
+    'id',
+    'purpose',
+    'source',
+    'title',
+    'totalPayableCents',
+    'type',
+    'visitDate',
+  ])
   assert.equal(data.items[0].visitDate, '2026-10-15')
   assert.equal(data.items[1].visitDate, null) // medicines have none
   await error(await request('/all?page=2'), 400, 'BAD_REQUEST')
@@ -158,36 +237,121 @@ test('/all gives every summary at once, newest first, with each bill\'s visit da
 
 test('rejects unknown fields, photos, owner injection and malformed or unconfirmed data without saving', async () => {
   const bad = []
-  const change = (fn) => { const s = structuredClone(med); fn(s); return { scan: s } }
+  const change = (fn) => {
+    const s = structuredClone(med)
+    fn(s)
+    return { scan: s }
+  }
   bad.push({}, [], null, { scan: med, userId: bob.id }, { scan: med, createdAt: '2020-01-01' })
-  bad.push(change((s) => { s.image = 'data:image/png;base64,AAAA' }))
-  bad.push(change((s) => { s.medication.patientName = 'Private Person' }))
-  bad.push(change((s) => { s.medication.name = { $ne: null } }))
-  bad.push(change((s) => { s.medication.rawInstruction = 'data:image/png;base64,AAAA' }))
-  bad.push(change((s) => { s.unclear = ['medication.name'] }))
-  bad.push(change((s) => { s.source = 'typed' }))
-  bad.push(change((s) => { s.type = 'constructor' }))
-  bad.push(change((s) => { s.bill = {} }))
-  bad.push(change((s) => { s.medication = null }))
-  bad.push(change((s) => { s.medication.doseAmount = '2' }))
-  bad.push(change((s) => { s.medication.doseAmount = 0 }))
-  bad.push(change((s) => { s.medication.timesPerDay = 20 }))
-  bad.push(change((s) => { s.medication.timing = ['morning'] }))
-  bad.push(change((s) => { s.medication.warnings = Array(51).fill('Warning') }))
-  bad.push(change((s) => { s.medication.warnings = Array(40).fill('w'.repeat(2000)) }))
+  bad.push(
+    change((s) => {
+      s.image = 'data:image/png;base64,AAAA'
+    }),
+  )
+  bad.push(
+    change((s) => {
+      s.medication.patientName = 'Private Person'
+    }),
+  )
+  bad.push(
+    change((s) => {
+      s.medication.name = { $ne: null }
+    }),
+  )
+  bad.push(
+    change((s) => {
+      s.medication.rawInstruction = 'data:image/png;base64,AAAA'
+    }),
+  )
+  bad.push(
+    change((s) => {
+      s.unclear = ['medication.name']
+    }),
+  )
+  bad.push(
+    change((s) => {
+      s.source = 'typed'
+    }),
+  )
+  bad.push(
+    change((s) => {
+      s.type = 'constructor'
+    }),
+  )
+  bad.push(
+    change((s) => {
+      s.bill = {}
+    }),
+  )
+  bad.push(
+    change((s) => {
+      s.medication = null
+    }),
+  )
+  bad.push(
+    change((s) => {
+      s.medication.doseAmount = '2'
+    }),
+  )
+  bad.push(
+    change((s) => {
+      s.medication.doseAmount = 0
+    }),
+  )
+  bad.push(
+    change((s) => {
+      s.medication.timesPerDay = 20
+    }),
+  )
+  bad.push(
+    change((s) => {
+      s.medication.timing = ['morning']
+    }),
+  )
+  bad.push(
+    change((s) => {
+      s.medication.warnings = Array(51).fill('Warning')
+    }),
+  )
+  bad.push(
+    change((s) => {
+      s.medication.warnings = Array(40).fill('w'.repeat(2000))
+    }),
+  )
   const count = await Scan.countDocuments()
   // Express rejects a top-level JSON null before route middleware runs.
-  for (const body of bad) await error(await request('', { method: 'POST', body }), 400, 'BAD_REQUEST', body !== null)
+  for (const body of bad)
+    await error(await request('', { method: 'POST', body }), 400, 'BAD_REQUEST', body !== null)
   assert.equal(await Scan.countDocuments(), count)
 })
 
 test('rejects malformed bill dates, money and nested private fields', async () => {
   const sample = await fixture('bill-1')
   for (const change of [
-    (b) => { b.visitDate = '2026-02-30' }, (b) => { b.items = [] },
-    (b) => { b.items[0].amountCents = 1.5 }, (b) => { b.items[0].amountCents = '1450' },
-    (b) => { b.items[0].patientName = 'Private Person' }, (b) => { b.subtotals = [{ section: 'Medications', amountCents: -1 }] },
-    (b) => { b.medisaveCents = -1 }, (b) => { b.subsidies[0].includedInItems = 'false' },
+    (b) => {
+      b.visitDate = '2026-02-30'
+    },
+    (b) => {
+      b.items = []
+    },
+    (b) => {
+      b.items[0].amountCents = 1.5
+    },
+    (b) => {
+      b.items[0].amountCents = '1450'
+    },
+    (b) => {
+      b.items[0].patientName = 'Private Person'
+    },
+    (b) => {
+      b.subtotals = [{ section: 'Medications', amountCents: -1 }]
+    },
+    (b) => {
+      b.medisaveCents = -1
+    },
+    (b) => {
+      b.subsidies[0].includedInItems = 'false'
+    },
   ]) {
     const scan = structuredClone(sample)
     change(scan.bill)
@@ -199,7 +363,9 @@ test('a bill whose lines do not add up is saved with its printed total, sections
   const scan = structuredClone(await fixture('bill-1'))
   scan.bill.totalPayableCents += 50 // one line misread by 50 cents; the person confirmed the printed total
   scan.bill.items[0].section = 'Consultation Fees'
-  scan.bill.subtotals = [{ section: 'Consultation Fees', amountCents: scan.bill.items[0].amountCents }]
+  scan.bill.subtotals = [
+    { section: 'Consultation Fees', amountCents: scan.bill.items[0].amountCents },
+  ]
   const response = await save(scan)
   assert.equal(response.status, 201)
   const { bill } = (await response.json()).data.scan
@@ -214,7 +380,16 @@ test('bad IDs and pagination return JSON errors, not CastErrors or Mongo filters
     await error(await request(`/${id}`), 404, 'NOT_FOUND')
     await error(await request(`/${id}`, { method: 'DELETE' }), 404, 'NOT_FOUND')
   }
-  for (const query of ['page=0', 'page=-1', 'page=1.5', 'page=1e2', 'page=100001', 'page=1&page=2', 'page[$ne]=1', 'userId=' + bob.id]) {
+  for (const query of [
+    'page=0',
+    'page=-1',
+    'page=1.5',
+    'page=1e2',
+    'page=100001',
+    'page=1&page=2',
+    'page[$ne]=1',
+    'userId=' + bob.id,
+  ]) {
     await error(await request(`?${query}`), 400, 'BAD_REQUEST')
   }
 })
@@ -236,12 +411,24 @@ test('database unavailable returns sanitized 503 and recovers on a later request
     delete process.env.MONGODB_URI
     const body = await error(await request(), 503, 'SERVER_ERROR')
     assert.equal(body.error.message, 'History is not available right now')
-  } finally { process.env.MONGODB_URI = uri }
+  } finally {
+    process.env.MONGODB_URI = uri
+  }
   assert.equal((await request()).status, 200)
   const original = Scan.findOne
   try {
-    Scan.findOne = () => { throw new mongoose.mongo.MongoServerError({ message: 'mongodb://private-user:private-password@private-host/history' }) }
-    const response = await error(await request(`/${new mongoose.Types.ObjectId()}`), 503, 'SERVER_ERROR')
+    Scan.findOne = () => {
+      throw new mongoose.mongo.MongoServerError({
+        message: 'mongodb://private-user:private-password@private-host/history',
+      })
+    }
+    const response = await error(
+      await request(`/${new mongoose.Types.ObjectId()}`),
+      503,
+      'SERVER_ERROR',
+    )
     assert.doesNotMatch(JSON.stringify(response), /private/)
-  } finally { Scan.findOne = original }
+  } finally {
+    Scan.findOne = original
+  }
 })

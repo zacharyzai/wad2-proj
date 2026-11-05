@@ -13,11 +13,20 @@ async function openEdit(page) {
 // Profile saves only: logging in also PATCHes the language when the account has none (stores/auth.js).
 function countSaves(page) {
   const saves = []
-  page.on('request', (r) => r.url().includes('/api/auth/me') && r.method() === 'PATCH' && 'name' in r.postDataJSON() && saves.push(r))
+  page.on(
+    'request',
+    (r) =>
+      r.url().includes('/api/auth/me') &&
+      r.method() === 'PATCH' &&
+      'name' in r.postDataJSON() &&
+      saves.push(r),
+  )
   return saves
 }
 
-test('a citizenship year in the future, or before birth, is explained and nothing is saved', async ({ page }) => {
+test('a citizenship year in the future, or before birth, is explained and nothing is saved', async ({
+  page,
+}) => {
   const saves = countSaves(page)
   await openEdit(page)
   await page.getByTestId('account-edit-citizenship').selectOption('became')
@@ -49,12 +58,18 @@ test('Cancel throws away edits', async ({ page }) => {
   await expect(page.getByTestId('account-edit-name')).toHaveValue('Tan Mei Ling')
 })
 
-test('a save that cannot reach the server says so plainly and keeps what was typed', async ({ page }) => {
+test('a save that cannot reach the server says so plainly and keeps what was typed', async ({
+  page,
+}) => {
   await openEdit(page)
-  await page.route('**/api/auth/me', (route) => (route.request().method() === 'PATCH' ? route.abort('internetdisconnected') : route.fallback()))
+  await page.route('**/api/auth/me', (route) =>
+    route.request().method() === 'PATCH' ? route.abort('internetdisconnected') : route.fallback(),
+  )
   await page.getByTestId('account-edit-name').fill('Tan Mei Mei')
   await page.getByTestId('account-save').click()
-  await expect(page.getByRole('alert').filter({ hasText: 'Cannot connect' })).toHaveText('Cannot connect. Please check your internet connection.')
+  await expect(page.getByRole('alert').filter({ hasText: 'Cannot connect' })).toHaveText(
+    'Cannot connect. Please check your internet connection.',
+  )
   await expect(page.getByTestId('account-edit-name')).toHaveValue('Tan Mei Mei')
 })
 
@@ -67,7 +82,9 @@ test('saved details are still there after a reload', async ({ page }) => {
   await expect(page.getByTestId('account-name')).toContainText('Tan Mei Mei')
 })
 
-test('usable: big targets and text, no axe problems, on the page and in the edit form @a11y', async ({ page }) => {
+test('usable: big targets and text, no axe problems, on the page and in the edit form @a11y', async ({
+  page,
+}) => {
   await page.emulateMedia({ reducedMotion: 'reduce' })
   await page.goto('/account')
   await expectSeniorFriendly(page)

@@ -1,8 +1,11 @@
-// Owner: Zachary (built by Claude, declared in README.txt). Google Calendar: OAuth, encrypted refresh tokens, and one repeating
-// event per dose with its own alert, so the phone rings at dose time even when our app is closed, plus a second "Not ticked yet"
-// event FOLLOW_UP_MIN later that ticking the dose cancels. Plain fetch, no googleapis package.
-// Contract: docs/google-contract.md
-import { createCipheriv, createDecipheriv, createHash, createHmac, randomBytes, timingSafeEqual } from 'node:crypto'
+import {
+  createCipheriv,
+  createDecipheriv,
+  createHash,
+  createHmac,
+  randomBytes,
+  timingSafeEqual,
+} from 'node:crypto'
 import { DOSE_UNITS, WITH_FOOD } from './normalizeScan.js'
 import { jwtSecret } from './auth.js'
 
@@ -18,6 +21,7 @@ const TIME_ZONE = 'Asia/Singapore'
 // and the dose tick cancels that day's copy (setFollowUpCancelled). Stored in GoogleLink.events as `${doseId}:late`.
 export const FOLLOW_UP_MIN = 15
 export const FOLLOW_UP = ':late'
+// True for the key of a follow-up reminder (the +30 min "did you take it?" alert) rather than the dose itself.
 export const isFollowUp = (key) => key.endsWith(FOLLOW_UP)
 export const MAX_DAYS = 366 // a schedule longer than a year is almost certainly a typo
 
@@ -29,18 +33,34 @@ export class GoogleError extends Error {
   }
 }
 
+// True when the Google OAuth settings are all present; otherwise calendar sync is switched off.
 export const isConfigured = () =>
-  Boolean(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET && process.env.GOOGLE_REDIRECT_URI && process.env.GOOGLE_TOKEN_KEY)
+  Boolean(
+    process.env.GOOGLE_CLIENT_ID &&
+    process.env.GOOGLE_CLIENT_SECRET &&
+    process.env.GOOGLE_REDIRECT_URI &&
+    process.env.GOOGLE_TOKEN_KEY,
+  )
 
 // --- state: proves the callback belongs to the user who pressed Connect ---------------------------------------------------------
 // Signed like a login token, but with `purpose`, so a state (which passes through Google's address bar) can never be used as a login.
-const hmac = (body) => createHmac('sha256', jwtSecret()).update(`google-state.${body}`).digest('base64url')
+const hmac = (body) =>
+  createHmac('sha256', jwtSecret()).update(`google-state.${body}`).digest('base64url')
 
+// Signs the OAuth "state" so the callback can trust which user and page started the connection.
 export function signState(userId, next, now = Date.now()) {
-  const body = Buffer.from(JSON.stringify({ purpose: 'google', sub: String(userId), next, exp: Math.floor(now / 1000) + STATE_SECONDS })).toString('base64url')
+  const body = Buffer.from(
+    JSON.stringify({
+      purpose: 'google',
+      sub: String(userId),
+      next,
+      exp: Math.floor(now / 1000) + STATE_SECONDS,
+    }),
+  ).toString('base64url')
   return `${body}.${hmac(body)}`
 }
 
+// Verifies a returned OAuth state; null if forged or older than its lifetime.
 export function readState(state, now = Date.now()) {
   const [body, sig] = String(state ?? '').split('.')
   if (!body || !sig) return null
@@ -55,6 +75,7 @@ export function readState(state, now = Date.now()) {
   }
 }
 
+// The Google consent page URL for this state.
 export function authUrl(state) {
   return `${AUTH_URL}?${new URLSearchParams({
     client_id: process.env.GOOGLE_CLIENT_ID,
@@ -74,6 +95,7 @@ const key = () => {
   return k
 }
 
+// Encrypts a Google refresh token (AES-256-GCM) before it is stored.
 export function encrypt(text) {
   const iv = randomBytes(12)
   const cipher = createCipheriv('aes-256-gcm', key(), iv)
@@ -81,16 +103,25 @@ export function encrypt(text) {
   return [iv, cipher.getAuthTag(), data].map((b) => b.toString('base64url')).join('.')
 }
 
+// Reverses encrypt(); throws if the stored text was changed.
 export function decrypt(stored) {
-  const [iv, tag, data] = String(stored).split('.').map((p) => Buffer.from(p, 'base64url'))
+  const [iv, tag, data] = String(stored)
+    .split('.')
+    .map((p) => Buffer.from(p, 'base64url'))
   const decipher = createDecipheriv('aes-256-gcm', key(), iv)
   decipher.setAuthTag(tag) // a changed ciphertext fails here instead of decrypting to garbage
   return Buffer.concat([decipher.update(data), decipher.final()]).toString('utf8')
 }
 
 // --- talking to Google ---------------------------------------------------------------------------------------------------------
-const form = (fields) => new URLSearchParams({ client_id: process.env.GOOGLE_CLIENT_ID, client_secret: process.env.GOOGLE_CLIENT_SECRET, ...fields })
+const form = (fields) =>
+  new URLSearchParams({
+    client_id: process.env.GOOGLE_CLIENT_ID,
+    client_secret: process.env.GOOGLE_CLIENT_SECRET,
+    ...fields,
+  })
 
+// Calls Google's token endpoint and turns its failures into GoogleError.
 async function tokenRequest(fields) {
   let res
   try {
@@ -100,38 +131,63 @@ async function tokenRequest(fields) {
   }
   const data = await res.json().catch(() => ({}))
   // invalid_grant: the user removed our access in their Google account, or the token expired. They must connect again.
-  if (data.error === 'invalid_grant') throw new GoogleError(401, 'GOOGLE_DISCONNECTED', 'Google access was removed, please connect again')
-  if (!res.ok) throw new GoogleError(503, 'GOOGLE_UNAVAILABLE', `Google token request failed (${res.status})`)
+  if (data.error === 'invalid_grant')
+    throw new GoogleError(
+      401,
+      'GOOGLE_DISCONNECTED',
+      'Google access was removed, please connect again',
+    )
+  if (!res.ok)
+    throw new GoogleError(503, 'GOOGLE_UNAVAILABLE', `Google token request failed (${res.status})`)
   return data
 }
 
 // The one-time code from the callback → the refresh token we keep.
 export async function exchangeCode(code) {
-  const data = await tokenRequest({ code, redirect_uri: process.env.GOOGLE_REDIRECT_URI, grant_type: 'authorization_code' })
-  if (!data.refresh_token) throw new GoogleError(503, 'GOOGLE_UNAVAILABLE', 'Google did not send a refresh token')
+  const data = await tokenRequest({
+    code,
+    redirect_uri: process.env.GOOGLE_REDIRECT_URI,
+    grant_type: 'authorization_code',
+  })
+  if (!data.refresh_token)
+    throw new GoogleError(503, 'GOOGLE_UNAVAILABLE', 'Google did not send a refresh token')
   return data.refresh_token
 }
 
 // A short-lived (1 hour) access token for the Calendar calls.
-const accessToken = async (refreshToken) => (await tokenRequest({ refresh_token: refreshToken, grant_type: 'refresh_token' })).access_token
+const accessToken = async (refreshToken) =>
+  (await tokenRequest({ refresh_token: refreshToken, grant_type: 'refresh_token' })).access_token
 
 // Best effort: if Google is down, the token is still deleted on our side.
-export const revoke = (refreshToken) => fetch(REVOKE_URL, { method: 'POST', body: new URLSearchParams({ token: refreshToken }) }).catch(() => {})
+export const revoke = (refreshToken) =>
+  fetch(REVOKE_URL, { method: 'POST', body: new URLSearchParams({ token: refreshToken }) }).catch(
+    () => {},
+  )
 
+// Calls the Google Calendar events API with an access token; failures become GoogleError.
 async function calendar(token, method, path = '', body) {
   let res
   try {
     res = await fetch(EVENTS_URL + path, {
       method,
-      headers: { authorization: `Bearer ${token}`, ...(body && { 'content-type': 'application/json' }) },
+      headers: {
+        authorization: `Bearer ${token}`,
+        ...(body && { 'content-type': 'application/json' }),
+      },
       body: body && JSON.stringify(body),
     })
   } catch {
     throw new GoogleError(503, 'GOOGLE_UNAVAILABLE', 'Could not reach Google Calendar')
   }
-  if (res.status === 401) throw new GoogleError(401, 'GOOGLE_DISCONNECTED', 'Google access was removed, please connect again')
+  if (res.status === 401)
+    throw new GoogleError(
+      401,
+      'GOOGLE_DISCONNECTED',
+      'Google access was removed, please connect again',
+    )
   if (res.status === 404 || res.status === 410) return null // the user already deleted this event in their calendar
-  if (!res.ok) throw new GoogleError(503, 'GOOGLE_UNAVAILABLE', `Google Calendar answered ${res.status}`)
+  if (!res.ok)
+    throw new GoogleError(503, 'GOOGLE_UNAVAILABLE', `Google Calendar answered ${res.status}`)
   return res.status === 204 ? {} : res.json()
 }
 
@@ -139,36 +195,113 @@ async function calendar(token, method, path = '', body) {
 // Event text in the user's language. Dose numbers stay digits; the medicine name stays as printed on the label.
 // Unit words: English has singular/plural; 'other' has no word (just the number). Translations to be checked by Asher.
 const TEXT = {
-  en: { take: (l) => `Take ${l}`, unit: { tablet: ['tablet', 'tablets'], capsule: ['capsule', 'capsules'], ml: ['ml', 'ml'], puff: ['puff', 'puffs'], drop: ['drop', 'drops'] }, comma: ', ', stop: '. ', food: { before: 'before food', after: 'after food', with: 'with food', any: 'with or without food' }, ask: 'Ask your pharmacist if unsure.', late: (l) => `Not ticked yet: ${l}`, tick: 'If you have taken it, tick it in the app. Ask your pharmacist if unsure.' },
-  zh: { take: (l) => `服用 ${l}`, unit: { tablet: '粒', capsule: '颗胶囊', ml: '毫升', puff: '喷', drop: '滴' }, comma: '，', stop: '。', food: { before: '饭前', after: '饭后', with: '随餐', any: '饭前饭后都可以' }, ask: '如有疑问，请问药剂师。', late: (l) => `还没打勾：${l}`, tick: '如果已经服用，请在应用里打勾。如有疑问，请问药剂师。' },
-  ms: { take: (l) => `Ambil ${l}`, unit: { tablet: 'biji', capsule: 'kapsul', ml: 'ml', puff: 'sedutan', drop: 'titis' }, comma: ', ', stop: '. ', food: { before: 'sebelum makan', after: 'selepas makan', with: 'semasa makan', any: 'sebelum atau selepas makan' }, ask: 'Tanya ahli farmasi jika tidak pasti.', late: (l) => `Belum ditanda: ${l}`, tick: 'Jika sudah diambil, tandakan dalam aplikasi. Tanya ahli farmasi jika tidak pasti.' },
-  ta: { take: (l) => `${l} எடுக்கவும்`, unit: { tablet: 'மாத்திரை', capsule: 'கேப்ஸ்யூல்', ml: 'மி.லி.', puff: 'முறை உறிஞ்சவும்', drop: 'சொட்டு' }, comma: ', ', stop: '. ', food: { before: 'உணவுக்கு முன்', after: 'உணவுக்குப் பின்', with: 'உணவுடன்', any: 'உணவுடன் அல்லது இல்லாமல்' }, ask: 'சந்தேகம் இருந்தால் மருந்தாளரிடம் கேளுங்கள்.', late: (l) => `இன்னும் குறிக்கவில்லை: ${l}`, tick: 'எடுத்திருந்தால், செயலியில் குறிக்கவும். சந்தேகம் இருந்தால் மருந்தாளரிடம் கேளுங்கள்.' },
+  en: {
+    take: (l) => `Take ${l}`,
+    unit: {
+      tablet: ['tablet', 'tablets'],
+      capsule: ['capsule', 'capsules'],
+      ml: ['ml', 'ml'],
+      puff: ['puff', 'puffs'],
+      drop: ['drop', 'drops'],
+    },
+    comma: ', ',
+    stop: '. ',
+    food: {
+      before: 'before food',
+      after: 'after food',
+      with: 'with food',
+      any: 'with or without food',
+    },
+    ask: 'Ask your pharmacist if unsure.',
+    late: (l) => `Not ticked yet: ${l}`,
+    tick: 'If you have taken it, tick it in the app. Ask your pharmacist if unsure.',
+  },
+  zh: {
+    take: (l) => `服用 ${l}`,
+    unit: { tablet: '粒', capsule: '颗胶囊', ml: '毫升', puff: '喷', drop: '滴' },
+    comma: '，',
+    stop: '。',
+    food: { before: '饭前', after: '饭后', with: '随餐', any: '饭前饭后都可以' },
+    ask: '如有疑问，请问药剂师。',
+    late: (l) => `还没打勾：${l}`,
+    tick: '如果已经服用，请在应用里打勾。如有疑问，请问药剂师。',
+  },
+  ms: {
+    take: (l) => `Ambil ${l}`,
+    unit: { tablet: 'biji', capsule: 'kapsul', ml: 'ml', puff: 'sedutan', drop: 'titis' },
+    comma: ', ',
+    stop: '. ',
+    food: {
+      before: 'sebelum makan',
+      after: 'selepas makan',
+      with: 'semasa makan',
+      any: 'sebelum atau selepas makan',
+    },
+    ask: 'Tanya ahli farmasi jika tidak pasti.',
+    late: (l) => `Belum ditanda: ${l}`,
+    tick: 'Jika sudah diambil, tandakan dalam aplikasi. Tanya ahli farmasi jika tidak pasti.',
+  },
+  ta: {
+    take: (l) => `${l} எடுக்கவும்`,
+    unit: {
+      tablet: 'மாத்திரை',
+      capsule: 'கேப்ஸ்யூல்',
+      ml: 'மி.லி.',
+      puff: 'முறை உறிஞ்சவும்',
+      drop: 'சொட்டு',
+    },
+    comma: ', ',
+    stop: '. ',
+    food: {
+      before: 'உணவுக்கு முன்',
+      after: 'உணவுக்குப் பின்',
+      with: 'உணவுடன்',
+      any: 'உணவுடன் அல்லது இல்லாமல்',
+    },
+    ask: 'சந்தேகம் இருந்தால் மருந்தாளரிடம் கேளுங்கள்.',
+    late: (l) => `இன்னும் குறிக்கவில்லை: ${l}`,
+    tick: 'எடுத்திருந்தால், செயலியில் குறிக்கவும். சந்தேகம் இருந்தால் மருந்தாளரிடம் கேளுங்கள்.',
+  },
 }
 export const LANGS = Object.keys(TEXT)
 
 const DATE = /^\d{4}-\d{2}-\d{2}$/
 const TIME = /^([01]\d|2[0-3]):[0-5]\d$/
-const isDate = (d) => typeof d === 'string' && DATE.test(d) && new Date(`${d}T00:00:00Z`).toISOString().slice(0, 10) === d
-const str = (v, max) => (typeof v === 'string' && v.trim() && v.trim().length <= max ? v.trim() : null)
+// True for a real calendar date written YYYY-MM-DD.
+const isDate = (d) =>
+  typeof d === 'string' &&
+  DATE.test(d) &&
+  new Date(`${d}T00:00:00Z`).toISOString().slice(0, 10) === d
+// A trimmed non-empty string within the length limit, else null.
+const str = (v, max) =>
+  typeof v === 'string' && v.trim() && v.trim().length <= max ? v.trim() : null
+// Number of days from start to end, both included.
 const days = (start, end) => Math.round((Date.parse(end) - Date.parse(start)) / 86400000) + 1
 
 // Checks the schedule sent by the client (shape in docs/google-contract.md). Returns { entries } or { error } for a 400.
 export function checkEntries(raw) {
-  if (!Array.isArray(raw) || raw.length > 20) return { error: 'entries must be a list of at most 20 medicines' }
+  if (!Array.isArray(raw) || raw.length > 20)
+    return { error: 'entries must be a list of at most 20 medicines' }
   const entries = []
   for (const e of raw) {
     const label = str(e?.label, 80)
     const medicineId = str(e?.medicineId, 40)
     if (!label || !medicineId) return { error: 'each entry needs a medicineId and a label' }
-    if (!Array.isArray(e.doses) || e.doses.length > 6) return { error: 'doses must be a list of at most 6' }
+    if (!Array.isArray(e.doses) || e.doses.length > 6)
+      return { error: 'doses must be a list of at most 6' }
     const doses = []
     for (const d of e.doses) {
       const id = str(d?.id, 60)
-      if (!id || !TIME.test(d?.time ?? '')) return { error: 'each dose needs an id and a time like "08:00"' }
+      if (!id || !TIME.test(d?.time ?? ''))
+        return { error: 'each dose needs an id and a time like "08:00"' }
       doses.push({ id, time: d.time })
     }
-    if (!isDate(e.startDate) || (e.endDate != null && !isDate(e.endDate))) return { error: 'startDate and endDate must be real dates, YYYY-MM-DD' }
-    if (e.endDate && (days(e.startDate, e.endDate) < 1 || days(e.startDate, e.endDate) > MAX_DAYS)) {
+    if (!isDate(e.startDate) || (e.endDate != null && !isDate(e.endDate)))
+      return { error: 'startDate and endDate must be real dates, YYYY-MM-DD' }
+    if (
+      e.endDate &&
+      (days(e.startDate, e.endDate) < 1 || days(e.startDate, e.endDate) > MAX_DAYS)
+    ) {
       return { error: `endDate must be on or after startDate, at most ${MAX_DAYS} days` }
     }
     const i = e.instruction ?? {}
@@ -190,15 +323,24 @@ export function checkEntries(raw) {
 }
 
 // "08:00" + 15 minutes on a date, as a local date-time string. UTC is used only as a calculator here, so midnight rolls over correctly.
-const localPlus = (date, time, minutes) => new Date(Date.parse(`${date}T${time}:00Z`) + minutes * 60000).toISOString().slice(0, 19)
+const localPlus = (date, time, minutes) =>
+  new Date(Date.parse(`${date}T${time}:00Z`) + minutes * 60000).toISOString().slice(0, 19)
 
+// Builds one calendar event (title, time, reminder) for a dose in the user's language.
 export function buildEvent(entry, dose, lang = 'en') {
   const t = TEXT[lang] ?? TEXT.en
   const { count, unit, food } = entry.instruction
   const word = t.unit[unit]
   const unitWord = Array.isArray(word) ? word[count === 1 ? 0 : 1] : word
-  const amount = count == null ? '' : lang === 'zh' ? `${count} ${unitWord ?? ''}`.trim() : [count, unitWord].filter(Boolean).join(' ')
-  const description = [[amount, food && t.food[food]].filter(Boolean).join(t.comma), t.ask].filter(Boolean).join(t.stop)
+  const amount =
+    count == null
+      ? ''
+      : lang === 'zh'
+        ? `${count} ${unitWord ?? ''}`.trim()
+        : [count, unitWord].filter(Boolean).join(' ')
+  const description = [[amount, food && t.food[food]].filter(Boolean).join(t.comma), t.ask]
+    .filter(Boolean)
+    .join(t.stop)
   return {
     summary: t.take(entry.label),
     description,
@@ -217,13 +359,18 @@ export function buildFollowUpEvent(entry, dose, lang = 'en') {
     summary: t.late(entry.label),
     description: t.tick,
     start: { dateTime: localPlus(entry.startDate, dose.time, FOLLOW_UP_MIN), timeZone: TIME_ZONE },
-    end: { dateTime: localPlus(entry.startDate, dose.time, FOLLOW_UP_MIN + 15), timeZone: TIME_ZONE },
+    end: {
+      dateTime: localPlus(entry.startDate, dose.time, FOLLOW_UP_MIN + 15),
+      timeZone: TIME_ZONE,
+    },
     recurrence: [`RRULE:FREQ=DAILY;COUNT=${days(entry.startDate, entry.endDate)}`],
     reminders: { useDefault: false, overrides: [{ method: 'popup', minutes: 0 }] },
   }
 }
 
-const fingerprint = (event) => createHash('sha256').update(JSON.stringify(event)).digest('base64url')
+// Hash of an event, so unchanged events are not sent to Google again.
+const fingerprint = (event) =>
+  createHash('sha256').update(JSON.stringify(event)).digest('base64url')
 
 // What to do in Google, from what the schedule wants and what we created before (`stored`: key → { eventId, hash, time }, where
 // the key is the doseId, or `${doseId}:late` for its follow-up alert, which also remembers the dose `time`).
@@ -233,20 +380,28 @@ export function planSync(entries, stored, lang = 'en') {
   const wanted = new Set()
   for (const entry of entries) {
     if (entry.flagged || !entry.endDate) {
-      plan.skipped.push({ medicineId: entry.medicineId, reason: entry.flagged ? 'flagged' : 'noEndDate' })
+      plan.skipped.push({
+        medicineId: entry.medicineId,
+        reason: entry.flagged ? 'flagged' : 'noEndDate',
+      })
       continue
     }
     for (const dose of entry.doses) {
-      for (const [key, event, time] of [[dose.id, buildEvent(entry, dose, lang)], [dose.id + FOLLOW_UP, buildFollowUpEvent(entry, dose, lang), dose.time]]) {
+      for (const [key, event, time] of [
+        [dose.id, buildEvent(entry, dose, lang)],
+        [dose.id + FOLLOW_UP, buildFollowUpEvent(entry, dose, lang), dose.time],
+      ]) {
         wanted.add(key)
         const hash = fingerprint(event)
         const old = stored.get(key)
         if (!old) plan.insert.push({ doseId: key, event, hash, time })
-        else if (old.hash !== hash) plan.patch.push({ doseId: key, eventId: old.eventId, event, hash, time })
+        else if (old.hash !== hash)
+          plan.patch.push({ doseId: key, eventId: old.eventId, event, hash, time })
       }
     }
   }
-  for (const [doseId, { eventId }] of stored) if (!wanted.has(doseId)) plan.remove.push({ doseId, eventId })
+  for (const [doseId, { eventId }] of stored)
+    if (!wanted.has(doseId)) plan.remove.push({ doseId, eventId })
   return plan
 }
 
@@ -262,7 +417,9 @@ export async function syncSchedule(link, entries, lang) {
     }
     for (const p of plan.patch) {
       // Deleted in their calendar since: create it again.
-      const done = (await calendar(token, 'PATCH', `/${encodeURIComponent(p.eventId)}`, p.event)) ?? (await calendar(token, 'POST', '', p.event))
+      const done =
+        (await calendar(token, 'PATCH', `/${encodeURIComponent(p.eventId)}`, p.event)) ??
+        (await calendar(token, 'POST', '', p.event))
       link.events.set(p.doseId, { eventId: done.id, hash: p.hash, time: p.time })
     }
     for (const { doseId, eventId } of plan.remove) {
@@ -274,7 +431,12 @@ export async function syncSchedule(link, entries, lang) {
   }
   // Counts are of doses, not of Calendar events: the follow-up alerts are not counted, so the Schedule page's "N doses" stays right.
   const doses = (list) => list.filter((p) => !isFollowUp(p.doseId)).length
-  return { created: doses(plan.insert), updated: doses(plan.patch), removed: doses(plan.remove), skipped: plan.skipped }
+  return {
+    created: doses(plan.insert),
+    updated: doses(plan.patch),
+    removed: doses(plan.remove),
+    skipped: plan.skipped,
+  }
 }
 
 // How many doses are in the calendar (each also has a follow-up alert, which is not counted).
@@ -292,15 +454,19 @@ export async function setFollowUpCancelled(link, doseId, date, cancelled) {
     timeMax: `${localPlus(date, stored.time, FOLLOW_UP_MIN + 1)}+08:00`,
     showDeleted: 'true', // an alert cancelled earlier is still listed, so unticking can bring it back
   })
-  const instance = (await calendar(token, 'GET', `/${encodeURIComponent(stored.eventId)}/instances?${query}`))?.items?.[0]
+  const instance = (
+    await calendar(token, 'GET', `/${encodeURIComponent(stored.eventId)}/instances?${query}`)
+  )?.items?.[0]
   if (!instance) return false // that day is outside the course, or the event was deleted in their calendar
   const status = cancelled ? 'cancelled' : 'confirmed'
-  if (instance.status !== status) await calendar(token, 'PATCH', `/${encodeURIComponent(instance.id)}`, { status })
+  if (instance.status !== status)
+    await calendar(token, 'PATCH', `/${encodeURIComponent(instance.id)}`, { status })
   return true
 }
 
 // Disconnect with "also remove the events from my calendar". Best effort per event: one failure doesn't stop the rest.
 export async function removeAllEvents(link) {
   const token = await accessToken(decrypt(link.refreshToken))
-  for (const { eventId } of link.events.values()) await calendar(token, 'DELETE', `/${encodeURIComponent(eventId)}`).catch(() => {})
+  for (const { eventId } of link.events.values())
+    await calendar(token, 'DELETE', `/${encodeURIComponent(eventId)}`).catch(() => {})
 }

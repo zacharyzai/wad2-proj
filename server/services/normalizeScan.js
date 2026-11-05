@@ -1,6 +1,3 @@
-// Turns raw AI output into the contract shape (docs/scan-contract.md).
-// AI output is untrusted: anything missing, invalid or out of range becomes null and its path goes in `unclear`.
-// Only known fields are copied, so anything extra the model returns (e.g. a patient name) is dropped.
 import { billGap } from '../../src/rules/billCheck.js'
 
 export const DOSE_UNITS = ['tablet', 'capsule', 'ml', 'puff', 'drop', 'other']
@@ -9,14 +6,56 @@ export const WITH_FOOD = ['before', 'after', 'with', 'any']
 export const FREQUENCY_TYPES = ['daily', 'as_needed', 'weekly', 'tapering', 'other']
 // What a medicine is usually for, as a short fixed list. The AI only picks one of these (or null); the words people read come
 // from human-checked templates (i18n `purpose.<key>`), never from the AI. docs/scan-contract.md.
-export const PURPOSES = ['pain', 'blood_pressure', 'diabetes', 'cholesterol', 'heart', 'infection', 'stomach', 'allergy', 'cough_cold', 'breathing', 'mood_sleep', 'skin', 'vitamins']
-export const BILL_CATEGORIES = ['consultation', 'medication', 'investigation', 'procedure', 'ward', 'tax', 'other']
+export const PURPOSES = [
+  'pain',
+  'blood_pressure',
+  'diabetes',
+  'cholesterol',
+  'heart',
+  'infection',
+  'stomach',
+  'allergy',
+  'cough_cold',
+  'breathing',
+  'mood_sleep',
+  'skin',
+  'vitamins',
+]
+export const BILL_CATEGORIES = [
+  'consultation',
+  'medication',
+  'investigation',
+  'procedure',
+  'ward',
+  'tax',
+  'other',
+]
 // insurance: MediShield Life, Integrated Shield, private or employer insurance. Lowers what is paid, like a subsidy.
 // paid: money already paid earlier (a deposit at admission, an earlier payment), taken off what is still due.
-export const SUBSIDY_SCHEMES = ['government', 'chas', 'pioneer', 'merdeka', 'insurance', 'paid', 'other']
+export const SUBSIDY_SCHEMES = [
+  'government',
+  'chas',
+  'pioneer',
+  'merdeka',
+  'insurance',
+  'paid',
+  'other',
+]
 // Where the bill is from. It decides which subsidy rules can apply (src/rules/subsidies.js).
-export const BILL_PLACES = ['polyclinic', 'gp', 'dental', 'specialist', 'hospital', 'tcm', 'pharmacy', 'lab', 'other']
+export const BILL_PLACES = [
+  'polyclinic',
+  'gp',
+  'dental',
+  'specialist',
+  'hospital',
+  'tcm',
+  'pharmacy',
+  'lab',
+  'other',
+]
 
+// Trimmed non-empty string, else null (unclear fields are null, never guessed).
+// num, posInt and oneOf below do the same for numbers, whole numbers and enum values.
 const str = (v) => (typeof v === 'string' && v.trim() ? v.trim() : null)
 const num = (v) => (typeof v === 'number' && Number.isFinite(v) && v >= 0 ? v : null)
 const posInt = (v) => (Number.isInteger(v) && v > 0 ? v : null)
@@ -32,11 +71,16 @@ function signedDollars(v) {
   if (!m) return null
   return (m[1] || m[2] ? -1 : 1) * Number(m[3])
 }
+// Dollars as the AI read them to the integer cents the scan contract stores.
 const dollarsToCents = (v) => (v === null ? null : Math.round(v * 100))
+// A YYYY-MM-DD date, else null.
 const isoDate = (v) => (typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : null)
 
+// Cleans the AI's reading of a medicine label into the contract shape; anything out of range becomes null and is flagged unclear.
 export function normalizeMedication(raw = {}) {
-  const timing = Array.isArray(raw.timing) ? [...new Set(raw.timing.filter((t) => TIMINGS.includes(t)))] : []
+  const timing = Array.isArray(raw.timing)
+    ? [...new Set(raw.timing.filter((t) => TIMINGS.includes(t)))]
+    : []
   const medication = {
     name: str(raw.name),
     strength: str(raw.strength),
@@ -64,21 +108,32 @@ export function normalizeMedication(raw = {}) {
 // Lines that lower the bill. Models sometimes copy them among the charges, or keep their minus sign; either way they are
 // taken off, never added. A charge is only treated as one by these words (a minus sign always counts). "Claim" as a
 // whole word only: "(NON CLAIMABLE)" on a medicine line is still a charge.
-const DEDUCTION = /medi\s*shield|integrated\s*(shield|plan)|insurance|insurer|payout|\bclaims?\b|rebate|discount|deduct|deposit|prepaid|amount\s*paid|payments?\s*(received|made)/i
+const DEDUCTION =
+  /medi\s*shield|integrated\s*(shield|plan)|insurance|insurer|payout|\bclaims?\b|rebate|discount|deduct|deposit|prepaid|amount\s*paid|payments?\s*(received|made)/i
 const MEDISAVE = /medi\s*save/i
 // Totals the model listed as a charge: never added in.
-const TOTAL_LINE = /^(sub\s*-?\s*total|grand\s*total|total|balance|amount\s*(due|payable)|nett?\s*(payable|amount|total))\b/i
+const TOTAL_LINE =
+  /^(sub\s*-?\s*total|grand\s*total|total|balance|amount\s*(due|payable)|nett?\s*(payable|amount|total))\b/i
+// Guesses which kind of bill deduction a line is (paid, insurance, subsidy…) from its description.
 const schemeFor = (d) =>
-  /deposit|prepaid|amount\s*paid|payments?\b/i.test(d) ? 'paid'
-  : /medi\s*shield|integrated|insur|payout|\bclaims?\b/i.test(d) ? 'insurance'
-    : /chas/i.test(d) ? 'chas'
-      : /pioneer|\bpg\b/i.test(d) ? 'pioneer'
-        : /merdeka|\bmg\b/i.test(d) ? 'merdeka'
-          : /subsid/i.test(d) ? 'government'
-            : 'other'
+  /deposit|prepaid|amount\s*paid|payments?\b/i.test(d)
+    ? 'paid'
+    : /medi\s*shield|integrated|insur|payout|\bclaims?\b/i.test(d)
+      ? 'insurance'
+      : /chas/i.test(d)
+        ? 'chas'
+        : /pioneer|\bpg\b/i.test(d)
+          ? 'pioneer'
+          : /merdeka|\bmg\b/i.test(d)
+            ? 'merdeka'
+            : /subsid/i.test(d)
+              ? 'government'
+              : 'other'
 
 // A row that only continues the description above it: starts with a dosage form or a strength.
-const CONTINUATION = /^\(?\s*(tablets?|tabs?|capsules?|caps?|syrup|cream|ointment|drops?|\d+(\.\d+)?\s?(mg|mcg|ml|g|iu)\b)/i
+const CONTINUATION =
+  /^\(?\s*(tablets?|tabs?|capsules?|caps?|syrup|cream|ointment|drops?|\d+(\.\d+)?\s?(mg|mcg|ml|g|iu)\b)/i
+// Cleans the AI's reading of a bill into the contract shape: lines, subsidies, MediSave and totals in cents.
 export function normalizeBill(raw = {}) {
   const unclear = []
   const list = (v) => (Array.isArray(v) ? v : [])
@@ -89,34 +144,60 @@ export function normalizeBill(raw = {}) {
   // Printed subtotals under each group of charges ("Medications ... Subtotal $83.76"): they show which group a misread
   // amount is in (src/rules/billCheck.js). A subtotal the model put among the charges counts too.
   const subtotals = []
+  // Records a section subtotal if it has a name and a non-negative amount.
   const addSubtotal = (section, amount) => {
     const dollars = signedDollars(amount)
-    if (str(section) && dollars !== null && dollars >= 0) subtotals.push({ section: str(section), amountCents: dollarsToCents(dollars) })
+    if (str(section) && dollars !== null && dollars >= 0)
+      subtotals.push({ section: str(section), amountCents: dollarsToCents(dollars) })
   }
   for (const line of list(raw.subtotals)) addSubtotal(line?.section, line?.amount)
   for (const line of list(raw.items)) {
     const description = str(line?.description)
     const dollars = signedDollars(line?.amount)
     if (description && TOTAL_LINE.test(description)) {
-      if (/^sub/i.test(description) && !subtotals.some((s) => s.section === str(line?.section))) addSubtotal(line?.section, line?.amount)
+      if (/^sub/i.test(description) && !subtotals.some((s) => s.section === str(line?.section)))
+        addSubtotal(line?.section, line?.amount)
       continue
     }
     // "GST at 7% is included in this bill": already inside the charges, so never added again.
     if (description && /\bgst\b/i.test(description) && /includ/i.test(description)) continue
     // "GST absorbed by Govt" (subsidised patients): the government pays the GST, so it is no charge to the patient. The
     // model only says whether that line is printed; dropping the GST is our rule, since the model kept listing it anyway.
-    if (raw.gstAbsorbed === true && description && (/\bgst\b/i.test(description) || line?.category === 'tax')) continue
+    if (
+      raw.gstAbsorbed === true &&
+      description &&
+      (/\bgst\b/i.test(description) || line?.category === 'tax')
+    )
+      continue
     const off = dollars !== null && dollars < 0
-    if (description && MEDISAVE.test(description) && dollars !== null) medisaveLines.push(Math.abs(dollars))
-    else if (off || (description && DEDUCTION.test(description) && dollars !== null)) subsidies.push({ scheme: schemeFor(description ?? ''), amountCents: dollarsToCents(Math.abs(dollars)), includedInItems: false, moved: true })
-    else if (description && CONTINUATION.test(description) && description.length <= 20 && charges.length && charges.at(-1).section === str(line?.section)) {
+    if (description && MEDISAVE.test(description) && dollars !== null)
+      medisaveLines.push(Math.abs(dollars))
+    else if (off || (description && DEDUCTION.test(description) && dollars !== null))
+      subsidies.push({
+        scheme: schemeFor(description ?? ''),
+        amountCents: dollarsToCents(Math.abs(dollars)),
+        includedInItems: false,
+        moved: true,
+      })
+    else if (
+      description &&
+      CONTINUATION.test(description) &&
+      description.length <= 20 &&
+      charges.length &&
+      charges.at(-1).section === str(line?.section)
+    ) {
       // A wrapped description ("Paracetamol" / "Tablet (42mg)") read as its own line: join it back to the item above.
       // If it carried an amount too, we can't tell which of the two is the real price, so the person is asked to check.
       const prev = charges.at(-1)
       prev.description = `${prev.description} ${description}`
       if (dollars !== null) prev.check = true
-    }
-    else charges.push({ description, category: oneOf(line?.category, BILL_CATEGORIES) ?? 'other', amountCents: dollars === null ? null : dollarsToCents(dollars), section: str(line?.section) })
+    } else
+      charges.push({
+        description,
+        category: oneOf(line?.category, BILL_CATEGORIES) ?? 'other',
+        amountCents: dollars === null ? null : dollarsToCents(dollars),
+        section: str(line?.section),
+      })
   }
   const items = charges.map((item, i) => {
     if (item.description === null) unclear.push(`bill.items.${i}.description`)
@@ -128,7 +209,11 @@ export function normalizeBill(raw = {}) {
   for (const line of list(raw.subsidies)) {
     const dollars = signedDollars(line?.amount)
     // The sign doesn't matter here: everything in subsidies lowers the bill.
-    const subsidy = { scheme: oneOf(line?.scheme, SUBSIDY_SCHEMES) ?? 'other', amountCents: dollars === null ? null : dollarsToCents(Math.abs(dollars)), includedInItems: line?.includedInItems === true }
+    const subsidy = {
+      scheme: oneOf(line?.scheme, SUBSIDY_SCHEMES) ?? 'other',
+      amountCents: dollars === null ? null : dollarsToCents(Math.abs(dollars)),
+      includedInItems: line?.includedInItems === true,
+    }
     // The same deduction listed twice (as a charge with a minus sign and as a subsidy) counts once.
     const twin = subsidies.findIndex((s) => s.moved && s.amountCents === subsidy.amountCents)
     if (twin >= 0) subsidies.splice(twin, 1)
@@ -142,7 +227,12 @@ export function normalizeBill(raw = {}) {
 
   const medisave = signedDollars(raw.medisave)
   // A MediSave line among the charges only counts when the model didn't also give it as medisave.
-  const medisaveDollars = medisave !== null && medisave !== 0 ? Math.abs(medisave) : medisaveLines.length ? medisaveLines.reduce((a, b) => a + b, 0) : medisave
+  const medisaveDollars =
+    medisave !== null && medisave !== 0
+      ? Math.abs(medisave)
+      : medisaveLines.length
+        ? medisaveLines.reduce((a, b) => a + b, 0)
+        : medisave
   const total = signedDollars(raw.totalPayable)
 
   const bill = {

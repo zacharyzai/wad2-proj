@@ -1,7 +1,24 @@
-/* Scoped styles for components/scan/ScanProblem.vue. */
 /* Unclear photo / service error */
-.err-tile { width: 88px; height: 88px; border-radius: var(--r-hero); }
-.tips { list-style: none; padding: 8px 20px; }
-.tips li { display: flex; gap: 14px; align-items: center; padding: 14px 0; font-size: 18px; line-height: 1.45; }
-.tips li + li { border-top: 1px solid var(--color-border); }
-.scan-preview { max-height: 360px; }
+.err-tile {
+  width: 88px;
+  height: 88px;
+  border-radius: var(--r-hero);
+}
+.tips {
+  list-style: none;
+  padding: 8px 20px;
+}
+.tips li {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  padding: 14px 0;
+  font-size: 18px;
+  line-height: 1.45;
+}
+.tips li + li {
+  border-top: 1px solid var(--color-border);
+}
+.scan-preview {
+  max-height: 360px;
+}

@@ -3,12 +3,18 @@
 import { describe, expect, it } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createI18n } from 'vue-i18n'
-import en from '../../i18n/locales/en.json'
-import ScanPages from './ScanPages.vue'
+import en from '../src/i18n/locales/en.json'
+import ScanPages from '../src/components/scan/ScanPages.vue'
 
 const i18n = createI18n({ legacy: false, locale: 'en', messages: { en } })
-const shot = (id, problem = null) => ({ id, src: 'data:image/jpeg;base64,AAA', problem, anyway: false })
-const mountWith = (shots) => mount(ScanPages, { props: { shots, max: 5 }, global: { plugins: [i18n] } })
+const shot = (id, problem = null) => ({
+  id,
+  src: 'data:image/jpeg;base64,AAA',
+  problem,
+  anyway: false,
+})
+const mountWith = (shots) =>
+  mount(ScanPages, { props: { shots, max: 5 }, global: { plugins: [i18n] } })
 
 describe('ScanPages', () => {
   it('emits retake with the page index', async () => {

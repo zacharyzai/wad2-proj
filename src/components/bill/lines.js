@@ -1,4 +1,4 @@
-// Owner: Lokesh. How each kind of bill line looks: an icon + a colour tone, always shown with a text label (never colour alone).
+// How each kind of bill line looks: an icon + a colour tone, always shown with a text label (never colour alone).
 // Keys are the contract enums (docs/scan-contract.md), so they match the i18n keys bill.category.* and bill.explain.*.
 export const CATEGORY_STYLE = {
   consultation: { icon: 'user', tone: 'teal' },

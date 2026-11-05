@@ -1,22 +1,114 @@
-/* Scoped styles for BillLine.vue. */
-.min-w-0 { min-width: 0; }
+/* Styles for a bill line. */
+.min-w-0 {
+  min-width: 0;
+}
 
 /* Each tone sets three colours, all design tokens (purple and rose are the bill-only ones, with night versions in tokens.css). */
-.tone-teal { --tone-text: var(--color-tint-text); --tone-bg: var(--color-tint); --tone-border: var(--color-tint-strong); }
-.tone-blue { --tone-text: var(--color-link); --tone-bg: var(--color-link-bg); --tone-border: var(--color-link-border); }
-.tone-orange { --tone-text: var(--color-warning-text); --tone-bg: var(--color-warning-bg); --tone-border: var(--color-warning-border); }
-.tone-green { --tone-text: var(--color-success-text); --tone-bg: var(--color-success-bg); --tone-border: var(--color-success-border); }
-.tone-grey { --tone-text: var(--color-text-muted); --tone-bg: var(--color-surface-2); --tone-border: var(--color-border-strong); }
-.tone-purple { --tone-text: var(--color-purple-text); --tone-bg: var(--color-purple-bg); --tone-border: var(--color-purple-border); }
-.tone-rose { --tone-text: var(--color-rose-text); --tone-bg: var(--color-rose-bg); --tone-border: var(--color-rose-border); }
+.tone-teal {
+  --tone-text: var(--color-tint-text);
+  --tone-bg: var(--color-tint);
+  --tone-border: var(--color-tint-strong);
+}
+.tone-blue {
+  --tone-text: var(--color-link);
+  --tone-bg: var(--color-link-bg);
+  --tone-border: var(--color-link-border);
+}
+.tone-orange {
+  --tone-text: var(--color-warning-text);
+  --tone-bg: var(--color-warning-bg);
+  --tone-border: var(--color-warning-border);
+}
+.tone-green {
+  --tone-text: var(--color-success-text);
+  --tone-bg: var(--color-success-bg);
+  --tone-border: var(--color-success-border);
+}
+.tone-grey {
+  --tone-text: var(--color-text-muted);
+  --tone-bg: var(--color-surface-2);
+  --tone-border: var(--color-border-strong);
+}
+.tone-purple {
+  --tone-text: var(--color-purple-text);
+  --tone-bg: var(--color-purple-bg);
+  --tone-border: var(--color-purple-border);
+}
+.tone-rose {
+  --tone-text: var(--color-rose-text);
+  --tone-bg: var(--color-rose-bg);
+  --tone-border: var(--color-rose-border);
+}
 
-.line { border: 1px solid var(--color-border); border-radius: var(--r-panel); background: var(--color-card); box-shadow: var(--shadow-card); overflow: hidden; }
-.line-btn { width: 100%; min-height: var(--z72, 72px); display: flex; align-items: center; gap: 14px; padding: 12px 14px; border: 0; background: none; color: var(--color-text); text-align: left; transition: background-color var(--dur) var(--ease-out); }
-.line-btn:hover { background: var(--color-surface-2); }
-.line-tile { width: var(--tile); height: var(--tile); flex: none; display: grid; place-items: center; border-radius: var(--r-sm); border: 1px solid var(--tone-border); background: var(--tone-bg); color: var(--tone-text); }
-.line-name { font-size: 18px; font-weight: 700; line-height: 1.3; overflow-wrap: anywhere; }
-.line-tag { align-self: flex-start; padding: 2px 10px; border: 1px solid var(--tone-border); border-radius: var(--r-pill); background: var(--tone-bg); color: var(--tone-text); font-size: 16px; font-weight: 700; line-height: 1.3; }
-.line-amount { flex: none; font-size: var(--t20, 20px); font-weight: 800; font-variant-numeric: tabular-nums; }
-.line-chev { flex: none; color: var(--color-text-muted); }
-.line-panel { display: flex; flex-direction: column; gap: 14px; padding: 4px 14px 14px; animation: ahma-rise var(--dur) var(--ease-out) both; }
-.line-text { font-size: 18px; line-height: 1.55; }
+.line {
+  border: 1px solid var(--color-border);
+  border-radius: var(--r-panel);
+  background: var(--color-card);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+.line-btn {
+  width: 100%;
+  min-height: var(--z72, 72px);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  border: 0;
+  background: none;
+  color: var(--color-text);
+  text-align: left;
+  transition: background-color var(--dur) var(--ease-out);
+}
+.line-btn:hover {
+  background: var(--color-surface-2);
+}
+.line-tile {
+  width: var(--tile);
+  height: var(--tile);
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--tone-border);
+  background: var(--tone-bg);
+  color: var(--tone-text);
+}
+.line-name {
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+.line-tag {
+  align-self: flex-start;
+  padding: 2px 10px;
+  border: 1px solid var(--tone-border);
+  border-radius: var(--r-pill);
+  background: var(--tone-bg);
+  color: var(--tone-text);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+.line-amount {
+  flex: none;
+  font-size: var(--t20, 20px);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.line-chev {
+  flex: none;
+  color: var(--color-text-muted);
+}
+.line-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 4px 14px 14px;
+  animation: ahma-rise var(--dur) var(--ease-out) both;
+}
+.line-text {
+  font-size: 18px;
+  line-height: 1.55;
+}

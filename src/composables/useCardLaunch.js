@@ -1,8 +1,4 @@
-// One short picture before something opens, the same everywhere (components/home/CardLaunch.vue): Home's cards and
-// Scan's two cards. A capsule being scanned, a bill printing, chat bubbles, a calendar ticked. About a second, then it opens.
-// Another page (Home's cards): the picture goes when the page it came from closes (endLaunch on unmount), so it never
-// flickers. Same page (Scan's cards): the change happens under the picture, which then fades away (inPage).
-// Reduced motion, or a click meant for a new tab or window: no picture, it opens at once.
+// Shared state and start function for the card-launch animation (Home's cards and Scan's cards).
 import { nextTick, reactive } from 'vue'
 
 export const LAUNCH_MS = 1000
@@ -19,7 +15,12 @@ export function launch(event, kind, navigate, { inPage = false } = {}) {
   event.preventDefault()
   if (cardLaunch.kind) return // already on its way: a second tap does nothing
   const box = event.currentTarget.getBoundingClientRect()
-  Object.assign(cardLaunch, { kind, x: box.left + box.width / 2, y: box.top + box.height / 2, leaving: false })
+  Object.assign(cardLaunch, {
+    kind,
+    x: box.left + box.width / 2,
+    y: box.top + box.height / 2,
+    leaving: false,
+  })
   timer = setTimeout(async () => {
     await navigate()
     if (!inPage) return

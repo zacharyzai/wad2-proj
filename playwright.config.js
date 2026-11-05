@@ -13,7 +13,18 @@ export default defineConfig({
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
     // Every test starts as a returning visitor who has seen the welcome page and the Beginner's guide; landing.spec.js and guide.spec.js clear this.
-    storageState: { cookies: [], origins: [{ origin: 'http://localhost:5173', localStorage: [{ name: 'seenWelcome', value: '1' }, { name: 'amag.tour', value: 'seen' }] }] },
+    storageState: {
+      cookies: [],
+      origins: [
+        {
+          origin: 'http://localhost:5173',
+          localStorage: [
+            { name: 'seenWelcome', value: '1' },
+            { name: 'amag.tour', value: 'seen' },
+          ],
+        },
+      ],
+    },
   },
   projects: [
     { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
@@ -27,7 +38,12 @@ export default defineConfig({
       url: 'http://localhost:3000/api/health',
       // JWT_SECRET matches e2e/helpers/auth.js, so tests can sign a login token without a database.
       // No database here (MONGODB_URI is blanked). Never reuse a running `pnpm server`: it loads .env, so it would be the real database.
-      env: { USE_MOCK_AI: 'true', PORT: '3000', JWT_SECRET: 'e2e-only-secret-for-auth-checks-at-least-32-bytes', MONGODB_URI: '' },
+      env: {
+        USE_MOCK_AI: 'true',
+        PORT: '3000',
+        JWT_SECRET: 'e2e-only-secret-for-auth-checks-at-least-32-bytes',
+        MONGODB_URI: '',
+      },
       reuseExistingServer: false,
     },
     {

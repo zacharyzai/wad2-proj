@@ -372,21 +372,13 @@
       "medication": {
         "title": "Medicine label",
         "text": "What it is for, and when to take it.",
-        "tags": [
-          "Tablets",
-          "Syrups",
-          "Creams"
-        ],
+        "tags": ["Tablets", "Syrups", "Creams"],
         "go": "Scan a label"
       },
       "bill": {
         "title": "Medical bill",
         "text": "What you pay, and the help you can get.",
-        "tags": [
-          "Clinic",
-          "Hospital",
-          "Subsidies"
-        ],
+        "tags": ["Clinic", "Hospital", "Subsidies"],
         "go": "Scan a bill"
       },
       "pending": "Your photo is ready. What is it? Tap one to scan it.",
@@ -1261,6 +1253,7 @@
       "now": "Take now",
       "later": "Later today",
       "earlier": "Not ticked yet",
+      "missedTitle": "You missed {n} dose today | You missed {n} doses today",
       "done": "All taken",
       "missed": "If you missed a dose, ask your pharmacist what to do."
     },
@@ -1328,8 +1321,7 @@
     "plan": {
       "title": "Today’s medicines",
       "total": "Doses today",
-      "taken": "Taken",
-      "done": "done"
+      "taken": "Taken"
     },
     "medsCount": "{n} medicine | {n} medicines",
     "noneOnDay": "No medicines on this day.",

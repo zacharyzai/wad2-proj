@@ -8,22 +8,36 @@ process.env.JWT_SECRET = E2E_SECRET
 const { signToken } = await import('../../server/services/auth.js')
 
 // theme: already chosen, so the day/night question (asked once to new accounts) stays out of the way; e2e/theme.spec.js tests it.
-export const DEMO_USER = { name: 'Tan Mei Ling', email: 'demo@example.com', dob: '1952-03-07', citizenship: 'birth', citizenSince: null, income: 'upTo1500', theme: 'light' }
+export const DEMO_USER = {
+  name: 'Tan Mei Ling',
+  email: 'demo@example.com',
+  dob: '1952-03-07',
+  citizenship: 'birth',
+  citizenSince: null,
+  income: 'upTo1500',
+  theme: 'light',
+}
 export const DEMO_PASSWORD = 'teh-tarik-1952'
 export const testToken = (remember = true) => signToken('demo-user', remember)
 
 // Pretend the server accepts logins and signups, knows who the saved token belongs to, and saves edits.
 export async function mockAuth(page, user = DEMO_USER) {
   let current = { ...user }
-  const ok = (route, extra = {}) => route.fulfill({ json: { ok: true, data: { user: current, ...extra } } })
-  await page.route('**/api/auth/login', (route) => ok(route, { token: testToken(route.request().postDataJSON().remember) }))
+  const ok = (route, extra = {}) =>
+    route.fulfill({ json: { ok: true, data: { user: current, ...extra } } })
+  await page.route('**/api/auth/login', (route) =>
+    ok(route, { token: testToken(route.request().postDataJSON().remember) }),
+  )
   await page.route('**/api/auth/signup', (route) => {
-    const { name, email, dob, citizenship, citizenSince, income, remember } = route.request().postDataJSON()
+    const { name, email, dob, citizenship, citizenSince, income, remember } = route
+      .request()
+      .postDataJSON()
     current = { name, email, dob, citizenship, citizenSince, income }
     return ok(route, { token: testToken(remember) })
   })
   await page.route('**/api/auth/me', (route) => {
-    if (route.request().method() === 'PATCH') current = { ...current, ...route.request().postDataJSON() }
+    if (route.request().method() === 'PATCH')
+      current = { ...current, ...route.request().postDataJSON() }
     return ok(route)
   })
 }
@@ -41,7 +55,10 @@ export async function signIn(page, user = DEMO_USER) {
 // Pretend the server rejects the login.
 export async function mockWrongLogin(page) {
   await page.route('**/api/auth/login', (route) =>
-    route.fulfill({ status: 401, json: { ok: false, error: { code: 'WRONG_LOGIN', message: 'Wrong email or password' } } }),
+    route.fulfill({
+      status: 401,
+      json: { ok: false, error: { code: 'WRONG_LOGIN', message: 'Wrong email or password' } },
+    }),
   )
 }
 

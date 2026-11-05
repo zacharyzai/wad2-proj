@@ -1,6 +1,10 @@
 // App shell: the 404 page, and axe + senior-friendly layout on the main pages not covered by their own specs.
 import { test, expect } from './fixtures.js'
-import { expectNoAxeViolations, expectSeniorFriendly, expectVisibleFocus } from './helpers/checks.js'
+import {
+  expectNoAxeViolations,
+  expectSeniorFriendly,
+  expectVisibleFocus,
+} from './helpers/checks.js'
 
 test('an unknown address shows a friendly page with a way Home @smoke', async ({ page }) => {
   await page.goto('/no-such-page')
@@ -20,7 +24,10 @@ test.describe('logged out', () => {
   })
 })
 
-test('404 works by keyboard: Go to home shows its focus ring and opens with Enter', async ({ page, isMobile }) => {
+test('404 works by keyboard: Go to home shows its focus ring and opens with Enter', async ({
+  page,
+  isMobile,
+}) => {
   test.skip(isMobile, 'keyboard: desktop')
   await page.goto('/no-such-page')
   const home = page.getByRole('link', { name: 'Go to home' })
@@ -44,10 +51,22 @@ for (const path of ['/', '/scan', '/scan?sample=med-1', '/history', '/no-such-pa
   })
 }
 
-test('the background drawings stay still on phones and drift on desktop', async ({ page, isMobile }) => {
+// The sidebar (desktop) or top bar (phones) sits outside <main>, so the page checks above never reach it.
+test('the sidebar and top bar: big targets and text @a11y', async ({ page }) => {
+  await page.goto('/')
+  await expect(page.getByRole('heading', { level: 1 }).first()).toBeVisible()
+  await expectSeniorFriendly(page, '.side')
+})
+
+test('the background drawings stay still on phones and drift on desktop', async ({
+  page,
+  isMobile,
+}) => {
   await page.goto('/')
   const bit = page.getByTestId('page-backdrop').locator('.bit').first()
   await expect(bit).toBeAttached()
   // Phones are the senior's device: nothing moves behind the words. Desktop keeps the slow drift.
-  expect(await bit.evaluate((el) => getComputedStyle(el).animationName)).toEqual(isMobile ? 'none' : expect.stringMatching(/^drift/))
+  expect(await bit.evaluate((el) => getComputedStyle(el).animationName)).toEqual(
+    isMobile ? 'none' : expect.stringMatching(/^drift/),
+  )
 })

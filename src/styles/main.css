@@ -1,4 +1,4 @@
-/* Global styles, loaded once in src/main.js after Bootstrap. Page styles live in App.css, views/ and components/, loaded by each .vue file. */
+/* Imports every global stylesheet in order. */
 @import './global/tokens.css';
 @import './global/base.css';
 @import './global/buttons.css';

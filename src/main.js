@@ -1,3 +1,4 @@
+// App entry point: creates the Vue app and installs Pinia, the router, i18n and the global styles.
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import 'bootstrap/dist/css/bootstrap.min.css'

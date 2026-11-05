@@ -1,5 +1,3 @@
-// Owner: Sheen Hern (built by Claude, declared in README.txt). An account. Never holds scans, photos or NRIC numbers.
-// Citizenship and income use the subsidy rules' values (src/rules/subsidies.js), so the Bill page can use them as-is.
 import mongoose from 'mongoose'
 
 export const CITIZENSHIP = ['birth', 'became', 'pr', 'other'] // citizen by birth, became a citizen (citizenSince = year), PR, other
@@ -12,7 +10,14 @@ export const ROLES = ['senior', 'caregiver']
 const userSchema = new mongoose.Schema(
   {
     name: { type: String, required: true, trim: true, maxlength: 80 },
-    email: { type: String, required: true, unique: true, lowercase: true, trim: true, maxlength: 254 },
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+      lowercase: true,
+      trim: true,
+      maxlength: 254,
+    },
     role: { type: String, enum: ROLES, default: 'senior', immutable: true },
     passwordHash: { type: String, required: true },
     dob: { type: String, required: true, match: /^\d{4}-\d{2}-\d{2}$/ }, // 'YYYY-MM-DD', as <input type="date"> gives it
@@ -32,7 +37,17 @@ const userSchema = new mongoose.Schema(
 
 // What the client may see: never the password hash.
 userSchema.methods.toPublic = function () {
-  return { name: this.name ?? '', email: this.email, role: this.role ?? 'senior', dob: this.dob ?? '', citizenship: this.citizenship ?? '', citizenSince: this.citizenSince ?? null, income: this.income ?? null, language: this.language ?? null, theme: this.theme ?? null }
+  return {
+    name: this.name ?? '',
+    email: this.email,
+    role: this.role ?? 'senior',
+    dob: this.dob ?? '',
+    citizenship: this.citizenship ?? '',
+    citizenSince: this.citizenSince ?? null,
+    income: this.income ?? null,
+    language: this.language ?? null,
+    theme: this.theme ?? null,
+  }
 }
 
 export const User = mongoose.models.User ?? mongoose.model('User', userSchema)

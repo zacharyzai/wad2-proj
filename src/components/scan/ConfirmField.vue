@@ -1,4 +1,4 @@
-<!-- Owner: Asher. One labelled field on Confirm. Flagged = amber, left empty and marked "Please check"; never guessed. -->
+<!-- One labelled field on Confirm; flagged fields are amber and left empty rather than guessed. -->
 <script setup>
 import { useI18n } from 'vue-i18n'
 import AppIcon from '../layout/AppIcon.vue'
@@ -17,17 +17,37 @@ const { t } = useI18n()
 </script>
 
 <template>
-  <div class="field" :class="{ flagged }" :role="$props.for ? null : 'group'" :aria-label="$props.for ? null : label">
+  <div
+    class="field"
+    :class="{ flagged }"
+    :role="$props.for ? null : 'group'"
+    :aria-label="$props.for ? null : label"
+  >
     <div class="field-row">
       <!-- The "i" sits right after the words it explains (not at the far edge, where the row's badge goes). -->
       <span class="label-group">
-        <component :is="$props.for ? 'label' : 'span'" :for="$props.for" class="field-label">{{ label }}</component>
-        <InfoTip v-if="help && $props.for" :id="`${$props.for}-help`" :text="help" :label="t('tip.more', { name: label })" />
+        <component :is="$props.for ? 'label' : 'span'" :for="$props.for" class="field-label">{{
+          label
+        }}</component>
+        <InfoTip
+          v-if="help && $props.for"
+          :id="`${$props.for}-help`"
+          :text="help"
+          :label="t('tip.more', { name: label })"
+        />
       </span>
-      <Transition name="fc-fade"><span v-if="flagged" class="badge badge-warning check"><AppIcon name="alert" :size="16" />{{ t('confirm.pleaseCheck') }}</span></Transition>
+      <Transition name="fc-fade"
+        ><span v-if="flagged" class="badge badge-warning check"
+          ><AppIcon name="alert" :size="16" />{{ t('confirm.pleaseCheck') }}</span
+        ></Transition
+      >
     </div>
     <slot />
-    <Transition name="fc-note"><div v-if="flagged" class="note-wrap"><span class="field-note">{{ note ?? t('confirm.couldntRead') }}</span></div></Transition>
+    <Transition name="fc-note"
+      ><div v-if="flagged" class="note-wrap">
+        <span class="field-note">{{ note ?? t('confirm.couldntRead') }}</span>
+      </div></Transition
+    >
   </div>
 </template>
 

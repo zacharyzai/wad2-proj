@@ -1,15 +1,23 @@
-// Decides what of an OCR'd photo (lines of words with boxes) may leave the phone. Pure logic, no browser APIs, so it is
-// unit-tested in sensitive.test.js. Used by redact.js.
-// Keep-list first: only lines that look like medicine or bill details are shown; everything else (including text the
-// reader could not read, and unlabelled names like "TAN AH KOW") stays black. findSensitive then covers labelled
-// personal details that sit on a kept line ("Date of Birth: 15/03/1948").
-// shortcut: a drug name printed alone on its line, with no strength or form ("PANADOL"), is covered too; the AI then
-// marks the name unclear and the user types it on Confirm. Add a drug-name list if that happens often.
-
+// Strips punctuation around an OCR word.
 const clean = (s) => s.replace(/^[^\p{L}\p{N}*•]+|[^\p{L}\p{N}*•]+$/gu, '')
 
 // OCR often reads digits as look-alike letters; only fixed inside the 7-digit middle of an NRIC.
-const DIGITS = { O: '0', o: '0', D: '0', Q: '0', I: '1', l: '1', '|': '1', i: '1', Z: '2', S: '5', s: '5', B: '8', G: '6' }
+const DIGITS = {
+  O: '0',
+  o: '0',
+  D: '0',
+  Q: '0',
+  I: '1',
+  l: '1',
+  '|': '1',
+  i: '1',
+  Z: '2',
+  S: '5',
+  s: '5',
+  B: '8',
+  G: '6',
+}
+// True when an OCR word looks like an NRIC/FIN, allowing for common misreadings.
 function isNric(raw) {
   const s = clean(raw)
   // The check letter is often misread as a bracket or bar ("S0000588J" read as "S0000588)"), which clean() strips:
@@ -30,11 +38,13 @@ const isPhone = (raw) => /^(\+?65)?[3689]\d{7}$/.test(raw.replace(/[\s()-]/g, ''
 
 // Whatever follows these labels is covered. "patient" alone needs a colon, so bill lines like "Patient payable $4.20" survive.
 // Also the people around the patient (bills name whoever pays: "MediSave account holder: Ong Kok Leong (Son)").
-const LABEL = /^(patient'?s?\s*name|name|nric(\/fin)?|fin|ic\s*no\.?|id\s*no\.?|d\.?o\.?b\.?|date\s*of\s*birth|birth\s*date|(home\s*)?address|addr\.?|tel\.?|phone|mobile|hp|contact(\s*no\.?)?|(medisave\s*)?(account\s*)?holder|payer|payor(\(?s\)?)?|paid\s*by|next\s*of\s*kin|nok|guardian)$/i
+const LABEL =
+  /^(patient'?s?\s*name|name|nric(\/fin)?|fin|ic\s*no\.?|id\s*no\.?|d\.?o\.?b\.?|date\s*of\s*birth|birth\s*date|(home\s*)?address|addr\.?|tel\.?|phone|mobile|hp|contact(\s*no\.?)?|(medisave\s*)?(account\s*)?holder|payer|payor(\(?s\)?)?|paid\s*by|next\s*of\s*kin|nok|guardian)$/i
 const COLON_LABEL = /^(patient|pt\.?)$/i
 // Column headings after a label: then the label heads a table ("Payer  Adjustment  Payment  Amount Due") and the names are
 // in the rows below, not after it on the same line.
-const HEADING = /^(adjustments?|payments?|amounts?|amt|due|paid|payable|balance|share|portion|relationship|relation|status|type|date|method|mode|ref(erence)?|no\.?|\(?s?\$\)?|sgd)$/i
+const HEADING =
+  /^(adjustments?|payments?|amounts?|amt|due|paid|payable|balance|share|portion|relationship|relation|status|type|date|method|mode|ref(erence)?|no\.?|\(?s?\$\)?|sgd)$/i
 const NAME_PARTICLE = /^(bin|binte|binti|bte|van|von|de|del|da|dos)$/i // lowercase parts of names (s/o, d/o have a slash)
 // Whole line is an address: "Blk 123 ...", "#04-56", "Singapore 520123", "S(520123)".
 const ADDRESS_LINE = /^(blk|block)\b|#\d{1,3}-\d{1,4}|singapore\s*\d{6}|\bS\(?\d{6}\)?(?!\S)/i
@@ -46,6 +56,7 @@ const ADDRESS_LINE = /^(blk|block)\b|#\d{1,3}-\d{1,4}|singapore\s*\d{6}|\bS\(?\d
 export function findSensitive(lines) {
   const hits = []
   const seen = new Set()
+  // Records a sensitive word once, with the reason it was flagged.
   const hit = (word, reason) => {
     if (seen.has(word)) return
     seen.add(word)
@@ -67,7 +78,9 @@ export function findSensitive(lines) {
       // lowercase words ("note that the"; name particles like bin, binte, s/o don't count). Then the table has ended.
       const end = words.findIndex((w) => /\d/.test(w.text))
       const lead = words.slice(0, end < 0 ? words.length : end)
-      const plain = lead.filter((w) => /^[a-z]{3,}[.,]?$/.test(w.text) && !NAME_PARTICLE.test(w.text)).length
+      const plain = lead.filter(
+        (w) => /^[a-z]{3,}[.,]?$/.test(w.text) && !NAME_PARTICLE.test(w.text),
+      ).length
       if (lead.length > 6 || plain >= 2) tableRows = null
       else {
         for (const w of words) {
@@ -88,13 +101,17 @@ export function findSensitive(lines) {
       const next = words[i + 1]
       if (isNric(w.text)) hit(w, 'NRIC/FIN')
       // Split by OCR: "S1234567 D", "S 1234567D"; phones written "9123 4567".
-      if (next && isNric(w.text + next.text)) hit(w, 'NRIC/FIN'), hit(next, 'NRIC/FIN')
+      if (next && isNric(w.text + next.text)) (hit(w, 'NRIC/FIN'), hit(next, 'NRIC/FIN'))
       if (isPhone(w.text)) hit(w, 'phone')
-      if (next && /^\d{4}$/.test(next.text) && isPhone(w.text + next.text)) hit(w, 'phone'), hit(next, 'phone')
+      if (next && /^\d{4}$/.test(next.text) && isPhone(w.text + next.text))
+        (hit(w, 'phone'), hit(next, 'phone'))
 
       // Labels can be 1–3 words ("Date of Birth:"); the colon may be on the label or glued to the value ("Name:TAN").
       for (let n = 1; n <= 3 && i + n <= words.length; n++) {
-        const group = words.slice(i, i + n).map((x) => x.text).join(' ')
+        const group = words
+          .slice(i, i + n)
+          .map((x) => x.text)
+          .join(' ')
         const [label, ...glued] = group.split(':')
         const hasColon = glued.length > 0
         const base = clean(label)
@@ -129,7 +146,10 @@ export function findSensitive(lines) {
 // shortcut: a name printed only once on an unlabelled money row still goes through; learn names across pages if that shows up.
 const CAPS_WORD = /^[A-Z][A-Z'-]+$/
 const PLAIN = /^(and|of|the|for|to|in|on|by|with|at|or|no|ref)$/i
-const isNameWord = (word) => CAPS_WORD.test(word) && !PLAIN.test(word) && !KEEP.some((re) => re.test(word))
+// True for a capitalised word that could be part of a person's name.
+const isNameWord = (word) =>
+  CAPS_WORD.test(word) && !PLAIN.test(word) && !KEEP.some((re) => re.test(word))
+// Finds runs of name-like words that repeat on the page, which are likely the patient's name.
 function repeatedNames(lines) {
   const runs = [] // { words, key, money } for every run of 2+ name-like words
   lines.forEach((line, n) => {
@@ -141,7 +161,16 @@ function repeatedNames(lines) {
       else {
         // Every stretch of 2+ words inside the run, so "ANG CHEE SUAN ALICIA MSV" still matches "ANG CHEE SUAN ALICIA".
         for (let a = 0; a < run.length; a++)
-          for (let b = a + 2; b <= run.length; b++) runs.push({ words: run.slice(a, b), key: run.slice(a, b).map((x) => clean(x.text)).join(' '), line: n, money })
+          for (let b = a + 2; b <= run.length; b++)
+            runs.push({
+              words: run.slice(a, b),
+              key: run
+                .slice(a, b)
+                .map((x) => clean(x.text))
+                .join(' '),
+              line: n,
+              money,
+            })
         run = []
       }
     }
@@ -152,7 +181,9 @@ function repeatedNames(lines) {
     lineCount.set(r.key, (lineCount.get(r.key) ?? new Set()).add(r.line))
     if (r.money) withMoney.add(r.key)
   }
-  return runs.filter((r) => lineCount.get(r.key).size >= 2 && withMoney.has(r.key)).flatMap((r) => r.words)
+  return runs
+    .filter((r) => lineCount.get(r.key).size >= 2 && withMoney.has(r.key))
+    .flatMap((r) => r.words)
 }
 
 // A line is worth sending if it has one of these. Bill and label wording, in English (the reader only reads English).
@@ -179,13 +210,30 @@ function geometry(line, words) {
   if (line.baseline && line.rowAttributes) {
     const { baseline: b, rowAttributes: r } = line
     const slope = b.x1 > b.x0 ? (b.y1 - b.y0) / (b.x1 - b.x0) : 0
-    return { x0: line.bbox.x0, x1: line.bbox.x1, bx: b.x0, by: b.y0, slope, above: r.rowHeight - r.descenders, below: r.descenders }
+    return {
+      x0: line.bbox.x0,
+      x1: line.bbox.x1,
+      bx: b.x0,
+      by: b.y0,
+      slope,
+      above: r.rowHeight - r.descenders,
+      below: r.descenders,
+    }
   }
   // Fallback (tests, or a reader without row data): flat baseline under the words.
   const heights = words.map((w) => w.bbox.y1 - w.bbox.y0).sort((a, b) => a - b)
   const by = Math.max(...words.map((w) => w.bbox.y1))
-  return { x0: Math.min(...words.map((w) => w.bbox.x0)), x1: Math.max(...words.map((w) => w.bbox.x1)), bx: 0, by, slope: 0, above: heights[heights.length >> 1], below: 0 }
+  return {
+    x0: Math.min(...words.map((w) => w.bbox.x0)),
+    x1: Math.max(...words.map((w) => w.bbox.x1)),
+    bx: 0,
+    by,
+    slope: 0,
+    above: heights[heights.length >> 1],
+    below: 0,
+  }
 }
+// The height of a slanted text line at a given x.
 export const baselineAt = (g, x) => g.by + g.slope * (x - g.bx)
 
 /**
@@ -205,7 +253,11 @@ export function planRedaction(lines) {
     const g = geometry(line, words)
     const mid = (g.x0 + g.x1) / 2
     // Same printed row: its baseline runs along this row's baseline (within a third of a letter height).
-    const row = rows.find((r) => Math.abs(baselineAt(r.band, mid) - baselineAt(g, mid)) < 0.35 * Math.max(r.band.above, g.above))
+    const row = rows.find(
+      (r) =>
+        Math.abs(baselineAt(r.band, mid) - baselineAt(g, mid)) <
+        0.35 * Math.max(r.band.above, g.above),
+    )
     if (row) {
       row.parts.push(words)
       row.band.x0 = Math.min(row.band.x0, g.x0)
@@ -214,7 +266,11 @@ export function planRedaction(lines) {
   }
   const keep = []
   for (const { band, parts } of rows) {
-    const text = parts.flat().sort((a, b) => a.bbox.x0 - b.bbox.x0).map((w) => w.text).join(' ')
+    const text = parts
+      .flat()
+      .sort((a, b) => a.bbox.x0 - b.bbox.x0)
+      .map((w) => w.text)
+      .join(' ')
     if (KEEP.some((re) => re.test(text))) keep.push({ text, band })
   }
   return { keep, hits: findSensitive(lines) }

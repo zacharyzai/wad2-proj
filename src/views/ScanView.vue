@@ -1,12 +1,4 @@
-<!-- Owner: Asher. From the Claude Design Scan screens. One page, six screens (components/scan/):
-       ScanPicker    "What would you like to scan today?" (no kind in the address yet, or a photo from Home waiting)
-       ScanKindPage  that kind's page: camera, upload, tips, samples (?type=medication | bill, so Back returns to the question)
-       LiveCamera    the live camera
-       ScanPages     a bill photographed page by page: each page checked as it is taken, then "another page?"
-       ScanBusy      covering personal details on this phone, then reading
-       ScanProblem   an unclear photo, the wrong paper, or a service error
-     This page runs the scan itself: photo → shrink (utils/images.js) → check (utils/photoCheck.js) → cover details
-     (utils/redact.js) → send (/api/scan) → Confirm. Bills have no tab of their own: they start here. -->
+<!-- Scan page: camera, upload and samples, then sends the photo for reading. -->
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router'
@@ -32,8 +24,22 @@ const scanStore = useScanStore()
 // they are on another page doesn't pull them to Confirm: it is kept, and scanStore.away tells the rest of the app
 // (components/scan/ScanAwayNotice.vue). Log out stops it (scanStore.forget). Photos are never stored.
 const {
-  reading: state, covering, coverView, coverPage, readingType, errorCode, slow, pages: photos, pagesPdf: pdfPages,
-  fromPdf, checkedShots, lastRequest, coverDocType, run, handingOver, pageOpen,
+  reading: state,
+  covering,
+  coverView,
+  coverPage,
+  readingType,
+  errorCode,
+  slow,
+  pages: photos,
+  pagesPdf: pdfPages,
+  fromPdf,
+  checkedShots,
+  lastRequest,
+  coverDocType,
+  run,
+  handingOver,
+  pageOpen,
 } = storeToRefs(scanStore)
 const { t } = useI18n()
 
@@ -49,8 +55,12 @@ const router = useRouter()
 // What the next photo is of. The question shows until a kind is picked; the pick goes in the address (?type=bill), so
 // Back returns to the question, and links that already know (?type=, #bill from old Bill links) open that kind straight away.
 const KINDS = ['medication', 'bill']
-const chosen = computed(() => (KINDS.includes(route.query.type) ? route.query.type : route.hash === '#bill' ? 'bill' : null))
-const type = ref(chosen.value ?? SAMPLES.find((x) => x.id === route.query.sample)?.type ?? 'medication')
+const chosen = computed(() =>
+  KINDS.includes(route.query.type) ? route.query.type : route.hash === '#bill' ? 'bill' : null,
+)
+const type = ref(
+  chosen.value ?? SAMPLES.find((x) => x.id === route.query.sample)?.type ?? 'medication',
+)
 watch(chosen, (k) => k && (type.value = k))
 // A card: with a photo from Home waiting, read it as that kind straight away; otherwise open that kind's page.
 function pick(k) {
@@ -67,10 +77,12 @@ const examples = computed(() => SAMPLES.filter((x) => x.type === type.value))
 
 // A photo picked on Home: it waits on the question until they say what it is (Home doesn't guess). { file, url }
 const pending = ref(null)
+// Discards the photo picked on Home that is waiting to be told what it is.
 function dropPending() {
   if (pending.value) URL.revokeObjectURL(pending.value.url)
   pending.value = null
 }
+// Scans the waiting photo once the user has said whether it is a label or a bill.
 function scanPending() {
   const { file } = pending.value
   dropPending()
@@ -84,6 +96,7 @@ const REVEAL_MS = 1100 // matches the cover-wipe animation in ScanBusy.css
 // stops at 16 s, plus 4 s a page, server/services/gemini.js). Past it, a TIMEOUT error with Try again instead of waiting on.
 const SCAN_LIMIT_MS = 30_000
 const PAGE_LIMIT_MS = 10_000 // each page after the first: covered on this phone, then read
+// How long a scan may take before it is called a timeout: longer for more pages.
 const scanLimit = (pages) => SCAN_LIMIT_MS + PAGE_LIMIT_MS * (Math.max(1, pages) - 1)
 const COVER_LIMIT_MS = 12_000
 const camera = ref(null)
@@ -113,7 +126,9 @@ const stopChecking = router.afterEach(() => {
 onBeforeUnmount(stopChecking)
 
 // Too dark, blurry or glary? 'dark' | 'blurry' | 'glare' | null. Tests that fake covering skip this check too.
-const photoCheck = (page) => (window.__photoCheckForTests ?? (window.__redactForTests ? async () => null : checkPhoto))(page)
+const photoCheck = (page) =>
+  (window.__photoCheckForTests ?? (window.__redactForTests ? async () => null : checkPhoto))(page)
+// Clears everything left over from the previous scan.
 function freshPages() {
   pdfPages.value = null
   fromPdf.value = new Set()
@@ -123,15 +138,20 @@ function freshPages() {
 // Live camera (LiveCamera.vue shows it). No camera API (e.g. plain http on a phone): the native camera via the file input.
 const stream = ref(null)
 const cameraBlocked = ref(false)
+// Opens the camera, or the phone's camera app when live video is not available.
 async function startCamera() {
   cameraBlocked.value = false
   if (!navigator.mediaDevices?.getUserMedia) return camera.value.click()
   try {
-    stream.value = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment', width: { ideal: 1920 } }, audio: false })
+    stream.value = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'environment', width: { ideal: 1920 } },
+      audio: false,
+    })
   } catch {
     cameraBlocked.value = true // permission denied or no camera
   }
 }
+// Turns the camera off.
 function stopCamera() {
   stream.value?.getTracks().forEach((track) => track.stop())
   stream.value = null
@@ -144,6 +164,7 @@ function capture(frame) {
   photos.value = [frame]
   coverAndSend(type.value)
 }
+// Closes the camera without taking a photo.
 function cancelCamera() {
   stopCamera()
   retakeAt.value = null
@@ -165,6 +186,7 @@ async function onCameraFile(event) {
     URL.revokeObjectURL(url)
   }
 }
+// Goes back to the camera to retake the photo.
 async function retake() {
   state.value = 'idle'
   startCamera()
@@ -181,10 +203,14 @@ const pagesView = ref(null)
 let shotId = 0
 const cameraNote = computed(() => {
   if (type.value !== 'bill') return null
-  return retakeAt.value !== null ? t('scan.pages.retaking', { n: retakeAt.value + 1 }) : t('scan.pages.taking', { n: shots.value.length + 1 })
+  return retakeAt.value !== null
+    ? t('scan.pages.retaking', { n: retakeAt.value + 1 })
+    : t('scan.pages.taking', { n: shots.value.length + 1 })
 })
+// Moves focus to the page list once the camera has closed.
 const focusPages = () => setTimeout(() => pagesView.value?.focusTitle()) // once the camera has closed and the pages are back
 
+// Adds a photo to the pages (or replaces the one being retaken) and checks if it is clear enough.
 async function addShot(src) {
   const shot = { id: ++shotId, src, problem: 'checking', anyway: false }
   if (retakeAt.value === null) shots.value.push(shot)
@@ -196,15 +222,18 @@ async function addShot(src) {
   const live = shots.value.find((s) => s.id === shot.id)
   if (live) live.problem = problem
 }
+// Opens the camera for a new page, or to retake page i.
 function shootPage(i = null) {
   retakeAt.value = i
   askThrow.value = false
   startCamera()
 }
+// Removes one page.
 function removeShot(i) {
   shots.value.splice(i, 1)
   if (shots.value.length) focusPages()
 }
+// Sends all the pages taken for reading.
 function readShots() {
   freshPages()
   photos.value = shots.value.map((s) => s.src)
@@ -213,15 +242,18 @@ function readShots() {
   coverAndSend('bill')
 }
 let leaveTo = null
+// Cancels the pages; asks first when there are two or more.
 function cancelShots() {
   if (shots.value.length >= 2) return (askThrow.value = true)
   throwShots()
 }
+// Keeps the pages after all (answers "No" to throwing them away).
 function keepShots() {
   leaveTo = null
   askThrow.value = false
   focusPages()
 }
+// Throws the pages away.
 function throwShots() {
   shots.value = []
   retakeAt.value = null
@@ -254,7 +286,12 @@ async function send(docType, request, limit = scanLimit(photos.value.length)) {
     if (!onScanPage()) scanStore.away = { type: docType, status: 'failed' }
     return
   }
-  Object.assign(scanStore, { current: res.data, photos: photos.value, pdfPages: pdfPages.value, confirmed: false })
+  Object.assign(scanStore, {
+    current: res.data,
+    photos: photos.value,
+    pdfPages: pdfPages.value,
+    confirmed: false,
+  })
   // On another page: keep it for when they are ready ("Your label is ready to check"), never pull them away.
   if (!onScanPage()) {
     state.value = 'idle'
@@ -267,12 +304,14 @@ async function send(docType, request, limit = scanLimit(photos.value.length)) {
   state.value = 'idle' // after the page has gone, so the picker never flashes up first
 }
 
+// Handles files chosen from the device.
 function onFile(event) {
   const files = [...event.target.files]
   event.target.value = '' // lets the same file be picked again
   if (files.length) useFiles(files)
 }
 
+// Prepares chosen files (shrinks photos, splits PDFs into pages) and sends them for reading.
 async function useFiles(files, k = type.value) {
   type.value = k
   // Shrinking a big photo takes about a second on old phones; show that we're working, so nobody taps again.
@@ -320,12 +359,17 @@ async function coverAndSend(docType, skipCheck = false) {
   // Too dark, blurry or glary: say so now, before covering and uploading.
   for (const page of pages) {
     coverView.value = { original: page, covered: null }
-    const problem = skipCheck || fromPdf.value.has(page) || checkedShots.value.has(page) ? null : await photoCheck(page)
+    const problem =
+      skipCheck || fromPdf.value.has(page) || checkedShots.value.has(page)
+        ? null
+        : await photoCheck(page)
     if (id !== run.value) return // cancelled
     if (problem) return fail(CHECK_ERRORS[problem])
   }
   let tooSlow = false
-  const timeUp = new Promise((resolve) => setTimeout(() => resolve((tooSlow = true) && null), COVER_LIMIT_MS * pages.length))
+  const timeUp = new Promise((resolve) =>
+    setTimeout(() => resolve((tooSlow = true) && null), COVER_LIMIT_MS * pages.length),
+  )
   let covered = []
   for (const [i, page] of pages.entries()) {
     coverPage.value = pages.length > 1 ? { n: i + 1, total: pages.length } : null
@@ -343,7 +387,9 @@ async function coverAndSend(docType, skipCheck = false) {
     covered.push(result.dataUrl)
     coverView.value = { original: page, covered: result.dataUrl }
     // Let the blacked-out version wipe in before the next step (shorter with reduced motion: there is no wipe).
-    await new Promise((done) => setTimeout(done, matchMedia('(prefers-reduced-motion: reduce)').matches ? 300 : REVEAL_MS))
+    await new Promise((done) =>
+      setTimeout(done, matchMedia('(prefers-reduced-motion: reduce)').matches ? 300 : REVEAL_MS),
+    )
     if (id !== run.value) return
   }
   // No page had anything to read: don't send black pictures.
@@ -356,6 +402,7 @@ async function coverAndSend(docType, skipCheck = false) {
   send(docType, (ms) => scanImage(docType, photos.value, ms), deadline - Date.now())
 }
 
+// Runs a built-in sample instead of a photo.
 function trySample(sample) {
   freshPages()
   // The sample's picture goes to Confirm too, so there is something to check the fields against.
@@ -364,8 +411,10 @@ function trySample(sample) {
   send(sample.type, (ms) => scanSample(sample.id, ms))
 }
 
+// Tries the last scan again.
 function retry() {
-  if (errorCode.value === 'COVER_FAILED' || !lastRequest.value) return coverAndSend(coverDocType.value)
+  if (errorCode.value === 'COVER_FAILED' || !lastRequest.value)
+    return coverAndSend(coverDocType.value)
   send(lastRequest.value.docType, lastRequest.value.request)
 }
 
@@ -376,6 +425,7 @@ function showExamples() {
   if (!chosen.value) router.replace({ name: 'scan', query: { type: type.value } }) // e.g. a photo from Home: its kind's page
 }
 
+// Cancels the scan in progress.
 function cancel() {
   run.value++
   covering.value = false
@@ -403,10 +453,33 @@ onMounted(() => {
 
 <template>
   <!-- Kept outside the screens so Retake/Upload work from the error screen too. -->
-  <input ref="camera" type="file" accept="image/*" capture="environment" class="d-none" data-testid="camera-input" @change="onCameraFile" />
-  <input ref="upload" type="file" multiple accept="image/*,application/pdf" class="d-none" @change="onFile" />
+  <input
+    ref="camera"
+    type="file"
+    accept="image/*"
+    capture="environment"
+    class="d-none"
+    data-testid="camera-input"
+    @change="onCameraFile"
+  />
+  <input
+    ref="upload"
+    type="file"
+    multiple
+    accept="image/*,application/pdf"
+    class="d-none"
+    @change="onFile"
+  />
 
-  <ScanBusy v-if="state === 'loading'" :cover-view="coverView" :covering="covering" :cover-page="coverPage" :reading-type="readingType" :slow="slow" @cancel="cancel" />
+  <ScanBusy
+    v-if="state === 'loading'"
+    :cover-view="coverView"
+    :covering="covering"
+    :cover-page="coverPage"
+    :reading-type="readingType"
+    :slow="slow"
+    @cancel="cancel"
+  />
 
   <ScanProblem
     v-else-if="state === 'error'"
@@ -422,7 +495,15 @@ onMounted(() => {
     @not-other="errorCode = 'MISMATCH'"
   />
 
-  <LiveCamera v-else-if="stream" :stream="stream" :type="type" :note="cameraNote" :back="shots.length > 0" @capture="capture" @cancel="cancelCamera" />
+  <LiveCamera
+    v-else-if="stream"
+    :stream="stream"
+    :type="type"
+    :note="cameraNote"
+    :back="shots.length > 0"
+    @capture="capture"
+    @cancel="cancelCamera"
+  />
 
   <ScanPages
     v-else-if="shots.length"

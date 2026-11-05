@@ -1,13 +1,8 @@
-// Sending email (password reset links). One function, so the provider can change without touching the routes.
-// MAIL_PROVIDER: 'console' (default) prints the email instead of sending it, for local work and tests; 'brevo' or 'resend'
-// send it through that service's web API (works on Vercel, no extra packages), with MAIL_API_KEY and MAIL_FROM
-// ("Ah Ma Ah Gong Can <sender@example.com>"; the sender must be verified with the service). docs/auth-contract.md.
-// On the live site, console mode never prints the link: anyone who can read the server logs could otherwise use it.
-
 const MAX_KEPT = 20
 // The last emails console mode "sent", newest last, so tests can read the link. Never used by a real provider.
 export const sentMail = []
 
+// True on the deployed site (Vercel or production), where a missing APP_URL or MAIL_PROVIDER is a setup mistake, not a local default.
 const live = () => Boolean(process.env.VERCEL) || process.env.NODE_ENV === 'production'
 
 // Where reset links point: APP_URL (the site's own address), never the request's Host header, which anyone can fake to
@@ -20,7 +15,8 @@ export function appUrl() {
   } catch {
     throw new Error('APP_URL must be the site address, e.g. https://ahma-ahgong-can.vercel.app')
   }
-  if (!['http:', 'https:'].includes(url.protocol) || url.search || url.hash) throw new Error('APP_URL must be a plain http(s) address')
+  if (!['http:', 'https:'].includes(url.protocol) || url.search || url.hash)
+    throw new Error('APP_URL must be a plain http(s) address')
   return url.origin + url.pathname.replace(/\/+$/, '')
 }
 
@@ -45,8 +41,14 @@ export async function sendMail(message) {
   if (!send) throw new Error(`Unknown MAIL_PROVIDER "${provider}"`)
   const key = process.env.MAIL_API_KEY
   const from = sender(process.env.MAIL_FROM)
-  if (!key || !from) throw new Error('MAIL_API_KEY and MAIL_FROM ("Name <address>") are required to send email')
-  const res = await fetch(send.url, { method: 'POST', headers: { 'content-type': 'application/json', accept: 'application/json', ...send.auth(key) }, body: JSON.stringify(send.body(from, message)), signal: AbortSignal.timeout(10_000) })
+  if (!key || !from)
+    throw new Error('MAIL_API_KEY and MAIL_FROM ("Name <address>") are required to send email')
+  const res = await fetch(send.url, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', accept: 'application/json', ...send.auth(key) },
+    body: JSON.stringify(send.body(from, message)),
+    signal: AbortSignal.timeout(10_000),
+  })
   if (!res.ok) throw new Error(`${provider} refused the email (HTTP ${res.status})`) // not the body: it can echo the address
   return { provider, sent: true }
 }
@@ -63,11 +65,23 @@ const PROVIDERS = {
   brevo: {
     url: 'https://api.brevo.com/v3/smtp/email',
     auth: (key) => ({ 'api-key': key }),
-    body: (from, m) => ({ sender: from, to: [{ email: m.to }], subject: m.subject, textContent: m.text, htmlContent: m.html }),
+    body: (from, m) => ({
+      sender: from,
+      to: [{ email: m.to }],
+      subject: m.subject,
+      textContent: m.text,
+      htmlContent: m.html,
+    }),
   },
   resend: {
     url: 'https://api.resend.com/emails',
     auth: (key) => ({ authorization: `Bearer ${key}` }),
-    body: (from, m) => ({ from: `${from.name} <${from.email}>`, to: [m.to], subject: m.subject, text: m.text, html: m.html }),
+    body: (from, m) => ({
+      from: `${from.name} <${from.email}>`,
+      to: [m.to],
+      subject: m.subject,
+      text: m.text,
+      html: m.html,
+    }),
   },
 }

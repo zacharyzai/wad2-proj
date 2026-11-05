@@ -35,12 +35,18 @@ const TEXT = {
     body: 'உங்கள் Ah Ma Ah Gong Can கணக்கின் கடவுச்சொல்லை மாற்ற யாரோ கேட்டுள்ளனர். புதிய கடவுச்சொல்லைத் தேர்ந்தெடுக்க, கீழே உள்ள பொத்தானை அழுத்துங்கள்.',
     button: 'புதிய கடவுச்சொல்லைத் தேர்ந்தெடுங்கள்',
     expiry: 'இந்த இணைப்பு 30 நிமிடங்களுக்கு, ஒரு முறை மட்டுமே வேலை செய்யும்.',
-    ignore: 'நீங்கள் இதைக் கேட்கவில்லை என்றால், இந்த மின்னஞ்சலைப் புறக்கணியுங்கள். உங்கள் கடவுச்சொல் மாறாது.',
+    ignore:
+      'நீங்கள் இதைக் கேட்கவில்லை என்றால், இந்த மின்னஞ்சலைப் புறக்கணியுங்கள். உங்கள் கடவுச்சொல் மாறாது.',
     copy: 'பொத்தான் வேலை செய்யவில்லை என்றால், இந்த இணைப்பை உங்கள் உலாவியில் நகலெடுத்து ஒட்டுங்கள்:',
   },
 }
 
-const escape = (value) => String(value).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c])
+// HTML-escapes a value before it goes into the email body.
+const escape = (value) =>
+  String(value).replace(
+    /[&<>"']/g,
+    (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c],
+  )
 
 // { subject, text, html } for one account. `link` comes from resetLink() (services/mail.js), never from the request.
 export function resetEmail({ name, language, link }) {

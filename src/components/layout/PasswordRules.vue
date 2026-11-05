@@ -1,5 +1,4 @@
-<!-- A new password's rules (src/rules/password.js), ticked off as they are typed, on Sign up and Reset: a tick and "done" once met;
-     after the first try, a cross and "not yet". Styles: AuthShell.vue. -->
+<!-- Checklist that ticks off each password rule as the user types. -->
 <script setup>
 import { useI18n } from 'vue-i18n'
 import AppIcon from './AppIcon.vue'
@@ -16,8 +15,18 @@ const { t } = useI18n()
     <span class="auth-rules-title">{{ t('auth.pwRules.title') }}</span>
     <ul class="m-0">
       <li v-for="(ok, rule) in checks" :key="rule" :class="{ ok }" :data-rule="rule" :data-ok="ok">
-        <span class="auth-rule-mark" aria-hidden="true"><AppIcon v-if="ok" name="check" :size="16" :stroke="3" /><AppIcon v-else-if="tried" name="x" :size="16" :stroke="3" /></span>
-        <span><span class="visually-hidden">{{ t(ok ? 'auth.pwRules.met' : 'auth.pwRules.notMet') }}: </span>{{ t(`auth.pwRules.${rule}`) }}</span>
+        <span class="auth-rule-mark" aria-hidden="true"
+          ><AppIcon v-if="ok" name="check" :size="16" :stroke="3" /><AppIcon
+            v-else-if="tried"
+            name="x"
+            :size="16"
+            :stroke="3"
+        /></span>
+        <span
+          ><span class="visually-hidden"
+            >{{ t(ok ? 'auth.pwRules.met' : 'auth.pwRules.notMet') }}: </span
+          >{{ t(`auth.pwRules.${rule}`) }}</span
+        >
       </li>
     </ul>
   </div>

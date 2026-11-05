@@ -10,7 +10,8 @@ const { default: app } = await import('../app.js')
 const { signToken } = await import('../services/auth.js')
 const AUTH = { authorization: `Bearer ${signToken('test-user', false)}` } // scanning needs an account
 
-const TINY_PNG = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='
+const TINY_PNG =
+  'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='
 let server, base
 
 beforeAll(() => {
@@ -102,7 +103,11 @@ test('history without a login is refused', async () => {
 })
 
 test('scanning without a login is refused before anything else runs', async () => {
-  const res = await fetch(`${base}/api/scan`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ sampleId: 'med-1' }) })
+  const res = await fetch(`${base}/api/scan`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ sampleId: 'med-1' }),
+  })
   assert.equal(res.status, 401)
   assert.equal((await res.json()).error.code, 'NOT_LOGGED_IN')
 })

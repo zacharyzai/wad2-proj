@@ -3,26 +3,56 @@
 import { test, expect } from './fixtures.js'
 import { nextFrames } from './helpers/checks.js'
 
-const med = (id, name) => ({ id, source: 'label', sample: false, medication: { name, strength: '5 mg', doseAmount: 1, doseUnit: 'tablet', quantity: null,
-  timesPerDay: 1, timing: ['morning'], withFood: null, frequencyType: 'daily', rawInstruction: null, warnings: [] }, schedule: { startDate: '2026-10-01', days: 365, times: {} } })
+const med = (id, name) => ({
+  id,
+  source: 'label',
+  sample: false,
+  medication: {
+    name,
+    strength: '5 mg',
+    doseAmount: 1,
+    doseUnit: 'tablet',
+    quantity: null,
+    timesPerDay: 1,
+    timing: ['morning'],
+    withFood: null,
+    frequencyType: 'daily',
+    rawInstruction: null,
+    warnings: [],
+  },
+  schedule: { startDate: '2026-10-01', days: 365, times: {} },
+})
 
 async function account(page, saved) {
   const sent = { history: [], schedule: [] }
   await page.route('**/api/history', (route) => {
     sent.history.push(route.request().postDataJSON())
-    return route.fulfill({ status: 201, json: { ok: true, data: { id: '0123456789abcdef01234567', createdAt: new Date().toISOString() } } })
+    return route.fulfill({
+      status: 201,
+      json: {
+        ok: true,
+        data: { id: '0123456789abcdef01234567', createdAt: new Date().toISOString() },
+      },
+    })
   })
   await page.route('**/api/schedule', (route) => {
-    if (route.request().method() === 'GET') return route.fulfill({ json: { ok: true, data: { medicines: saved } } })
+    if (route.request().method() === 'GET')
+      return route.fulfill({ json: { ok: true, data: { medicines: saved } } })
     sent.schedule.push(route.request().postDataJSON())
-    return route.fulfill({ json: { ok: true, data: { saved: route.request().postDataJSON().medicines.length } } })
+    return route.fulfill({
+      json: { ok: true, data: { saved: route.request().postDataJSON().medicines.length } },
+    })
   })
   return sent
 }
 
-test('Looks correct saves the scan to History and the medicine to the account', async ({ page }) => {
+test('Looks correct saves the scan to History and the medicine to the account', async ({
+  page,
+}) => {
   const sent = await account(page, [])
-  const saved = page.waitForRequest((r) => r.url().endsWith('/api/schedule') && r.method() === 'PUT')
+  const saved = page.waitForRequest(
+    (r) => r.url().endsWith('/api/schedule') && r.method() === 'PUT',
+  )
   await page.goto('/scan?type=medication')
   await page.getByTestId('scan-examples').click() // samples sit behind "Try an example"
   await page.getByRole('button', { name: 'Metformin label' }).click()
@@ -30,19 +60,29 @@ test('Looks correct saves the scan to History and the medicine to the account', 
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Take 1 tablet, 2 times a day.')
 
   expect(sent.history).toHaveLength(1)
-  expect(Object.keys(sent.history[0].scan).sort()).toEqual(['medication', 'source', 'type', 'unclear']) // contract fields only, never the photo
+  expect(Object.keys(sent.history[0].scan).sort()).toEqual([
+    'medication',
+    'source',
+    'type',
+    'unclear',
+  ]) // contract fields only, never the photo
   const { medicines } = (await saved).postDataJSON()
   expect(medicines.map((m) => m.medication.name)).toEqual(['Metformin'])
 })
 
-test("the account's list replaces whatever this browser had, and loading it sends nothing back", async ({ page }) => {
+test("the account's list replaces whatever this browser had, and loading it sends nothing back", async ({
+  page,
+}) => {
   // Left by another account on this browser (a shared tablet): never shown, never saved here.
-  await page.addInitScript((list) => {
-    if (sessionStorage.getItem('seeded')) return
-    sessionStorage.setItem('seeded', '1')
-    localStorage.setItem('medicines', JSON.stringify(list))
-    localStorage.setItem('medicinesOwner', 'someone-else@example.com')
-  }, [med('other-1', 'Someone Else Pill')])
+  await page.addInitScript(
+    (list) => {
+      if (sessionStorage.getItem('seeded')) return
+      sessionStorage.setItem('seeded', '1')
+      localStorage.setItem('medicines', JSON.stringify(list))
+      localStorage.setItem('medicinesOwner', 'someone-else@example.com')
+    },
+    [med('other-1', 'Someone Else Pill')],
+  )
   const sent = await account(page, [med('acct-1', 'Amlodipine')])
   await page.clock.install()
   await page.goto('/schedule?view=meds')
@@ -54,13 +94,20 @@ test("the account's list replaces whatever this browser had, and loading it send
   expect(await page.evaluate(() => localStorage.getItem('medicinesOwner'))).toBe('demo@example.com')
 })
 
-test("an account that never saved a list keeps this browser's own list and saves it once", async ({ page }) => {
-  await page.addInitScript((list) => {
-    if (sessionStorage.getItem('seeded')) return
-    sessionStorage.setItem('seeded', '1')
-    localStorage.setItem('medicines', JSON.stringify(list))
-  }, [med('old-1', 'Lisinopril')])
-  const saved = page.waitForRequest((r) => r.url().endsWith('/api/schedule') && r.method() === 'PUT')
+test("an account that never saved a list keeps this browser's own list and saves it once", async ({
+  page,
+}) => {
+  await page.addInitScript(
+    (list) => {
+      if (sessionStorage.getItem('seeded')) return
+      sessionStorage.setItem('seeded', '1')
+      localStorage.setItem('medicines', JSON.stringify(list))
+    },
+    [med('old-1', 'Lisinopril')],
+  )
+  const saved = page.waitForRequest(
+    (r) => r.url().endsWith('/api/schedule') && r.method() === 'PUT',
+  )
   await account(page, null)
   await page.goto('/schedule?view=meds')
   await expect(page.getByText('Lisinopril').first()).toBeVisible()

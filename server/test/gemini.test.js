@@ -15,14 +15,27 @@ process.env.GEMINI_API_KEY = 'test-key'
 const reply = (status, body) => {
   globalThis.fetch = async () => new Response(JSON.stringify(body), { status })
 }
-const geminiText = (obj) => ({ candidates: [{ content: { parts: [{ text: JSON.stringify(obj) }] } }] })
-const rejectsWith = (code) => assert.rejects(extractScan('medication', IMG), (e) => e instanceof ScanError && e.code === code)
+const geminiText = (obj) => ({
+  candidates: [{ content: { parts: [{ text: JSON.stringify(obj) }] } }],
+})
+const rejectsWith = (code) =>
+  assert.rejects(extractScan('medication', IMG), (e) => e instanceof ScanError && e.code === code)
 
 test('success is normalized into the contract', async () => {
   let sent
   globalThis.fetch = async (url, init) => {
     sent = { url, init }
-    return new Response(JSON.stringify(geminiText({ readable: true, name: 'Metformin', doseAmount: 1, timesPerDay: 2, frequencyType: 'daily' })))
+    return new Response(
+      JSON.stringify(
+        geminiText({
+          readable: true,
+          name: 'Metformin',
+          doseAmount: 1,
+          timesPerDay: 2,
+          frequencyType: 'daily',
+        }),
+      ),
+    )
   }
   const scan = await extractScan('medication', IMG)
   assert.equal(scan.source, 'ai')
@@ -68,7 +81,16 @@ function replies(...list) {
   }
   return calls
 }
-const OK = { status: 200, body: geminiText({ readable: true, name: 'Metformin', doseAmount: 1, timesPerDay: 2, frequencyType: 'daily' }) }
+const OK = {
+  status: 200,
+  body: geminiText({
+    readable: true,
+    name: 'Metformin',
+    doseAmount: 1,
+    timesPerDay: 2,
+    frequencyType: 'daily',
+  }),
+}
 
 test('falls back to the next model when one is overloaded, slow, out of quota or retired', async (t) => {
   process.env.GEMINI_MODEL = 'main'
@@ -78,7 +100,13 @@ test('falls back to the next model when one is overloaded, slow, out of quota or
     delete process.env.GEMINI_FALLBACK_MODELS
   })
 
-  for (const failure of [{ status: 503 }, { status: 500 }, { status: 429 }, { status: 404 }, new DOMException('slow', 'TimeoutError')]) {
+  for (const failure of [
+    { status: 503 },
+    { status: 500 },
+    { status: 429 },
+    { status: 404 },
+    new DOMException('slow', 'TimeoutError'),
+  ]) {
     forgetResting()
     const calls = replies(failure, OK)
     assert.equal((await extractScan('medication', IMG)).medication.name, 'Metformin')
@@ -136,16 +164,25 @@ test('no fallback for a bad request or key, or for an unreadable photo', async (
 
 test('a clear photo of the wrong kind of document says so, instead of "retake it in good light"', async () => {
   reply(200, geminiText({ readable: true, otherDocument: true }))
-  await assert.rejects(extractScan('bill', IMG), (e) => e.code === 'WRONG_DOCUMENT' && e.status === 422 && /medical bill/.test(e.message))
+  await assert.rejects(
+    extractScan('bill', IMG),
+    (e) => e.code === 'WRONG_DOCUMENT' && e.status === 422 && /medical bill/.test(e.message),
+  )
   reply(200, geminiText({ readable: true, otherDocument: true }))
-  await assert.rejects(extractScan('medication', IMG), (e) => e.code === 'WRONG_DOCUMENT' && /medication label/.test(e.message))
+  await assert.rejects(
+    extractScan('medication', IMG),
+    (e) => e.code === 'WRONG_DOCUMENT' && /medication label/.test(e.message),
+  )
   reply(200, geminiText({ readable: false, otherDocument: false }))
   await rejectsWith('UNREADABLE_IMAGE')
 })
 
 test('a bill scanned as a label (or a label as a bill) gets its own code, so the app can offer to read it as the other', async () => {
   reply(200, geminiText({ readable: true, otherDocument: true, looksLike: 'bill' }))
-  await assert.rejects(extractScan('medication', IMG), (e) => e.code === 'LOOKS_LIKE_BILL' && e.status === 422)
+  await assert.rejects(
+    extractScan('medication', IMG),
+    (e) => e.code === 'LOOKS_LIKE_BILL' && e.status === 422,
+  )
   reply(200, geminiText({ readable: true, otherDocument: true, looksLike: 'medication' }))
   await assert.rejects(extractScan('bill', IMG), (e) => e.code === 'LOOKS_LIKE_LABEL')
   // Something else entirely (or a label scanned as a label it isn't): the plain "wrong document".
@@ -182,7 +219,11 @@ test('the pages of one bill go as separate, numbered images, read at high resolu
   let body
   globalThis.fetch = async (url, init) => {
     body = JSON.parse(init.body)
-    return new Response(JSON.stringify(geminiText({ readable: true, items: [], subsidies: [], medisave: 0, totalPayable: 0 })))
+    return new Response(
+      JSON.stringify(
+        geminiText({ readable: true, items: [], subsidies: [], medisave: 0, totalPayable: 0 }),
+      ),
+    )
   }
   const PNG2 = 'data:image/jpeg;base64,BBBB'
   await extractScan('bill', [IMG, PNG2])
@@ -219,7 +260,13 @@ test('Groq is the last resort after every Gemini model, in the OpenAI format', a
     sent.push({ url, init })
     const next = answers.shift()
     if (next) return new Response('{}', { status: next.status })
-    const content = JSON.stringify({ readable: true, name: 'Metformin', doseAmount: 1, timesPerDay: 2, frequencyType: 'daily' })
+    const content = JSON.stringify({
+      readable: true,
+      name: 'Metformin',
+      doseAmount: 1,
+      timesPerDay: 2,
+      frequencyType: 'daily',
+    })
     return new Response(JSON.stringify({ choices: [{ message: { content } }] }))
   }
 
@@ -241,7 +288,10 @@ test('Groq alone works when there is no Gemini key', async (t) => {
   onTestFinished(() => delete process.env.GROQ_API_KEY)
   const content = JSON.stringify({ readable: false })
   const calls = []
-  globalThis.fetch = async (url) => (calls.push(url), new Response(JSON.stringify({ choices: [{ message: { content } }] })))
+  globalThis.fetch = async (url) => (
+    calls.push(url),
+    new Response(JSON.stringify({ choices: [{ message: { content } }] }))
+  )
   await rejectsWith('UNREADABLE_IMAGE')
   assert.equal(calls.length, 1)
   assert.match(calls[0], /groq\.com/)
@@ -252,9 +302,24 @@ test('Groq alone works when there is no Gemini key', async (t) => {
 const BILL = (fexofen, total = 35.53) => ({
   readable: true,
   items: [
-    { description: 'Consultation', category: 'consultation', amount: 28, section: 'Consultation Fees' },
-    { description: 'FEXOFEN 180MG', category: 'medication', amount: fexofen, section: 'Medications List' },
-    { description: 'Other medicines', category: 'medication', amount: 69.26, section: 'Medications List' },
+    {
+      description: 'Consultation',
+      category: 'consultation',
+      amount: 28,
+      section: 'Consultation Fees',
+    },
+    {
+      description: 'FEXOFEN 180MG',
+      category: 'medication',
+      amount: fexofen,
+      section: 'Medications List',
+    },
+    {
+      description: 'Other medicines',
+      category: 'medication',
+      amount: 69.26,
+      section: 'Medications List',
+    },
     { description: 'GST (9%)', category: 'tax', amount: 10.06 },
   ],
   subtotals: [{ section: 'Medications List', amount: 83.76 }],
@@ -275,7 +340,10 @@ test('a bill that does not add up is read once more, pointed at the section that
   const prompts = billReplies(BILL(14), BILL(14.5))
   const scan = await extractScan('bill', IMG)
   assert.equal(prompts.length, 2)
-  assert.match(prompts[1], /"Medications List" add up to \$83\.26, but its subtotal is printed as \$83\.76/)
+  assert.match(
+    prompts[1],
+    /"Medications List" add up to \$83\.26, but its subtotal is printed as \$83\.76/,
+  )
   assert.match(prompts[1], /never change an amount just to make the numbers add up/)
   assert.equal(scan.bill.items[1].amountCents, 1450) // the second reading, which adds up
 })
@@ -299,6 +367,8 @@ test('no second reading when it adds up, for labels, or when the daily cap says 
 test('add-on keys are tried only after every model on the main key', (t) => {
   process.env.GEMINI_EXTRA_KEYS = 'key-2, key-3'
   onTestFinished(() => delete process.env.GEMINI_EXTRA_KEYS)
-  const names = attempts({ gemini: ['a', 'b'], groq: [], geminiBody: {}, groqBody: {} }).map((x) => x.name)
+  const names = attempts({ gemini: ['a', 'b'], groq: [], geminiBody: {}, groqBody: {} }).map(
+    (x) => x.name,
+  )
   assert.deepEqual(names, ['a', 'b', 'a#2', 'b#2', 'a#3', 'b#3'])
 })

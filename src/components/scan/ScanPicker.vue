@@ -1,11 +1,4 @@
-<!-- Owner: Asher (built by Claude, declared in README.txt). Scan, the question: "What would you like to scan today?" with two
-     big picture cards (Medicine label / Medical bill). Each is a dark card: a picture of its sample paper with what to do on
-     a tag at the top and a round arrow tucked into its corner, then the name, one line on what it tells you, and tags.
-     At rest, the things in each picture breathe and drift. With a mouse, both pictures rest in the app's teal; the one
-     under the mouse stops still and comes to life in full colour, tilts gently towards it, and its arrow turns coral; the
-     other steps back a little. Phones and tablets show both in colour. Picking one plays the same short picture as Home's
-     cards (CardLaunch.vue, drawn by ScanView: a capsule scanned, or a bill printing) before its scan page opens. Above the cards: the last scan to carry
-     on with, or a photo picked on Home waiting to be told what it is. -->
+<!-- The "What would you like to scan?" question with a Label card and a Bill card. -->
 <script setup>
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -30,12 +23,18 @@ const resume = computed(() => {
   if (!s || props.pending) return null
   const name = s.type === 'bill' ? s.bill?.clinic || t('explain.tag.bill') : s.medication?.name
   if (!name) return null
-  return { kind: s.type, name, checked: scanStore.confirmed, to: { name: scanStore.confirmed ? 'explain' : 'confirm' } }
+  return {
+    kind: s.type,
+    name,
+    checked: scanStore.confirmed,
+    to: { name: scanStore.confirmed ? 'explain' : 'confirm' },
+  }
 })
 
-// Picking a card: Home's picture for it plays first (about a second), then its scan page opens. Reduced motion: at once.
+// Picks Label or Bill; Home's launch picture for it plays before the scan page opens.
 const PICTURE = { medication: 'med', bill: 'bill' }
-const choose = (event, kind) => launch(event, PICTURE[kind], () => emit('pick', kind), { inPage: true })
+const choose = (event, kind) =>
+  launch(event, PICTURE[kind], () => emit('pick', kind), { inPage: true })
 
 // The card leans a little towards the mouse, and a soft light follows it (CSS reads --mx, --my: 0 to 1 across the card).
 function lean(e) {
@@ -44,6 +43,7 @@ function lean(e) {
   e.currentTarget.style.setProperty('--mx', ((e.clientX - box.left) / box.width).toFixed(3))
   e.currentTarget.style.setProperty('--my', ((e.clientY - box.top) / box.height).toFixed(3))
 }
+// Resets the card's lean towards the pointer.
 function unlean(e) {
   e.currentTarget.style.removeProperty('--mx')
   e.currentTarget.style.removeProperty('--my')
@@ -56,13 +56,24 @@ function unlean(e) {
       <h1>{{ t('scan.choose.question') }}</h1>
       <p v-if="!pending" class="lead-text pick-lead">{{ t('scan.choose.lead') }}</p>
     </div>
-    <section v-if="resume" class="resume card" aria-labelledby="resume-title" data-testid="scan-resume">
+    <section
+      v-if="resume"
+      class="resume card"
+      aria-labelledby="resume-title"
+      data-testid="scan-resume"
+    >
       <KindIcon :kind="resume.kind" />
       <div class="resume-text">
         <h2 id="resume-title" class="h3 m-0">{{ t('scan.resume.title') }}: {{ resume.name }}</h2>
-        <p class="m-0 text-muted-a11y">{{ t(resume.checked ? 'scan.resume.checked' : 'scan.resume.unchecked') }}</p>
+        <p class="m-0 text-muted-a11y">
+          {{ t(resume.checked ? 'scan.resume.checked' : 'scan.resume.unchecked') }}
+        </p>
       </div>
-      <RouterLink :to="resume.to" class="btn btn-primary" data-testid="scan-resume-go"><AppIcon name="right" :size="22" />{{ t(resume.checked ? 'scan.resume.seeAgain' : 'scan.resume.carryOn') }}</RouterLink>
+      <RouterLink :to="resume.to" class="btn btn-primary" data-testid="scan-resume-go"
+        ><AppIcon name="right" :size="22" />{{
+          t(resume.checked ? 'scan.resume.seeAgain' : 'scan.resume.carryOn')
+        }}</RouterLink
+      >
     </section>
     <!-- A photo picked on Home waits here: picking a card reads it as that kind. -->
     <div v-if="pending" class="pending card" data-testid="scan-pending">
@@ -84,35 +95,115 @@ function unlean(e) {
       >
         <span class="pick-img">
           <span class="pick-scene" aria-hidden="true">
-            <svg v-if="k === 'medication'" class="pick-deco" viewBox="0 0 200 150" preserveAspectRatio="xMidYMid slice" focusable="false">
-              <g class="drift-a"><rect x="12" y="18" width="46" height="20" rx="10" transform="rotate(-28 35 28)" fill="#f3d27a" /><rect x="12" y="18" width="23" height="20" rx="10" transform="rotate(-28 35 28)" fill="#ffffff" /></g>
-              <g class="drift-b"><circle cx="176" cy="30" r="11" fill="#ffffff" opacity="0.9" /><path d="M169 30h14" stroke="#7fc8c0" stroke-width="2.5" stroke-linecap="round" /></g>
-              <g class="drift-a"><rect x="150" y="112" width="40" height="18" rx="9" transform="rotate(24 170 121)" fill="#f08a7e" /><rect x="150" y="112" width="20" height="18" rx="9" transform="rotate(24 170 121)" fill="#ffe3de" /></g>
+            <svg
+              v-if="k === 'medication'"
+              class="pick-deco"
+              viewBox="0 0 200 150"
+              preserveAspectRatio="xMidYMid slice"
+              focusable="false"
+            >
+              <g class="drift-a">
+                <rect
+                  x="12"
+                  y="18"
+                  width="46"
+                  height="20"
+                  rx="10"
+                  transform="rotate(-28 35 28)"
+                  fill="#f3d27a"
+                />
+                <rect
+                  x="12"
+                  y="18"
+                  width="23"
+                  height="20"
+                  rx="10"
+                  transform="rotate(-28 35 28)"
+                  fill="#ffffff"
+                />
+              </g>
+              <g class="drift-b">
+                <circle cx="176" cy="30" r="11" fill="#ffffff" opacity="0.9" />
+                <path d="M169 30h14" stroke="#7fc8c0" stroke-width="2.5" stroke-linecap="round" />
+              </g>
+              <g class="drift-a">
+                <rect
+                  x="150"
+                  y="112"
+                  width="40"
+                  height="18"
+                  rx="9"
+                  transform="rotate(24 170 121)"
+                  fill="#f08a7e"
+                />
+                <rect
+                  x="150"
+                  y="112"
+                  width="20"
+                  height="18"
+                  rx="9"
+                  transform="rotate(24 170 121)"
+                  fill="#ffe3de"
+                />
+              </g>
             </svg>
-            <svg v-else class="pick-deco" viewBox="0 0 200 150" preserveAspectRatio="xMidYMid slice" focusable="false">
-              <g class="drift-a"><circle cx="28" cy="30" r="15" fill="#ffd66b" /><circle cx="28" cy="30" r="10" fill="none" stroke="#e7a93a" stroke-width="2.5" /></g>
-              <g class="drift-b"><circle cx="178" cy="118" r="13" fill="#ffd66b" /><circle cx="178" cy="118" r="8" fill="none" stroke="#e7a93a" stroke-width="2.5" /></g>
-              <g class="drift-b"><rect x="160" y="16" width="30" height="20" rx="5" fill="#ffffff" opacity="0.85" /><circle cx="175" cy="26" r="5" fill="#8fd1a6" /></g>
+            <svg
+              v-else
+              class="pick-deco"
+              viewBox="0 0 200 150"
+              preserveAspectRatio="xMidYMid slice"
+              focusable="false"
+            >
+              <g class="drift-a">
+                <circle cx="28" cy="30" r="15" fill="#ffd66b" />
+                <circle cx="28" cy="30" r="10" fill="none" stroke="#e7a93a" stroke-width="2.5" />
+              </g>
+              <g class="drift-b">
+                <circle cx="178" cy="118" r="13" fill="#ffd66b" />
+                <circle cx="178" cy="118" r="8" fill="none" stroke="#e7a93a" stroke-width="2.5" />
+              </g>
+              <g class="drift-b">
+                <rect x="160" y="16" width="30" height="20" rx="5" fill="#ffffff" opacity="0.85" />
+                <circle cx="175" cy="26" r="5" fill="#8fd1a6" />
+              </g>
             </svg>
             <img :src="`/samples/${KIND_PAPER[k]}.svg`" alt="" class="pick-paper" />
           </span>
-          <span class="pick-tag">{{ t(pending ? `scan.pendingScan.${k}` : `scan.choose.${k}.go`) }}</span>
+          <span class="pick-tag">{{
+            t(pending ? `scan.pendingScan.${k}` : `scan.choose.${k}.go`)
+          }}</span>
           <!-- The corner cut out of the picture, and the arrow sitting in it. -->
           <span class="pick-notch" aria-hidden="true"></span>
           <span class="pick-arrow" aria-hidden="true">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7" /><path d="M8 7h9v9" /></svg>
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M7 17 17 7" />
+              <path d="M8 7h9v9" />
+            </svg>
           </span>
         </span>
         <span class="pick-words">
           <span class="pick-title">{{ t(`scan.choose.${k}.title`) }}</span>
           <span class="pick-text">{{ t(`scan.choose.${k}.text`) }}</span>
           <span class="pick-tags">
-            <span v-for="tag in tm(`scan.choose.${k}.tags`)" :key="rt(tag)" class="pick-chip">{{ rt(tag) }}</span>
+            <span v-for="tag in tm(`scan.choose.${k}.tags`)" :key="rt(tag)" class="pick-chip">{{
+              rt(tag)
+            }}</span>
           </span>
         </span>
       </button>
     </div>
-    <button v-if="pending" type="button" class="btn btn-ghost" @click="emit('drop')"><AppIcon name="x" />{{ t('scan.dz.change') }}</button>
+    <button v-if="pending" type="button" class="btn btn-ghost" @click="emit('drop')">
+      <AppIcon name="x" />{{ t('scan.dz.change') }}
+    </button>
   </div>
 </template>
 
