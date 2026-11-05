@@ -47,7 +47,7 @@ pnpm server              # API on http://localhost:3000
 pnpm dev                 # app on http://localhost:5173 (second terminal)
 ```
 
-No Atlas account? `pnpm server:local` runs the API with a throwaway local database (see `docs/auth.md`).
+No Atlas account? `pnpm server:local` runs the API with a throwaway local database.
 
 ### Environment variables
 
@@ -105,7 +105,6 @@ pnpm format              # Prettier
 
 ```
 api/index.js        Vercel entry: runs the Express app as one function
-docs/               Data contracts (scan, auth, care, chat, doses, history, Google)
 e2e/, e2e-simple/   Playwright specs
 load/               k6 load test
 public/samples/     Sample label and bill images
