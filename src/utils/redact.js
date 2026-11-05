@@ -7,10 +7,11 @@ let worker = null
 // The shared OCR worker, started on first use.
 function getWorker() {
   // A failed start (e.g. offline) is forgotten, so the next photo tries again.
-  worker ??= createWorker('eng').catch((err) => {
-    worker = null
-    throw err
-  })
+  if (!worker)
+    worker = createWorker('eng').catch((err) => {
+      worker = null
+      throw err
+    })
   return worker
 }
 
