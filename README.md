@@ -129,28 +129,38 @@ CONTRIBUTING.md     Branching, pull requests, file ownership
 
 ## Where AI was used
 
-The features, user flows and task split were defined by the team in our proposal. Each member used Claude Code to guide them through their own area, then built on, reviewed, integrated, tested and debugged the result.
+The team defined the application's features, user flows and division of work. Claude Code was used as a development assistant to help plan the initial skeleton structure and file hierarchy for the application and for individual features. It provided starting structures for views, components and supporting files, explained implementation approaches, and helped troubleshoot issues. Each member then adapted the starting points for their assigned feature, implemented and integrated the required behaviour, and reviewed and tested the resulting code.
 
-| Where | How | AI Used | Name |
+| Feature / Area | How Claude Code was used | AI Used | Member |
 | --- | --- | --- | --- |
-| Scan, Confirm, Explain views | Skeleton code (views, components, file layout) for Scan, Confirm and Explain, the read-aloud component and the confirm-field component, with guidance on implementing them | Claude Code | Asher |
-| App shell and Home styling | Skeleton structure for the app shell and Home styling, with guidance on layout and styling | Claude Code | Isaac |
-| Schedule redesign | Skeleton code for ScheduleView and WeekView, with guidance on implementing them | Claude Code | Lokesh |
-| Bill "doesn't add up" notes | Skeleton code for the notes in Confirm and Bill | Claude Code | Lokesh |
-| Day/night mode | First implementation (Account page, theme prompt), then reviewed and adjusted | Claude Code | Zachary |
-| Frontend restructuring (2 Nov 2026) | First implementation of Pinia stores, Axios through `src/api/client.js`, Vitest, and splitting large views into components. Touched files owned by every member | Claude Code | Zachary |
-| Bug fixes | Dose-card and History delete dialog focus handling, caregiver invite link, "Not ticked yet" calendar alert | Claude Code | Zachary |
-| Gemini fallback | Model fallback and thinking settings in `server/services/gemini.js` | Claude Code | Zachary |
-| Tests | Vitest unit and API tests, k6 load test (`load/`), mock AI responses (`server/fixtures/`), sample label and bill images (`public/samples/`) | Claude Code | Zachary |
-| E2E tests | "E2E complex" (`e2e/`, AI mocked, includes axe and senior-friendly checks) was written by Claude. "E2E simple" (`e2e-simple/`) was written by our team, not by Claude | Claude Code | Zachary |
-| Demo data | Seeded medicines, saved scans and dose ticks for the demo accounts (`server/scripts/demo-data.js`, `seed-demo-accounts.js`) | Claude Code | Zachary |
-| UI/UX and accessibility | Layout and theme ideas, axe checks with small fixes such as font sizes and focus rings | Claude Code | Zachary |
-| Documentation and formatting | README.md, `docs/` data contracts, E2E_REPORT.md, Prettier formatting, code comment cleanup (Nov 2026, comments only) | Claude Code | Zachary |
-| Research and debugging | Library and API documentation, free-tier limits, error-message meanings, debugging hints, boilerplate | Claude Code | All |
+| Scan, Confirm and Explain | Guided the initial structure of the three-step scanning flow, including the Scan, Confirm and Explain views and supporting components such as the photo picker, confirm-field component and read-aloud component. It helped plan how scan results move between these views and how users can review and correct extracted fields before proceeding to an explanation. | Claude Code | Asher |
+| Language support and read-aloud interface | Helped establish the component structure and implementation approach for the language switcher and read-aloud experience across the scan and explanation flow. Asher adapted the structure and worked on the translations and user-facing behaviour. | Claude Code | Asher |
+| App shell, Home and shared design | Provided the initial skeleton and file/component hierarchy for the application shell and Home page. It guided the layout of shared navigation, page structure and Home entry points, which Isaac then developed into the application's shared interface and design system. | Claude Code | Isaac |
+| Login, Signup and frontend account/history pages | Helped plan the page and component structure and how these pages fit into the app shell and navigation. Isaac adapted the generated starting structures for the frontend pages and their interactions. Backend account, database and history services are attributed separately to Sheen Hern. | Claude Code | Isaac |
+| Backend foundations: database, accounts, history and caregivers | For the backend areas owned by Sheen Hern, Claude Code was used to guide the initial organisation of the server-side structure and file hierarchy, and to explain implementation approaches for the database models and the account, history and caregiver-related services. Sheen then developed and integrated these backend features. | Claude Code | Sheen Hern |
+| Cloud read-aloud and deployment | Helped with the initial structure and implementation guidance for the server-side read-aloud and deployment-related work. Sheen integrated these with the backend and application deployment setup. | Claude Code | Sheen Hern |
+| Medication Schedule | Guided the Schedule redesign by generating initial structures for `ScheduleView` and `WeekView`, and advising on how to organise the Today view, weekly timetable and medicine list. It also helped with the structure of the supporting schedule components and their interactions. | Claude Code | Lokesh |
+| Bill breakdown and subsidy questionnaire | Assisted with the initial structure of the Bill page and supporting components, including the bill breakdown and subsidy questionnaire. It also helped design the “doesn't add up” notes in Confirm and Bill, which flag differences between bill line items, subtotals and totals. | Claude Code | Lokesh |
+| Scan API, photo reading and on-device covering | Helped guide the backend scan flow and the structure of the scan-related services. It was also used to investigate implementation approaches for AI-based photo reading and the on-device covering/redaction workflow. Zachary implemented and integrated these with the frontend scan process. | Claude Code | Zachary |
+| Ask chatbot | Helped plan the chatbot component structure and the flow for submitting medicine-related questions and displaying responses. It was also used to research and compare suitable AI APIs for the chatbot implementation. | Claude Code | Zachary |
+| Google Calendar reminders | Provided implementation guidance and starter structures for connecting medicine schedules with Google Calendar reminders. Zachary adapted and integrated the feature with the application's schedule and backend. | Claude Code | Zachary |
+| Day/night mode | Generated the first implementation of the theme functionality, including the Account page controls and theme prompt. Zachary reviewed and adjusted the implementation to fit the existing interface. | Claude Code | Zachary |
+| Frontend restructuring (2 November 2026) | Guided the restructuring and helped with the first implementation of Pinia stores for shared state, centralising frontend HTTP requests through Axios in `src/api/client.js`, introducing Vitest, and splitting large views into smaller components. This work touched files owned by multiple members and was subsequently reviewed and integrated. | Claude Code | Zachary |
+| Gemini fallback | Helped implement model fallback and thinking settings in `server/services/gemini.js`. Zachary reviewed and adjusted the implementation for the backend's Gemini integration. | Claude Code | Zachary |
+| Bug fixes and integration | Assisted with investigating and fixing issues found during integration and testing, including dose-card and History delete-dialog focus handling, caregiver invitation links, and the “Not ticked yet” calendar alert. | Claude Code | Zachary |
+| Unit, API and supporting test materials | Helped generate Vitest unit and API test scaffolding, mock AI responses in `server/fixtures/`, the k6 load-test starting point in `load/`, and sample label and bill images in `public/samples/`. The team reviewed and adapted these materials. | Claude Code | Zachary |
+| Complex E2E tests | Generated the Playwright E2E suite in `e2e/`, including its test structure and scenarios that run with mocked AI responses. The suite also includes accessibility checks using axe-core and checks for senior-friendly interactions. | Claude Code | Zachary |
+| Simple E2E tests (50 test cases) | Claude Code was used to generate and guide the Playwright setup and overall test-file structure in `e2e-simple/`. The 50 simple test cases themselves were written by the team, not generated by Claude Code. Each member wrote tests for the features under their respective responsibilities: Asher for Scan/Confirm/Explain and language/read-aloud; Isaac for the app shell and frontend pages; Sheen Hern for backend account, history and caregiver-related flows; Lokesh for Schedule and Bill; and Zachary for scan API, Ask chatbot and integration-related flows. | Claude Code (setup and scaffolding only); test cases written by team | All members |
 
-Not AI-generated: the rule-based schedule, subsidy and bill-check logic, and the explanation templates are our own rules. At runtime the app calls Gemini (and Groq as backup) only to read text from photos and to answer Ask chatbot questions; explanations shown to users come from human-checked templates.
+### How the team used Claude Code
 
-TODO: team to confirm which members wrote which of these rules.
+Claude Code was used as a guide and a starting point rather than as a replacement for each member's development work. For an assigned feature, the member described the intended functionality and user flow, asked Claude Code to suggest a suitable file hierarchy and view/component structure, and used its generated skeleton as a starting point. Members then filled in and adapted the feature-specific implementation, connected it to the relevant stores and API calls, incorporated the required UI behaviour, and tested and debugged the result as part of the integrated application.
+
+Other development assistance included looking up library and API documentation, checking AI service free-tier limits, interpreting error messages, explaining code and debugging approaches, suggesting UI/UX and accessibility improvements, and helping with project documentation and formatting.
+
+### Work not generated by AI
+
+The application's core rule-based behaviour was designed and implemented by the team rather than generated as AI output. This includes the medicine scheduling rules, subsidy and bill-check calculations, and the human-checked explanation templates. At runtime, Gemini (with Groq as a backup where configured) is used for photo text extraction and to answer questions in the Ask chatbot; the explanations presented to users are based on the team's pre-written templates.
 
 ## Team
 
@@ -161,6 +171,7 @@ TODO: team to confirm which members wrote which of these rules.
 | Asher | Scan, Confirm and Explain pages, translations, read-aloud |
 | Lokesh | Schedule and Bill pages, subsidy rules, samples |
 | Isaac | Design system, app shell, Home, Login, Account and History pages |
+
 
 TODO: confirm names and contributions above.
 
