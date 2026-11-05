@@ -305,8 +305,12 @@ async function removed(id) {
         </div>
       </div>
 
-      <!-- ===== Medicines ===== -->
-      <template v-if="tab === 'medication'">
+      <!-- ===== Medicines ===== (each list's parts rise into place when it opens: tab-in, styles/global/motion.css) -->
+      <div
+        v-if="tab === 'medication'"
+        class="tab-in as-contents"
+        data-testid="history-pane-medication"
+      >
         <div v-if="quick.length" class="chips" role="group" :aria-label="t('history.quick')">
           <span class="chips-label" aria-hidden="true">{{ t('history.quick') }}</span>
           <button
@@ -359,29 +363,29 @@ async function removed(id) {
               @click="showOld = !showOld"
             >
               {{ t('history.notTaking', { n: notTaking.length })
-              }}<AppIcon :name="showOld ? 'up' : 'down'" :size="22" />
+              }}<AppIcon name="down" :size="22" class="fold-chev" />
             </button>
             <h2 v-else class="section-label">
               {{ t('history.notTaking', { n: notTaking.length }) }}
             </h2>
-            <ul
-              v-show="showOld || searching"
-              id="not-taking"
-              class="rows"
-              data-testid="history-not-taking"
-            >
-              <li v-for="g in notTaking" :key="g.key">
-                <RouterLink :to="openTo(g.key)" class="row-link" data-testid="history-row">
-                  <KindIcon kind="medication" :size="48" />
-                  <span class="row-words"
-                    ><span class="row-title">{{ g.title }}</span
-                    ><span class="row-sub">{{ rowSub(g) }}</span></span
-                  >
-                  <span class="row-date">{{ savedDay(g.last) }}</span
-                  ><AppIcon name="right" :size="22" class="row-chev" />
-                </RouterLink>
-              </li>
-            </ul>
+            <!-- Opens and closes with a smooth slide; closed, it is hidden from everyone (not just squeezed). -->
+            <div class="fold-body" :class="{ open: showOld || searching }">
+              <div class="fold-inner">
+                <ul id="not-taking" class="rows" data-testid="history-not-taking">
+                  <li v-for="g in notTaking" :key="g.key">
+                    <RouterLink :to="openTo(g.key)" class="row-link" data-testid="history-row">
+                      <KindIcon kind="medication" :size="48" />
+                      <span class="row-words"
+                        ><span class="row-title">{{ g.title }}</span
+                        ><span class="row-sub">{{ rowSub(g) }}</span></span
+                      >
+                      <span class="row-date">{{ savedDay(g.last) }}</span
+                      ><AppIcon name="right" :size="22" class="row-chev" />
+                    </RouterLink>
+                  </li>
+                </ul>
+              </div>
+            </div>
           </section>
         </template>
 
@@ -398,10 +402,10 @@ async function removed(id) {
             </RouterLink>
           </li>
         </ul>
-      </template>
+      </div>
 
       <!-- ===== Bills ===== -->
-      <template v-else>
+      <div v-else class="tab-in as-contents" data-testid="history-pane-bill">
         <section
           v-if="totals.length && !searching"
           class="card year"
@@ -476,7 +480,7 @@ async function removed(id) {
             </li>
           </ul>
         </section>
-      </template>
+      </div>
 
       <p v-if="capped" class="text-muted-a11y m-0">
         {{ t('history.capped', { n: items.length }) }}

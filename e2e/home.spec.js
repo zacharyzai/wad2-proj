@@ -147,11 +147,38 @@ async function mockDoses(page, { at, taken = [], failChanges = false }) {
   return sent
 }
 
-test('Today: no medicines yet says how to get reminders', async ({ page }) => {
+test('Today: no medicines yet is the same card, never bare: the bell in its corner, a picture, a line and a way to start', async ({
+  page,
+  isMobile,
+}) => {
   await page.goto('/')
+  const empty = page.getByTestId('home-today-empty')
+  await expect(page.getByTestId('home-today-empty-title')).toHaveText('No reminders yet')
   await expect(page.getByTestId('home-today')).toContainText(
     'Scan a medicine label and we will remind you when to take it.',
   )
+  // The bell sits in the top left corner, as on a reminder, and opens Schedule.
+  const [box, bell] = await Promise.all([
+    empty.boundingBox(),
+    page.getByTestId('home-today-bell').boundingBox(),
+  ])
+  expect(bell.x - box.x).toBeLessThan(40)
+  expect(bell.y - box.y).toBeLessThan(40)
+  await expect(page.getByTestId('home-today-bell')).toHaveAccessibleName(
+    'No reminders yet. Open my schedule',
+  )
+  if (!isMobile) {
+    // The same size as the greeting beside it, as with medicines.
+    const [greet, today] = await Promise.all([
+      page.locator('.greet-panel').boundingBox(),
+      page.getByTestId('home-today').boundingBox(),
+    ])
+    expect(Math.abs(today.height - greet.height)).toBeLessThan(2)
+  }
+  await page.getByTestId('home-today-scan').click()
+  await expect(page.getByTestId('card-launch')).toHaveAttribute('data-kind', 'med') // the same picture as the Scan card
+  await expect(page).toHaveURL(/\/scan\?type=medication$/)
+  await page.goBack()
   await page.getByTestId('home-today-open').click()
   await expect(page).toHaveURL(/\/schedule$/)
 })

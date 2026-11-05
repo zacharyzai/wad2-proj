@@ -45,7 +45,34 @@
       "upcoming": "待服"
     },
     "notShared": "还未分享",
-    "notSharedText": "{name} 在设备上登录并打开应用后，这里就会显示他们的服药时间表。"
+    "notSharedText": "{name} 在设备上登录并打开应用后，这里就会显示他们的服药时间表。",
+    "overview": {
+      "label": "今天一览",
+      "people": "位老人已连接",
+      "needCall": "位可能需要打电话问问",
+      "allGood": "大家都按时吃药",
+      "doses": "今天已吃的剂量"
+    },
+    "state": {
+      "missed": "需要关心",
+      "done": "今天的药都吃了",
+      "onTrack": "按时进行中",
+      "none": "今天没有药",
+      "notShared": "还没有分享"
+    },
+    "progress": "已吃 {taken} / {total} 剂",
+    "next": "下一剂",
+    "nextNone": "今天没有了",
+    "meds": "药物",
+    "medsCount": "{n} 种药",
+    "since": "连接日期",
+    "open": "查看今天的药物",
+    "hero": {
+      "today": "今天的药物",
+      "readOnly": "只能查看",
+      "statsLabel": "今天到目前为止",
+      "done": "完成"
+    }
   },
   "invite": {
     "title": "{name} 想请您当他/她的照护者",
@@ -166,7 +193,9 @@
       "saved": "已记录为已服用。",
       "loadFailed": "暂时无法查看今天的服药记录。请打开时间表查看。",
       "nextChip": "下一次",
-      "rest": "今天没有其他要服的药了。"
+      "rest": "今天没有其他要服的药了。",
+      "emptyTitle": "还没有提醒",
+      "emptyGo": "扫描第一个标签"
     }
   },
   "scan": {

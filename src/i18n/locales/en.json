@@ -67,7 +67,34 @@
       "upcoming": "To come"
     },
     "notShared": "Not shared yet",
-    "notSharedText": "{name}'s schedule will show here once they open the app on their device while logged in."
+    "notSharedText": "{name}'s schedule will show here once they open the app on their device while logged in.",
+    "overview": {
+      "label": "Today at a glance",
+      "people": "person linked | people linked",
+      "needCall": "may need a call | may need a call",
+      "allGood": "Everyone is on track",
+      "doses": "doses taken today"
+    },
+    "state": {
+      "missed": "Needs a check",
+      "done": "All taken today",
+      "onTrack": "On track",
+      "none": "No doses today",
+      "notShared": "Not shared yet"
+    },
+    "progress": "{taken} of {total} doses taken",
+    "next": "Next dose",
+    "nextNone": "None left today",
+    "meds": "Medicines",
+    "medsCount": "{n} medicine | {n} medicines",
+    "since": "Linked since",
+    "open": "See today’s medicines",
+    "hero": {
+      "today": "Today’s medicines",
+      "readOnly": "Read only",
+      "statsLabel": "Today so far",
+      "done": "done"
+    }
   },
   "invite": {
     "title": "{name} would like you to be their caregiver",
@@ -166,7 +193,9 @@
       "saved": "Marked as taken.",
       "loadFailed": "We could not check today’s doses just now. Open your schedule to see them.",
       "nextChip": "Next",
-      "rest": "Nothing more to take today."
+      "rest": "Nothing more to take today.",
+      "emptyTitle": "No reminders yet",
+      "emptyGo": "Scan my first label"
     }
   },
   "scan": {

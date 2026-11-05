@@ -13,7 +13,32 @@ const SENIOR = { ...DEMO_USER, role: 'senior' }
 const TOKEN = 'e'.repeat(32)
 
 const SENIORS = {
-  seniors: [{ id: 'u2', name: 'Mei Ling Tan', today: { taken: 1, missed: 1, upcoming: 1 } }],
+  seniors: [
+    {
+      id: 'u2',
+      name: 'Mei Ling Tan',
+      today: { taken: 1, missed: 1, upcoming: 1 },
+      since: '2026-10-03T02:00:00Z',
+      next: { time: '21:00', label: 'Metformin 500mg' },
+      medicines: 2,
+    },
+  ],
+}
+const ALL_TAKEN = {
+  id: 'u3',
+  name: 'Ahmad Bin Ali',
+  today: { taken: 2, missed: 0, upcoming: 0 },
+  since: '2026-11-01T02:00:00Z',
+  next: null,
+  medicines: 1,
+}
+const NOT_SHARED = {
+  id: 'u4',
+  name: '陈美玲',
+  today: null,
+  since: '2026-11-04T02:00:00Z',
+  next: null,
+  medicines: null,
 }
 const TODAY = {
   senior: { id: 'u2', name: 'Mei Ling Tan' },
@@ -93,6 +118,58 @@ test.describe('caregiver-only tab', () => {
     await expect(page.getByRole('link', { name: 'My seniors' }).first()).toBeVisible()
     await expect(page.getByTestId('care-senior')).toContainText('Mei Ling Tan')
     await expect(page.getByTestId('care-senior')).toContainText('1 not ticked')
+  })
+
+  test('My seniors: the whole picture in three tiles, then each senior in words, a bar, and the details a caregiver asks about', async ({
+    page,
+  }) => {
+    await signIn(page, CAREGIVER)
+    await page.route('**/api/care/seniors', (route) =>
+      route.fulfill(ok({ seniors: [...SENIORS.seniors, ALL_TAKEN, NOT_SHARED] })),
+    )
+    await page.goto('/care')
+    const tiles = page.getByTestId('care-overview')
+    await expect(tiles).toContainText('3people linked')
+    await expect(page.getByTestId('care-overview-call')).toHaveText('1may need a call') // Mei Ling has a dose not ticked
+    await expect(tiles).toContainText('3/5doses taken today')
+    const [mei, ahmad, chen] = [0, 1, 2].map((i) => page.getByTestId('care-senior').nth(i))
+    await expect(mei).toHaveAttribute('data-state', 'missed')
+    await expect(mei).toContainText('Needs a check')
+    await expect(mei).toContainText('1 of 3 doses taken')
+    await expect(mei.getByTestId('care-next')).toHaveText(/^9:00\sPM · Metformin 500mg$/)
+    await expect(mei).toContainText('2 medicines')
+    await expect(mei).toContainText(/Oct 3, 2026|3 Oct 2026/) // linked since
+    await expect(ahmad).toContainText('All taken today')
+    await expect(ahmad.getByTestId('care-next')).toHaveText('None left today')
+    await expect(chen).toContainText('Not shared yet')
+    await expect(chen.getByTestId('care-next')).toHaveCount(0) // nothing invented before a timetable is shared
+    await mei.click()
+    await expect(page).toHaveURL(/\/care\/u2$/)
+  })
+
+  test("a senior's page opens with their card: name, how today is going, the counts, the next dose, and Refresh", async ({
+    page,
+  }) => {
+    await signIn(page, CAREGIVER)
+    await page.route('**/api/care/seniors/u2/today', (route) =>
+      route.fulfill(ok({ ...TODAY, medicines: [METFORMIN, PANADOL] })),
+    )
+    await page.goto('/care/u2')
+    const hero = page.getByTestId('care-hero')
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText(
+      'Mei Ling TanToday’s medicines',
+    )
+    await expect(page.getByTestId('care-hero-state')).toHaveText('Needs a check')
+    await expect(page.getByTestId('care-hero-taken')).toHaveText('1Taken')
+    await expect(page.getByTestId('care-hero-missed')).toHaveText('1Not ticked')
+    await expect(page.getByTestId('care-hero-upcoming')).toHaveText('1To come')
+    await expect(page.getByTestId('care-hero-next')).toHaveText(/^9:00\sPM · Metformin 500mg$/)
+    await expect(hero).toContainText('2 medicines')
+    await expect(hero).toContainText('Read only')
+    await expect(hero).toContainText('Only Mei Ling Tan can change them.')
+    await expect(page.getByTestId('care-updated')).toBeVisible()
+    await hero.getByRole('link', { name: 'Back' }).click()
+    await expect(page).toHaveURL(/\/care$/)
   })
 
   test('a caregiver with no seniors is told how to get an invite', async ({ page }) => {

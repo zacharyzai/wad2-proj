@@ -154,6 +154,22 @@ test('find a medicine by what it is for: "diabetes", an everyday word, or anothe
   await expect(row).toContainText('Metformin 500 mg')
 })
 
+test('"No longer taking" slides open and closed', async ({ page }) => {
+  await setUp(page)
+  await page.goto('/history')
+  const fold = page.getByTestId('history-not-taking-toggle')
+  const list = page.getByTestId('history-not-taking')
+  await expect(list).toBeHidden()
+  await fold.click()
+  await expect(fold).toHaveAttribute('aria-expanded', 'true')
+  await expect(list).toBeVisible()
+  await expect
+    .poll(() => list.evaluate((e) => e.getBoundingClientRect().height))
+    .toBeGreaterThan(100) // slid open
+  await fold.click()
+  await expect(list).toBeHidden() // closed: hidden from everyone, not just squeezed
+})
+
 test('a medicine opens to every scan of it, each with Listen again and Delete; Back returns to the list', async ({
   page,
 }) => {

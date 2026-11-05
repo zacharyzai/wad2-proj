@@ -190,6 +190,58 @@
 .fold:hover {
   color: var(--color-text);
 }
+/* "No longer taking": the arrow turns, and the list slides open (its rows following one after another) or closed. */
+.fold-chev {
+  transition: rotate 320ms var(--ease-out);
+}
+.fold[aria-expanded='true'] .fold-chev {
+  rotate: 180deg;
+}
+.fold-body {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 380ms var(--ease-out);
+}
+.fold-body.open {
+  grid-template-rows: 1fr;
+}
+.fold-inner {
+  min-height: 0;
+  overflow: hidden;
+  visibility: hidden;
+  transition: visibility 0s 380ms;
+}
+.fold-body.open .fold-inner {
+  visibility: visible;
+  transition: none;
+}
+.fold-body.open .rows li {
+  animation: fold-row 420ms var(--ease-settle) both;
+}
+.fold-body.open .rows li:nth-child(2) {
+  animation-delay: 50ms;
+}
+.fold-body.open .rows li:nth-child(3) {
+  animation-delay: 100ms;
+}
+.fold-body.open .rows li:nth-child(n + 4) {
+  animation-delay: 150ms;
+}
+@keyframes fold-row {
+  from {
+    transform: translateY(-10px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fold-chev,
+  .fold-body,
+  .fold-inner {
+    transition: none;
+  }
+  .fold-body.open .rows li {
+    animation: none;
+  }
+}
 
 /* Bills: what was paid at each clinic this year, and a heading per month. */
 .year {

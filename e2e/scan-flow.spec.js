@@ -203,22 +203,21 @@ test('the picture cards breathe at rest; with a mouse they rest in teal, and the
   await expect.poll(() => tint(bill)).toBe('0')
 })
 
-for (const [kind, url] of [
-  ['medication', /\/scan\?type=medication$/],
-  ['bill', /\/scan\?type=bill$/],
+for (const [kind, picture, url] of [
+  ['medication', 'med', /\/scan\?type=medication$/],
+  ['bill', 'bill', /\/scan\?type=bill$/],
 ]) {
-  test(`picking ${kind}: its own short picture plays first, then its scan page opens`, async ({
+  test(`picking ${kind}: Home's own picture for it plays first, then its scan page opens under it`, async ({
     page,
   }) => {
     await page.goto('/scan')
     await page.getByTestId(`choose-${kind}`).click()
-    const launch = page.getByTestId('scan-launch')
-    await expect(launch).toHaveAttribute('data-kind', kind)
+    const launch = page.getByTestId('card-launch')
+    await expect(launch).toHaveAttribute('data-kind', picture) // the same picture as Home's card for it
     await expect(launch).toHaveAttribute('aria-hidden', 'true') // decoration: the scan page says where you are
-    await expect(launch.locator('.sl-item')).toHaveCount(12)
     await expect(page).toHaveURL(/\/scan$/) // still the question while it plays
     await expect(page).toHaveURL(url)
-    await expect(launch).toHaveCount(0) // gone with the question
+    await expect(launch).toHaveCount(0) // then it fades away
   })
 }
 
@@ -229,7 +228,7 @@ test('reduced motion: picking a card opens its scan page at once, with no pictur
   await page.goto('/scan')
   await page.getByTestId('choose-bill').click()
   await expect(page).toHaveURL(/\/scan\?type=bill$/)
-  await expect(page.getByTestId('scan-launch')).toHaveCount(0)
+  await expect(page.getByTestId('card-launch')).toHaveCount(0)
   expect(await page.getByTestId('choose-bill').count()).toBe(0)
 })
 

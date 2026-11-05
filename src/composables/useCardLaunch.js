@@ -1,24 +1,38 @@
-// Shared state and start function for the card-launch animation.
-import { reactive } from 'vue'
+// Shared state and start function for the card-launch animation (Home's cards and Scan's cards).
+import { nextTick, reactive } from 'vue'
 
 export const LAUNCH_MS = 1000
-// kind: 'med' | 'bill' | 'ask' | 'schedule' while one plays; x, y: the centre of the card it came from.
-export const cardLaunch = reactive({ kind: null, x: 0, y: 0 })
+export const LEAVE_MS = 320
+// kind: 'med' | 'bill' | 'ask' | 'schedule' while one plays; x, y: the centre of what was tapped; leaving: fading away.
+export const cardLaunch = reactive({ kind: null, x: 0, y: 0, leaving: false })
 let timer = 0
 
-// For a RouterLink with `custom` (v-slot="{ navigate }"): launch(event, 'med', navigate).
-export function launch(event, kind, navigate) {
+// For a RouterLink with `custom` (v-slot="{ navigate }"): launch(event, 'med', navigate). Or any change on the same page:
+// launch(event, 'bill', () => emit('pick', 'bill'), { inPage: true }).
+export function launch(event, kind, navigate, { inPage = false } = {}) {
   if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button > 0) return // the browser opens it
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) return navigate(event)
   event.preventDefault()
   if (cardLaunch.kind) return // already on its way: a second tap does nothing
   const box = event.currentTarget.getBoundingClientRect()
-  Object.assign(cardLaunch, { kind, x: box.left + box.width / 2, y: box.top + box.height / 2 })
-  timer = setTimeout(() => navigate(), LAUNCH_MS)
+  Object.assign(cardLaunch, {
+    kind,
+    x: box.left + box.width / 2,
+    y: box.top + box.height / 2,
+    leaving: false,
+  })
+  timer = setTimeout(async () => {
+    await navigate()
+    if (!inPage) return
+    await nextTick() // the new tab is drawn under the picture...
+    cardLaunch.leaving = true // ...which then fades away
+    timer = setTimeout(endLaunch, LEAVE_MS)
+  }, LAUNCH_MS)
 }
 
-// Home closing (the page has opened, or Back): the picture goes with it.
+// The page closing (it has opened, or Back), or the picture has faded: it goes.
 export function endLaunch() {
   clearTimeout(timer)
   cardLaunch.kind = null
+  cardLaunch.leaving = false
 }

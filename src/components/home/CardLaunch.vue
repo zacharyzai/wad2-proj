@@ -1,4 +1,4 @@
-<!-- Full-screen animation that plays when a Home tile is tapped, before the next page opens. -->
+<!-- Full-screen animation that plays when a Home tile or a Scan card is tapped, before what it opens. -->
 <script setup>
 import { computed } from 'vue'
 import { cardLaunch } from '../../composables/useCardLaunch'
@@ -11,7 +11,7 @@ const from = computed(() => ({ '--x': `${cardLaunch.x}px`, '--y': `${cardLaunch.
     <div
       v-if="cardLaunch.kind"
       class="launch"
-      :class="`launch-${cardLaunch.kind}`"
+      :class="[`launch-${cardLaunch.kind}`, { leaving: cardLaunch.leaving }]"
       :style="from"
       aria-hidden="true"
       data-testid="card-launch"
@@ -124,6 +124,16 @@ const from = computed(() => ({ '--x': `${cardLaunch.x}px`, '--y': `${cardLaunch.
 }
 .launch-schedule {
   --hue: #fff1d6;
+}
+/* Same page: once the new tab is drawn under it, the picture fades away. */
+.launch.leaving {
+  pointer-events: none;
+  animation: launch-out 320ms ease-in forwards;
+}
+@keyframes launch-out {
+  to {
+    opacity: 0;
+  }
 }
 @keyframes wash {
   from {

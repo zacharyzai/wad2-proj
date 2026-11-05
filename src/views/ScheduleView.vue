@@ -283,7 +283,8 @@ onBeforeUnmount(() => {
       >
     </EmptyState>
 
-    <div v-else-if="view === 'today'" class="d-flex flex-column gap-4">
+    <!-- Each tab's parts rise into place when it opens (tab-in, styles/global/motion.css). -->
+    <div v-else-if="view === 'today'" class="tab-in d-flex flex-column gap-4">
       <DayStrip :entries="entries" :selected="day" @select="pickDay" />
       <Transition :name="`day-${slide}`" mode="out-in">
         <TodayList
@@ -297,7 +298,7 @@ onBeforeUnmount(() => {
       </Transition>
     </div>
 
-    <div v-else-if="view === 'meds'" class="d-flex flex-column gap-4">
+    <div v-else-if="view === 'meds'" class="tab-in d-flex flex-column gap-4">
       <section v-if="timetable.length" aria-labelledby="meds-title" data-testid="schedule-meds">
         <h2 id="meds-title" class="visually-hidden">{{ t('schedule.meds.title') }}</h2>
         <ul class="med-grid" @keydown.esc="onEsc">
@@ -349,7 +350,7 @@ onBeforeUnmount(() => {
     <!-- Reminders on the phone's own calendar, under My medicines. One card, always mounted (hidden on Today): every edit
          or Remove still reaches Google, even removing the last medicine (its reminders are deleted), and switching tabs
          doesn't ask Google again. -->
-    <div v-show="view === 'meds'" class="rem-grid">
+    <div v-show="view === 'meds'" class="rem-grid tab-in">
       <CalendarSync class="g-cal" :entries="entries" @notify="notify" />
     </div>
 

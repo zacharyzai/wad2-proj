@@ -400,7 +400,15 @@ test('deleted senior invites cannot be previewed/accepted; today is only readabl
   assert.equal((await accept(cg, i.token)).status, 200)
   // Never saved a timetable: "not shared yet", never invented zero counts.
   const [listed] = (await (await care('/seniors', { token: cg.token })).json()).data.seniors
-  assert.deepEqual(listed, { id: owner.id, name: 'Test User', today: null })
+  assert.deepEqual(listed, {
+    id: owner.id,
+    name: 'Test User',
+    today: null,
+    since: listed.since,
+    next: null,
+    medicines: null,
+  })
+  assert.ok(!Number.isNaN(Date.parse(listed.since))) // when the link was made
   const today = (await (await care(`/seniors/${owner.id}/today`, { token: cg.token })).json()).data
   assert.deepEqual(today, {
     senior: { id: owner.id, name: 'Test User' },

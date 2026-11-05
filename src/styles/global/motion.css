@@ -42,6 +42,60 @@
   animation-delay: calc(var(--stagger) * 5);
 }
 
+/* Switching tabs (Asher): Schedule's Today / My medicines and History's Medicines / Bills. The new tab's parts rise into
+   place one after another, and the cards and rows inside them follow, as a page's own do when it opens, rather than the
+   page just changing. Moved, never faded, so the words are always readable. Backwards fill only: once in place, nothing
+   holds on to them (a card brought forward on My medicines still moves freely). Reduced motion: they are simply there. */
+@keyframes tab-rise {
+  from {
+    transform: translateY(14px);
+  }
+} /* moved only: sizes never change while it plays */
+.tab-in.as-contents {
+  display: contents;
+}
+.tab-in > *,
+.tab-in .med-grid > li,
+.tab-in .rows > li {
+  animation: tab-rise 460ms var(--ease-settle) backwards;
+}
+.tab-in > :nth-child(2) {
+  animation-delay: 60ms;
+}
+.tab-in > :nth-child(3) {
+  animation-delay: 120ms;
+}
+.tab-in > :nth-child(n + 4) {
+  animation-delay: 180ms;
+}
+.tab-in .med-grid > li:nth-child(1),
+.tab-in .rows > li:nth-child(1) {
+  animation-delay: 80ms;
+}
+.tab-in .med-grid > li:nth-child(2),
+.tab-in .rows > li:nth-child(2) {
+  animation-delay: 130ms;
+}
+.tab-in .med-grid > li:nth-child(3),
+.tab-in .rows > li:nth-child(3) {
+  animation-delay: 180ms;
+}
+.tab-in .med-grid > li:nth-child(4),
+.tab-in .rows > li:nth-child(4) {
+  animation-delay: 230ms;
+}
+.tab-in .med-grid > li:nth-child(n + 5),
+.tab-in .rows > li:nth-child(n + 5) {
+  animation-delay: 280ms;
+}
+@media (prefers-reduced-motion: reduce) {
+  .tab-in > *,
+  .tab-in .med-grid > li,
+  .tab-in .rows > li {
+    animation: none;
+  }
+}
+
 /* Busy ring (Scan): the turning ring (Spinner) in a card, with two soft pulsing rings around it */
 .progress-ring {
   position: relative;

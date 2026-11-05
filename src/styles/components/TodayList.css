@@ -440,10 +440,10 @@
   }
 }
 
-/* Success after a tick, quick and plain: a soft glow sweeps the whole card from its left edge to its right at one speed
-   (0.7 s), its front edge brightest, then fades. The moment the front edge reaches the ring (--arrive, worked out in
-   TodayList.vue from where the ring is: --rx, --ry), it is logged: two rings ripple out of the progress ring, the ring
-   glows, the card's edge flashes green, "+1" floats up from Taken, and the % counts up. */
+/* Success after a tick, one calm sequence (TodayList.vue times it): a soft glow sweeps the whole card from its left edge to
+   its right at one speed (0.7 s), its front edge brightest, then fades. As it reaches the ring: Taken bumps and "+1"
+   floats up, two rings ripple out of the progress ring (inside its own box, so always centred on it), the ring glows,
+   the card's edge flashes green, the % counts up, and on the last dose "Well done!" slides in. */
 .pc-sweep {
   position: absolute;
   inset: 0;
@@ -474,22 +474,6 @@
   width: 56px;
   background: linear-gradient(90deg, transparent, rgba(220, 255, 230, 0.6), transparent);
 } /* the bright front edge */
-.pc-ripple {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 104px;
-  height: 104px;
-  margin: -52px 0 0 -52px;
-  border-radius: 50%;
-  border: 3px solid #b9f5c9;
-  transform: translate(var(--rx), var(--ry));
-  opacity: 0;
-  animation: ripple 800ms var(--ease-out) var(--arrive) both;
-}
-.pc-ripple.late {
-  animation-delay: calc(var(--arrive) + 180ms);
-}
 .progress-card > :not(.pc-sweep) {
   position: relative;
   z-index: 1;
@@ -503,6 +487,22 @@
     0 0 0 4px rgba(185, 245, 201, 0.35),
     0 18px 40px -18px rgba(26, 90, 140, 0.55);
 }
+.ring-wrap {
+  position: relative;
+  flex: none;
+  display: grid;
+}
+.pc-ripple {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 3px solid #b9f5c9;
+  pointer-events: none;
+  animation: ripple 800ms var(--ease-out) both;
+}
+.pc-ripple.late {
+  animation-delay: 180ms;
+}
 .ring {
   transition:
     filter 300ms var(--ease-out),
@@ -510,13 +510,13 @@
 }
 .ring.landed {
   filter: drop-shadow(0 0 12px rgba(185, 245, 201, 0.9));
-  scale: 1.08;
+  scale: 1.06;
 }
 .pc-taken {
   position: relative;
 }
 .pc-stats b.bump {
-  animation: bump 500ms var(--ease-settle) var(--arrive, 500ms) both;
+  animation: bump 500ms var(--ease-settle);
 }
 .pc-plus {
   position: absolute;
@@ -526,8 +526,21 @@
   font-weight: 800;
   color: #b9f5c9;
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-  opacity: 0;
-  animation: plus 1200ms var(--ease-out) var(--arrive, 500ms) both;
+  pointer-events: none;
+  animation: plus 1200ms var(--ease-out) both;
+}
+/* "Well done!": slides open, so the card grows smoothly instead of jumping. */
+.pc-done {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 420ms var(--ease-out);
+}
+.pc-done.open {
+  grid-template-rows: 1fr;
+}
+.pc-done-inner {
+  min-height: 0;
+  overflow: hidden;
 }
 /* The glow: from off the left edge to covering the card, its front edge moving at one speed; then it fades. */
 @keyframes trail {
@@ -549,7 +562,7 @@
     opacity: 0.9;
   }
   100% {
-    scale: 1.7;
+    scale: 1.6;
     opacity: 0;
   }
 }
@@ -576,16 +589,38 @@
     color: #b9f5c9;
   }
 }
+/* The "Time for…" box folding away once its doses are taken (its height is held first, in TodayList.vue). */
+.due-out-leave-active {
+  overflow: hidden;
+  transition:
+    max-height 420ms var(--ease-out),
+    opacity 280ms var(--ease-out),
+    padding 420ms var(--ease-out),
+    margin 420ms var(--ease-out),
+    border-width 420ms var(--ease-out),
+    transform 420ms var(--ease-out);
+}
+.due-out-leave-to {
+  max-height: 0 !important;
+  opacity: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  margin-bottom: -1.5rem;
+  border-width: 0;
+  transform: scale(0.98);
+}
 @media (prefers-reduced-motion: reduce) {
   .pc-sweep,
-  .pc-plus {
+  .pc-plus,
+  .pc-ripple {
     display: none;
   }
   .pc-stats b.bump {
     animation: none;
   }
   .ring,
-  .progress-card {
+  .progress-card,
+  .pc-done {
     transition: none;
   }
   .ring.landed {

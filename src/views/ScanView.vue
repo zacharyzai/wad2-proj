@@ -11,6 +11,8 @@ import { compress, fitUpload, loadImage, toJpeg } from '../utils/images'
 import { MAX_PAGES } from '../utils/pdfToImage'
 import { useScanStore } from '../stores/scan'
 import ScanPicker from '../components/scan/ScanPicker.vue'
+import CardLaunch from '../components/home/CardLaunch.vue'
+import { endLaunch } from '../composables/useCardLaunch'
 import ScanKindPage from '../components/scan/ScanKindPage.vue'
 import LiveCamera from '../components/scan/LiveCamera.vue'
 import ScanPages from '../components/scan/ScanPages.vue'
@@ -87,6 +89,7 @@ function scanPending() {
   useFiles([file], type.value)
 }
 onBeforeUnmount(dropPending)
+onBeforeUnmount(endLaunch) // the picker's picture (Home's own) goes with the page
 
 const REVEAL_MS = 1100 // matches the cover-wipe animation in ScanBusy.css
 // One limit for a whole scan, tap to answer: covering gets up to 12 s of it per page, the request the rest (the server's AI
@@ -532,4 +535,6 @@ onMounted(() => {
     @files="(files) => useFiles(files, type)"
     @sample="trySample"
   />
+  <!-- Picking label or bill plays Home's own picture first (ScanPicker.vue), and it fades away over the scan page. -->
+  <CardLaunch />
 </template>

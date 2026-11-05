@@ -45,7 +45,34 @@
       "upcoming": "Akan datang"
     },
     "notShared": "Belum dikongsi",
-    "notSharedText": "Jadual {name} akan dipaparkan di sini selepas mereka membuka aplikasi di peranti mereka dan log masuk."
+    "notSharedText": "Jadual {name} akan dipaparkan di sini selepas mereka membuka aplikasi di peranti mereka dan log masuk.",
+    "overview": {
+      "label": "Hari ini sepintas lalu",
+      "people": "orang dihubungkan | orang dihubungkan",
+      "needCall": "mungkin perlu ditelefon | mungkin perlu ditelefon",
+      "allGood": "Semua mengikut jadual",
+      "doses": "dos diambil hari ini"
+    },
+    "state": {
+      "missed": "Perlu disemak",
+      "done": "Semua diambil hari ini",
+      "onTrack": "Mengikut jadual",
+      "none": "Tiada dos hari ini",
+      "notShared": "Belum dikongsi"
+    },
+    "progress": "{taken} daripada {total} dos diambil",
+    "next": "Dos seterusnya",
+    "nextNone": "Tiada lagi hari ini",
+    "meds": "Ubat",
+    "medsCount": "{n} ubat | {n} ubat",
+    "since": "Dihubungkan sejak",
+    "open": "Lihat ubat hari ini",
+    "hero": {
+      "today": "Ubat hari ini",
+      "readOnly": "Baca sahaja",
+      "statsLabel": "Setakat ini hari ini",
+      "done": "selesai"
+    }
   },
   "invite": {
     "title": "{name} mahu anda menjadi penjaganya",
@@ -166,7 +193,9 @@
       "saved": "Ditanda sebagai sudah diambil.",
       "loadFailed": "Kami tidak dapat menyemak dos hari ini sekarang. Buka jadual anda untuk melihatnya.",
       "nextChip": "Seterusnya",
-      "rest": "Tiada lagi ubat untuk diambil hari ini."
+      "rest": "Tiada lagi ubat untuk diambil hari ini.",
+      "emptyTitle": "Belum ada peringatan",
+      "emptyGo": "Imbas label pertama saya"
     }
   },
   "scan": {

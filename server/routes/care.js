@@ -321,9 +321,18 @@ async function medicinesOf(seniorId) {
   return (saved?.medicines ?? []).flatMap((m) => {
     const entry = buildSchedule(m, m.schedule ?? {})
     if (entry.endDate && entry.endDate < today) return []
-    const { purpose = null, rawInstruction = null, warnings = [] } = m.medication
+    const { purpose = null, rawInstruction = null, warnings = [] } = m.medication ?? {}
     return [{ id: m.id, entry, purpose, rawInstruction, warnings }]
   })
+}
+
+// How many medicines, for the list. Never lets one senior's odd saved data break the whole list: unknown (null) instead.
+async function medicineCount(seniorId) {
+  try {
+    return (await medicinesOf(seniorId)).length
+  } catch {
+    return null
+  }
 }
 
 // Summarises a senior's doses today as how many are taken, missed and upcoming.
@@ -343,11 +352,20 @@ router.get('/seniors', ...caregiver, (req, res) =>
       .select('name role')
       .lean()
     const seniors = []
+    const since = new Map(links.map((l) => [String(l.seniorId), l.linkedAt ?? null]))
     for (const person of people.filter((p) => roleOf(p) === 'senior')) {
+      const doses = await dosesToday(person._id)
+      // The next dose still to come today (earliest first), so the list can say what is next without opening the senior.
+      const next = doses
+        ?.filter((d) => d.status === 'upcoming')
+        .sort((a, b) => String(a.time).localeCompare(String(b.time)))[0]
       seniors.push({
         id: String(person._id),
         name: person.name ?? '',
-        today: counts(await dosesToday(person._id)),
+        today: counts(doses),
+        since: since.get(String(person._id)) ?? null,
+        next: next ? { time: next.time, label: next.label } : null,
+        medicines: doses === null ? null : await medicineCount(person._id),
       })
     }
     res.json({ ok: true, data: { seniors } })
