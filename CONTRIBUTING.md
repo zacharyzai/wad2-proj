@@ -14,7 +14,7 @@ Edit your own files freely. Ask the owner before changing someone else's.
 
 | Area | Owner | Files |
 |---|---|---|
-| Repo, scan contract, `/api/scan`, Gemini, Ask chatbot | Zachary | `docs/{scan,chat}-contract.md`, `server/routes/{scan,chat}.js`, `src/views/AskView.vue`, `server/services/`, `server/fixtures/`, `server/middleware/rateLimit.js` |
+| Repo, scan contract, `/api/scan`, Gemini, Ask chatbot | Zachary | `server/routes/{scan,chat}.js`, `src/views/AskView.vue`, `server/services/`, `server/fixtures/`, `server/middleware/rateLimit.js` |
 | DB, auth, history, caregivers, cloud TTS, deploy, README.txt | Sheen Hern | `server/models/`, `server/routes/{auth,history,care,tts}.js`, deploy config |
 | Upload/camera, confirm screen, explanations, i18n, read-aloud | Asher | `src/views/{Scan,Confirm,Explain}View.vue`, `src/components/{scan,explain}/`, `src/i18n/` |
 | Schedule, bill breakdown, subsidy questionnaire, samples | Lokesh | `src/views/{Schedule,Bill}View.vue`, `src/components/{schedule,bill}/`, `public/samples/` |
