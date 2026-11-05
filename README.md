@@ -162,9 +162,7 @@ CONTRIBUTING.md     Branching, pull requests, file ownership
 | Isaac | Design system, app shell, Home, Login, Account and History pages |
 
 
-TODO: confirm names and contributions above.
-
 ## Links
 
 - Live demo: https://ahma-ahgong-can.vercel.app
-- Demo video: TODO add link
+- Demo video: https://www.youtube.com/watch?v=ke1gIo2PHdw
