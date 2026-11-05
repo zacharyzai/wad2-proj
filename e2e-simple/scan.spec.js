@@ -1,4 +1,4 @@
-// Scan, Confirm, Explain: 5 E2E tests, written the Week 10 way (set up, act, assert).
+// Scan, Confirm, Explain: 6 E2E tests, written the Week 10 way (set up, act, assert).
 import { test, expect } from '@playwright/test'
 import { signUp, openSample } from './helpers.js'
 
@@ -40,4 +40,12 @@ test('Explain with no scan goes back to Scan', async ({ page }) => {
   await signUp(page)
   await page.goto('/scan/explain')
   await expect(page).toHaveURL(/\/scan$/)
+})
+
+test('a part we cannot read is marked, and nothing is guessed to fill it', async ({ page }) => {
+  await signUp(page)
+  await openSample(page, 'Metformin label')
+  await page.getByLabel('Medicine name').fill('')
+  await expect(page.getByText('Fill in the parts marked Please check to continue.')).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Looks correct' })).toBeDisabled()
 })

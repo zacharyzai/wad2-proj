@@ -1,4 +1,4 @@
-// Languages and read-aloud: 5 E2E tests, written the Week 10 way (set up, act, assert).
+// Languages and read-aloud: 6 E2E tests, written the Week 10 way (set up, act, assert).
 import { test, expect } from '@playwright/test'
 import { signUp, openSample } from './helpers.js'
 
@@ -46,4 +46,13 @@ test('read-aloud speed can be chosen', async ({ page }) => {
     'true',
   )
   await expect(player.getByRole('button', { name: 'Read aloud' })).toBeVisible()
+})
+
+test('Replay starts the reading again', async ({ page }) => {
+  await signUp(page)
+  await openSample(page, 'Metformin label')
+  await page.getByRole('button', { name: 'Looks correct' }).click()
+  const player = page.getByRole('region', { name: 'Reading in English' })
+  await player.getByRole('button', { name: 'Replay' }).click()
+  await expect(player.getByRole('button', { name: /Pause|Getting the audio/ })).toBeVisible()
 })

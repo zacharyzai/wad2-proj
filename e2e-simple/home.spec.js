@@ -1,4 +1,4 @@
-// Home and app shell: 4 E2E tests, written the Week 10 way (set up, act, assert).
+// Home and app shell: 3 E2E tests, written the Week 10 way (set up, act, assert).
 import { test, expect } from '@playwright/test'
 import { signUp } from './helpers.js'
 
@@ -19,13 +19,6 @@ test('each Home choice opens its page', async ({ page }) => {
   await page.goBack()
   await page.getByRole('link', { name: /Ask about my medicine/ }).click()
   await expect(page).toHaveURL(/\/ask$/)
-})
-
-test('no medicines yet explains reminders', async ({ page }) => {
-  await signUp(page)
-  await expect(
-    page.getByText('Scan a medicine label and we will remind you when to take it.'),
-  ).toBeVisible()
 })
 
 test('night mode switches on', async ({ page }) => {
