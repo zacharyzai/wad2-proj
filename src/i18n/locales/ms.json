@@ -1299,8 +1299,7 @@
     "plan": {
       "title": "Ubat hari ini",
       "total": "Dos hari ini",
-      "taken": "Sudah ambil",
-      "done": "siap"
+      "taken": "Sudah ambil"
     },
     "medsCount": "{n} ubat | {n} ubat",
     "noneOnDay": "Tiada ubat pada hari ini.",

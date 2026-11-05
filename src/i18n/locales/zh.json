@@ -1299,8 +1299,7 @@
     "plan": {
       "title": "今天的药物",
       "total": "今天要服",
-      "taken": "已服",
-      "done": "完成"
+      "taken": "已服"
     },
     "medsCount": "{n} 种药",
     "noneOnDay": "这一天没有要服的药。",

@@ -44,6 +44,13 @@ for (const path of ['/', '/scan', '/scan?sample=med-1', '/history', '/no-such-pa
   })
 }
 
+// The sidebar (desktop) or top bar (phones) sits outside <main>, so the page checks above never reach it.
+test('the sidebar and top bar: big targets and text @a11y', async ({ page }) => {
+  await page.goto('/')
+  await expect(page.getByRole('heading', { level: 1 }).first()).toBeVisible()
+  await expectSeniorFriendly(page, '.side')
+})
+
 test('the background drawings stay still on phones and drift on desktop', async ({ page, isMobile }) => {
   await page.goto('/')
   const bit = page.getByTestId('page-backdrop').locator('.bit').first()

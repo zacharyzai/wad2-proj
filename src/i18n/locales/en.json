@@ -1299,8 +1299,7 @@
     "plan": {
       "title": "Today’s medicines",
       "total": "Doses today",
-      "taken": "Taken",
-      "done": "done"
+      "taken": "Taken"
     },
     "medsCount": "{n} medicine | {n} medicines",
     "noneOnDay": "No medicines on this day.",

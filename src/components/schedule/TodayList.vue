@@ -201,8 +201,7 @@ const onBackdrop = (event) => event.target === askBox.value && answer(false)
         <svg ref="ringEl" class="ring" :class="{ landed }" viewBox="0 0 72 72" aria-hidden="true">
           <circle cx="36" cy="36" r="30" class="ring-track" />
           <circle cx="36" cy="36" r="30" class="ring-fill" :class="{ full: doneCount === todayDoses.length }" :stroke-dasharray="RING" :stroke-dashoffset="RING * (1 - shown / 100)" />
-          <text x="36" y="33" class="ring-num" text-anchor="middle" dominant-baseline="central">{{ shown }}%</text>
-          <text x="36" y="47" class="ring-sub" text-anchor="middle" dominant-baseline="central">{{ t('schedule.plan.done') }}</text>
+          <text x="36" y="36" class="ring-num" text-anchor="middle" dominant-baseline="central">{{ shown }}%</text>
         </svg>
       </div>
 

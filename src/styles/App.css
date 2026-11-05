@@ -59,7 +59,7 @@
   .guide-link .navi-label { min-width: 0; }
 
   .lang-box { margin-top: auto; } /* the settings group (language, day/night, account) sits at the bottom */
-  .lang-label { align-items: center; gap: 8px; padding: 0 4px; font-size: 15px; font-weight: 700; color: var(--color-text-muted); }
+  .lang-label { align-items: center; gap: 8px; padding: 0 4px; font-size: 16px; font-weight: 700; color: var(--color-text-muted); }
   .lang-box .segmented { display: grid; grid-template-columns: 1fr 1fr; } /* two by two: Tamil fits the sidebar */
 
   .acct { display: flex; align-items: center; gap: 12px; width: 100%; height: auto; min-height: var(--z56, 56px); padding: 4px 12px; border-radius: var(--r-tile); background: var(--color-surface-2); color: var(--color-text); }

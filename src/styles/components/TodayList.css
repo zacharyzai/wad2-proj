@@ -29,7 +29,6 @@
 .ring-fill { stroke: #8ff0e6; stroke-linecap: round; transform: rotate(-90deg); transform-origin: 36px 36px; }
 .ring-fill.full { stroke: #b9f5c9; }
 .ring-num { fill: #fff; font-family: var(--font-sans); font-size: 17px; font-weight: 800; font-variant-numeric: tabular-nums; }
-.ring-sub { fill: #fff; opacity: 0.85; font-family: var(--font-sans); font-size: 8px; font-weight: 600; }
 @keyframes plan-in { from { opacity: 0; transform: translateY(10px); } }
 @keyframes glow { to { transform: translate(-30px, 30px) scale(1.2); } }
 
