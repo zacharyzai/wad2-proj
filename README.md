@@ -10,7 +10,7 @@ Many elderly Singaporeans struggle with English-only medicine labels and with bi
 
 ## Key Features
 
-- Scan, Confirm, Explain: extracted fields are shown beside the photo and must be confirmed; unclear fields are flagged, never guessed. Built-in sample scans need no login.
+- Scan, Confirm, Explain: extracted fields are shown beside the photo and must be confirmed; unclear fields are flagged, never guessed. Built-in sample scans require login but do not require an AI API key. 
 - Explanations come from pre-written, human-checked templates, with a one-question understanding check.
 - Whole UI in English, 中文, Bahasa Melayu and தமிழ்; read-aloud with replay and speed control (browser voice first, server voice fallback).
 - Daily medicine schedule built by rule-based logic; doses can be ticked, edited and removed; non-standard instructions are flagged for a pharmacist.
