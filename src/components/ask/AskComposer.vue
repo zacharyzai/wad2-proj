@@ -1,7 +1,4 @@
-<!-- Owner: Zachary (built by Claude, declared in README.txt). Ask's composer: the question box (Enter sends), "Type a medicine",
-     the mic (fills the box only; the user checks it and presses Send) with a ring that grows with the voice, and the letters
-     left. Two-way bindings (defineModel): v-model is the question, v-model:listening says the mic is on. Anything put inside
-     <AskComposer> (the starter questions) shows under it. -->
+<!-- Ask page input: the question box, microphone and the "Type a medicine" button. -->
 <script setup>
 import { onBeforeUnmount, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -36,6 +33,7 @@ const MIC_ERRORS = {
 }
 let recognition = null
 
+// Starts or stops speech-to-text for the question box.
 function toggleMic() {
   if (listening.value) return recognition.stop()
   micError.value = null
@@ -68,6 +66,7 @@ function toggleMic() {
 // Without microphone access for it (or with reduced motion) the ring just glows; the speech input works either way.
 const level = ref(0)
 let stopLevel = null
+// Reads the microphone level so the mic button can pulse with the voice (skipped for reduced motion).
 async function followLevel() {
   if (
     matchMedia('(prefers-reduced-motion: reduce)').matches ||
@@ -88,6 +87,7 @@ async function followLevel() {
   ctx.createMediaStreamSource(stream).connect(analyser)
   const data = new Uint8Array(analyser.fftSize)
   let frame = 0
+  // Measures the current loudness once per frame.
   const tick = () => {
     analyser.getByteTimeDomainData(data)
     let sum = 0

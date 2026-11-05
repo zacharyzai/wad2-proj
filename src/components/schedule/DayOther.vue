@@ -1,8 +1,4 @@
-<!-- Owner: Asher. Schedule: a day other than today, picked on the day strip (DayStrip.vue). Its medicines by time of day, in
-     the same cards as Today (TodayList.vue). An earlier day says what was taken and warns, plainly, about any dose that was
-     missed: that day is over, so it can no longer be ticked, and missed doses are a question for the pharmacist.
-     A later day shows what is coming, to be ticked on the day.
-     Earlier days' ticks: stores/doses.js. -->
+<!-- Schedule view of a day other than today, picked on the week strip. -->
 <script setup>
 import { computed } from 'vue'
 import { storeToRefs } from 'pinia'
@@ -35,6 +31,7 @@ const groups = computed(() => {
     slot: list.every((d) => d.slot === list[0].slot) ? list[0].slot : null,
   }))
 })
+// How a dose looks on this day: later (not yet), ticked, or not ticked.
 const stateOf = (d) => (!earlier.value ? 'later' : ticks.value?.has(d.id) ? 'ok' : 'not')
 const notTicked = computed(() =>
   earlier.value && ticks.value ? dayDoses.value.filter((d) => !ticks.value.has(d.id)).length : 0,

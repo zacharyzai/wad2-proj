@@ -41,6 +41,7 @@ const TEXT = {
   },
 }
 
+// HTML-escapes a value before it goes into the email body.
 const escape = (value) =>
   String(value).replace(
     /[&<>"']/g,

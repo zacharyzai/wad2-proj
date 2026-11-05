@@ -1,4 +1,4 @@
-<!-- Owner: Isaac. Calls POST /api/auth/login (docs/auth-contract.md). Every page needs an account, so this is where logged-out people land. -->
+<!-- Log in page. -->
 <script setup>
 import { ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -28,10 +28,12 @@ function destination() {
   return typeof next === 'string' && next.startsWith('/') && !next.startsWith('//') ? next : '/'
 }
 
+// Goes to Forgot password with the typed email filled in.
 function forgot() {
   router.push({ name: 'forgot', state: { email: email.value.trim() } })
 }
 
+// Logs in, or shows why it could not.
 async function submit() {
   if (busy.value) return
   if (!email.value.trim() || !password.value) return (errorCode.value = 'WRONG_LOGIN')

@@ -1,5 +1,3 @@
-// Demo accounts, one per subsidy result, for testing and the graded README.txt dummy logins. Fake people, fake details.
-// Run: node --env-file=.env server/scripts/seed-demo-accounts.js   (safe to run again: it updates the same 10 accounts)
 import mongoose from 'mongoose'
 import { User } from '../models/User.js'
 import { CareLink } from '../models/CareLink.js'

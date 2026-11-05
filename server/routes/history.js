@@ -1,4 +1,3 @@
-// Owner: Sheen Hern. Contract: docs/history-contract.md. Queries are scoped to the authenticated owner.
 import { Router } from 'express'
 import mongoose from 'mongoose'
 import { connectDb } from '../db.js'
@@ -15,7 +14,9 @@ const PAGE_SIZE = 10
 const ALL_LIMIT = 500
 const SUMMARY_FIELDS =
   'type source createdAt medication.name medication.strength medication.purpose bill.clinic bill.totalPayableCents'
+// Reply for a saved scan that does not exist or belongs to someone else.
 const missing = (res) => sendError(res, 404, 'NOT_FOUND', 'Saved scan not found')
+// Shapes a saved scan from the database into the scan contract for the client.
 const record = (doc) => ({
   id: String(doc._id),
   createdAt: doc.createdAt,

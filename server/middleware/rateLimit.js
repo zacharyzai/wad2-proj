@@ -1,6 +1,6 @@
-// Protects the free AI quota. Only real image scans and chat questions count; sample scans are exempt.
 import { rateLimit } from 'express-rate-limit'
 
+// Builds an express-rate-limit middleware that answers with our { ok: false, error } envelope when the limit is hit.
 const limiter = (windowMin, limit, message, skip, extra = {}) =>
   rateLimit({
     windowMs: windowMin * 60_000,
@@ -69,6 +69,7 @@ const CAPS = {
 }
 const counters = {}
 
+// Counts one AI call against today's cap for this kind of call (scan, chat, tts). Returns false once the cap is used up.
 export function takeDailyQuota(kind = 'scan') {
   const [envName, fallback] = CAPS[kind]
   const cap = Number(process.env[envName]) || fallback

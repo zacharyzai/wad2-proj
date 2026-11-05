@@ -1,4 +1,3 @@
-// Run locally after creating your database user in Atlas. The password is never echoed.
 import { createInterface } from 'node:readline/promises'
 import { Writable } from 'node:stream'
 import { stdin, stdout } from 'node:process'

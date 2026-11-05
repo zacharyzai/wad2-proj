@@ -1,12 +1,4 @@
-<!-- Owner: Zachary. "Ask about my medicine" (feature 6): open any time. Answers use the user's own medicines (checked labels
-     or typed in); if a question is about a medicine we don't know, the reply asks for its label or its name and instructions.
-     Contract: docs/chat-contract.md
-     The chat feel: the app's capsule (CapsuleBuddy) is the bot's face and shows what it's doing (thinking, listening, reading
-     aloud); while waiting it says what it's doing in words ("Checking your Metformin label…"); answers appear word by word
-     on a card, the first sentence first and larger, with the medicine it's about; read aloud lights up each word as it's said;
-     under the newest answer: the next questions and "Explain more simply". The empty page greets the person by name, with questions about their own medicines.
-     The pieces: components/ask/AskMedicines.vue (My medicines), AskReply.vue (one reply), AskComposer.vue (the question box),
-     composables/useAnswer.js (word by word and read aloud). This page keeps the conversation and sends the questions. -->
+<!-- Ask page: a chat that answers questions about the user's medicines. -->
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, toRaw, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -35,6 +27,7 @@ const question = ref('')
 const listening = ref(false) // the mic is on (AskComposer says so)
 const loading = computed(() => messages.some((m) => m.state === 'loading'))
 const latest = computed(() => messages.at(-1))
+// True for a finished reply that answers the question (not a refusal or a red-flag notice).
 const isAnswer = (m) => m?.state === 'done' && m.reply.type === 'ANSWER'
 
 const thread = ref(null)
@@ -111,6 +104,7 @@ async function scrollTo(msg, block) {
 const cleared = ref(null)
 const undoClearButton = ref(null)
 let clearTimer = null
+// Clears the conversation, keeping it for a moment so Undo can bring it back.
 async function newChat() {
   stopReading()
   stopRevealing()
@@ -120,6 +114,7 @@ async function newChat() {
   await nextTick()
   undoClearButton.value?.focus()
 }
+// Brings back the conversation that was just cleared.
 function undoClear() {
   clearTimeout(clearTimer)
   messages.push(...cleared.value)
@@ -134,6 +129,7 @@ const hello = computed(() =>
     ? t('ask.hello', { greet: t(`home.greet.${greet}`), name: authStore.user.name })
     : t(`home.greet.${greet}`),
 )
+// A medicine's name.
 const nameOf = (e) => e.medication.name
 const starters = computed(() => {
   const mine = medicines.slice(0, 2)

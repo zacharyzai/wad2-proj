@@ -1,4 +1,4 @@
-<!-- Owner: Isaac. The "loading" state every data page needs: the turning ring (Spinner), a gently brightening label and a running timer. -->
+<!-- Loading display: spinner, label and a running timer. -->
 <script setup>
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'

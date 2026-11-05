@@ -1,4 +1,3 @@
-// Owner: Zachary. Contract: docs/chat-contract.md
 import { Router } from 'express'
 import { sendError } from '../errors.js'
 import { chatRateLimit, takeDailyQuota } from '../middleware/rateLimit.js'

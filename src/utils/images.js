@@ -1,4 +1,4 @@
-// Turning what the user picked into the JPEG pages a scan sends (ScanView). Plain functions, no Vue.
+// Image helpers: load, shrink and turn photos into JPEG before they are read.
 import { isPdf, pdfToJpegs, MAX_PAGES } from './pdfToImage'
 
 const MAX_SIDE = 1600

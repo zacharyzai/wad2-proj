@@ -1,11 +1,4 @@
-<!-- Owner: Asher (built by Claude, declared in README.txt). Scan, the question: "What would you like to scan today?" with two
-     big picture cards (Medicine label / Medical bill). Each is a dark card: a picture of its sample paper with what to do on
-     a tag at the top and a round arrow tucked into its corner, then the name, one line on what it tells you, and tags.
-     At rest, the things in each picture breathe and drift. With a mouse, both pictures rest in the app's teal; the one
-     under the mouse stops still and comes to life in full colour, tilts gently towards it, and its arrow turns coral; the
-     other steps back a little. Phones and tablets show both in colour. Picking one plays a short picture of its own
-     (ScanLaunch.vue: medicines, or bills and money) before its scan page opens. Above the cards: the last scan to carry
-     on with, or a photo picked on Home waiting to be told what it is. -->
+<!-- The "What would you like to scan?" question with a Label card and a Bill card. -->
 <script setup>
 import { computed, onBeforeUnmount, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -44,6 +37,7 @@ const SLOW = 1.6
 const LAUNCH_MS = 1050 * SLOW
 const launching = ref(null) // { kind, x, y, k } while the picture plays
 let launchTimer = 0
+// Picks Label or Bill; the card grows towards the screen before the page changes.
 function choose(event, kind) {
   if (launching.value) return // already on its way: a second tap does nothing
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) return emit('pick', kind)
@@ -60,6 +54,7 @@ function lean(e) {
   e.currentTarget.style.setProperty('--mx', ((e.clientX - box.left) / box.width).toFixed(3))
   e.currentTarget.style.setProperty('--my', ((e.clientY - box.top) / box.height).toFixed(3))
 }
+// Resets the card's lean towards the pointer.
 function unlean(e) {
   e.currentTarget.style.removeProperty('--mx')
   e.currentTarget.style.removeProperty('--my')

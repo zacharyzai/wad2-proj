@@ -1,4 +1,3 @@
-// Owner: Zachary (built by Claude, declared in README.txt). Google Calendar connection. Contract: docs/google-contract.md
 import { Router } from 'express'
 import { sendError } from '../errors.js'
 import { connectDb, withDb } from '../db.js'
@@ -28,6 +27,7 @@ const safeNext = (next) =>
   typeof next === 'string' && /^\/[a-z0-9/-]*$/i.test(next) && !next.startsWith('//')
     ? next
     : '/account'
+// Sends the browser back to the page it started from, with ?google=<result> so the page can show the outcome.
 const back = (res, next, result) => res.redirect(`${safeNext(next)}?google=${result}`)
 
 // Google errors become our envelope; "access removed" also forgets the dead token, so the page shows Connect again.

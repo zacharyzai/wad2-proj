@@ -1,6 +1,4 @@
-<!-- Owner: Asher (built by Claude, declared in README.txt). Pick or drop photos, check them, then Scan.
-     A long bill can be several photos (one per page, up to 4) or one PDF. Emits the chosen Files as 'select'; ScanView
-     compresses, covers and sends them as the pages of one scan. -->
+<!-- Drag-and-drop and file picker for photos and PDFs. -->
 <script setup>
 import { computed, onBeforeUnmount, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -30,10 +28,12 @@ const canAdd = computed(
   () => chosen.value.length < MAX_PAGES && !chosen.value.some((c) => isPdf(c.file)),
 )
 
+// Frees the memory held by preview images.
 function forget(list) {
   for (const c of list) if (c.url?.startsWith('blob:')) URL.revokeObjectURL(c.url)
 }
 
+// Accepts the picked files if they are photos or PDFs, otherwise shows an error.
 function choose(picked) {
   if (!picked.length) return
   // Some browsers give HEIC (and some PDF) files no type, so the name decides.
@@ -69,16 +69,19 @@ function previewPdf(entry) {
     .catch(() => {})
 }
 
+// Opens the file picker, to replace the pages or add to them.
 function pick(add) {
   adding = add
   input.value.click()
 }
 
+// Handles files chosen in the file picker.
 function onInput(event) {
   choose([...event.target.files])
   event.target.value = '' // lets the same file be picked again
 }
 
+// Handles files dropped onto the box.
 function onDrop(event) {
   dragging.value = false
   adding = false

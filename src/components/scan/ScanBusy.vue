@@ -1,5 +1,4 @@
-<!-- Owner: Asher (built by Claude, declared in README.txt). Scan, while working: the photo with personal details being
-     blacked out (or, for a sample, the turning pill), the two steps (covered on this phone, then read), and Cancel. -->
+<!-- Progress display while a photo is covered and read. -->
 <script setup>
 import { onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'

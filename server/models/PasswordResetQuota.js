@@ -1,6 +1,3 @@
-// Per-email limit on "Forgot your password?" emails (routes/auth.js), shared by all serverless instances, so nobody can
-// flood someone's inbox. Keyed by a SHA-256 of the email, not the address: people type addresses with no account, and we
-// don't keep a list of those. Counted the same whether or not the account exists. Rows delete themselves after 2 hours.
 import mongoose from 'mongoose'
 
 const schema = new mongoose.Schema(

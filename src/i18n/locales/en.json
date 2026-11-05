@@ -1224,6 +1224,7 @@
       "now": "Take now",
       "later": "Later today",
       "earlier": "Not ticked yet",
+      "missedTitle": "You missed {n} dose today | You missed {n} doses today",
       "done": "All taken",
       "missed": "If you missed a dose, ask your pharmacist what to do."
     },

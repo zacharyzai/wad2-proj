@@ -1,4 +1,3 @@
-// Validate confirmed contract JSON, not raw AI output. Do not normalize bill cents as dollars.
 import {
   BILL_CATEGORIES,
   BILL_PLACES,
@@ -10,6 +9,8 @@ import {
   WITH_FOOD,
 } from '../services/normalizeScan.js'
 
+// Rejects the whole scan with the name of the field that was wrong.
+// object, text, choice, list and money below check one kind of value each.
 const fail = (field) => {
   throw new Error(`Invalid confirmed scan: ${field}`)
 }
@@ -47,6 +48,7 @@ function money(value, field) {
   return value
 }
 
+// Validates a scan the user confirmed before it is saved to history: only contract fields, sensible sizes, no extras.
 export function checkConfirmedScan(body) {
   try {
     object(body, ['scan'], 'body must contain only scan')

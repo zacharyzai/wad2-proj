@@ -1,5 +1,4 @@
-<!-- Owner: Lokesh (built by Claude, declared in README.txt). Schedule, "Days and times" for one medicine: number of days, start
-     date, a time for each dose. Emits save({ startDate, days, times }) once every field is valid, or cancel. -->
+<!-- Form to change one medicine's number of days and dose times. -->
 <script setup>
 import { computed, nextTick, onMounted, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -33,7 +32,7 @@ const form = reactive({
   startDate: props.medicine.schedule?.startDate ?? useDosesStore().today,
   times: Object.fromEntries(props.entry.doses.map((d) => [d.id.slice(id.length + 1), d.time])),
 })
-const formEl = ref(null) // template refs (Week 4): no document.getElement… lookups
+const formEl = ref(null) // no document.getElement… lookups
 const daysInput = ref(null)
 const tried = ref(false) // errors show after the first Save, not while the person is still typing
 const slots = doseSlots(props.medicine.medication) ?? []
@@ -45,8 +44,10 @@ const problems = computed(() => {
   for (const slot of slots) if (!validTime(form.times[slot])) p[slot] = t('schedule.form.bad.time')
   return p
 })
+// A field's problem, shown only after the first save attempt.
 const shown = (key) => (tried.value ? problems.value[key] : null)
 
+// Saves the changed days and times, or focuses the first problem.
 async function save() {
   tried.value = true
   if (Object.keys(problems.value).length) {

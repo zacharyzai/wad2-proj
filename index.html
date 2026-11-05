@@ -8,7 +8,10 @@
          "same as my phone" and the device is dark, and only while logged in (a saved login). -->
     <script>
       try {
-        var t = localStorage.getItem('token') || sessionStorage.getItem('token') ? localStorage.getItem('theme') : null
+        var t =
+          localStorage.getItem('token') || sessionStorage.getItem('token')
+            ? localStorage.getItem('theme')
+            : null
       } catch (e) {}
       if (t === 'system') t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
       document.documentElement.dataset.theme = t === 'dark' ? 'dark' : 'light'
@@ -18,7 +21,10 @@
     <link rel="apple-touch-icon" href="/logo-192.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;500;600;700;800&family=Young+Serif&display=swap" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;500;600;700;800&family=Young+Serif&display=swap"
+    />
   </head>
   <body>
     <div id="app"></div>

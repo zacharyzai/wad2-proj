@@ -1,4 +1,4 @@
-<!-- Owner: Lokesh. Subsidy results: what is already on the bill, and what the user may also qualify for. Estimates only; every scheme links its official page. -->
+<!-- Subsidy results on the Bill page: what is already on the bill and what the user may also qualify for. -->
 <script setup>
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -18,6 +18,7 @@ const result = computed(() => compareWithBill(props.bill, props.answers))
 const open = ref(false)
 const chasCard = computed(() => chasTier(props.answers)) // 'blue' | 'orange' | 'green' | null
 const answered = computed(() => Object.values(props.answers).some((value) => value !== null))
+// A "last checked" date in the current language.
 const checkedOn = (iso) =>
   new Date(`${iso}T00:00`).toLocaleDateString(locale.value, {
     day: 'numeric',

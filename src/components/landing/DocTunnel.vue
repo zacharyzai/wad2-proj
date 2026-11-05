@@ -1,9 +1,4 @@
-<!-- Owner: Asher. Welcome page: real labels and bills fly towards you through a 3D tunnel as you scroll, with the plain
-     words the app turns them into, in all four languages. Between the hero and "Snap a photo".
-     Driven by the page's own scrolling (the section stays pinned while the papers fly), so touch, keyboard and scrollbars
-     all work and scrolling is never taken over. Desktop: the papers lean towards the mouse. Phones: fewer papers, a shorter
-     flight. Reduced motion: no pinning or flying, just a still fan of the papers. The papers are decoration (aria-hidden):
-     the heading and sentence say it in words. Styles are written into the papers directly, not through Vue, every frame. -->
+<!-- Welcome page section where labels and bills fly towards the viewer as they scroll. -->
 <script setup>
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -34,6 +29,7 @@ const ITEMS = [
   { doc: 'bill-4', phone: false },
   { chip: 'en' },
 ]
+// The sample medicine line shown on a flying label, in language `l`.
 const chipText = (l) =>
   t(
     'explain.med.title',
@@ -64,7 +60,9 @@ const calm = ref(false) // reduced motion: the still fan
 const reduceMq = matchMedia('(prefers-reduced-motion: reduce)')
 const phoneMq = matchMedia('(max-width: 767.98px)')
 const mouseMq = matchMedia('(hover: hover) and (pointer: fine)')
+// Keeps a number between 0 and 1.
 const clamp = (v) => (v < 0 ? 0 : v > 1 ? 1 : v)
+// How far v is from a to b, as 0 to 1.
 const between = (v, a, b) => clamp((v - a) / (b - a))
 
 // target: how far through the pinned section the page is (0 to 1); shown eases towards it, so the flight glides.
@@ -77,12 +75,14 @@ let onScreen = false
 // On screen and moving: only then do the papers get their own GPU layers (will-change), so off screen or still they cost nothing.
 const live = ref(false)
 
+// Works out how far through the pinned section the page is scrolled.
 function measure() {
   const box = sec.value.getBoundingClientRect()
   const run = box.height - innerHeight
   target = run > 0 ? clamp(-box.top / run) : 0
 }
 
+// Positions every flying document for the current scroll position and window size.
 function render() {
   const phone = phoneMq.matches
   const W = innerWidth
@@ -109,6 +109,7 @@ function render() {
   hint.value.style.opacity = (1 - between(shown, 0, 0.08)).toFixed(3)
 }
 
+// One animation frame: measure the scroll, ease towards it and draw.
 function tick() {
   raf = 0
   if (!sec.value || calm.value) return
@@ -123,8 +124,10 @@ function tick() {
     Math.abs(leanTo.y - lean.y) > 0.002
   if (moving && onScreen) raf = requestAnimationFrame(tick)
 }
+// Starts the animation loop if it is not already running.
 const kick = () => (raf ||= onScreen && !calm.value ? requestAnimationFrame(tick) : 0)
 
+// Tilts the scene a little towards the pointer.
 function onPointer(event) {
   leanTo = { x: event.clientX / innerWidth - 0.5, y: event.clientY / innerHeight - 0.5 }
   kick()

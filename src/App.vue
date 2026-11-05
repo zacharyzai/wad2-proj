@@ -1,4 +1,4 @@
-<!-- Owner: Isaac (app shell). From the Claude Design screens: phone header + bottom tabs, desktop sidebar (≥992px). One set of elements, re-laid out by CSS. -->
+<!-- The app shell: top bar, bottom tabs, desktop sidebar and the page area that every view renders into. -->
 <script setup>
 import { computed, nextTick, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'

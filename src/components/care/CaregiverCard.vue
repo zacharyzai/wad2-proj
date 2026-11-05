@@ -1,5 +1,4 @@
-<!-- Owner: Isaac. On a senior's Account page: who can see my doses today, and "Invite a caregiver".
-     Says what a caregiver will see BEFORE the link is made, and anyone can be removed at any time. API: docs/care-contract.md (assumed). -->
+<!-- Account page card for a senior: who can see their doses, and inviting or removing a caregiver. -->
 <script setup>
 import { computed, nextTick, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -18,12 +17,14 @@ const invite = ref(null) // { token, expiresAt } once created
 const removing = ref(null) // id of the caregiver we are asking about
 const copied = ref(false)
 
+// A date in the current language.
 const fmt = (iso, opts) => (iso ? new Date(iso).toLocaleDateString(locale.value, opts) : '')
 const link = computed(() => (invite.value ? `${location.origin}/shared/${invite.value.token}` : ''))
 const whatsapp = computed(
   () => `https://wa.me/?text=${encodeURIComponent(`${t('careCard.shareMessage')} ${link.value}`)}`,
 )
 
+// Loads the caregivers linked to this senior.
 async function load() {
   const res = await myCaregivers()
   if (res.ok) caregivers.value = res.data.caregivers
@@ -31,6 +32,7 @@ async function load() {
 }
 onMounted(load)
 
+// Runs one request at a time, shows its error code, and calls onOk when it worked.
 async function run(call, onOk) {
   if (busy.value) return
   busy.value = true
@@ -50,11 +52,13 @@ async function askRemove(c, event) {
   await nextTick()
   row.querySelector('[data-testid="care-remove-keep"]')?.focus()
 }
+// Closes the "remove caregiver" question and returns focus to its button.
 async function closeRemove(row) {
   removing.value = null
   await nextTick()
   row?.querySelector('[data-testid="care-remove"]')?.focus()
 }
+// Creates an invite link. remove() below ends a caregiver's access.
 const makeInvite = () => run(createInvite, (d) => (invite.value = d))
 const remove = (c) =>
   run(
@@ -65,6 +69,7 @@ const remove = (c) =>
     },
   )
 
+// Copies the invite link to the clipboard and shows "Copied".
 async function copy() {
   try {
     await navigator.clipboard.writeText(link.value)

@@ -1,8 +1,4 @@
-<!-- Owner: Isaac. The app's loading sign: a ring with a teal arc that keeps turning, the "please wait" sign people already
-     know from phones and TVs (the turning pill it replaced read as a picture, not as "loading"). Used wherever something is
-     loading or being fetched (LoadingState, Scan, Ask, read-aloud buttons). Decoration only: the words beside it say what
-     is happening. size = the ring's width in px. tone: 'brand' (teal on a light track) or 'light' (on a teal button).
-     Reduced motion: it still turns, slowly and steadily, because a still ring would not say "wait". -->
+<!-- The turning ring shown while something loads. -->
 <script setup>
 defineProps({
   size: { type: Number, default: 30 },

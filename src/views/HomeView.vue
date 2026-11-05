@@ -1,13 +1,4 @@
-<!-- Owner: Isaac. Home, kept simple for seniors: a greeting with the app's capsule (the one that waves goodbye on log out), one
-     question, and three big choices that each go somewhere different: scan a medicine label, scan a bill, Ask. "Today's
-     medicines" (components/home/TodayMedicines.vue) shows what is due. The last bill checked, when there is one, is one
-     quiet line back to it. Phones: one column, Today's medicines under the greeting. Desktop (≥992px): the greeting and
-     Today's medicines side by side, the choices in one row under them.
-     The choices press in where touched and lean a little towards the mouse (CSS 3D); still with reduced motion.
-     The two scan choices show what they read: sample labels sliding past, and a bill feeding out of a printer slot; Ask
-     shows a short chat, a question and the capsule's answer (all loop while Home is open, pause on hover or focus, and stay
-     still with reduced motion). The greeting is one centred column: hello, the capsule, the question, its caption.
-     Each choice, and Today's "Open my schedule", opens with a short picture of its own (CardLaunch.vue). -->
+<!-- Home page: greeting, today's medicines and tiles for the main things to do. -->
 <script setup>
 import { computed, onBeforeUnmount } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -86,6 +77,7 @@ const lastBillAbout = computed(() => {
 // Press in where touched, and lean a little towards the mouse: the card tilts by --rx/--ry and sinks while data-pressed.
 // (A data attribute, not a class: RouterLink owns the class list.)
 const still = () => matchMedia('(prefers-reduced-motion: reduce)').matches
+// Tilts a tile a few degrees towards the pointer.
 function lean(event, degrees) {
   const el = event.currentTarget
   const box = el.getBoundingClientRect()
@@ -94,20 +86,24 @@ function lean(event, degrees) {
   el.style.setProperty('--rx', `${(-y * 2 * degrees).toFixed(2)}deg`)
   el.style.setProperty('--ry', `${(x * 2 * degrees).toFixed(2)}deg`)
 }
+// Tilts a tile gently as the mouse moves over it.
 function onMove(event) {
   if (event.pointerType === 'mouse' && !still() && !('pressed' in event.currentTarget.dataset))
     lean(event, 4)
 }
+// Tilts a tile more when pressed.
 function onDown(event) {
   if (still()) return
   event.currentTarget.dataset.pressed = ''
   lean(event, 7)
 }
+// Returns a tile to hover or rest when released.
 function onUp(event) {
   delete event.currentTarget.dataset.pressed
   if (event.pointerType === 'mouse') onMove(event)
   else rest(event)
 }
+// Puts a tile back flat.
 function rest(event) {
   const el = event.currentTarget
   delete el.dataset.pressed

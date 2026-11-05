@@ -1,5 +1,4 @@
-<!-- Owner: Isaac. A senior sends this link on WhatsApp ("Invite a caregiver" on their Account page). The caregiver opens it, logs in
-     as a caregiver and taps Accept. Opening the link needs no login; accepting does. API: docs/care-contract.md (assumed until Sheen Hern's /api/care exists). -->
+<!-- Page a caregiver opens from an invite link to accept it. -->
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -32,6 +31,7 @@ const gone = computed(() => ['NOT_FOUND', 'EXPIRED', 'GONE'].includes(errorCode.
 // After logging in or signing up, come straight back to this page.
 const back = computed(() => ({ next: route.fullPath }))
 
+// Looks up the invite from the link.
 async function load() {
   loading.value = true
   errorCode.value = null
@@ -42,6 +42,7 @@ async function load() {
 }
 onMounted(load)
 
+// Accepts the invite so this caregiver can see the senior's doses.
 async function accept() {
   if (accepting.value) return
   accepting.value = true

@@ -1,6 +1,4 @@
-<!-- Owner: Isaac. The top bar on the pages before logging in (Start, Log in, Create account, Forgot, Reset): the app's
-     name (back to Start), the language switch, and the page's own buttons in the slot (Start: Log in).
-     Phones: name and buttons on one row, the languages full width below. -->
+<!-- Top bar before logging in: logo, language switch and a slot for buttons. -->
 <script setup>
 import LanguageSwitch from './LanguageSwitch.vue'
 </script>

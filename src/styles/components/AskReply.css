@@ -1,4 +1,4 @@
-/* Scoped styles for components/ask/AskReply.vue: the capsule, the answer card, waiting, follow-ups. */
+/* Styles for an Ask reply. */
 .reply {
   display: flex;
   gap: 12px;

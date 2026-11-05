@@ -1,6 +1,4 @@
-<!-- Owner: Isaac. Choose a new password from the emailed link (POST /api/auth/reset, docs/auth-contract.md).
-     The link's token is after # (never sent to any server); it is read once, then taken out of the address so it doesn't
-     stay in the browser's history. Saving logs this device in and every other device out. -->
+<!-- Choose a new password from the emailed link. -->
 <script setup>
 import { computed, nextTick, ref } from 'vue'
 import { useRouter } from 'vue-router'
@@ -31,12 +29,14 @@ const errorCode = ref(null)
 const state = ref(token ? 'form' : 'bad') // form → done, or bad (no link, expired, already used)
 const panel = ref(null)
 
+// Shows the result panel and moves focus to it so screen readers announce it.
 async function show(next) {
   state.value = next
   await nextTick()
   panel.value?.focus() // screen readers hear what happened
 }
 
+// Saves the new password from the emailed link.
 async function submit() {
   if (busy.value) return
   tried.value = true

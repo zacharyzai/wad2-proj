@@ -1,5 +1,3 @@
-// Owner: Sheen Hern. Invite/account linking, and (built by Claude, declared in README.txt) a caregiver's read-only view of a
-// linked senior's doses today.
 import { Router } from 'express'
 import { createHash, randomBytes } from 'node:crypto'
 import mongoose from 'mongoose'
@@ -23,6 +21,8 @@ import {
 const router = Router()
 const WEEK = 7 * 24 * 3600_000
 const HOUR = 3600_000
+// Invite tokens are only stored hashed; this is the lookup key for a token from a link.
+// validToken, roleOf, gone and wrongRole are small guards shared by the invite routes below.
 const tokenHash = (token) => createHash('sha256').update(token).digest('hex')
 const validToken = (token) => typeof token === 'string' && /^[a-f0-9]{64}$/.test(token)
 const roleOf = (user) => user.role ?? 'senior'
@@ -46,6 +46,7 @@ const inviteRateLimit = rateLimit({
 
 // syncIndexes (not init) so deployed databases drop the old one-caregiver-per-senior unique index.
 let indexes
+// Connects to MongoDB (building indexes once) and turns a database failure into a server error reply.
 async function database(res, work) {
   try {
     await connectDb()
@@ -85,6 +86,7 @@ const senior = [requireAuth, account('senior')]
 const caregiver = [requireAuth, account('caregiver')]
 const either = [requireAuth, account()]
 
+// Query for an invite that is still unused and not yet expired.
 function liveInvite(token, now = new Date()) {
   return { tokenHash: tokenHash(token), caregiverId: null, inviteExpiresAt: { $gt: now } }
 }
@@ -324,6 +326,7 @@ async function medicinesOf(seniorId) {
   })
 }
 
+// Summarises a senior's doses today as how many are taken, missed and upcoming.
 const counts = (doses) =>
   doses &&
   ['taken', 'missed', 'upcoming'].reduce(

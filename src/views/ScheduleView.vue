@@ -1,11 +1,4 @@
-<!-- Owner: Lokesh (redesigned by Claude from the Claude Design "Schedule" screens, declared in README.txt; Today and This week
-     made one view, Reminders folded into My medicines, by Asher). Medicine schedule in two tabs (?view=meds), so Back works:
-       Today        the week as a strip of days (DayStrip.vue); today below it: what's due, the day's progress and a card
-                    for every dose (TodayList.vue); another day: what was taken or is coming (DayOther.vue)
-       My medicines one card per medicine (MedicineCard.vue, EditDaysForm.vue), the pharmacist list (PharmacistList.vue),
-                    and Google Calendar reminders (CalendarSync.vue). Old links to This week or Reminders open these.
-     This page keeps what the tabs share: the header, which card has a panel open, Remove and Stop with Undo, and the toast.
-     Times come from src/rules/schedule.js (our own rules, never AI). Ticks are in stores/doses.js. -->
+<!-- Schedule page: Today, My medicines and the week, with edit, stop and undo. -->
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -53,13 +46,16 @@ const day = ref(today.value)
 watch(today, (now) => (day.value = now))
 // The day's list slides in from the side of the day picked (later days from the right).
 const slide = ref('later')
+// Chooses a day on the week strip and sets the slide direction.
 function pickDay(date) {
   slide.value = date > day.value ? 'later' : 'earlier'
   day.value = date
 }
+// Link for a Schedule tab.
 const viewLink = (v) => ({ query: v === 'today' ? {} : { view: v } })
 // Keyboard users never lose their place: after the page updates, focus moves to the element that now matters.
-const pageEl = ref(null) // template ref (Week 4): look only inside this page, never the whole document
+const pageEl = ref(null) // look only inside this page, never the whole document
+// After the page updates, moves focus to the element matching the selector.
 const focusAfterUpdate = async (selector) => {
   await nextTick()
   pageEl.value?.querySelector(selector)?.focus()
@@ -91,6 +87,7 @@ onMounted(() => {
 const managing = ref(null) // id of the medicine whose options are open
 const editing = ref(null) // id of the medicine whose Days and times form is open
 const stopAsk = ref(null) // id of the medicine whose "Stop taking it?" is open
+// Opens or closes the Change/Stop choices for a medicine.
 function toggleManage(id) {
   managing.value = managing.value === id ? null : id
   editing.value = null
@@ -109,6 +106,7 @@ const spot = computed(() => {
   const id = wide.value ? (managing.value ?? editing.value ?? stopAsk.value) : null
   return timetable.value.some((r) => r.medicine.id === id) ? id : null // the pharmacist list keeps its own panel
 })
+// Closes the open choice and returns focus to the button that opened it.
 function closeSpot() {
   const id = spot.value
   const from = stopAsk.value ? 'data-stop' : 'data-change' // back to the button that opened it
@@ -119,15 +117,18 @@ function closeSpot() {
 }
 // Esc puts the card back, unless it is answering the stop question (which has its own Esc).
 const onEsc = (e) => spot.value && !e.target.closest('[role="alertdialog"]') && closeSpot()
+// Opens the edit form for a medicine.
 function openEdit(id) {
   managing.value = null
   editing.value = id // the form puts focus in its first field
 }
+// Saves a medicine's edited days and times.
 function save(id, schedule) {
   setSchedule(id, schedule)
   closeEdit(id)
   notify(t('schedule.saved'))
 }
+// Closes the edit form and returns focus to its Change button.
 function closeEdit(id) {
   editing.value = null
   focusAfterUpdate(`[data-change="${id}"]`) // back to its Change button
@@ -160,6 +161,7 @@ async function welcomeBackFromFix() {
 const removed = ref(null)
 const undoButton = ref(null)
 let undoTimer = 0
+// Removes a medicine, keeping it for a moment so Undo can bring it back.
 async function remove(medicine) {
   clearTimeout(undoTimer)
   if (editing.value === medicine.id) editing.value = null
@@ -169,6 +171,7 @@ async function remove(medicine) {
   await nextTick()
   undoButton.value?.focus()
 }
+// Puts the last removed medicine back.
 function undo() {
   clearTimeout(undoTimer)
   const { id } = removed.value.entry
@@ -181,16 +184,19 @@ function undo() {
 const stopped = ref(null) // { id, name, previous } for the Undo bar
 const stopUndoButton = ref(null)
 let stopTimer = 0
+// Asks whether to stop a medicine's course.
 function askStop(id) {
   managing.value = null
   editing.value = null
   stopAsk.value = id
   focusAfterUpdate(`[data-stop-yes="${id}"]`) // into the question, like the other pop-ups
 }
+// Closes the stop question and returns focus to its button.
 function cancelStop(id) {
   stopAsk.value = null
   focusAfterUpdate(`[data-stop="${id}"]`)
 }
+// Ends a course today and keeps it as finished, or takes the medicine off the list if it only started today. Undo restores either.
 async function confirmStop(medicine) {
   const previous = JSON.parse(JSON.stringify(medicine.schedule ?? null)) // a plain copy: the page's own data is wrapped and can't be stored as it is
   const next = stopCourse(previous, today.value)
@@ -210,6 +216,7 @@ async function confirmStop(medicine) {
   await nextTick()
   stopUndoButton.value?.focus()
 }
+// Undoes the last stop.
 function undoStop() {
   clearTimeout(stopTimer)
   const { id, previous, gone } = stopped.value

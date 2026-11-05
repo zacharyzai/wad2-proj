@@ -1,4 +1,4 @@
-<!-- Owner: Isaac. From the Claude Design 404 screen. -->
+<!-- Shown for an address that does not exist. -->
 <script setup>
 import { useI18n } from 'vue-i18n'
 import EmptyState from '../components/layout/EmptyState.vue'

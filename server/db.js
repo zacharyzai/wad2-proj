@@ -4,6 +4,7 @@ import { User } from './models/User.js'
 import { Dose } from './models/Dose.js'
 
 let pending
+// Opens the MongoDB connection once and reuses it across requests (serverless-friendly).
 export async function connectDb() {
   if (pending) return pending
   if (mongoose.connection.readyState === 1) return

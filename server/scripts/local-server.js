@@ -1,4 +1,3 @@
-// A real MongoDB process with persistent local files; no Atlas account or global install required.
 import { MongoMemoryServer } from 'mongodb-memory-server'
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { randomBytes } from 'node:crypto'

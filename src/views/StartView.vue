@@ -1,13 +1,4 @@
-<!-- Owner: Isaac. The first page for anyone not logged in: what the app does in one sentence, "Join for free" (Create
-     account) and "Log in", and a picture of it working: a real sample label behind a phone showing what the app makes of it.
-     Two choices only, both big and in words. The welcome page (/welcome) tells the longer story.
-     Motion: on the first visit in this tab the words rise in one after another; the picture then tells its story once
-     (the label slides in, a scan line reads it, the phone fills in, the morning dose is ticked), under 5 seconds so
-     nothing keeps moving by itself (WCAG 2.2.2), and the three promises rise in as they scroll into view. All of this
-     plays once per page load, never again on hover or on coming back from Log in. With a mouse, the picture tilts a
-     little towards it. Behind it all, faint pills and tablets fall slowly through the teal like a waterfall (no pause
-     button, by the team's choice, as on the welcome page). With reduced motion everything is shown landed, at once,
-     and the pills don't fall. -->
+<!-- Start page for visitors: what the app gives them, with Join and Log in. -->
 <script setup>
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -64,6 +55,7 @@ const playing = ref(!intro)
 // With a mouse, the picture leans a little towards it (the paper less, the phone more, the light the most).
 const band = ref(null)
 let frame = 0
+// Moves the header art a little with the pointer (fine pointers, motion allowed).
 function lean(event) {
   if (reduceMq.matches || !finePointer.matches || frame) return
   frame = requestAnimationFrame(() => {
@@ -80,6 +72,7 @@ function lean(event) {
     )
   })
 }
+// Returns the header art to rest.
 function unlean() {
   cancelAnimationFrame(frame)
   frame = 0

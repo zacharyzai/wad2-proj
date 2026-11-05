@@ -1,5 +1,4 @@
-<!-- Pictures for the Beginner's guide cards (Claude Design "TourArt"): simple shapes on a soft blob, in the app's colours.
-     step 1 (welcome): language buttons that really switch the app language. step 5 (finish): a question and an answer. -->
+<!-- Pictures for the steps of the beginner's guide, including the language choice. -->
 <script setup>
 import { useI18n } from 'vue-i18n'
 import { chooseLocale } from '../../i18n'

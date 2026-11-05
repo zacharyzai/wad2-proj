@@ -1,6 +1,4 @@
-<!-- Owner: Asher (built by Claude, declared in README.txt). Scan, the live camera: its own screen, so the picture is big and
-     Capture is the only thing to press. ScanView opens the camera (getUserMedia) and passes the stream in; Capture emits the
-     frame as a JPEG. Laptops ignore `capture` on file inputs, so this is the only way to reach their webcam. -->
+<!-- Live camera view for taking a photo of a label or bill. -->
 <script setup>
 import { onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -20,6 +18,7 @@ const video = ref(null)
 // Until the first frame arrives the video is 0×0, and capturing would send an empty image.
 const ready = ref(false)
 onMounted(() => (video.value.srcObject = props.stream))
+// Takes the current camera frame as a photo.
 const capture = () =>
   emit('capture', toJpeg(video.value, video.value.videoWidth, video.value.videoHeight))
 </script>

@@ -1,4 +1,4 @@
-/* Owner: Isaac. Resets, type, links, focus, skip link. */
+/* Resets, type, links, focus and the skip link. */
 body {
   margin: 0;
   background: var(--grain) var(--color-page);

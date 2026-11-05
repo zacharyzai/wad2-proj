@@ -1,4 +1,3 @@
-// Owner: Sheen Hern (built by Claude, declared in README.txt). Contract: docs/auth-contract.md
 import { createHash } from 'node:crypto'
 import { Router } from 'express'
 import { sendError } from '../errors.js'
@@ -74,6 +73,7 @@ const checkLanguage = (language) =>
 const checkTheme = (theme) =>
   theme === undefined || THEMES.includes(theme) ? null : `theme must be one of ${THEMES.join(', ')}`
 
+// Sends the token and public user profile back after signup, login or a password reset.
 const answer = (res, user, remember, status = 200) =>
   res
     .status(status)
@@ -85,6 +85,7 @@ router.use((req, res, next) => {
   res.set('Cache-Control', 'no-store')
   next()
 })
+// False (after replying with a server error) when JWT_SECRET is missing or too short, so no route issues unsigned tokens.
 function configured(res) {
   try {
     jwtSecret()
@@ -199,6 +200,7 @@ router.patch('/me', requireAuth, (req, res) => {
 // ---- Forgot your password? (docs/auth-contract.md) ----
 const HOUR = 60 * 60 * 1000
 const EMAILS_PER_HOUR = 3
+// Hashes the address so the email quota can be stored without keeping the address itself.
 const emailHash = (email) => createHash('sha256').update(email).digest('hex')
 
 // At most EMAILS_PER_HOUR per address per hour, across every server instance. False once the hour's budget is spent.
@@ -294,6 +296,7 @@ router.post('/reset', resetRateLimit, (req, res) => {
     ) // the same rules as Sign up
   if (!configured(res)) return
   const link = readResetToken(token)
+  // One reply for every kind of unusable reset link (expired, used, unknown), so a link tells an attacker nothing.
   const badLink = () =>
     sendError(res, 400, 'RESET_LINK_INVALID', 'This link has expired or was already used')
   if (!link) return badLink()

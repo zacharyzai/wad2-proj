@@ -1,8 +1,4 @@
-<!-- The app's capsule character (the same one that waves goodbye in LeaveDialog.vue), as the chatbot's face on Ask.
-     mood: idle (resting; blinks once), thinking (bobs, thought dots), listening (looks up, "hearing" arcs), speaking
-     (mouth moves, sound waves) or happy (one little bounce when an answer arrives). wave: an arm waves hello three times
-     (the welcome screen). Moving moods only run while that thing is happening (waiting, listening, reading aloud).
-     Decoration: aria-hidden; what it shows is always said in words nearby. Reduced motion: it stays still. -->
+<!-- The capsule mascot as an SVG, in moods such as idle, thinking, listening, speaking and happy. -->
 <script setup>
 defineProps({
   mood: { type: String, default: 'idle' }, // 'idle' | 'thinking' | 'listening' | 'speaking' | 'happy'

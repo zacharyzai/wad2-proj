@@ -1,7 +1,3 @@
-// Owner: Zachary (built by Claude, declared in README.txt). Google Calendar: OAuth, encrypted refresh tokens, and one repeating
-// event per dose with its own alert, so the phone rings at dose time even when our app is closed, plus a second "Not ticked yet"
-// event FOLLOW_UP_MIN later that ticking the dose cancels. Plain fetch, no googleapis package.
-// Contract: docs/google-contract.md
 import {
   createCipheriv,
   createDecipheriv,
@@ -25,6 +21,7 @@ const TIME_ZONE = 'Asia/Singapore'
 // and the dose tick cancels that day's copy (setFollowUpCancelled). Stored in GoogleLink.events as `${doseId}:late`.
 export const FOLLOW_UP_MIN = 15
 export const FOLLOW_UP = ':late'
+// True for the key of a follow-up reminder (the +30 min "did you take it?" alert) rather than the dose itself.
 export const isFollowUp = (key) => key.endsWith(FOLLOW_UP)
 export const MAX_DAYS = 366 // a schedule longer than a year is almost certainly a typo
 
@@ -36,6 +33,7 @@ export class GoogleError extends Error {
   }
 }
 
+// True when the Google OAuth settings are all present; otherwise calendar sync is switched off.
 export const isConfigured = () =>
   Boolean(
     process.env.GOOGLE_CLIENT_ID &&
@@ -49,6 +47,7 @@ export const isConfigured = () =>
 const hmac = (body) =>
   createHmac('sha256', jwtSecret()).update(`google-state.${body}`).digest('base64url')
 
+// Signs the OAuth "state" so the callback can trust which user and page started the connection.
 export function signState(userId, next, now = Date.now()) {
   const body = Buffer.from(
     JSON.stringify({
@@ -61,6 +60,7 @@ export function signState(userId, next, now = Date.now()) {
   return `${body}.${hmac(body)}`
 }
 
+// Verifies a returned OAuth state; null if forged or older than its lifetime.
 export function readState(state, now = Date.now()) {
   const [body, sig] = String(state ?? '').split('.')
   if (!body || !sig) return null
@@ -75,6 +75,7 @@ export function readState(state, now = Date.now()) {
   }
 }
 
+// The Google consent page URL for this state.
 export function authUrl(state) {
   return `${AUTH_URL}?${new URLSearchParams({
     client_id: process.env.GOOGLE_CLIENT_ID,
@@ -94,6 +95,7 @@ const key = () => {
   return k
 }
 
+// Encrypts a Google refresh token (AES-256-GCM) before it is stored.
 export function encrypt(text) {
   const iv = randomBytes(12)
   const cipher = createCipheriv('aes-256-gcm', key(), iv)
@@ -101,6 +103,7 @@ export function encrypt(text) {
   return [iv, cipher.getAuthTag(), data].map((b) => b.toString('base64url')).join('.')
 }
 
+// Reverses encrypt(); throws if the stored text was changed.
 export function decrypt(stored) {
   const [iv, tag, data] = String(stored)
     .split('.')
@@ -118,6 +121,7 @@ const form = (fields) =>
     ...fields,
   })
 
+// Calls Google's token endpoint and turns its failures into GoogleError.
 async function tokenRequest(fields) {
   let res
   try {
@@ -160,6 +164,7 @@ export const revoke = (refreshToken) =>
     () => {},
   )
 
+// Calls the Google Calendar events API with an access token; failures become GoogleError.
 async function calendar(token, method, path = '', body) {
   let res
   try {
@@ -262,12 +267,15 @@ export const LANGS = Object.keys(TEXT)
 
 const DATE = /^\d{4}-\d{2}-\d{2}$/
 const TIME = /^([01]\d|2[0-3]):[0-5]\d$/
+// True for a real calendar date written YYYY-MM-DD.
 const isDate = (d) =>
   typeof d === 'string' &&
   DATE.test(d) &&
   new Date(`${d}T00:00:00Z`).toISOString().slice(0, 10) === d
+// A trimmed non-empty string within the length limit, else null.
 const str = (v, max) =>
   typeof v === 'string' && v.trim() && v.trim().length <= max ? v.trim() : null
+// Number of days from start to end, both included.
 const days = (start, end) => Math.round((Date.parse(end) - Date.parse(start)) / 86400000) + 1
 
 // Checks the schedule sent by the client (shape in docs/google-contract.md). Returns { entries } or { error } for a 400.
@@ -318,6 +326,7 @@ export function checkEntries(raw) {
 const localPlus = (date, time, minutes) =>
   new Date(Date.parse(`${date}T${time}:00Z`) + minutes * 60000).toISOString().slice(0, 19)
 
+// Builds one calendar event (title, time, reminder) for a dose in the user's language.
 export function buildEvent(entry, dose, lang = 'en') {
   const t = TEXT[lang] ?? TEXT.en
   const { count, unit, food } = entry.instruction
@@ -359,6 +368,7 @@ export function buildFollowUpEvent(entry, dose, lang = 'en') {
   }
 }
 
+// Hash of an event, so unchanged events are not sent to Google again.
 const fingerprint = (event) =>
   createHash('sha256').update(JSON.stringify(event)).digest('base64url')
 

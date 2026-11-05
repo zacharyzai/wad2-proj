@@ -1,4 +1,4 @@
-// Owner: Zachary. Welcome page: 5 E2E tests, written the Week 10 way (set up, act, assert).
+// Welcome page: 5 E2E tests, written the Week 10 way (set up, act, assert).
 import { test, expect } from '@playwright/test'
 
 // First-time visitors: no "seen the welcome page" flag (the config gives every other test one).

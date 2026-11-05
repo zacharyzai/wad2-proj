@@ -1,7 +1,3 @@
-// Owner: Lokesh (built by Claude, declared in README.txt). The user's medicine list, kept on their account so every device
-// shows the same Schedule and a linked caregiver sees the same doses. Behind requireAuth. Contract: docs/care-contract.md.
-//   GET /api/schedule               → { medicines }  (null: this account has never saved a list)
-//   PUT /api/schedule { medicines } → { saved }      the whole list, replacing the saved one
 import { Router } from 'express'
 import mongoose from 'mongoose'
 import { withDb } from '../db.js'

@@ -3,8 +3,8 @@
 import { describe, expect, it } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createI18n } from 'vue-i18n'
-import en from '../../i18n/locales/en.json'
-import ScanPages from './ScanPages.vue'
+import en from '../src/i18n/locales/en.json'
+import ScanPages from '../src/components/scan/ScanPages.vue'
 
 const i18n = createI18n({ legacy: false, locale: 'en', messages: { en } })
 const shot = (id, problem = null) => ({

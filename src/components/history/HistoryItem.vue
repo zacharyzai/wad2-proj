@@ -1,5 +1,4 @@
-<!-- Owner: Isaac. One saved scan in the History list: replay and delete (with a confirm step).
-     Delete is an inline panel, not a pop-up, so keyboard and screen-reader users never get trapped. -->
+<!-- One saved scan in History, with Listen again and Delete. -->
 <script setup>
 import { computed, nextTick, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -17,6 +16,7 @@ const busy = ref(false)
 const errorCode = ref(null)
 
 const isMed = computed(() => props.item.type === 'medication')
+// A date in the current language.
 const fmt = (iso, opts) => (iso ? new Date(iso).toLocaleDateString(locale.value, opts) : '')
 const savedText = computed(() =>
   t('history.saved', {
@@ -44,12 +44,14 @@ async function openDelete() {
   await nextTick()
   keepButton.value?.focus()
 }
+// Closes the delete question and returns focus to its button.
 async function closeDelete() {
   panel.value = null
   errorCode.value = null
   await nextTick()
   deleteButton.value?.focus()
 }
+// Opens or closes the delete question.
 const toggleDelete = () => (panel.value === 'delete' ? closeDelete() : openDelete())
 
 // Ignores double taps, shows the error code, runs onOk when it worked.
@@ -62,6 +64,7 @@ async function run(call, onOk) {
   if (res.ok) onOk(res.data)
   else errorCode.value = res.error.code
 }
+// Deletes the saved scan and tells the list.
 const remove = () =>
   run(
     () => deleteScan(props.item.id),

@@ -1,13 +1,4 @@
-<!-- Owner: Isaac (tidied by Asher: grouped, searchable, two lists). Saved scans, arranged so a medicine or bill is found
-     without scrolling (our own rules: src/rules/history.js), all loaded at once (GET /api/history/all):
-       Medicines  one short row per medicine with all its scans inside, so monthly refills don't pile up. "Taking now"
-                  (still on the timetable) first; "No longer taking" folded away. A search box, and one-tap chips with
-                  the person's own medicines.
-       Bills      one short row per visit under its month ("This month", "October 2026"), chips to jump to a month, and
-                  what was paid at each clinic this year.
-     A row opens that medicine or bill (?open=), where Listen again and Delete live (HistoryItem.vue): the list stays
-     short and nothing is deleted by a stray tap. The list and the open item are in the address, so Back works.
-     API: docs/history-contract.md. -->
+<!-- History page: saved scans by medicine and bills by month, with replay. -->
 <script setup>
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -44,6 +35,7 @@ const loading = ref(true)
 const errorCode = ref(null)
 const notice = ref('')
 
+// Loads all saved scans.
 async function load() {
   loading.value = true
   errorCode.value = null
@@ -68,6 +60,7 @@ const tab = computed(() =>
       ? 'medication'
       : 'bill',
 )
+// Switches tab and keeps it in the address.
 const setTab = (key) => router.replace({ query: { tab: key } })
 
 const query = ref('')
@@ -85,6 +78,7 @@ const purposeText = (g) => (g.purpose ? t(`purpose.${g.purpose}`) : '')
 const foundGroups = computed(() =>
   groups.value.filter((g) => medicineMatches(g, query.value, purposeText(g))),
 )
+// True when a medicine was found by what it is for, not by its name.
 const byPurpose = (g) => searching.value && g.purpose && !matches(g.title, query.value)
 // The line under a row: what it is for (when found that way; on "Taking now", whenever there is one scan), else how often
 // it was scanned.
@@ -105,21 +99,26 @@ const quick = computed(() =>
     ? (sorted.value ? groups.value.filter((g) => g.taking) : groups.value).slice(0, 8)
     : [],
 )
+// Taps a suggestion to search for it, or taps again to clear.
 const pickQuick = (title) => (query.value = query.value === title ? '' : title)
 
 // --- Bills: under the month of the visit; what was paid at each clinic this year. --------------------------------------
 const today = todayInSingapore()
 const thisMonth = today.slice(0, 7)
 const thisYear = today.slice(0, 4)
+// A bill's title, or the word "Bill" when it has none.
 const billTitle = (item) => item.title || t('explain.tag.bill')
 const months = computed(() =>
   billMonths(items.value.filter((i) => i.type === 'bill' && matches(billTitle(i), query.value))),
 )
 const totals = computed(() => clinicTotals(items.value, thisYear))
+// A "YYYY-MM" month as a formatted date in the current language.
 const monthDate = (m, options) =>
   new Date(`${m}-01T00:00:00Z`).toLocaleDateString(locale.value, { timeZone: 'UTC', ...options })
+// A month's heading, or "This month".
 const monthName = (m) =>
   m === thisMonth ? t('history.thisMonth') : monthDate(m, { month: 'long', year: 'numeric' })
+// A month's short label for the jump chips.
 const monthChip = (m) =>
   m === thisMonth
     ? t('history.thisMonth')
@@ -127,7 +126,8 @@ const monthChip = (m) =>
         m,
         m.startsWith(thisYear) ? { month: 'short' } : { month: 'short', year: 'numeric' },
       )
-const monthHeadings = ref([]) // template refs in v-for (Week 4): one per month heading
+const monthHeadings = ref([]) // one per month heading
+// Scrolls to a month's heading.
 function jumpTo(m) {
   const heading = monthHeadings.value.find((h) => h.id === `month-${m}`)
   heading?.scrollIntoView({
@@ -145,6 +145,7 @@ const shortDate = (ymd) =>
     month: 'short',
     ...(ymd.startsWith(thisYear) ? {} : { year: 'numeric' }),
   })
+// The day a scan was saved, in the Singapore calendar.
 const savedDay = (iso) => shortDate(todayInSingapore(new Date(iso)))
 
 // --- One medicine or bill opened (?open=): its scans, each with Listen again and Delete. ---------------------------------
@@ -175,7 +176,9 @@ const opened = computed(() => {
     }
   )
 })
+// Link that opens one medicine or bill's scans.
 const openTo = (key) => ({ query: { tab: tab.value, open: key } })
+// Closes the opened medicine or bill, back to the list.
 function close() {
   if (window.history.state?.back) router.back()
   else router.replace({ query: { tab: tab.value } })
@@ -183,6 +186,7 @@ function close() {
 
 // Replay: fetch the whole saved scan, hand it to the Explain page the same way a fresh scan arrives.
 const opening = ref(null)
+// Opens a saved scan again to listen to its explanation.
 async function replay(item) {
   if (opening.value) return
   opening.value = item.id

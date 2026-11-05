@@ -1,4 +1,4 @@
-/* Scoped styles for HistoryView.vue: two lists, a find box, chips, short rows, and one medicine or bill opened. */
+/* Styles for the History page. */
 .history {
   gap: 20px;
 }

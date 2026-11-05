@@ -1,16 +1,4 @@
-// Owner: Lokesh. Subsidy rules behind the bill questionnaire. Pure functions with no Vue, so server/test/subsidies.test.js can test them.
-// Every figure must be on the official page in `sourceUrl` on the date in `checkedOn`. If a figure is unclear, `discount` stays null
-// and the page only links to the source. Never invent a percentage or amount.
-//
-// answers (from the questionnaire; any of them may be missing):
-//   birthYear     number
-//   residency     'citizen' | 'pr' | 'other'
-//   citizenSince  number (year) | 'birth'   (only used when residency is 'citizen')
-//   income        'upTo1500' | '1501to2300' | 'above2300' | 'unsure'   (household monthly income per person, for CHAS)
-//
-// rule.eligible(normalizeAnswers(answers)) returns true, false, or 'unknown' when an answer it needs is missing.
-// checkRules(answers) does both steps for every rule.
-
+// Subsidy eligibility rules from official MOH sources, checked against the questionnaire answers.
 import { sumCents } from './billCheck.js'
 
 export const UNKNOWN = 'unknown'
@@ -43,6 +31,7 @@ export function normalizeAnswers(raw = {}, thisYear = new Date().getFullYear()) 
   return { birthYear, residency, citizenYear, income }
 }
 
+// Pioneer Generation check from year of birth and citizenship; UNKNOWN until both are answered.
 const isPioneer = (a) => {
   if (a.residency === null) return UNKNOWN
   if (a.residency !== 'citizen') return false
@@ -52,6 +41,7 @@ const isPioneer = (a) => {
   return a.citizenYear <= 1986
 }
 
+// Merdeka Generation check from year of birth and citizenship; UNKNOWN until both are answered.
 const isMerdeka = (a) => {
   if (a.residency === null) return UNKNOWN
   if (a.residency !== 'citizen') return false
@@ -64,6 +54,7 @@ const isMerdeka = (a) => {
   return a.birthYear >= 1950 || a.citizenYear > 1986
 }
 
+// Residency checks used by the rules below; UNKNOWN until the question is answered.
 const isCitizen = (a) => (a.residency === null ? UNKNOWN : a.residency === 'citizen')
 const isResident = (a) =>
   a.residency === null ? UNKNOWN : a.residency === 'citizen' || a.residency === 'pr'
@@ -171,6 +162,7 @@ export function discountCents(bill, percent) {
 export function compareWithBill(bill, raw, thisYear) {
   const place = billPlace(bill)
   const checks = checkRules(raw, thisYear)
+  // The eligibility result for one scheme, if it has been checked.
   const resultFor = (scheme) => checks.find(({ rule }) => rule.scheme === scheme)
   const schemesOnBill = new Set(bill.subsidies.map((s) => s.scheme))
 

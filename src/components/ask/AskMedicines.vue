@@ -1,6 +1,4 @@
-<!-- Owner: Zachary (built by Claude, declared in README.txt). Ask's "My medicines": one row that opens (like a chat's attached
-     context) to see the list, a few at a time, remove one (with Undo), add one by photo, or type one in. AskView opens the form with
-     openForm() (defineExpose) and hears `added` when a typed medicine is saved. -->
+<!-- Ask page panel listing the medicines the user has checked or typed in, with add, remove and undo. -->
 <script setup>
 import { computed, nextTick, onBeforeUnmount, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -11,6 +9,7 @@ import KindIcon from '../layout/KindIcon.vue'
 const emit = defineEmits(['added'])
 const { t } = useI18n()
 const { medicines, rememberMedicine, forgetMedicine, restoreMedicine } = useMedicinesStore()
+// A medicine's name and strength as one line.
 const medName = (m) => [m.name, m.strength].filter(Boolean).join(' ')
 
 const open = ref(false)
@@ -23,6 +22,7 @@ const current = computed(() => Math.min(page.value, pages.value))
 const shown = computed(() =>
   medicines.slice((current.value - 1) * PER_PAGE, current.value * PER_PAGE),
 )
+// Moves the list by a page, staying within the first and last page.
 const turn = (by) => (page.value = Math.min(Math.max(current.value + by, 1), pages.value))
 
 // "Type a medicine": name is required, the instructions are what the label says (optional but useful).
@@ -31,6 +31,7 @@ const newName = ref('')
 const newText = ref('')
 const nameInput = ref(null)
 const nameMissing = ref(false)
+// Opens the "Type a medicine" form and focuses its name field.
 async function openForm() {
   open.value = true
   adding.value = true
@@ -41,6 +42,7 @@ async function openForm() {
 }
 defineExpose({ openForm })
 
+// Adds the typed medicine to the list, or flags the name as missing.
 function addTyped() {
   if (!newName.value.trim()) {
     nameMissing.value = true
@@ -60,6 +62,7 @@ function addTyped() {
 const removed = ref(null)
 const undoButton = ref(null)
 let toastTimer = null
+// Removes a medicine, keeping it for 8 seconds so Undo can bring it back.
 async function remove(m) {
   clearTimeout(toastTimer)
   removed.value = forgetMedicine(m.id)
@@ -67,6 +70,7 @@ async function remove(m) {
   await nextTick()
   undoButton.value?.focus() // the Remove button is gone, so keep keyboard focus somewhere useful
 }
+// Puts the last removed medicine back.
 function undo() {
   clearTimeout(toastTimer)
   restoreMedicine(removed.value)

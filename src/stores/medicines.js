@@ -1,7 +1,4 @@
-// The user's medicines, so Ask can answer about what they actually take and Schedule can lay out their doses (a Pinia store).
-// Extracted text only (contract fields), never photos.
-// The list belongs to the account: stores/scheduleSync.js loads it from GET /api/schedule and saves every change. What is kept
-// in this browser is only a cache of the logged-in account's list.
+// Pinia store for the user's medicines and their schedules.
 import { reactive, toRaw, watch } from 'vue'
 import { defineStore } from 'pinia'
 import { addDays, labelLimitDays, supplyDays, todayInSingapore } from '../rules/schedule.js'
@@ -9,6 +6,7 @@ import { addDays, labelLimitDays, supplyDays, todayInSingapore } from '../rules/
 const KEY = 'medicines'
 const MAX = 10 // same limit as the server
 
+// The medicines saved on this device; entries without a name are dropped.
 function load() {
   try {
     const list = JSON.parse(localStorage.getItem(KEY))
@@ -29,6 +27,7 @@ const fromLabel = (medication) => {
 // ended is a refill: it starts again from today, from the new label (or Schedule asks how many days). Changed times stay.
 const ended = (schedule) =>
   Boolean(schedule?.days) && addDays(schedule.startDate, schedule.days - 1) < todayInSingapore()
+// The schedule for a re-scanned medicine: keeps a running course going (within the label's limit) or starts a new one.
 function scheduleFor(previous, medication) {
   if (previous?.schedule && !ended(previous.schedule)) {
     // Carries on, but never past a limit the label gives ("not more than 7 days"), even if it was scheduled for longer before.
@@ -52,6 +51,7 @@ function scheduleFor(previous, medication) {
 // A course that has finished or been stopped: history, not something the person takes now.
 export const isFinished = (entry) => ended(entry.schedule)
 
+// True when two medicines share a name and strength.
 const same = (a, b) =>
   a.name.trim().toLowerCase() === b.name.trim().toLowerCase() &&
   (a.strength ?? '') === (b.strength ?? '')
@@ -163,6 +163,7 @@ export const useMedicinesStore = defineStore('medicines', () => {
     return index === -1 ? null : { entry: medicines.splice(index, 1)[0], index }
   }
 
+  // Puts a removed medicine back where it was (the Undo).
   function restoreMedicine({ entry, index }) {
     if (!medicines.some((m) => m.id === entry.id)) medicines.splice(index, 0, entry)
   }

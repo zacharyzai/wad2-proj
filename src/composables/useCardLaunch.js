@@ -1,6 +1,4 @@
-// Home's cards open with a short picture of their own (components/home/CardLaunch.vue) before the page they lead to:
-// a capsule being scanned, a bill printing, chat bubbles, a calendar ticked. About a second, then the page.
-// Reduced motion, or a click meant for a new tab or window: no picture, the link does what it always does.
+// Shared state and start function for the card-launch animation.
 import { reactive } from 'vue'
 
 export const LAUNCH_MS = 1000

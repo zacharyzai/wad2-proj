@@ -1,9 +1,4 @@
-<!-- Owner: Asher. The background of every page in the app (App.vue puts it behind the page): faint line drawings of what the
-     app is about, scattered behind the cards and drifting slowly. Medicine (capsules, a tablet, a bottle), bills (a receipt,
-     coins), the day (a calendar, a clock), health (a heartbeat), and the people it is for: an older couple, a walking stick,
-     and caring hands holding a heart. The set repeats down a long page (one set per TILE px), so it never thins out.
-     Behind everything (the cards and their words are always on top), never clickable, hidden from screen readers.
-     Reduced motion, and on phones: they stay where they are. -->
+<!-- Faint line-drawing background behind every page. -->
 <script setup>
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 

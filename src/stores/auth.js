@@ -1,11 +1,4 @@
-// Who is logged in (a Pinia store, Week 11). Login, sign up, log out and account changes are its actions.
-// "Remember me": the token lives in localStorage (kept for 30 days, renewed on every visit). Without it, in sessionStorage,
-// so closing the browser logs you out. api/client.js sends the token with every request.
-// A copy of the account details is kept next to the token, so a returning user opens the app instantly
-// while restore() checks with the server in the background. Logging out removes both.
-// The app language is part of the account: logging in on any device uses it, and changing it anywhere saves it.
-// A language picked while logged out (Login, Sign up, welcome page) wins at login and becomes the account's.
-// Day/night mode is part of the account too: asked once after signing up (ThemePrompt), changed on the Account page.
+// Pinia store for who is logged in: login, signup, logout and account changes.
 import { ref, watch } from 'vue'
 import { defineStore } from 'pinia'
 import { useScanStore } from './scan'
@@ -18,6 +11,7 @@ import { fadeScreen } from '../screenFade'
 
 const USER_KEY = 'user'
 
+// Stores the token and user in localStorage ("Remember me") or sessionStorage, and clears the other.
 function save(token, remember, user) {
   try {
     for (const s of [localStorage, sessionStorage])
@@ -41,6 +35,7 @@ function savedUser() {
   }
 }
 
+// True when the saved login is the "Remember me" kind.
 const isRemembered = () => {
   try {
     return Boolean(localStorage.getItem(TOKEN_KEY))
@@ -50,7 +45,7 @@ const isRemembered = () => {
 }
 
 export const useAuthStore = defineStore('auth', () => {
-  // state
+  // Login state
   const user = ref(savedUser()) // { name, email, dob, citizenship, citizenSince, income } once we know who this is
   const checked = ref(false) // true once we have asked the server (or found no token to ask with)
 
@@ -89,6 +84,7 @@ export const useAuthStore = defineStore('auth', () => {
     return pending
   }
 
+  // Signup and login both end here: sends the details and keeps the token and user. The account's language and colours wait for enterApp.
   async function start(path, body, remember) {
     const res = await api(path, { method: 'POST', body: { ...body, remember } })
     if (res.ok) {
@@ -116,6 +112,7 @@ export const useAuthStore = defineStore('auth', () => {
       await router.push(to)
     }, 'enter')
 
+  // Logs in with an email and password.
   const login = (email, password, remember = true) =>
     start('/auth/login', { email, password }, remember)
   // Forgot your password? Emails a reset link if an account uses this address (the answer is the same either way).
@@ -152,6 +149,7 @@ export const useAuthStore = defineStore('auth', () => {
     user.value = { ...user.value, language }
     return patchMe({ language })
   }
+  // Saves the day/night choice to the account.
   function saveTheme(theme) {
     if (!user.value) return null
     user.value = { ...user.value, theme }

@@ -1,7 +1,4 @@
-<!-- Owner: Zachary (built by Claude, declared in README.txt). One reply in the Ask conversation, beside the capsule:
-     waiting (in words), an error with Try again, an emergency (Call 995), "which medicine?", or the answer card.
-     Under the newest answer: "Explain more simply" and the next questions. Every question goes back to
-     AskView through the `ask` event: ask(text, chip, message to re-ask). -->
+<!-- One reply in the Ask conversation: waiting, error, emergency notice, "which medicine?" or the answer card. -->
 <script setup>
 import { useI18n } from 'vue-i18n'
 import { useMedicinesStore } from '../../stores/medicines'
@@ -46,11 +43,14 @@ const {
   isSaid,
 } = useAnswer()
 
+// The message for an error code, using an Ask-specific one when there is one.
 const errorText = (code) =>
   te(`ask.errors.${code}`) ? t(`ask.errors.${code}`) : t(`errors.${code}`)
+// A source as text, whether it came as a plain string or an object with a title.
 const sourceText = (s) => (typeof s === 'string' ? s : s?.title)
 // The user's medicines a piece of text mentions.
 const medsIn = (text) => namedIn(medicines, text)
+// A medicine's name.
 const nameOf = (e) => e.medication.name
 
 // While waiting, say what is happening, in words: thinking → checking the medicine → writing the answer.

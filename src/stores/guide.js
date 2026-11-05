@@ -1,14 +1,10 @@
-// Beginner's guide ("How to use the app"), a Pinia store: shown once, reopened any time. From the Claude Design walkthrough, extended to
-// walk people through the real app: a welcome card, then it points at real buttons (nav ones must be tapped), then a finish card.
-// When it shows: the first time a logged-in person opens Home or Scan on this device. If they arrived mid-task
-// (a sample link or any other deep link), it waits and shows the next time Home opens. Never on public pages.
-// Before it, an account that hasn't chosen day, night or "same as my device" is asked that first (ThemePrompt).
-// shortcut: "seen" is per device (localStorage), not per account; a second device shows it once more.
+// Pinia store for the beginner's guide: which step is showing and whether it has been seen.
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import { useAuthStore } from './auth'
 
 const KEY = 'amag.tour' // 'seen' | 'deferred'
+// Reads the saved "guide seen" flag; storage may be blocked.
 const read = () => {
   try {
     return localStorage.getItem(KEY)
@@ -16,6 +12,7 @@ const read = () => {
     return 'seen' // storage blocked (private mode): never nag on every page
   }
 }
+// Saves the "guide seen" flag; ignored if storage is blocked.
 const write = (value) => {
   try {
     localStorage.setItem(KEY, value)
@@ -44,21 +41,24 @@ export const useGuideStore = defineStore('guide', () => {
   const step = ref(1)
   const ended = ref(null)
   const askTheme = ref(false)
-  // getter
+  // The step object the guide is currently showing
   const currentStep = computed(() => STEPS[step.value - 1])
 
-  // actions
+  // Moves the guide between steps
   function nextStep() {
     if (step.value < STEPS.length) step.value++
   }
+  // Goes back one step (not past the first).
   function prevStep() {
     if (step.value > 1) step.value--
   }
+  // Starts the guide again from step 1.
   function openGuide() {
     open.value = true
     step.value = 1
     ended.value = null
   }
+  // Closes the guide and remembers it was seen. `kind` records how it ended.
   function endGuide(kind) {
     write('seen')
     open.value = false

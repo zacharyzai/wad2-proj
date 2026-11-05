@@ -1224,6 +1224,7 @@
       "now": "Ambil sekarang",
       "later": "Nanti hari ini",
       "earlier": "Belum ditanda",
+      "missedTitle": "Anda terlepas {n} dos hari ini",
       "done": "Semua sudah diambil",
       "missed": "Jika anda terlepas dos, tanya ahli farmasi apa yang perlu dibuat."
     },

@@ -9,7 +9,7 @@ export default defineConfig({
   },
   // Vitest (Week 10): unit, component (*.test.js with `// @vitest-environment jsdom`) and API integration tests. Playwright runs e2e/*.spec.js.
   test: {
-    include: ['src/**/*.test.js', 'server/test/**/*.test.js'],
+    include: ['tests/**/*.test.js', 'server/test/**/*.test.js'],
     restoreMocks: true, // vi.spyOn(...) is undone after each test
   },
 })

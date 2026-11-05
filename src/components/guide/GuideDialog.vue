@@ -1,12 +1,4 @@
-<!-- Beginner's guide (Claude Design "Tour", extended into a walk through the real app). Steps come from stores/guide.js:
-     card  - a centred card (bottom sheet on phones) over a dimmed page: the welcome and the finish.
-     tap   - the real nav button glows; everything else is dimmed and blocked. Tapping it opens that page and moves on;
-             so does Next (for anyone who can't find it, or uses a keyboard).
-     look  - on the page just opened, points at one key button; Next moves on.
-     Every step that leads on has the same Next button, in the same place, so there is one thing to press throughout.
-     Every step but the first has Back, which also returns to that step's page.
-     The page can't be scrolled while the guide is open, so a glow never drifts off its button (pinch-zoom still works).
-     Skip / Esc end it any time (marked seen). Focus goes to each step's title; card steps keep focus inside. -->
+<!-- The beginner's guide: a step-by-step tour that points at parts of the app and can read aloud. -->
 <script setup>
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
@@ -35,17 +27,20 @@ const isCard = computed(() => step.value.kind === 'card')
 const title = ref(null)
 const panel = ref(null) // the card, or the speech bubble
 const reading = ref(false)
+// True when the user prefers reduced motion.
 const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches
 let returnFocus = null
 
 // ---- read aloud: the device's voice, or our server's audio when it has none for the language (stores/speech.js) ----
 const preparing = ref(false) // getting the audio
 let readRun = 0
+// Stops the guide's read-aloud.
 function stopVoice() {
   readRun++
   stopSpeaking()
   reading.value = preparing.value = false
 }
+// Reads the current step aloud, or stops if it is already reading.
 async function speak() {
   if (reading.value) return stopVoice()
   const id = ++readRun
@@ -67,12 +62,14 @@ function nextOrGo() {
   if (step.value.kind === 'tap') router.push(step.value.target)
   next()
 }
+// Goes to the previous step (and its page).
 function back() {
   stopVoice()
   prevStep()
   const { page } = step.value
   if (page && router.currentRoute.value.path !== page) router.push(page)
 }
+// Closes the guide. `kind` says how: finished, skipped, Esc, or "try a sample".
 function end(kind) {
   stopVoice()
   endGuide(kind)
@@ -91,6 +88,7 @@ let frame = 0
 let lastFound = 0
 let scrolled = false // each step scrolls its button into view once, as soon as it exists (the page may still be loading)
 
+// The on-screen element the current step points at, with its position, or null if it is not visible.
 function findTarget() {
   const el = document.querySelector(`[data-guide="${step.value.target}"]`)
   const r = el?.getBoundingClientRect()
@@ -102,6 +100,7 @@ function place(r) {
   const b = panel.value?.getBoundingClientRect() ?? { width: 340, height: 220 }
   const vw = innerWidth
   const vh = innerHeight
+  // Keeps a number between min and max (min wins when they conflict).
   const clamp = (v, min, max) => Math.min(Math.max(v, min), Math.max(min, max))
   if (r.left + r.width < vw * 0.4 && r.left + r.width + GAP + b.width < vw - 12) {
     const top = clamp(r.top + r.height / 2 - b.height / 2, 12, vh - b.height - 12)
@@ -138,6 +137,7 @@ function reveal(r) {
   })
 }
 
+// Keeps the spotlight and speech bubble on the target as the page moves.
 function track() {
   const found = findTarget()
   // Bring the button on screen once. Tap steps only scroll if it is off screen (e.g. the phone top bar).
@@ -178,6 +178,7 @@ function nudge() {
     )
 }
 
+// Esc closes the guide; Tab stays inside the card steps.
 function onKey(e) {
   if (e.key === 'Escape') return (e.preventDefault(), end('esc'))
   if (!isCard.value || e.key !== 'Tab') return
@@ -192,6 +193,7 @@ function onKey(e) {
 // Card steps: the page behind can't be used. Pointing steps: it can (that's the point), except where it's dimmed.
 // It never scrolls while the guide is open: a page moving under the dim loses the button, and the dim then blocks everything.
 const shell = () => document.querySelector('.shell')
+// Stops the page behind the guide from scrolling or taking taps.
 function lockPage(lock) {
   shell()?.toggleAttribute('inert', lock && isCard.value)
   document.body.style.overflow = lock ? 'hidden' : ''
@@ -203,6 +205,7 @@ function stopScroll(e) {
   e.preventDefault()
 }
 const SCROLLS = ['touchmove', 'wheel']
+// Blocks scroll gestures while the guide is open.
 const watchScroll = (on) =>
   SCROLLS.forEach((type) =>
     on
@@ -210,6 +213,7 @@ const watchScroll = (on) =>
       : document.removeEventListener(type, stopScroll),
   )
 
+// Prepares a step: stops the old voice, scrolls the target into view and places the bubble.
 async function enterStep() {
   stopVoice()
   cancelAnimationFrame(frame)
@@ -256,6 +260,7 @@ watch(locale, stopVoice) // the step re-renders in the new language; old speech 
 const dims = computed(() => {
   // Always four panels (no swap to one full-screen sheet), so their size changes animate smoothly.
   const h = hole.value ?? { top: innerHeight / 2, left: innerWidth / 2, width: 0, height: 0 }
+  // A pixel size that is never negative.
   const px = (n) => `${Math.max(0, n)}px`
   return [
     { top: 0, left: 0, width: '100%', height: px(h.top) },

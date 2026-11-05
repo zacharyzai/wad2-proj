@@ -1,5 +1,4 @@
-<!-- Owner: Isaac. The details the person gave when they signed up, with Edit and Log out. The password is never shown.
-     Date of birth and citizenship fill in the Bill page's subsidy questions, so a mistake here changes the estimate there. -->
+<!-- Account page: details, theme, caregivers, language and log out. -->
 <script setup>
 import { computed, onBeforeUnmount, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
@@ -74,6 +73,7 @@ const problems = computed(() => {
   return p
 })
 
+// Opens the edit form filled with the current details.
 function edit() {
   Object.assign(form, {
     name: user.value.name ?? '',
@@ -86,6 +86,7 @@ function edit() {
   editing.value = true
 }
 
+// Saves the edited details to the account, or shows why it could not.
 async function save() {
   if (busy.value || Object.keys(problems.value).length) return
   busy.value = true
@@ -123,6 +124,7 @@ async function chooseTheme(choice, event) {
 // "Settings saved": a small message at the bottom that fades after 3 seconds. Polite, so screen readers hear it too.
 const toast = ref(null)
 let toastTimer = 0
+// Shows a short "Saved" / error message that hides itself after 3 seconds.
 function notify(text, bad = false) {
   clearTimeout(toastTimer)
   toast.value = { text, bad }
@@ -132,6 +134,7 @@ onBeforeUnmount(() => clearTimeout(toastTimer))
 
 // H5: one stray tap must not log a senior out (logging back in needs the password), so a pop-up asks first (LeaveDialog).
 const askLeave = ref(false)
+// Logs out and returns to the start page.
 function leave() {
   askLeave.value = false
   leaveApp(router) // a calm fade to Start: the next person on a shared phone may be someone else

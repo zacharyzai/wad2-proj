@@ -1,4 +1,4 @@
-<!-- Owner: Asher. From the Claude Design Explain screen (medicine card with big digits, read-aloud, quick check). All text comes from the human-checked templates in i18n, never from the AI. -->
+<!-- Explain page: plain-language explanation from templates, read aloud, with an understanding check. -->
 <script setup>
 import { computed, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
@@ -22,6 +22,7 @@ if (!scan) router.replace({ name: scanStore.current ? 'confirm' : 'scan' })
 const byValue = (a, b) => a - b
 const TIME_ICONS = { morning: 'sunrise', afternoon: 'sun', evening: 'sunset', bedtime: 'bed' }
 
+// Fills the pre-written medicine explanation templates from the confirmed label.
 function medication(m) {
   const unit = (n) => t(`unit.${m.doseUnit ?? 'other'}`, n)
   const dose = { amount: m.doseAmount, unit: unit(m.doseAmount) }
@@ -92,6 +93,7 @@ function medication(m) {
   }
 }
 
+// Fills the pre-written bill explanation templates from the confirmed bill, and builds the understanding-check question.
 function bill(b) {
   const charges = sumCents(b.items)
   const pay = b.totalPayableCents

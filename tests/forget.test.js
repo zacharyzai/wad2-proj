@@ -1,8 +1,8 @@
 // Log out must leave nothing of the last person behind on a shared device (Vitest, Week 10).
 import { beforeEach, describe, expect, it } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
-import { useAskStore } from './ask'
-import { useScanStore } from './scan'
+import { useAskStore } from '../src/stores/ask'
+import { useScanStore } from '../src/stores/scan'
 
 beforeEach(() => setActivePinia(createPinia()))
 

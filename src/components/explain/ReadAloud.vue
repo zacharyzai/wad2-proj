@@ -1,5 +1,4 @@
-<!-- Owner: Asher. Read-aloud player card from the Claude Design Explain screen: the device's voice, or audio from /api/tts
-     (Gemini) when the device has none for the language (stores/speech.js). -->
+<!-- Read-aloud player with play, pause, replay and speed control. -->
 <script setup>
 import { onBeforeUnmount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -27,6 +26,7 @@ const failed = ref(false)
 
 let run = 0
 
+// Reads the explanation aloud. A newer press cancels an older one still loading.
 async function speak() {
   const id = ++run
   failed.value = false
@@ -40,6 +40,7 @@ async function speak() {
   failed.value = result === 'failed'
 }
 
+// Pauses what is playing, or resumes it, or starts again.
 function toggle() {
   if (status.value === 'playing') {
     pauseSpeaking()
@@ -54,6 +55,7 @@ function toggle() {
   }
 }
 
+// Stops playback and returns to the start.
 function stop() {
   run++
   stopSpeaking()

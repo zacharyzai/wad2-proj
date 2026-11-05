@@ -1,4 +1,4 @@
-<!-- Owner: Isaac. Caregivers only. The seniors who invited you, each with today's doses at a glance. API: docs/care-contract.md (assumed). -->
+<!-- Caregiver's list of the seniors they look after. -->
 <script setup>
 import { onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -14,6 +14,7 @@ const seniors = ref([])
 const loading = ref(true)
 const errorCode = ref(null)
 
+// Loads the seniors this caregiver looks after.
 async function load() {
   loading.value = true
   errorCode.value = null

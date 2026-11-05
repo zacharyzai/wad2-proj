@@ -1,4 +1,3 @@
-// Owner: Sheen Hern. Confirmed contract data only; never an uploaded photo or account profile.
 import mongoose from 'mongoose'
 import {
   BILL_CATEGORIES,

@@ -1,9 +1,4 @@
-<!-- Owner: Asher. Schedule's week at a glance, drawn as a weekly pill box (Sunday to Saturday): seven compartments, each its
-     day's letter on its lid, and in each a capsule with the date. Every compartment and capsule looks the same but the day you
-     are on: a teal compartment, and a capsule that lifts out, teal and cream like the app's own. Today has a thin ring, so
-     it is easy to find from another day. How the day went is a badge on the capsule, in words for screen readers too: all taken (a tick),
-     a dose missed or not ticked (!), still to come (none). Under the box, one sentence for the week.
-     Earlier days' ticks: stores/doses.js. -->
+<!-- Schedule's week at a glance, drawn as a weekly pill box. -->
 <script setup>
 import { computed, watch } from 'vue'
 import { storeToRefs } from 'pinia'
@@ -50,6 +45,7 @@ const sentence = computed(() => {
   if (n) return t('schedule.strip.notTicked', { n }, n)
   return t(week.value.anyPassed ? 'schedule.week.allTicked' : 'schedule.week.nothingYet')
 })
+// A full date for screen readers, e.g. "Monday, 3 November".
 const dayName = (date) => dateText(date, { weekday: 'long', day: 'numeric', month: 'long' })
 </script>
 

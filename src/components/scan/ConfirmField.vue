@@ -1,4 +1,4 @@
-<!-- Owner: Asher. One labelled field on Confirm. Flagged = amber, left empty and marked "Please check"; never guessed. -->
+<!-- One labelled field on Confirm; flagged fields are amber and left empty rather than guessed. -->
 <script setup>
 import { useI18n } from 'vue-i18n'
 import AppIcon from '../layout/AppIcon.vue'

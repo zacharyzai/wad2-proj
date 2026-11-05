@@ -1,6 +1,4 @@
-<!-- Owner: Isaac. Caregivers only. One senior's doses today (taken, not ticked or still to come), and their medicines' details.
-     Tapping a dose turns its card over to the medicine's details. Refreshes every minute. Read-only: nothing here changes anything, and no scans, photos, bills or account details ever
-     reach this page. API: docs/care-contract.md. -->
+<!-- Caregiver view of one senior's doses today and their medicine details. -->
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import { useRoute } from 'vue-router'
@@ -23,6 +21,7 @@ const doses = ref([])
 const medicines = ref([]) // { id, entry, purpose, rawInstruction, warnings }
 // Tapping a card turns it over to the medicine's details. Focus goes with it, because the side turned away can't be reached (inert).
 const flipped = reactive(new Set())
+// Flips a dose card between its time/status and its medicine details.
 async function flip(key, event) {
   const card = event.currentTarget.closest('.flip')
   flipped.has(key) ? flipped.delete(key) : flipped.add(key)
@@ -43,6 +42,7 @@ const STATUS = {
   missed: { icon: 'alert', badge: 'badge-warning' }, // "Not ticked": maybe forgotten, so amber, not red
   upcoming: { icon: 'clock', badge: 'badge-teal' },
 }
+// How many of today's doses have this status.
 const count = (status) => doses.value.filter((d) => d.status === status).length
 const missed = computed(() => doses.value.filter((d) => d.status === 'missed'))
 const sorted = computed(() => [...doses.value].sort((a, b) => a.time.localeCompare(b.time)))

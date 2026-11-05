@@ -1,6 +1,4 @@
-// Reading aloud for every player (Explain, Ask, the guide, the welcome page): this device's voice for the language when it has
-// one, otherwise audio made by our server (/api/tts, Gemini). Also the shared speed, remembered on this device. A Pinia store:
-// state = the speed and this device's voices; actions = speak, stop, pause, resume.
+// Pinia store for read-aloud: device voice first, server audio as fallback, and the chosen speed.
 import { ref, watch } from 'vue'
 import { defineStore } from 'pinia'
 import { readAloudAudio } from '../api/client'
@@ -8,6 +6,7 @@ import { readAloudAudio } from '../api/client'
 const KEY = 'speechRate'
 export const SPEEDS = [0.75, 1, 1.25]
 
+// The reading speed chosen last time.
 function load() {
   try {
     const rate = Number(localStorage.getItem(KEY))
@@ -25,6 +24,7 @@ const clips = new Map() // lang + text → data URL, so a replay doesn't downloa
 const SILENT = (() => {
   const n = 1600
   const view = new DataView(new ArrayBuffer(44 + n * 2))
+  // Writes text into the WAV header.
   const str = (at, s) => [...s].forEach((c, i) => view.setUint8(at + i, c.charCodeAt(0)))
   ;(str(0, 'RIFF'),
     view.setUint32(4, 36 + n * 2, true),
@@ -46,6 +46,7 @@ export const useSpeechStore = defineStore('speech', () => {
   // given just a lang it has no voice for, the browser reads with its English voice (Tamil comes out as "dot").
   const voices = ref(synth?.getVoices() ?? [])
   synth?.addEventListener?.('voiceschanged', () => (voices.value = synth.getVoices()))
+  // The device voice for a language, if there is one.
   const voiceFor = (lang) => voices.value.find((v) => v.lang.toLowerCase().startsWith(lang))
 
   // state: the reading speed, shared by every player.
@@ -67,22 +68,27 @@ export const useSpeechStore = defineStore('speech', () => {
   let audio = null
   let finish = null // ends the current reading's promise
 
+  // Stops whatever is being read.
   function stopSpeaking() {
     synth?.cancel()
     audio?.pause()
     audio = null
     finish?.('stopped')
   }
+  // Pauses/resumes the current reading, device voice or server audio.
   const pauseSpeaking = () => (audio ? audio.pause() : synth?.pause())
   const resumeSpeaking = () => (audio ? audio.play().catch(() => {}) : synth?.resume())
   // A server clip changes speed as it plays; a device voice can't, so the caller reads it again (usesDeviceVoice).
   const setSpeakingRate = (speed) => audio && (audio.playbackRate = speed)
+  // True when the device has a voice for this language (otherwise the server audio is used).
   const usesDeviceVoice = (lang) => Boolean(voiceFor(lang))
 
+  // Reads text aloud in a language at the chosen speed. Resolves when it ends or fails; `onWord` reports the position being read.
   function speak(text, lang, { rate: speed = rate.value, onPlaying, onWord } = {}) {
     stopSpeaking()
     return new Promise((resolve) => {
       let over = false
+      // Finishes this reading once, whichever way it stopped.
       const end = (result) => {
         if (over) return
         over = true
@@ -125,6 +131,7 @@ export const useSpeechStore = defineStore('speech', () => {
             if (over) return
             onPlaying?.()
             if (!onWord) return
+            // Estimates the word being said from how far the server audio has played.
             const follow = () => {
               if (over || a !== audio) return
               if (a.duration > 0) onWord(Math.floor((text.length * a.currentTime) / a.duration))

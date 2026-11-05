@@ -1,13 +1,4 @@
-// Owner: Lokesh. Schedule rules: a saved medicine becomes the dose times shown on the Schedule page and sent to Google Calendar.
-// Pure functions with no Vue, so server/test/schedule.test.js can test them. Our own rules, never AI.
-// Only "daily" medicines are scheduled. Anything else (when necessary, weekly, tapering, other, unknown) is flagged for the
-// pharmacist and gets no times: we never guess a timetable the label doesn't give.
-//
-// buildSchedule(medicine, { startDate, days, times }) returns one ScheduleEntry (docs/google-contract.md):
-//   { medicineId, label, instruction: { count, unit, food }, doses: [{ id, time }], startDate, endDate, flagged }
-//
-// Dates are 'YYYY-MM-DD' strings in Singapore time and times are 'HH:MM'. Date maths runs on UTC midnights, so the
-// computer's own time zone can never shift a day.
+// Rule-based medicine timetable (never AI): builds doses, dates and the Today / week states.
 import { TIMINGS } from '../../server/services/normalizeScan.js'
 
 export const MAX_DAYS = 366 // same limit as Google sync
@@ -20,10 +11,13 @@ const SLOTS_PER_DAY = {
   4: ['morning', 'afternoon', 'evening', 'bedtime'],
 }
 
+// True for a 24-hour "HH:MM" time.
 export const validTime = (time) =>
   typeof time === 'string' && /^([01]\d|2[0-3]):[0-5]\d$/.test(time)
+// True for a whole number of days from 1 to the maximum.
 export const validDays = (days) => Number.isInteger(days) && days >= 1 && days <= MAX_DAYS
 
+// A YYYY-MM-DD string as a UTC date, or null if it is not a real date.
 const parseDate = (date) => {
   if (typeof date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return null
   const [y, m, d] = date.split('-').map(Number)
@@ -33,13 +27,16 @@ const parseDate = (date) => {
     ? utc
     : null
 }
+// A UTC date back to YYYY-MM-DD.
 const formatDate = (utc) =>
   [utc.getUTCFullYear(), utc.getUTCMonth() + 1, utc.getUTCDate()]
     .map((n, i) => String(n).padStart(i ? 2 : 4, '0'))
     .join('-')
 
+// True for a real YYYY-MM-DD date.
 export const validDate = (date) => parseDate(date) !== null
 
+// The date n days after (or before, if negative) the given YYYY-MM-DD date.
 export function addDays(date, n) {
   const utc = parseDate(date)
   if (!utc) return null
@@ -74,27 +71,34 @@ export function timeInSingapore(now = new Date()) {
     hourCycle: 'h23',
   }).format(now)
 }
+// "HH:MM" as minutes since midnight, for comparing times.
 const minutes = (hhmm) => Number(hhmm.slice(0, 2)) * 60 + Number(hhmm.slice(3, 5))
 
 // Today's list highlights where the person is in their day, so a later dose isn't taken by mistake.
 // For the day's dose times (sorted), each is 'earlier', 'now' or 'later' at time `now`. A time is "now" from NOW_LEAD_MIN
-// before it until the next time's "now" starts (the last one: until midnight), and always includes its own time, so two
-// close times can both be "now". Times are 'HH:MM'.
+// before it until the next time's "now" starts, or NOW_LAST_MIN after it if that comes first (so a lone morning dose is
+// missed by noon, not at midnight), never past midnight. It always includes its own time, so two close times can both be
+// "now". Times are 'HH:MM'.
 const NOW_LEAD_MIN = 60
+const NOW_LAST_MIN = 240
+// Marks each dose time earlier, now or later than the current time.
 export function timeStates(times, now) {
   const at = minutes(now)
   return times.map((time, i) => {
     const start = minutes(time) - NOW_LEAD_MIN
-    const end =
-      i + 1 < times.length
-        ? Math.max(minutes(times[i + 1]) - NOW_LEAD_MIN, minutes(time) + 1)
-        : 24 * 60
+    const nextStart = i + 1 < times.length ? minutes(times[i + 1]) - NOW_LEAD_MIN : 24 * 60
+    const end = Math.min(
+      Math.max(nextStart, minutes(time) + 1),
+      minutes(time) + NOW_LAST_MIN,
+      24 * 60,
+    )
     return at < start ? 'later' : at >= end ? 'earlier' : 'now'
   })
 }
 
 // Ticking a dose more than this long before its time asks "Have you already taken it?" first.
 const EARLY_MIN = 120
+// True when a dose is still far enough away that ticking it now is probably a mix-up.
 export const tooEarly = (time, now) => minutes(time) - minutes(now) > EARLY_MIN
 
 // The slots a medicine is taken at, or null when it can't be scheduled safely.
@@ -115,6 +119,7 @@ export function doseSlots(medication = {}) {
 // shortcut: only these phrasings; a limit worded another way is not caught, so the user still checks the days on Schedule.
 const LIMIT =
   /\b(?:more than|longer than|beyond|exceed(?:ing)?|up to|at most|maximum(?: of)?|max\.?(?: of)?)\s+(\d{1,3})\s*(day|week)s?\b/i
+// The longest course the label allows ("not more than 7 days"), or null.
 export function labelLimitDays(medication = {}) {
   const limits = (medication.warnings ?? [])
     .map((w) => LIMIT.exec(String(w)))
@@ -142,6 +147,7 @@ export function supplyDays(medication = {}) {
   return days && limit ? Math.min(days, limit) : days
 }
 
+// Builds a medicine's timetable from its confirmed label data by fixed rules (no AI). Null when the instruction is non-standard.
 export function buildSchedule(medicine, { startDate, days, times = {} } = {}) {
   const medication = medicine?.medication ?? {}
   const slots = doseSlots(medication)
@@ -169,6 +175,7 @@ export function buildSchedule(medicine, { startDate, days, times = {} } = {}) {
 // What POST /api/google/sync gets: every entry, flagged ones too (the server skips those itself). The server needs a real
 // startDate and a label of at most 80 characters on every entry, even ones it skips, or it refuses the whole schedule.
 const LABEL_MAX = 80
+// Fills in what the server insists on: a label cut to the limit and a start date (today when there is none).
 export function syncEntries(entries, today) {
   return entries.map((e) => ({
     ...e,
@@ -208,7 +215,7 @@ export function weekOf(date) {
 // dose never hides behind another one taken at the same time. A cell per day says how that one dose went:
 // 'ok' ticked, 'not' its time has passed with no tick, 'now' today's dose that is due ("Take now"), 'later' not due yet,
 // 'none' not on the timetable that day. Today uses Today's own times (timeStates): a dose is 'now' from an hour before
-// its time until the next time's hour before (the day's last: until midnight), then 'not', when Today says "Not ticked yet".
+// its time until the next time's hour before or 4 hours after its own time, whichever is first, then 'not', when Today says "Not ticked yet".
 // takenOn(date) gives that day's ticked dose ids (a Set), or null while unknown.
 // notTicked lists each 'not' dose, oldest first; anyPassed says whether any dose's time has come yet this week.
 export function weekSummary(entries, today, now, takenOn) {

@@ -1,7 +1,4 @@
-<!-- Owner: Zachary. Welcome page for first-time visitors on this device (router sends "/" here once; see WELCOME_KEY).
-     From the Claude Design "medicine falling from the sky" page: each section's items fall in as you scroll and become the feature.
-     Motion is tied to scroll. A few demos also loop on their own (headline, scan card, reminder phone, chat); all but the
-     chat have a control that stops them, and the phone and chat wait while off screen. Under 1024px items just fade and settle; with reduced motion everything is shown landed. -->
+<!-- Welcome page shown before logging in, explaining what the app does. -->
 <script setup>
 import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -47,6 +44,7 @@ const LANGS = [
     sample: 'இன்று நீங்கள் $8.70 செலுத்த வேண்டும். மெடிசேவ் உங்களுக்காக $15 செலுத்தியது.',
   },
 ]
+// The index of the language currently in use.
 const byLocale = () =>
   Math.max(
     0,
@@ -62,6 +60,7 @@ const PILL = {
   blue: ['oklch(0.74 0.07 240)', 'oklch(0.86 0.055 235)'],
   gold: ['oklch(0.8 0.12 80)', 'oklch(0.84 0.08 40)'],
 }
+// The two colours of a named pill, as CSS variables.
 const pill = (name) => ({ '--c1': PILL[name][0], '--c2': PILL[name][1] })
 const VOICE_FALL = [
   { a: 0.02, b: 0.5, r0: -24, dx: -40, pill: 'coral' },
@@ -94,6 +93,7 @@ const pinned = ref(false)
 const timer = setInterval(() => {
   if (!pinned.value && !reduceMq.matches) head.value = (head.value + 1) % LANGS.length
 }, 3200)
+// Chooses a headline language and switches the app to it.
 function pickHead(i) {
   head.value = i
   pinned.value = true
@@ -109,6 +109,7 @@ const scanTimer = setInterval(() => {
   if (!scanPinned.value && !reduceMq.matches)
     scanItem.value = scanItem.value === 'bill' ? 'label' : 'bill'
 }, 5000)
+// Chooses which document the demo phone shows.
 function pickScan(item) {
   scanItem.value = item
   scanPinned.value = true
@@ -120,16 +121,19 @@ const speaking = ref(false)
 const preparing = ref(false) // getting the audio
 let readRun = 0
 const ringing = ref(false) // fast rings: on with speaking, off at the next ring end after it stops
+// Stops the ringing once its animation has ended and nothing is being said.
 const onRing = (e) =>
   e.animationName.startsWith('ring') && !speaking.value && (ringing.value = false)
 // Neither a voice nor the server's audio could play: say so instead of a silent button.
 const noVoice = ref(false)
+// Chooses which language the read-aloud demo speaks.
 function pickVoice(i) {
   readRun++
   stopSpeaking()
   voice.value = i
   speaking.value = preparing.value = noVoice.value = false
 }
+// Plays the read-aloud demo in the chosen language.
 async function speak() {
   if (speaking.value) return pickVoice(voice.value)
   const L = LANGS[voice.value]
@@ -175,9 +179,13 @@ let chatSeen = false
 let chatTimer = 0
 let liveStep = 0
 let liveId = 0
+// True when the demo chat should play: on screen, tab visible, no reduced motion.
 const chatCanRun = () => chatLanded && chatSeen && !document.hidden && !reduceMq.matches
+// How long to leave a chat message before the next, by its length.
 const readMs = (key) => 1400 + 45 * t(`landing.ask.${key}`).length
+// Runs a function after ms and remembers the timer.
 const later = (fn, ms) => (chatTimer = setTimeout(fn, ms))
+// Starts the demo chat if it is not already running.
 function kickChat(ms = 900) {
   if (!chatTimer && chatCanRun()) later(chatStep, ms)
 }
@@ -194,6 +202,7 @@ async function slide(change) {
       easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
     })
 }
+// Shows the next message in the demo chat.
 function chatStep() {
   chatTimer = 0
   if (!chatCanRun()) return
@@ -214,6 +223,7 @@ function chatStep() {
     later(chatStep, readMs(next.key) + 1000)
   }, 1300)
 }
+// Starts or finishes the chat to match how far the page has scrolled.
 function syncChat(t) {
   const now = t >= CHAT_DONE
   if (now === chatLanded) return
@@ -225,6 +235,7 @@ function syncChat(t) {
   liveStep = 0
   if (chatWin.value) chatWin.value.style.height = ''
 }
+// Restarts the demo chat when the tab becomes visible.
 const onVisibility = () => kickChat()
 
 // The phone and the chat only move while they are on screen.
@@ -246,6 +257,7 @@ const seen = new IntersectionObserver((entries) => {
 const SECTIONS = ['scan', 'listen', 'doses', 'ask']
 const navActive = ref(null)
 const navSolid = ref(false)
+// Marks the top bar solid once scrolled and highlights the section being read.
 function updateNav() {
   navSolid.value = scrollY > 8
   const line = innerHeight * 0.4 // a section counts as "being read" once its top passes 40% down the screen
@@ -254,6 +266,7 @@ function updateNav() {
       (id) => root.value?.querySelector(`#${id}`)?.getBoundingClientRect().top <= line,
     ) ?? null
 }
+// Scrolls to a section.
 function goTo(id) {
   root.value
     .querySelector(`#${id}`)
@@ -263,7 +276,9 @@ function goTo(id) {
 // ---- Scroll engine (ported from the design). Every position comes from scroll; scrolling back plays it in reverse.
 const root = ref(null)
 const BAR = 66 // the sticky top bar's height, and each section's scroll-margin-top (LandingPage.css)
+// Keeps a number between 0 and 1.
 const clamp = (v) => (v < 0 ? 0 : v > 1 ? 1 : v)
+// Eases out: fast at first, slowing to the end.
 const ease = (v) => 1 - (1 - v) ** 3
 // offsetTop ignores transforms, so a falling item's own movement never feeds back into its position.
 const docTop = (el) => {
@@ -275,6 +290,7 @@ const docTop = (el) => {
 // Sections a keyboard or screen-reader user has moved into: shown landed straight away, whatever the scroll position.
 const landed = new Set()
 
+// Draws one frame of every scroll-driven effect.
 function frame() {
   const el = root.value
   if (!el) return
@@ -354,6 +370,7 @@ function frame() {
 }
 
 let raf = 0
+// Draws a frame on the next screen refresh, at most one per refresh.
 const onScroll = () => (raf ||= requestAnimationFrame(() => ((raf = 0), frame())))
 
 // ---- The hero and the tunnel scroll freely. From "scan" on, each feature is a magnet: one mouse-wheel or trackpad gesture
@@ -362,6 +379,7 @@ const onScroll = () => (raf ||= requestAnimationFrame(() => ((raf = 0), frame())
 const FEATURES = ['scan', 'listen', 'doses', 'ask']
 let wheelQuiet = true // the last gesture has ended (no wheel for 200 ms), so trackpad momentum can't step twice
 let wheelTimer = 0
+// The scroll position at which each feature section snaps into place.
 function featureStops() {
   return FEATURES.map((id) => {
     const el = root.value.querySelector(`#${id}`)
@@ -369,6 +387,7 @@ function featureStops() {
     return { start, end: start + Math.max(0, el.offsetHeight - innerHeight - BAR) } // end > start only when clearly taller than the screen (more than its bottom padding)
   })
 }
+// Moves a whole feature at a time on a wheel or trackpad gesture.
 function onWheel(event) {
   if (
     reduceMq.matches ||

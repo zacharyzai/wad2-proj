@@ -1,5 +1,3 @@
-// Owner: Sheen Hern (feature 2: cloud read-aloud). Built by Zachary's Claude. Turns text into speech with Gemini, for devices
-// with no voice for the language (often Tamil and Malay). Uses the same model fallback and deadline as scans (firstReply).
 import { ScanError, firstReply, geminiKeys, keyed, list } from './gemini.js'
 
 const API = 'https://generativelanguage.googleapis.com/v1beta/interactions'
@@ -8,6 +6,7 @@ export const MAX_TTS_CHARS = 900 // about a minute of speech: an Explain reading
 // and keeps 90 s of speech (~900 Tamil characters, ~2.2 MB) under Vercel's 4.5 MB response limit even as base64.
 const SAMPLE_RATE = 16_000
 
+// One try at speech synthesis with a model + key pair.
 function ttsAttempt(model, text, key, i) {
   return {
     name: keyed(model, i),
@@ -36,8 +35,11 @@ function ttsAttempt(model, text, key, i) {
 // shortcut: per server instance and lost on a cold start; fine for a demo, move to a shared cache if usage grows.
 const CACHE_SIZE = 100
 const cache = new Map()
+// Cache key for a piece of text in a language.
 const key = (text, lang) => `${lang}\n${text}`
+// Audio already made for this text, or null.
 export const cachedSpeech = (text, lang) => cache.get(key(text, lang)) ?? null
+// Clears the audio cache (used by tests).
 export const forgetSpeech = () => cache.clear() // tests
 
 // Resolves to base64 WAV. Throws ScanError: AI_UNAVAILABLE (no key, every model failed, or no audio came back) or RATE_LIMITED.
@@ -80,6 +82,7 @@ export function shrink(base64) {
   return out.toString('base64')
 }
 
+// Writes the 44-byte WAV header onto raw PCM audio from the model.
 function header(wav, rate, samples) {
   wav.write('RIFF', 0)
   wav.writeUInt32LE(36 + samples * 2, 4)

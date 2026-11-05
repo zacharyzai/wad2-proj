@@ -1,4 +1,4 @@
-/* Scoped styles for components/schedule/MedicineCard.vue and PharmacistList.vue. */
+/* Styles for a medicine card. */
 .med-card {
   display: flex;
   flex-direction: column;

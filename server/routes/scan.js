@@ -1,4 +1,3 @@
-// Owner: Zachary. Contract: docs/scan-contract.md
 import { Router } from 'express'
 import { sendError } from '../errors.js'
 import { scanRateLimit, takeDailyQuota } from '../middleware/rateLimit.js'

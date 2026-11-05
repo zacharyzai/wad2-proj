@@ -1,11 +1,4 @@
-// Decides what of an OCR'd photo (lines of words with boxes) may leave the phone. Pure logic, no browser APIs, so it is
-// unit-tested in sensitive.test.js. Used by redact.js.
-// Keep-list first: only lines that look like medicine or bill details are shown; everything else (including text the
-// reader could not read, and unlabelled names like "TAN AH KOW") stays black. findSensitive then covers labelled
-// personal details that sit on a kept line ("Date of Birth: 15/03/1948").
-// shortcut: a drug name printed alone on its line, with no strength or form ("PANADOL"), is covered too; the AI then
-// marks the name unclear and the user types it on Confirm. Add a drug-name list if that happens often.
-
+// Strips punctuation around an OCR word.
 const clean = (s) => s.replace(/^[^\p{L}\p{N}*•]+|[^\p{L}\p{N}*•]+$/gu, '')
 
 // OCR often reads digits as look-alike letters; only fixed inside the 7-digit middle of an NRIC.
@@ -24,6 +17,7 @@ const DIGITS = {
   B: '8',
   G: '6',
 }
+// True when an OCR word looks like an NRIC/FIN, allowing for common misreadings.
 function isNric(raw) {
   const s = clean(raw)
   // The check letter is often misread as a bracket or bar ("S0000588J" read as "S0000588)"), which clean() strips:
@@ -62,6 +56,7 @@ const ADDRESS_LINE = /^(blk|block)\b|#\d{1,3}-\d{1,4}|singapore\s*\d{6}|\bS\(?\d
 export function findSensitive(lines) {
   const hits = []
   const seen = new Set()
+  // Records a sensitive word once, with the reason it was flagged.
   const hit = (word, reason) => {
     if (seen.has(word)) return
     seen.add(word)
@@ -151,8 +146,10 @@ export function findSensitive(lines) {
 // shortcut: a name printed only once on an unlabelled money row still goes through; learn names across pages if that shows up.
 const CAPS_WORD = /^[A-Z][A-Z'-]+$/
 const PLAIN = /^(and|of|the|for|to|in|on|by|with|at|or|no|ref)$/i
+// True for a capitalised word that could be part of a person's name.
 const isNameWord = (word) =>
   CAPS_WORD.test(word) && !PLAIN.test(word) && !KEEP.some((re) => re.test(word))
+// Finds runs of name-like words that repeat on the page, which are likely the patient's name.
 function repeatedNames(lines) {
   const runs = [] // { words, key, money } for every run of 2+ name-like words
   lines.forEach((line, n) => {
@@ -236,6 +233,7 @@ function geometry(line, words) {
     below: 0,
   }
 }
+// The height of a slanted text line at a given x.
 export const baselineAt = (g, x) => g.by + g.slope * (x - g.bx)
 
 /**

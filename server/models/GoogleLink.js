@@ -1,5 +1,3 @@
-// Owner: Zachary, in Sheen Hern's models folder (built by Claude, declared in README.txt). One per user who connected Google Calendar.
-// The refresh token is encrypted (server/services/google.js) and never leaves the server. Contract: docs/google-contract.md
 import mongoose from 'mongoose'
 
 const linkSchema = new mongoose.Schema(

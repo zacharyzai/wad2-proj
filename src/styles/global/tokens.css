@@ -1,4 +1,4 @@
-/* Owner: Isaac. Design tokens from the Claude Design system ("Design system and screens built"). Night mode swaps the same names. */
+/* Design tokens (colours, spacing, type); night mode swaps the same names. */
 :root {
   /* Colour: light */
   --color-page: #faf7f2; /* warm paper, matching the welcome page */

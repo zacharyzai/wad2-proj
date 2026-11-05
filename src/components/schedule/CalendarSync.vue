@@ -1,7 +1,4 @@
-<!-- Owner: Lokesh. Google Calendar on the Schedule page: Connect, Disconnect, and keeping the calendar in step with the schedule.
-     Every dose becomes a repeating event with an alert, so the phone rings even when the app is closed. Contract: docs/google-contract.md
-     Any change to the schedule (Edit, Remove, Undo, a re-scanned label, the language) sends the WHOLE schedule once, 1.5 seconds
-     after the last change. One sync at a time. Hidden when the server has no Google set up (503 GOOGLE_UNAVAILABLE). -->
+<!-- Google Calendar card on Schedule: connect, disconnect and keep the calendar in step. -->
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -46,6 +43,7 @@ const missing = computed(() =>
 
 // What was last sent from this device, so opening the page only syncs when the schedule changed since (e.g. a re-scanned label).
 const sentKey = () => `calendarSynced:${authStore.user?.email ?? ''}`
+// The schedule last sent to Google Calendar from this device.
 function lastSent() {
   try {
     return localStorage.getItem(sentKey())
@@ -53,6 +51,7 @@ function lastSent() {
     return null
   }
 }
+// Remembers what was last sent, so an unchanged schedule is not sent again.
 function remember(body) {
   try {
     body === null ? localStorage.removeItem(sentKey()) : localStorage.setItem(sentKey(), body)
@@ -73,6 +72,7 @@ function onError(code) {
 let timer = 0
 let running = false
 let again = false
+// Sends the schedule to Google Calendar; a change while sending runs once more afterwards.
 async function sync(force = false) {
   if (state.value !== 'connected') return
   if (running) return (again = true) // runs once more when this one is done
@@ -105,6 +105,7 @@ watch(payload, () => {
   }, WAIT_MS)
 })
 
+// Goes to Google's permission page.
 async function connect() {
   busy.value = true
   const res = await googleConnect(props.next)
@@ -113,6 +114,7 @@ async function connect() {
   if (!onError(res.error.code)) emit('notify', t(`errors.${res.error.code}`), true)
 }
 
+// Disconnects Google, and removes our calendar events too when asked.
 async function disconnect(removeEvents) {
   busy.value = true
   const res = await googleDisconnect(removeEvents)
@@ -134,6 +136,7 @@ async function askDisconnect() {
   await nextTick()
   removeDialog.value?.querySelector('button')?.focus()
 }
+// Closes the disconnect question and returns focus to its button.
 async function cancelDisconnect() {
   askRemove.value = false
   await nextTick()

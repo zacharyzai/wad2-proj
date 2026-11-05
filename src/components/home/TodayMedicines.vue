@@ -1,10 +1,4 @@
-<!-- Owner: Asher. Home's "Today's medicines": a reminder for the one pill to take next, on a dark teal card. A bell
-     that rings whenever the greeting's capsule moves (and opens Schedule when tapped), its time, the pill and how much, its name and food, and one big
-     "I've taken it" when it is due. When several are due together, one shows at a time: tick it and the next one comes
-     (so one not taken is never ticked with another). Nothing due yet: what is next, and when. All taken: well done.
-     Under it, how many are taken today, and a gentle line for any earlier dose not ticked yet. The same size as the greeting
-     beside it on computers. Doses, ticks and words come from Schedule (src/rules/schedule.js, stores/doses.js,
-     schedule.*), so Home and Schedule always agree. A new reminder turns the card over (CSS 3D); still with reduced motion. -->
+<!-- Home card showing the next medicine to take today, with a tick button. -->
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
@@ -18,7 +12,7 @@ import { launch } from '../../composables/useCardLaunch'
 import { capsuleBeat } from '../../composables/useCapsuleBeat'
 
 const { medicines } = useMedicinesStore()
-// Today's ticks come from the same store as Schedule's Today (Week 11), so a tick on one shows on the other.
+// Today's ticks come from the same store as Schedule's Today, so a tick on one shows on the other.
 const dosesStore = useDosesStore()
 const { today, nowTime, taken, ready, busy: saving, loadError: failed } = storeToRefs(dosesStore)
 
@@ -88,6 +82,7 @@ const timeText = (hhmm) => {
 // "1 tablet", and "After food", each on its own line on the card.
 const amountOf = ({ count, unit }) =>
   count != null ? `${count} ${t(`unit.${unit ?? 'other'}`, count)}` : ''
+// "With food" / "before food" wording for a dose.
 const foodOf = ({ food }) => (food ? t(`food.${food}`) : '')
 // What it is for, beside the name: seniors know "for diabetes", not "Metformin". The words' own brackets become a dot, so there are
 // never brackets inside brackets.
@@ -99,6 +94,7 @@ function purposeOf(dose) {
 // "I've taken it" ticks the pill that is due. (Due means within the hour, so it is never "too early".) Shown at once;
 // if the account doesn't save it, the tick goes back and a short message says so.
 let savedTimer = 0
+// Ticks a dose as taken.
 async function take(dose) {
   if (taken.value.has(dose.id)) return
   const result = await dosesStore.toggle(dose, true)

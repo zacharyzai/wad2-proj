@@ -1,4 +1,4 @@
-// Owner: Lokesh. Schedule rules for the Schedule page and Google sync (src/rules/schedule.js). Entry shape: docs/google-contract.md.
+// Schedule rules for the Schedule page and Google sync (src/rules/schedule.js). Entry shape: docs/google-contract.md.
 import { test } from 'vitest'
 import assert from 'node:assert/strict'
 import {
@@ -415,6 +415,10 @@ test('timeStates: which dose times are done with, due now, or still to come', ()
   assert.equal(timeStates(['08:00', '08:30'], '08:00').join(' '), 'now now')
   assert.equal(timeStates(['08:00', '08:30'], '08:40').join(' '), 'earlier now')
   assert.deepEqual(timeStates([], '08:00'), [])
+  // A lone morning dose is missed once its 4 hours are up, without waiting for a later dose to be added.
+  assert.equal(timeStates(['08:00'], '11:59').join(' '), 'now')
+  assert.equal(timeStates(['08:00'], '12:00').join(' '), 'earlier')
+  assert.equal(timeStates(['22:00'], '23:59').join(' '), 'now') // a late dose lasts until midnight
 })
 
 test('tooEarly: more than 2 hours before the dose time', () => {
@@ -471,7 +475,7 @@ test('This week: Sunday to Saturday, one row per medicine and time; each day is 
   assert.deepEqual(
     week.rows.map((r) => [r.label, r.slot, r.cells.map((c) => c.state)]),
     [
-      ['Amlodipine 5 mg', 'morning', ['none', 'none', 'not', 'now', 'later', 'later', 'later']], // 8 am, not ticked at 2 pm: still "Take now", as on Today
+      ['Amlodipine 5 mg', 'morning', ['none', 'none', 'not', 'not', 'later', 'later', 'later']], // 8 am, not ticked at 2 pm: missed (past its 4 hours), as on Today
       ['Metformin 500 mg', 'morning', ['none', 'none', 'ok', 'ok', 'later', 'later', 'later']],
       ['Metformin 500 mg', 'bedtime', ['none', 'none', 'not', 'later', 'later', 'later', 'later']], // tonight's 9 pm hasn't come yet
     ],
@@ -481,6 +485,7 @@ test('This week: Sunday to Saturday, one row per medicine and time; each day is 
     [
       ['2026-10-27', 'm2-morning'],
       ['2026-10-27', 'm1-bedtime'],
+      ['2026-10-28', 'm2-morning'], // today's 8 am, missed
     ],
   )
   assert.equal(week.anyPassed, true)

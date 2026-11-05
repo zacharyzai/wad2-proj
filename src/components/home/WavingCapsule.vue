@@ -1,8 +1,4 @@
-<!-- Owner: Asher. The capsule from the log-out pop-up (LeaveDialog.vue), alive on Home. It turns towards you in 3D as it
-     arrives and waves three times. After that it breathes gently, and every few seconds does one thing on its own, picked
-     at random (never the same twice in a row): blinks, looks around, hops, wiggles, turns round, stretches, or waves.
-     A tap makes it wave hello, with a hop and happy eyes. It only moves while it can be seen: not on another page, not in
-     a hidden tab. Decoration (aria-hidden): the greeting beside it says hello in words. Reduced motion: it stands still. -->
+<!-- The animated capsule mascot on Home. -->
 <script setup>
 import { onBeforeUnmount, onMounted, ref, useId } from 'vue'
 import { capsuleBeat } from '../../composables/useCapsuleBeat'
@@ -24,10 +20,12 @@ const action = ref('')
 // Each new action redraws its moving parts (a new key), so the same animation can run again from the start.
 const take = ref(0)
 
+// True when the user prefers reduced motion.
 const still = () => matchMedia('(prefers-reduced-motion: reduce)').matches
 let timer = 0
 let last = ''
 
+// Plays one capsule animation for `ms` milliseconds, then returns to idle.
 function play(name, ms) {
   clearTimeout(timer)
   action.value = name

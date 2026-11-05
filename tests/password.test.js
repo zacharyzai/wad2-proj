@@ -1,5 +1,6 @@
+// Tests for the password rules.
 import { describe, expect, test } from 'vitest'
-import { passwordChecks, passwordOk } from './password.js'
+import { passwordChecks, passwordOk } from '../src/rules/password.js'
 
 describe('a new password', () => {
   test('meets every rule: long enough, letters and numbers, a special character', () => {

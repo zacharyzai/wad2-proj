@@ -1,4 +1,4 @@
-/* Scoped styles for HomeView.vue. Phones: one column (greeting, Today's medicines, choices, last bill). Desktop: a grid. */
+/* Styles for the Home page. */
 .home {
   gap: 16px;
   position: relative;

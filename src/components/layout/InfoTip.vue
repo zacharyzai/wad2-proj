@@ -1,7 +1,4 @@
-<!-- A small "i" button that keeps a line of help out of the way until it is wanted. Mouse: hover shows it, click keeps it open.
-     Touch and keyboard: tap or Enter/Space toggles. Esc, or a tap anywhere else, closes it. The text is also the described-by
-     of whatever `id` points at, so a screen reader reads it with the field. The text opens across the nearest positioned
-     ancestor (give the row it belongs to `position: relative`), so it never runs off a narrow screen. -->
+<!-- Small "i" button that opens a short explanation on hover or tap. -->
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import AppIcon from './AppIcon.vue'
@@ -17,8 +14,11 @@ const pinned = ref(false) // opened by a click, tap or key
 const hovering = ref(false) // a mouse is over it (never set by touch, where hover would fire on the same tap)
 const open = computed(() => pinned.value || hovering.value)
 
+// Shows the tip on mouse hover only (touch uses tap).
 const onEnter = (e) => (hovering.value = e.pointerType === 'mouse')
+// Hides the hover tip.
 const onLeave = () => (hovering.value = false)
+// A tap outside the tip closes a pinned tip.
 const closeOutside = (e) => {
   if (!root.value?.contains(e.target)) pinned.value = false
 }

@@ -1,4 +1,4 @@
-/* Scoped styles for ConfirmField.vue. A flagged field becomes an amber box with a "Please check" badge. */
+/* Styles for a Confirm field. */
 .field-row {
   position: relative;
   display: flex;

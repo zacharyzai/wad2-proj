@@ -1,6 +1,4 @@
-<!-- Owner: Asher (moved here from ScanView when merging into the split Scan screens, declared in README.txt). Scan, a bill
-     photographed page by page: the pages so far, each with its own check, and one question: "Does this bill have another
-     page?". ScanView keeps the pages and does the work; every button is an emit. -->
+<!-- List of pages taken for one scan, with retake, add and remove. -->
 <script setup>
 import { computed, nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -16,6 +14,7 @@ const props = defineProps({
 const emit = defineEmits(['retake', 'anyway', 'remove', 'add', 'done', 'cancel', 'keep', 'throw'])
 const { t, locale } = useI18n()
 
+// True when a page has a photo problem the user has not accepted.
 const shotBad = (s) => s.problem !== null && s.problem !== 'checking' && !s.anyway
 const badPages = computed(() => props.shots.flatMap((s, i) => (shotBad(s) ? [i + 1] : [])))
 const checking = computed(() => props.shots.some((s) => s.problem === 'checking'))
